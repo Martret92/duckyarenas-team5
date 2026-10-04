@@ -61,6 +61,11 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
+# Generated static files and local uploads (future Django setup)
+/staticfiles/
+/media/
 
 # Flask stuff:
 instance/
@@ -151,6 +156,9 @@ activemq-data/
 
 # Environments
 .env
+.env.*
+!.env.example
+!.env.*.example
 .envrc
 .venv
 env/
