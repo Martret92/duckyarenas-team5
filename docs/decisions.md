@@ -23,20 +23,29 @@ el Equipo 5 y el Equipo 0; no implica que ese contrato esté ya decidido.
 | D-03 | `develop` será la rama de integración del Equipo 5. | Contexto confirmado por el equipo en esta tarea. |
 | D-04 | Usar ramas `feature/*`, `fix/*` y `docs/*` para el trabajo futuro. | Contexto confirmado por el equipo en esta tarea. |
 | D-05 | El Equipo 0 es responsable del User, la autenticación y la integración global; el Equipo 5 no creará un User propio. | Contexto confirmado por el equipo en esta tarea. |
-| D-06 | Limitar esta fase a la configuración documental del repositorio, sin implementar Django ni añadir dependencias. | Instrucción del equipo para esta tarea. |
-| D-07 | Esperar y revisar el documento de decisiones de clase antes de fijar modelos, contratos de recompensas, reglas de XP o arquitectura funcional definitiva. | Instrucción del equipo para esta tarea. |
+| D-06 | Limitar el setup inicial a la configuración documental del repositorio, sin implementar Django ni añadir dependencias en aquella fase. | Instrucción del equipo para el setup inicial. |
+| D-07 | Esperar las decisiones de clase antes de fijar modelos de dominio, contratos de recompensas, reglas de XP o arquitectura funcional definitiva. | Instrucción del equipo para el setup inicial; la estructura base de perfiles se confirma posteriormente en D-09 a D-12. |
+| D-08 | Crear el bootstrap Django en `config` y la app provisional `ecomotor`, con Django 5.2.17, sin lógica de dominio. | Bootstrap aprobado e integrado por el equipo en el PR #1. |
+| D-09 | Crear la app Django `users` y utilizar el User estándar de Django, sin User propio, sin heredar de `AbstractUser` y sin cambiar `AUTH_USER_MODEL`. | Decisión tomada en clase con el profesor, comunicada por el equipo el 5 de octubre de 2026. |
+| D-10 | El profesor integrará posteriormente login, autenticación y User global. | Decisión tomada en clase con el profesor, comunicada por el equipo el 5 de octubre de 2026. |
+| D-11 | Centralizar los perfiles específicos de cada ámbito en `users/models.py`, relacionados con `settings.AUTH_USER_MODEL` mediante `OneToOneField` y `on_delete=models.CASCADE`. | Decisión tomada en clase con el profesor, comunicada por el equipo el 5 de octubre de 2026; parámetros de relación confirmados para esta tarea. |
+| D-12 | Crear inicialmente `UserProfileEcomotor` y `UserProfileBank`, sin campos de negocio ni signals de creación automática. | Perfiles confirmados en clase con el profesor; límites de implementación indicados por el equipo para esta tarea. |
 
-Estas decisiones se registran como contexto de trabajo. Su documentación no
-implica que ya existan ramas, protecciones, contratos o mecanismos de integración.
+Las decisiones conservan su procedencia y el alcance de cada fase. El bootstrap
+ya está integrado; esta fase incorpora `users`, los dos perfiles y su migración
+inicial. No se han definido contratos de recompensas ni mecanismos de integración
+global por el mero hecho de documentarlos.
 
 La responsabilidad del Equipo 0 también aparece en DAR3, sección 4 (página 38)
-y sección 10 (página 51). Las propuestas de perfiles y relaciones del PDF no
-se convierten en modelos aprobados: prevalece la instrucción de no crear un
-User propio y esperar el documento de clase para definir la integración.
+y sección 10 (página 51). La estructura de perfiles se basa en los nuevos acuerdos
+de clase D-09 a D-12, no en adoptar automáticamente los modelos propuestos en el
+PDF. Se mantiene la responsabilidad del profesor sobre la integración global.
 
 ## 3. Decisiones todavía pendientes
 
 Las cuestiones sin resolver están en [pending-decisions.md](pending-decisions.md).
-Cuando llegue el documento de clase, se contrastará con este registro y se
-incorporarán los acuerdos confirmados indicando su fuente. Hasta entonces, las
-cuestiones pendientes no deben tratarse como decisiones aprobadas.
+Los campos concretos de `UserProfileEcomotor` y `UserProfileBank` siguen pendientes.
+XP, DuckyCoins y demás lógica de negocio todavía no se han decidido. Cuando llegue
+la documentación restante de clase, se contrastará con este registro y se
+incorporarán los acuerdos confirmados indicando su fuente. Las cuestiones
+pendientes no deben tratarse como decisiones aprobadas.

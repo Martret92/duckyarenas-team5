@@ -1,6 +1,7 @@
 # Arquitectura: alcance y límites
 
-Estado: documentación inicial. No define una arquitectura funcional definitiva.
+Estado: bootstrap Django y estructura de perfiles confirmada en clase.
+No define una arquitectura funcional definitiva.
 
 ## 1. Requisitos procedentes de DAR3
 
@@ -25,8 +26,9 @@ el catálogo de épocas y piezas corresponde al Equipo 5. El documento enumera
 información mínima a intercambiar, pero esta preparación no define una API,
 una firma de función ni un esquema de datos definitivo.
 
-Estos son requisitos para el trabajo futuro. No se crean modelos, endpoints,
-apps Django ni despliegues, y no se adoptan las propuestas técnicas del PDF.
+Estos son requisitos para el trabajo futuro. Las decisiones de clase que se
+recogen a continuación solo concretan la estructura base de usuarios y perfiles;
+no se adoptan las propuestas técnicas de dominio del PDF.
 
 ## 2. Decisiones confirmadas del profesor y del equipo
 
@@ -34,20 +36,34 @@ El profesor ha indicado que cada equipo trabajará inicialmente en un repositori
 independiente y que posteriormente se integrará en el repositorio común del Equipo 0.
 
 El Equipo 0 es responsable del User, la autenticación y la integración global.
-El Equipo 5 no creará un User propio. La forma de referenciar o consumir esa
-identidad se decidirá cuando estén disponibles las decisiones de clase y la
-coordinación correspondiente.
+En la reunión con el profesor, comunicada por el equipo el 5 de octubre de 2026,
+se confirmó crear la app Django `users` y seguir utilizando el User estándar de
+Django. No se crea un User propio, no se hereda de `AbstractUser` y no se modifica
+`AUTH_USER_MODEL`. El profesor integrará posteriormente autenticación, login y
+User global.
+
+Los datos específicos de cada ámbito se conectan al usuario mediante perfiles
+con `OneToOneField`, centralizados en `users/models.py`. Para el Equipo 5 se
+confirman `UserProfileEcomotor` y `UserProfileBank`. Cada uno contiene únicamente
+su identificador automático y una relación `user` con `settings.AUTH_USER_MODEL`
+y `on_delete=models.CASCADE`. Esto permite un perfil de cada tipo por usuario.
+No se generan perfiles automáticamente mediante signals.
 
 `main` representa estados estables y `develop` será la rama de integración del
 Equipo 5. Las ramas futuras usarán `feature/*`, `fix/*` o `docs/*` según el trabajo.
 
-La preparación actual se limita al README, las reglas de exclusión de Git y esta
-documentación. No incorpora dependencias ni estructura de aplicación.
+El repositorio contiene el proyecto Django con configuración en `config`, la app
+provisional `ecomotor` y la app `users` registrada en `INSTALLED_APPS`. Esta fase
+añade la migración inicial de los dos perfiles y tests de creación y unicidad,
+sin implementar autenticación ni lógica de dominio.
 
 ## 3. Decisiones pendientes
 
-Quedan pendientes la estructura funcional, los modelos y sus relaciones, los
-contratos de recompensas, las reglas de XP y los mecanismos de integración.
+Quedan pendientes los campos concretos de `UserProfileEcomotor` y
+`UserProfileBank`, los demás modelos de dominio, la estructura funcional, los
+contratos de recompensas y los mecanismos de integración. Las reglas de XP,
+DuckyCoins, nivel, evolución, wallet y demás lógica de negocio todavía no se
+han decidido ni implementado. DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija la estructura definitiva de estos perfiles ni todos los campos y parámetros concretos.
 La existencia de un servicio común de recompensas no determina por sí sola su
 implementación ni su forma de comunicación.
 
@@ -56,5 +72,6 @@ modelos y funciones concretas (por ejemplo, páginas 19-31), además del reparto
 de la sección 9. Esas diferencias se contrastarán con el documento de clase;
 no se trasladan como acuerdos definitivos a este repositorio.
 
-Antes de concretarlos, se revisará el documento pendiente que recoge lo acordado
-en clase con el profesor. Véase [el registro de cuestiones pendientes](pending-decisions.md).
+Los acuerdos de estructura de perfiles ya comunicados se aplican en esta fase.
+Para concretar el dominio se espera la documentación restante y los acuerdos con
+el profesor. Véase [el registro de cuestiones pendientes](pending-decisions.md).

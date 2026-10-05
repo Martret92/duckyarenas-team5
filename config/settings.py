@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ecomotor.apps.EcomotorConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
