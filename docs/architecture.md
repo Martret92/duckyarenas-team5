@@ -41,9 +41,17 @@ definitivos; las tablas y datos oficiales pendientes se solicitarán al profesor
 El proyecto Django utiliza el paquete de configuración `config`. Están
 registradas las apps `ecomotor`, todavía provisional, y `users`.
 
+Ambas se alojan físicamente bajo `apps/`. Sus rutas Python canónicas son
+`apps.ecomotor` y `apps.users`, con los `AppConfig` registrados como
+`apps.ecomotor.apps.EcomotorConfig` y `apps.users.apps.UsersConfig`.
+Los labels Django se conservan expresamente como `ecomotor` y `users` (D-18).
+`settings.py` incorpora `apps/` al path mediante
+`sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))`, según la adaptación de PR07.
+Los imports del proyecto deben utilizar las rutas canónicas `apps.*`.
+
 Según lo acordado en clase con el profesor, `users` utiliza el User estándar de
 Django, sin User personalizado ni herencia de `AbstractUser`. Los perfiles
-específicos del Equipo 5 se centralizan en `users/models.py`: inicialmente
+específicos del Equipo 5 se centralizan ahora en `apps/users/models.py`: inicialmente
 `UserProfileEcomotor` y `UserProfileBank`, relacionados uno a uno con el usuario
 (D-09 y D-11).
 
@@ -161,9 +169,16 @@ fuente funcional principal. PR07 complementa el proyecto con requisitos y criter
 evaluación; no sustituye automáticamente los acuerdos de clase ni decide la
 arquitectura funcional del Equipo 5.
 
-PR07 sitúa las aplicaciones bajo `apps/` (páginas 4-6). Actualmente `ecomotor/`
-y `users/` están en raíz. Su reorganización es una adaptación técnica pendiente;
-este PR documental no mueve apps ni cambia configuración, modelos o migraciones.
+PR07 sitúa las aplicaciones bajo `apps/` (páginas 4-6). La adaptación física de
+`ecomotor` y `users` ya está completada, preservando sin cambios el contenido de
+modelos y migraciones existentes y la identidad Django de ambas apps (D-18).
+
+La parte estructural y técnica del Día 1 aplicable a este repositorio queda
+completada y validada: `config/`, `apps/`, `requirements.txt` y `.gitignore`;
+`check` sin incidencias, cuatro tests correctos, comprobación de migraciones
+con `No changes detected` y servidor arrancando con respuesta HTTP 200.
+Esto no resuelve CustomUser/auth bajo D-17 ni completa el Día 2. El siguiente
+paso antes del ORM de dominio sigue siendo revisar el ERD y diccionario de datos.
 
 Antes de implementar nuevos modelos, PR07 pide un ERD y un diccionario de datos,
 con entidades, cardinalidades y reglas `on_delete` documentadas (página 5).

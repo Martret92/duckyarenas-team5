@@ -43,11 +43,14 @@ del ORM; cardinalidades y reglas `on_delete`; modelos y migraciones; Admin;
 URLs, vistas, templates, navegación, listados, detalles, formularios y CRUD;
 permisos, seguridad y tests; evidencias Git y PR (páginas 4-11 y 17).
 
-La adaptación física desde `ecomotor/` y `users/` en raíz a `apps/` se realizará
-en un PR técnico separado, antes del diseño conceptual y de implementar nuevos
-modelos o migraciones de dominio. Después, el ERD y diccionario deberán estar
-revisados antes del ORM. Este PR actual solo documenta ese orden; no modifica
-la estructura física.
+La adaptación física a `apps/` ya está completada y validada (D-18). Las rutas
+Python canónicas son `apps.ecomotor` y `apps.users`; los labels Django siguen
+siendo `ecomotor` y `users`. Se preservaron los modelos y migraciones existentes.
+La parte estructural y técnica aplicable del Día 1 queda completada: `config/`,
+`apps/`, `requirements.txt`, `.gitignore`, `check` correcto, cuatro tests correctos,
+sin nuevas migraciones y servidor con HTTP 200. CustomUser/auth sigue pendiente
+bajo D-17. El siguiente paso es diseño conceptual, ERD y diccionario revisados
+antes del ORM de dominio; el Día 2 no está completado.
 El CRUD de al menos dos entidades principales exigido por PR07 debe concretarse
 con el profesor. No implica permitir modificaciones arbitrarias de XP,
 evolución o registros financieros al margen de sus operaciones de dominio.
@@ -217,13 +220,14 @@ no autoriza a dar por definitivos asuntos abiertos en D-07.
 El orden H1–H6 es una propuesta de ejecución adaptada al diseño previo al ORM
 de PR07. A/B/C pueden avanzar en paralelo tras acordar las operaciones que
 conectan sus dominios, sin saltarse la revisión del diseño. Los hitos no fijan fechas.
-H0 describe la base inicial completada, no el cumplimiento de toda PR07: siguen
-pendientes la adaptación a `apps/` y la aclaración de usuarios y autenticación.
+H0 incluye la adaptación a `apps/` ya validada, no el cumplimiento de toda PR07.
+Siguen pendientes el diseño documentado previo al ORM y la aclaración de usuarios
+y autenticación bajo D-17.
 
 | Hito | Entregable y dependencias |
 | --- | --- |
-| H0 · Base | Completado: repositorio, bootstrap, `users`, `ecomotor`, perfiles base y documentación inicial. |
-| H1 · Diseño conceptual y documentación | Primero, adaptar físicamente las apps a `apps/` en un PR técnico separado; después, revisar ERD y diccionario antes de nuevos modelos; entidades, cardinalidades, restricciones y reglas `on_delete`. A: documentar A-01…A-16 e incorporar ERD/diccionario revisados, sin reconstruir su contenido. B: catálogo, sets, inventario, equipamiento y consumibles/cantidades. C: wallet, transacciones, tienda y compra. Compartido: revisar Rewards v0, contratos internos e idempotencia. |
+| H0 · Base | Completado: repositorio, bootstrap, `users` y `ecomotor` bajo `apps/`, perfiles base, documentación inicial y parte estructural/técnica aplicable del Día 1 validada. D-17 sigue pendiente de aclaración. |
+| H1 · Diseño conceptual y documentación | Pendiente: diseño conceptual, ERD y diccionario revisados antes de nuevos modelos; entidades, cardinalidades, restricciones y reglas `on_delete`. A: documentar A-01…A-16 e incorporar ERD/diccionario revisados, sin reconstruir su contenido. B: diseñar catálogo, sets, inventario, equipamiento y consumibles/cantidades, con ERD/diccionario revisados antes del ORM. C: diseñar wallet, transacciones, tienda y compra, con ERD/diccionario revisados antes del ORM. Compartido: revisar Rewards v0, contratos internos e idempotencia. |
 | H2 · Modelos y servicios de dominio | Con la adaptación a `apps/` completada y el ERD y diccionario de H1 revisados, implementar nuevos modelos y migraciones de dominio en PR posteriores. A: concesión de XP (grant XP), progreso y evolución, con la base de especializaciones de su diseño documentado. B: conceder sets, equipar, inventario y cantidades. C: ingresos, gastos y compra. Consumir las operaciones acordadas y probar sus reglas. No cambiar User/auth sin aclaración. |
 | H3 · Admin, interfaz y vertical mínima | Registrar modelos principales en Admin después de H2. Preparar URLs, vistas, templates, navegación, listados, detalles y formularios con permisos desde el inicio. Actividad simulada → XP + monedas → evolución → nuevo set → compra de consumible → inventario. Para demo bastan Prehistoria, Grecia y Roma, como contempla DAR3; el recorrido con consumible incorpora las aclaraciones de clase. |
 | H4 · CRUD, historial y Museo | Completar CRUD evaluable de al menos dos entidades principales, una vez concretado su alcance, con validación en servidor y permisos. A: historial XP/evolución. B: sets históricos y apariencia/Museo. C: historial DuckyBank. Depende de los estados, eventos e interfaz de H2–H3; el CRUD respeta las operaciones de dominio. |
