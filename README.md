@@ -43,6 +43,7 @@ contratos de recompensas, reglas de XP ni arquitectura funcional definitiva.
 
 ## Documentación
 
-- [Arquitectura: alcance y límites confirmados](docs/architecture.md).
-- [Decisiones confirmadas y procedencia](docs/decisions.md).
+- [Arquitectura: alcance y límites](docs/architecture.md).
+- [Registro de decisiones](docs/decisions.md).
 - [Decisiones pendientes](docs/pending-decisions.md).
+- [Plan de trabajo del Equipo 5](docs/team5-work-plan.md): plan operativo, reparto propuesto, hitos, dependencias y backlog del Equipo 5.

@@ -60,7 +60,45 @@ No hay todavía lógica de XP, épocas, evolución, recompensas, inventario ni e
 Los acuerdos confirmados y las decisiones técnicas se registran en
 [decisions.md](decisions.md).
 
-## 3. Propuestas arquitectónicas pendientes de validación
+## 3. Aclaraciones funcionales conocidas de clase
+
+Las siguientes reglas proceden de las aclaraciones de clase y la información
+funcional disponible. No son citas textuales de DAR3 cuando este no las detalla.
+
+El progreso histórico comprende los niveles 1–9: Prehistoria, Grecia, Roma,
+Edad Media, Renacimiento, Revolución Industrial, Siglo XX, Era Espacial y Era
+Digital. El usuario comienza en Prehistoria. La XP histórica es acumulativa y no
+se gasta; una barra visual puede mostrar progreso relativo hacia el siguiente
+nivel sin sustituir ni reducir esa XP. Los umbrales oficiales siguen pendientes.
+
+Cada época tiene seis piezas principales. Al iniciar el juego se conceden y
+equipan las seis de Prehistoria. Al evolucionar se conceden juntas las seis de
+la nueva época y se equipa automáticamente ese set. Los sets anteriores se
+conservan y pueden reequiparse libremente: la apariencia es independiente de
+la época real y del progreso. Las piezas históricas no se compran con DuckyCoins.
+
+Si una concesión de XP cruza varios umbrales, deben procesarse y registrarse todas
+las evoluciones intermedias y concederse todos sus sets. Queda equipado el set
+de la época más avanzada alcanzada, sin omitir el historial intermedio.
+
+El progreso por especialización se separa del histórico. Tras Era Digital se
+puede elegir Developer, Ciberseguridad, AdminSys, Gamer o Data & AI. Cada una
+conserva su rango independiente (Inicial, Junior, Middle, Senior, Master).
+Cambiar de especialización volviendo al punto de Era Digital no elimina XP
+histórica ni progreso previo. La especialización activa y sus rangos no deben
+tratarse como una continuación obligatoria del nivel histórico. Siguen pendientes
+la XP de dominio, los requisitos de rangos y la transición técnica del cambio.
+
+Los sets históricos son permanentes y distintos de los objetos de combate.
+Estos últimos son consumibles comprados con DuckyCoins y admiten múltiples
+unidades; se conocen inicialmente tres de ataque y tres de defensa. Efectos,
+precios y utilización concreta por cada juego siguen pendientes.
+Los modelos Django que representen estas reglas aún deben diseñarse.
+
+El recorrido operativo, los hitos y las dependencias están en
+[team5-work-plan.md](team5-work-plan.md), como propuesta para revisión conjunta.
+
+## 4. Propuestas arquitectónicas pendientes de validación
 
 D-13 a D-16 son propuestas internas pendientes de validación por los tres
 integrantes del Equipo 5, incluida la confirmación con Félix y Henry.
@@ -105,11 +143,12 @@ como umbrales y cantidades de recompensa, por datos oficiales sin modificar
 la lógica de negocio. Si el profesor cambia también las reglas funcionales,
 se revisaría la arquitectura correspondiente.
 
-## 4. Límites todavía sin resolver
+## 5. Límites todavía sin resolver
 
 DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija
 la estructura definitiva de los perfiles ni todos sus campos y parámetros.
-Siguen pendientes los modelos internos, las reglas concretas de dominio, los
+Siguen pendientes los modelos internos y las reglas no resueltas por las
+aclaraciones funcionales anteriores, así como los
 datos oficiales, el contrato de recompensas y su integración. La existencia de
 un servicio común no determina su implementación ni su forma de comunicación.
 
