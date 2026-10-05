@@ -1,7 +1,8 @@
 # Arquitectura: alcance y límites
 
 El proyecto tiene una estructura base de usuarios y perfiles, sin lógica de
-dominio ni arquitectura funcional definitiva.
+dominio implementada. Parte A dispone de una arquitectura interna V1 aceptada;
+su detalle y los contratos compartidos aún no están documentados o validados aquí.
 
 ## 1. Requisitos procedentes de DAR3
 
@@ -60,6 +61,13 @@ No hay todavía lógica de XP, épocas, evolución, recompensas, inventario ni e
 Los acuerdos confirmados y las decisiones técnicas se registran en
 [decisions.md](decisions.md).
 
+Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.
+Su contenido no está disponible en este repositorio y no se reconstruye en este
+documento. Se documentará desde «01 · Ecomotor y evolución»; su ERD revisado y
+diccionario de datos se incorporarán en un PR documental posterior, antes de
+implementar nuevos modelos. Esta aceptación interna no aprueba los contratos
+compartidos con B/C ni Rewards, que requieren validación conjunta.
+
 ## 3. Aclaraciones funcionales conocidas de clase
 
 Las siguientes reglas proceden de las aclaraciones de clase y la información
@@ -93,7 +101,9 @@ Los sets históricos son permanentes y distintos de los objetos de combate.
 Estos últimos son consumibles comprados con DuckyCoins y admiten múltiples
 unidades; se conocen inicialmente tres de ataque y tres de defensa. Efectos,
 precios y utilización concreta por cada juego siguen pendientes.
-Los modelos Django que representen estas reglas aún deben diseñarse.
+El diseño interno V1 de Parte A está aceptado, pendiente de documentar en detalle.
+Los modelos concretos del conjunto del proyecto y sus contratos compartidos no
+se dan por definidos mediante estas aclaraciones.
 
 El recorrido operativo, los hitos y las dependencias están en
 [team5-work-plan.md](team5-work-plan.md), como propuesta para revisión conjunta.
@@ -143,12 +153,51 @@ como umbrales y cantidades de recompensa, por datos oficiales sin modificar
 la lógica de negocio. Si el profesor cambia también las reglas funcionales,
 se revisaría la arquitectura correspondiente.
 
-## 5. Límites todavía sin resolver
+## 5. Impacto de PR07: estructura, proceso y evaluación
+
+Fuente directa: Documento PR07 · Ciclo de vida de una aplicación web, facilitado
+por el profesor (17 páginas), no copiado al repositorio. DAR3 sigue siendo la
+fuente funcional principal. PR07 complementa el proyecto con requisitos y criterios de estructura, proceso, entregables y
+evaluación; no sustituye automáticamente los acuerdos de clase ni decide la
+arquitectura funcional del Equipo 5.
+
+PR07 sitúa las aplicaciones bajo `apps/` (páginas 4-6). Actualmente `ecomotor/`
+y `users/` están en raíz. Su reorganización es una adaptación técnica pendiente;
+este PR documental no mueve apps ni cambia configuración, modelos o migraciones.
+
+Antes de implementar nuevos modelos, PR07 pide un ERD y un diccionario de datos,
+con entidades, cardinalidades y reglas `on_delete` documentadas (página 5).
+Después contempla modelos y migraciones, registro de modelos principales en
+Admin, URLs y vistas, templates y navegación, listados y detalles, formularios
+y CRUD de al menos dos entidades principales (páginas 6-9). El alcance concreto
+del CRUD evaluable debe aclararse con el profesor, sin suponer que autoriza a
+editar directamente estados derivados o historiales de dominio.
+
+Incluye permisos, seguridad y tests, así como evidencia mediante Git y PR y
+aportaciones identificables de cada integrante (páginas 10-11 y 17). Estos trabajos
+se incorporan al [plan operativo](team5-work-plan.md), sin implementarlos aquí.
+
+### Contradicción sobre usuarios y autenticación
+
+El plan detallado de PR07 pide `apps/users`, extender `AbstractUser`, configurar
+`AUTH_USER_MODEL` e implementar registro, login y logout (página 5). Esto contradice
+D-09 y D-10. El resumen inicial menciona el usuario personalizado de forma
+condicional (página 1), por lo que tampoco resuelve por sí solo esa contradicción.
+
+Hasta aclararlo con el profesor se mantienen D-09 y D-10: User estándar, sin
+CustomUser ni autenticación local. No se cambia `AUTH_USER_MODEL` ni se modifican
+migraciones. Cualquier cambio posterior se registrará como nueva decisión.
+También debe aclararse si los 15 días y sus entregables Git son un calendario
+literal obligatorio o una guía/rúbrica: PR07 utiliza ambas formulaciones.
+Las preguntas se recogen en [pending-decisions.md](pending-decisions.md).
+
+## 6. Límites todavía sin resolver
 
 DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija
 la estructura definitiva de los perfiles ni todos sus campos y parámetros.
-Siguen pendientes los modelos internos y las reglas no resueltas por las
-aclaraciones funcionales anteriores, así como los
+Falta documentar el diseño interno aceptado de Parte A e incorporar su ERD
+revisado. Siguen pendientes los diseños no aceptados y los contratos compartidos,
+las reglas no resueltas por las aclaraciones funcionales anteriores, así como los
 datos oficiales, el contrato de recompensas y su integración. La existencia de
 un servicio común no determina su implementación ni su forma de comunicación.
 
@@ -159,9 +208,9 @@ no constituyen requisitos oficiales ni decisiones aprobadas mientras no se
 registren como tales.
 
 La arquitectura interna corresponde al Equipo 5 y puede seguir diseñándose.
-Debe respetar DAR3, las aclaraciones funcionales conocidas y las necesidades de
-integración. No se considera fijada todavía una estructura definitiva de apps,
-modelos, campos ni un contrato técnico de Rewards.
+Debe respetar DAR3, las aclaraciones funcionales conocidas, los condicionantes
+de PR07 y las necesidades de integración. La aceptación interna V1 de Parte A
+no fija por sí sola la estructura del conjunto ni un contrato técnico de Rewards.
 
 Las cuestiones abiertas se mantienen en
 [pending-decisions.md](pending-decisions.md).
