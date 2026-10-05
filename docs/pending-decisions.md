@@ -1,44 +1,83 @@
 # Decisiones pendientes
 
-Estado: pendientes de revisar el documento de un integrante del equipo que
-recoge las decisiones tomadas en clase con el profesor.
+Este documento reúne solo cuestiones abiertas. La estructura base de usuarios
+y perfiles está resuelta en D-09 a D-12 del
+[registro de decisiones](decisions.md). El alcance de DAR3 y la estructura
+actual se describen en [architecture.md](architecture.md).
 
-## 1. Requisitos procedentes de DAR3
+## 1. Propuestas pendientes de validación
 
-El alcance del Equipo 5 comprende Ecomotor y evolución, avatar e inventario,
-Ecommerce y DuckyBank, y el servicio común de recompensas: DAR3, sección 9
-(páginas 48-50). Fuente consultada: `DAR3_ (1).pdf`, facilitado por el equipo
-y no copiado al repositorio. Los requisitos se resumen en
-[architecture.md](architecture.md).
+D-13 a D-16 requieren validación por los tres integrantes del Equipo 5, incluida
+la confirmación con Félix y Henry:
 
-## 2. Decisiones ya confirmadas
+- **D-13:** reparto de responsabilidades A/B/C: Jaime, Félix y Henry, respectivamente.
+- **D-14:** responsabilidad compartida de recompensas, coordinación inicial desde A
+  y operaciones de inventario y economía proporcionadas por B y C.
+- **D-15:** fronteras iniciales entre A/B/C y orquestación sin duplicar lógica.
+- **D-16:** política de datos provisionales, identificados y separados de la lógica,
+  sin números mágicos y con datos propios de tests. Sustitución de parámetros por
+  datos oficiales y revisión de arquitectura si cambian las reglas funcionales.
 
-El trabajo empieza en repositorios independientes y después se integra en el
-repositorio común del Equipo 0. `main` representa estados estables, `develop`
-será la integración del Equipo 5 y se usarán ramas `feature/*`, `fix/*` y `docs/*`.
-El User, la autenticación y la integración global corresponden al Equipo 0;
-el Equipo 5 no creará un User propio.
+El contenido completo de las propuestas está en [decisions.md](decisions.md).
+El [plan de trabajo](team5-work-plan.md) propone además hitos, backlog, autonomía
+y revisión conjunta. Su validación no está implícita en la documentación del plan.
 
-Esta fase solo prepara documentación y exclusiones de Git. El registro completo
-de decisiones y su procedencia está en [decisions.md](decisions.md).
+## 2. Arquitectura de dominio por diseñar por el Equipo 5
 
-## 3. Cuestiones todavía pendientes
+Las reglas funcionales conocidas están en [architecture.md](architecture.md).
+Ya están aclarados el progreso histórico 1–9, la XP acumulativa que no se gasta
+y su separación de la barra visual; el set inicial de Prehistoria, la concesión
+conjunta de seis piezas, el equipamiento automático, la conservación y
+reutilización de sets sin cambiar progreso; las evoluciones múltiples; la
+separación y conservación del progreso por especialización y la posibilidad de
+cambiarla; y la separación de sets históricos y consumibles con cantidades.
+No se mantienen estas reglas como preguntas abiertas.
 
-Las siguientes cuestiones son puntos por aclarar, no propuestas aprobadas:
+Corresponde al Equipo 5 diseñar y revisar las siguientes decisiones técnicas,
+sin esperar modelos concretos del profesor ni tratarlas como bloqueos externos:
 
-| Cuestión | Qué falta confirmar |
-| --- | --- |
-| Documento de clase | Recibirlo y revisar los acuerdos recogidos con el profesor. |
-| Discrepancias de DAR3 | Contrastar los planes anteriores del PDF y sus referencias a otros repartos con las secciones 9 y 10 y los acuerdos de clase. |
-| Arquitectura funcional | Organización de las áreas y sus límites de implementación. |
-| Modelos | Entidades, relaciones y restricciones de las áreas del Equipo 5. |
-| Identidad y autenticación | Forma de integrar las áreas del Equipo 5 con el User y la autenticación a cargo del Equipo 0. |
-| Recompensas | Acordar con el Equipo 0 el contrato del servicio y con los equipos 1 a 4 los resultados de entrada, conforme a la sección 10; concretar formatos, validación de origen y prevención de duplicados. |
-| XP y evolución | Valores, umbrales y reglas concretas de XP, recompensas, épocas, piezas y evolución; DAR3 exige estas capacidades, pero aquí no se fijan sus parámetros. |
-| Integración en Equipo 0 | Procedimiento y acuerdos técnicos para incorporar el trabajo al repositorio común. |
-| Entorno de desarrollo | Versiones, dependencias y configuración necesarias cuando se autorice la implementación. |
+- Modelo Django del XP acumulado e historial, su ubicación y relación con perfiles.
+- Modelos de épocas, época actual e historial de evolución, incluidos los eventos
+  de evoluciones múltiples.
+- Modelos de catálogo, sets, piezas, inventario, equipamiento y cantidades de consumibles.
+- Modelos de wallet, transacciones, catálogo comercial, tienda y compras.
+- Representación separada de especialización activa y progreso/rango conservado
+  de cada especialización; operación para volver al punto de Era Digital y cambiarla.
+- Campos concretos de `UserProfileEcomotor` y `UserProfileBank`, y los demás
+  modelos, relaciones y restricciones que no estén cubiertos por los puntos anteriores.
+- Contratos internos A/B/C, consistencia entre operaciones y mecanismo técnico
+  de idempotencia, para revisión conjunta durante la arquitectura.
 
-No se fijan valores de XP, formatos de contratos, esquemas de datos ni soluciones
-técnicas para estas cuestiones. Tras revisar el documento de clase, se registrarán
-los acuerdos confirmados y su procedencia en [decisions.md](decisions.md), y se
-actualizará [architecture.md](architecture.md) cuando corresponda.
+### Reglas funcionales todavía abiertas
+
+- Reglas de XP de dominio y requisitos/umbrales para progresar desde la especialización elegida a Junior, Middle, Senior y Master.
+- Uso concreto de consumibles y sus efectos en cada modo de juego.
+- Encaje de la tienda estética descrita en DAR3 con el catálogo de combate de las
+  aclaraciones de clase, manteniendo los sets históricos no comprables.
+- Revisar la documentación restante de clase y las diferencias entre planes
+  anteriores de DAR3 y sus secciones 9 y 10 que no resuelvan estas aclaraciones.
+
+## 3. Datos oficiales pendientes
+
+- Umbrales reales de XP por época.
+- XP real concedida por actividades.
+- Cantidades reales de DuckyCoins.
+- Catálogo y contenido definitivo de los seis elementos de cada set histórico.
+- Parámetros oficiales de especializaciones y XP de dominio.
+- Contenido definitivo de sets y objetos, precios y efectos definitivos de consumibles.
+
+Los valores provisionales no equivalen a requisitos oficiales. No se fijan
+cantidades ni umbrales concretos en estos documentos.
+Una cuestión puramente paramétrica no debe bloquear el desarrollo: el plan
+propone datos de prueba identificados y separados de la lógica, bajo la política
+D-16 aún pendiente de validación. Cambios de reglas funcionales requieren revisión.
+
+## 4. Integración pendiente
+
+- Contrato técnico del servicio común de recompensas: formatos, validación de
+  origen y coordinación entre el Equipo 5 y el Equipo 0.
+- Clave definitiva de idempotencia para evitar recompensas duplicadas.
+- Integración con el Equipo 0: usuarios y autenticación global, incorporación al
+  repositorio común y acuerdos de entorno.
+- Integración con los equipos 1–4: resultados validados de actividades, interfaces
+  y coordinación con el servicio de recompensas.
