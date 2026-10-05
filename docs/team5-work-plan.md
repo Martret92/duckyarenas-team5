@@ -26,8 +26,38 @@ Las reglas de la sección 2 son aclaraciones funcionales conocidas de clase e
 información funcional disponible para este plan. No se presentan como citas
 textuales de DAR3 cuando el documento no las detalla exactamente.
 El reparto, las fronteras, la autonomía, los hitos y el backlog son propuestas
-internas. Los modelos concretos, contratos y mecanismos técnicos se decidirán
-durante la arquitectura; este documento no los diseña.
+internas. Parte A ya ha aceptado internamente su arquitectura V1 (A-01…A-16),
+cuyo contenido no está disponible aquí y no se reconstruye. Su detalle se
+documentará desde «01 · Ecomotor y evolución». Esa aceptación no aprueba contratos
+compartidos con B/C o Rewards ni valida D-13 a D-16.
+Los diseños aún abiertos y los contratos se revisarán durante la arquitectura;
+este documento no diseña modelos concretos.
+
+### PR07 como marco transversal complementario
+
+Fuente directa: Documento PR07 · Ciclo de vida de una aplicación web, facilitado
+por el profesor (17 páginas), no copiado al repositorio. DAR3 sigue siendo la
+fuente funcional principal. PR07 aporta estructura, proceso, entregables y
+evaluación: apps bajo `apps/`; diseño conceptual con ERD y diccionario antes
+del ORM; cardinalidades y reglas `on_delete`; modelos y migraciones; Admin;
+URLs, vistas, templates, navegación, listados, detalles, formularios y CRUD;
+permisos, seguridad y tests; evidencias Git y PR (páginas 4-11 y 17).
+
+La adaptación física desde `ecomotor/` y `users/` en raíz a `apps/` se realizará
+en un PR técnico separado, antes del diseño conceptual y de implementar nuevos
+modelos o migraciones de dominio. Después, el ERD y diccionario deberán estar
+revisados antes del ORM. Este PR actual solo documenta ese orden; no modifica
+la estructura física.
+El CRUD de al menos dos entidades principales exigido por PR07 debe concretarse
+con el profesor. No implica permitir modificaciones arbitrarias de XP,
+evolución o registros financieros al margen de sus operaciones de dominio.
+
+PR07 pide en su plan detallado CustomUser con `AbstractUser` y autenticación
+local. Hasta aclarar el conflicto se mantienen D-09 y D-10 según D-17: User
+estándar, sin cambiar `AUTH_USER_MODEL` ni migraciones por ese motivo y sin
+implementar registro/login/logout local. Los permisos deberán encajar con la
+solución aclarada. También está pendiente si el calendario de 15 días y sus
+entregables Git son literales o una guía/rúbrica; H1–H6 no equivalen a sus días.
 
 ## 2. Modelo funcional conocido
 
@@ -184,55 +214,65 @@ no autoriza a dar por definitivos asuntos abiertos en D-07.
 
 ## 6. Plan por hitos
 
-El orden H1–H6 es una propuesta de ejecución. A/B/C pueden avanzar en paralelo
-tras acordar las operaciones que conectan sus dominios. Los hitos no fijan fechas.
+El orden H1–H6 es una propuesta de ejecución adaptada al diseño previo al ORM
+de PR07. A/B/C pueden avanzar en paralelo tras acordar las operaciones que
+conectan sus dominios, sin saltarse la revisión del diseño. Los hitos no fijan fechas.
+H0 describe la base inicial completada, no el cumplimiento de toda PR07: siguen
+pendientes la adaptación a `apps/` y la aclaración de usuarios y autenticación.
 
 | Hito | Entregable y dependencias |
 | --- | --- |
 | H0 · Base | Completado: repositorio, bootstrap, `users`, `ecomotor`, perfiles base y documentación inicial. |
-| H1 · Arquitectura y modelos mínimos | A: XP, historial, épocas, evolución y especializaciones mínimas. B: catálogo, sets, inventario, equipamiento y consumibles/cantidades. C: wallet, transacciones, tienda y compra. Compartido: Rewards v0, contratos internos e idempotencia. Diseñar y revisar antes de implementar los modelos concretos. |
-| H2 · Servicios de dominio | A: concesión de XP (grant XP), progreso y evolución. B: conceder sets, equipar, inventario y cantidades. C: ingresos, gastos y compra. Consumir las operaciones acordadas en H1 y probar sus reglas. |
-| H3 · Vertical mínima | Actividad simulada → XP + monedas → evolución → nuevo set → compra de consumible → inventario. Para demo bastan Prehistoria, Grecia y Roma, como contempla DAR3; el recorrido con consumible incorpora las aclaraciones de clase. |
-| H4 · Historial y Museo | A: historial XP/evolución. B: sets históricos y apariencia/Museo. C: historial DuckyBank. Depende de los estados y eventos de H2–H3. |
-| H5 · Robustez | Concurrencia, duplicados, saldo no negativo, coherencia compra/inventario, evolución única, conservación de progreso y restricciones. Los tests críticos empiezan en H1–H2; aquí se completa la revisión transversal. |
-| H6 · Integración y demo | Equipos 1–4, Equipo 0, contrato final Rewards, datos demo, documentación y tests integrados. Depende de los contratos externos y del recorrido mínimo estable. |
+| H1 · Diseño conceptual y documentación | Primero, adaptar físicamente las apps a `apps/` en un PR técnico separado; después, revisar ERD y diccionario antes de nuevos modelos; entidades, cardinalidades, restricciones y reglas `on_delete`. A: documentar A-01…A-16 e incorporar ERD/diccionario revisados, sin reconstruir su contenido. B: catálogo, sets, inventario, equipamiento y consumibles/cantidades. C: wallet, transacciones, tienda y compra. Compartido: revisar Rewards v0, contratos internos e idempotencia. |
+| H2 · Modelos y servicios de dominio | Con la adaptación a `apps/` completada y el ERD y diccionario de H1 revisados, implementar nuevos modelos y migraciones de dominio en PR posteriores. A: concesión de XP (grant XP), progreso y evolución, con la base de especializaciones de su diseño documentado. B: conceder sets, equipar, inventario y cantidades. C: ingresos, gastos y compra. Consumir las operaciones acordadas y probar sus reglas. No cambiar User/auth sin aclaración. |
+| H3 · Admin, interfaz y vertical mínima | Registrar modelos principales en Admin después de H2. Preparar URLs, vistas, templates, navegación, listados, detalles y formularios con permisos desde el inicio. Actividad simulada → XP + monedas → evolución → nuevo set → compra de consumible → inventario. Para demo bastan Prehistoria, Grecia y Roma, como contempla DAR3; el recorrido con consumible incorpora las aclaraciones de clase. |
+| H4 · CRUD, historial y Museo | Completar CRUD evaluable de al menos dos entidades principales, una vez concretado su alcance, con validación en servidor y permisos. A: historial XP/evolución. B: sets históricos y apariencia/Museo. C: historial DuckyBank. Depende de los estados, eventos e interfaz de H2–H3; el CRUD respeta las operaciones de dominio. |
+| H5 · Seguridad, testing y robustez | Permisos y acceso por propietario, tests de modelos/vistas/permisos, concurrencia, duplicados, saldo no negativo, coherencia compra/inventario, evolución única, conservación de progreso y restricciones. Los tests y controles críticos empiezan con cada implementación; aquí se completa la revisión transversal. |
+| H6 · Integración, evidencias y demo | Equipos 1–4, Equipo 0, contrato final Rewards, datos demo, documentación y tests integrados. Preparar evidencias Git/PR y contribuciones individuales, presentación y entregables finales de PR07, según la aclaración de su calendario. Depende de los contratos externos y del recorrido mínimo estable. |
 
 ## 7. Backlog inicial por integrante
 
 Orden de prioridad propuesto, sujeto a validar el reparto. Cada paso utiliza las
-aclaraciones funcionales conocidas y mantiene pendientes las decisiones técnicas.
+aclaraciones funcionales conocidas y distingue el diseño aceptado de Parte A de
+los diseños y contratos todavía abiertos.
 
 ### Jaime
 
-1. Diseñar en H1 el XP acumulado y su historial, épocas/umbrales, época actual e
-   historial de evolución; separar barra visual y XP histórica.
-2. Diseñar la base de especializaciones independientes y conservación de rangos,
-   sin inventar XP de dominio ni requisitos oficiales.
+1. Documentar en H1 la arquitectura interna V1 aceptada A-01…A-16 desde
+   «01 · Ecomotor y evolución», sin inventar su contenido; incorporar el ERD y
+   diccionario revisados antes de implementar modelos, con cardinalidades y `on_delete`.
+2. Mantener pendientes las reglas de XP de dominio y requisitos oficiales no
+   definidos; identificar en el diseño documentado qué depende de esas aclaraciones.
 3. Coordinar con B/C las operaciones internas y Rewards v0, incluida idempotencia.
 4. Construir en H2 concesión de XP, progreso y evolución, con múltiples umbrales;
    solicitar a B cada set y dejar equipado el más avanzado.
-5. Conectar la vertical H3, completar historial H4 y robustez H5.
+5. Conectar la vertical H3, Admin e interfaz; completar historial H4, contribuir
+   al CRUD acordado y validar permisos, tests y robustez H5.
 6. Apoyar contrato final, integración de juegos y demo H6.
 
 ### Félix
 
 1. Diseñar en H1 catálogo, seis piezas por set, inventario y equipamiento;
-   separar sets permanentes de consumibles con cantidades.
+   separar sets permanentes de consumibles con cantidades. Preparar ERD y
+   diccionario con cardinalidades y `on_delete` antes del ORM.
 2. Acordar con A la inicialización y concesión/equipamiento de sets, y con C la
    entrega de consumibles comprados, sin duplicar inventarios.
 3. Construir en H2 set inicial, concesión de sets, equipamiento y cantidades;
    conservar y reutilizar sets sin alterar el progreso real.
-4. Conectar el inventario de H3 y preparar apariencia y datos de Museo H4.
+4. Conectar el inventario de H3, Admin e interfaz; preparar apariencia y Museo
+   H4 y contribuir al CRUD acordado con permisos y tests.
 5. Probar piezas únicas, cantidades, aislamiento entre usuarios y concurrencia H5.
 6. Integrar concesión de objetos de Rewards y preparar datos demo/documentación H6.
 
 ### Henry
 
-1. Diseñar en H1 wallet, saldo, transacciones, catálogo comercial, tienda y compra.
+1. Diseñar en H1 wallet, saldo, transacciones, catálogo comercial, tienda y compra;
+   preparar ERD y diccionario con cardinalidades y `on_delete` antes del ORM.
 2. Acordar con B la entrega de consumibles y con Rewards los ingresos y el registro
    financiero; revisar conjuntamente compras repetidas y consistencia.
 3. Construir en H2 ingresos, gastos y compra validada en servidor, con saldo suficiente.
-4. Conectar monedas y compra de consumible de H3; completar historial DuckyBank H4.
+4. Conectar monedas y compra de consumible de H3, Admin e interfaz; completar
+   historial DuckyBank H4 y contribuir al CRUD acordado con permisos y tests.
 5. Verificar en H5 saldo no negativo, atomicidad y reenvíos sin compras duplicadas.
 6. Apoyar contrato final, integración y datos comerciales demo H6.
 
@@ -257,8 +297,11 @@ Siguen pendientes:
 - XP de dominio y requisitos de rangos.
 - Formato final equipos 1–4 → Rewards y contrato definitivo con Equipo 0.
 - Utilización concreta de consumibles por modos de juego.
-- Modelos Django concretos, contratos internos y mecanismo técnico de idempotencia,
-  que deberán diseñarse y revisarse por el Equipo 5 durante H1.
+- Documentación del diseño interno V1 aceptado de Parte A y su ERD/diccionario;
+  diseños aún abiertos, contratos internos y mecanismo técnico de idempotencia,
+  que deberán revisarse por el Equipo 5 durante H1 antes del ORM de H2.
+- Aclaraciones de PR07 sobre CustomUser, autenticación local, entidades del CRUD
+  y calendario/entregables, recogidas en [pending-decisions.md](pending-decisions.md).
 
 ### Fuera de prioridad en la primera versión
 
@@ -279,6 +322,7 @@ no existen todavía como tests implementados de dominio.
 | B | Set inicial; set completo al evolucionar; equipamiento automático; conservar sets anteriores; reequipar un set anterior sin cambiar época; no duplicar piezas únicas; cantidades de consumibles; aislamiento entre usuarios. |
 | C | Ingresos; saldo suficiente; saldo no negativo; compra; atomicidad saldo/transacción/inventario; reenvío no duplica compra. |
 | Rewards | Una actividad no se recompensa dos veces; utiliza dominios propietarios; devuelve resumen coherente. |
+| Transversal PR07 | Tests de modelos, vistas y permisos: accesos autorizados, redirección o denegación según corresponda (200/302/403), detalle inexistente controlado (404), formularios válidos e inválidos y protección del CRUD por propietario. La autenticación concreta sigue pendiente de aclaración. |
 
 ## 10. Definition of Done
 
@@ -289,15 +333,33 @@ Como criterio operativo propuesto, una funcionalidad se considera terminada cuan
 - Está integrada y otro integrante puede comprenderla.
 - Está documentada si introduce decisiones importantes.
 - El PR tiene una responsabilidad clara.
+- Los nuevos modelos parten de ERD y diccionario revisados, con cardinalidades
+  y reglas `on_delete`; Admin, interfaz y permisos se verifican cuando correspondan.
+- La aportación y su validación son identificables mediante commits y PR.
 
 Estos criterios recogen la orientación de entrega integrada de DAR3 y añaden la
-organización interna propuesta; no constituyen una cita textual del documento.
+organización interna propuesta y los criterios complementarios de PR07; no
+constituyen una cita textual de DAR3.
 
 ## 11. Git y mantenimiento del plan
 
 Se mantienen las convenciones registradas: `main` estable, `develop` para
 integración y ramas `feature/*`, `fix/*` y `docs/*`. Para integrar se requiere PR,
 como práctica de revisión prevista en DAR3 y en esta guía operativa.
+
+PR07 exige el uso de Git y aportaciones identificables mediante commits de cada
+integrante (páginas 4-11 y 17). El Equipo 5 mantiene además su estrategia de
+integración mediante Pull Requests. Las contribuciones individuales deberán
+quedar trazables mediante commits y, cuando corresponda, mediante los PR
+asociados. Se conservará la trazabilidad de
+los PR originales cuando la integración use squash; este plan no cambia el
+método de integración registrado. Los entregables diarios quedan sujetos a la
+aclaración del calendario, sin eliminar la obligación de evidenciar el trabajo.
+
+El cierre detallado de PR07 incluye documentación de pruebas y de tres bugs
+complejos en `docs/postmortem-bugs.md`, PR de release, etiqueta `v1.0.0`, instrucciones
+de despliegue local y presentación (página 11). Se prepararán en la fase de entrega
+que corresponda; este PR no crea esos archivos ni realiza una release.
 
 El plan debe actualizarse cuando se valide el reparto, cambie un hito, llegue
 información del profesor, se acuerden contratos, cambien fronteras o se resuelvan

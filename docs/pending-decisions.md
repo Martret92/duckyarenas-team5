@@ -1,7 +1,7 @@
 # Decisiones pendientes
 
-Este documento reúne solo cuestiones abiertas. La estructura base de usuarios
-y perfiles está resuelta en D-09 a D-12 del
+Este documento reúne cuestiones abiertas y tareas documentales o de adaptación
+pendientes. La estructura base vigente de usuarios y perfiles está registrada en D-09 a D-12 del
 [registro de decisiones](decisions.md). El alcance de DAR3 y la estructura
 actual se describen en [architecture.md](architecture.md).
 
@@ -22,7 +22,7 @@ El contenido completo de las propuestas está en [decisions.md](decisions.md).
 El [plan de trabajo](team5-work-plan.md) propone además hitos, backlog, autonomía
 y revisión conjunta. Su validación no está implícita en la documentación del plan.
 
-## 2. Arquitectura de dominio por diseñar por el Equipo 5
+## 2. Arquitectura interna: documentación y diseño pendientes
 
 Las reglas funcionales conocidas están en [architecture.md](architecture.md).
 Ya están aclarados el progreso histórico 1–9, la XP acumulativa que no se gasta
@@ -33,8 +33,15 @@ separación y conservación del progreso por especialización y la posibilidad d
 cambiarla; y la separación de sets históricos y consumibles con cantidades.
 No se mantienen estas reglas como preguntas abiertas.
 
-Corresponde al Equipo 5 diseñar y revisar las siguientes decisiones técnicas,
-sin esperar modelos concretos del profesor ni tratarlas como bloqueos externos:
+Parte A ya tiene una arquitectura interna V1 aceptada (A-01…A-16). Falta
+documentar su detalle desde «01 · Ecomotor y evolución» e incorporar su ERD y
+diccionario revisados en un PR documental posterior. No se reconstruye aquí su
+contenido ni se presenta toda Parte A como aún sin diseñar.
+
+Los siguientes ámbitos deben quedar documentados y revisados por el Equipo 5
+antes de implementar modelos. Para Parte A, esto significa incorporar el diseño
+aceptado; para los diseños aún abiertos, tomar las decisiones técnicas necesarias,
+sin esperar modelos concretos del profesor ni tratarlos como bloqueos externos:
 
 - Modelo Django del XP acumulado e historial, su ubicación y relación con perfiles.
 - Modelos de épocas, época actual e historial de evolución, incluidos los eventos
@@ -81,3 +88,40 @@ D-16 aún pendiente de validación. Cambios de reglas funcionales requieren revi
   repositorio común y acuerdos de entorno.
 - Integración con los equipos 1–4: resultados validados de actividades, interfaces
   y coordinación con el servicio de recompensas.
+
+## 5. Preguntas al profesor derivadas de PR07
+
+1. ¿La exigencia de extender `AbstractUser` y configurar un CustomUser en PR07
+   sustituye la indicación anterior de utilizar el User estándar sin `AbstractUser`?
+2. ¿Cada repositorio temporal debe implementar registro, login y logout, o la
+   autenticación global sigue siendo responsabilidad del Equipo 0?
+3. ¿Qué entidades concretas deben cubrir el CRUD evaluable? PR07 pide CRUD completo
+   de al menos dos entidades principales; falta concretarlo para este repositorio.
+4. ¿Los 15 días y sus entregables Git son obligatorios literalmente o forman
+   parte de una guía/rúbrica de ejecución?
+
+Hasta aclarar los dos primeros puntos se mantienen D-09 y D-10, según D-17:
+User estándar, sin CustomUser, autenticación local ni cambios de `AUTH_USER_MODEL`
+o migraciones por este conflicto. Los permisos se planifican sin dar por resuelta
+la arquitectura de autenticación.
+
+## 6. Trabajo interno de adaptación a PR07
+
+Estas tareas no requieren que el profesor diseñe la arquitectura del Equipo 5.
+Se ejecutarán en PR posteriores; las cuestiones de la sección 5 siguen separadas:
+
+- Reorganizar las apps bajo `apps/`, revisando configuración y compatibilidad
+  con los modelos y migraciones existentes antes de moverlas.
+- Preparar ERD y diccionario de datos antes de nuevos modelos; documentar
+  cardinalidades, restricciones y reglas `on_delete`.
+- Incorporar el ERD revisado de Parte A y el detalle de su arquitectura aceptada.
+- Implementar posteriormente modelos y migraciones a partir del diseño revisado,
+  y registrar los modelos principales en Admin.
+- Preparar URLs, vistas, templates, navegación, listados, detalles, formularios
+  y CRUD; las entidades evaluables se concretarán con la respuesta del profesor.
+- Implementar permisos y seguridad compatibles con la aclaración de usuarios.
+- Ampliar tests de modelos, vistas, operaciones y permisos, además de concurrencia
+  e idempotencia de los dominios y del servicio común.
+- Mantener evidencias Git y PR y aportaciones identificables de cada integrante.
+
+La aceptación de Parte A no resuelve los contratos internos A/B/C y Rewards.
