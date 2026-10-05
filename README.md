@@ -4,9 +4,13 @@ Repositorio del Equipo 5 del proyecto de clase DuckyArenas.
 
 ## Estado actual
 
-Esta fase prepara únicamente el repositorio y su documentación. Todavía no hay
-proyecto Django, apps, modelos, migraciones, dependencias ni lógica de negocio.
-No hay instrucciones de instalación o ejecución porque aún no existe una aplicación.
+Existe el proyecto Django con las apps `ecomotor` y `users`, los perfiles base
+`UserProfileEcomotor` y `UserProfileBank`, migraciones y tests básicos. El
+repositorio incluye documentación de arquitectura, decisiones y planificación.
+
+Todavía no hay lógica funcional de XP, evolución, recompensas, inventario,
+tienda o economía. `main` representa estados estables y `develop` es la rama
+de integración del Equipo 5.
 
 ## Requisitos procedentes de DAR3
 
@@ -27,19 +31,17 @@ como decisiones de implementación en esta fase.
 - Cada equipo trabajará inicialmente en un repositorio independiente, según lo
   indicado por el profesor. Después se integrará en el repositorio común del Equipo 0.
 - `main` representa estados estables.
-- `develop` será la rama de integración del Equipo 5.
+- `develop` es la rama de integración del Equipo 5.
 - El trabajo futuro se realizará en ramas `feature/*`, `fix/*` y `docs/*`.
 - El Equipo 0 es responsable del User, la autenticación y la integración global.
   El Equipo 5 no creará un User propio.
 
-Estas convenciones documentan el trabajo futuro; esta preparación no crea ramas
-ni configura protecciones de ramas.
-
 ## Decisiones pendientes
 
-Estamos esperando el documento de un integrante del equipo que recoge las
-decisiones tomadas en clase con el profesor. Hasta revisarlo, no se fijan modelos,
-contratos de recompensas, reglas de XP ni arquitectura funcional definitiva.
+Las cuestiones abiertas están centralizadas en
+[docs/pending-decisions.md](docs/pending-decisions.md). El Equipo 5 puede avanzar
+en su arquitectura interna; siguen pendientes parámetros oficiales, reglas
+funcionales no definidas y contratos con otros equipos cuando corresponda.
 
 ## Documentación
 
