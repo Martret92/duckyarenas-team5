@@ -42,6 +42,44 @@ usuarios y perfiles, sin decidir las reglas de negocio. Los detalles técnicos
 de D-12 son elecciones de implementación del Equipo 5, no acuerdos atribuidos
 al profesor. La integración global sigue a cargo del profesor y del Equipo 0.
 
+## Condicionantes de referencia: PR07
+
+Fuente directa: Documento PR07 · Ciclo de vida de una aplicación web, facilitado
+por el profesor (17 páginas), no copiado al repositorio.
+PR07 complementa DAR3 en estructura, proceso, entregables y evaluación. Los
+siguientes puntos son requisitos o criterios de esa fuente, no decisiones
+internas del Equipo 5:
+
+- Apps bajo `apps/`; ERD y diccionario de datos antes del ORM, con cardinalidades
+  y reglas `on_delete` documentadas (páginas 4-5).
+- Modelos y migraciones, Admin, URLs, vistas, templates, listados, detalles,
+  formularios y CRUD de al menos dos entidades principales (páginas 6-9).
+- Permisos, seguridad, testing y evidencias de trabajo mediante Git y PR;
+  contribuciones identificables de cada integrante (páginas 10-11 y 17).
+- El plan detallado pide `AbstractUser`, `AUTH_USER_MODEL`, registro, login y
+  logout (página 5), en conflicto con D-09 y D-10. Su aplicación requiere
+  aclaración del profesor, al igual que el alcance del CRUD y la obligatoriedad
+  literal del calendario de 15 días y sus entregables.
+
+## Decisión transversal provisional ante PR07
+
+| ID | Decisión | Origen | Estado |
+| --- | --- | --- | --- |
+| D-17 | Mientras no se aclare con el profesor la contradicción de PR07 sobre usuarios y autenticación, mantener D-09 y D-10: User estándar, sin migrar a CustomUser ni implementar autenticación local; no cambiar `AUTH_USER_MODEL` ni migraciones por ese motivo. Cualquier cambio posterior deberá registrarse como nueva decisión. | Equipo 5 | Vigente |
+
+D-17 es provisional hasta recibir esa aclaración. No declara resuelto el conflicto
+ni sustituye los acuerdos de clase anteriores.
+
+## Aceptación interna de Parte A
+
+Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.
+Aquí se registra únicamente esa aceptación, no su contenido: el detalle no está
+disponible en el repositorio. Se documentará desde «01 · Ecomotor y evolución»
+en un PR posterior de Parte A, con incorporación de su ERD y diccionario revisados
+antes de implementar nuevos modelos. No se añaden identificadores de Parte A.
+La aceptación interna no aprueba contratos compartidos con B/C o Rewards, que
+siguen pendientes de validación conjunta, ni valida D-13 a D-16.
+
 ## Propuestas pendientes de validación
 
 D-13 a D-16 requieren validación por los tres integrantes del Equipo 5, incluida
