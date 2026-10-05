@@ -43,6 +43,22 @@ PDF. Se mantiene la responsabilidad del profesor sobre la integración global.
 
 ## 3. Decisiones todavía pendientes
 
+### Propuestas internas pendientes de validación por el Equipo 5
+
+D-13 a D-16 son propuestas pendientes de confirmar con Félix y Henry, no
+decisiones definitivas. No implementan lógica funcional ni convierten valores
+provisionales en acuerdos del profesor. El detalle está en
+[architecture.md](architecture.md).
+
+| ID | Propuesta | Procedencia y estado |
+| --- | --- | --- |
+| D-13 | Establecer inicialmente a Jaime como responsable principal de Parte A (Ecomotor y evolución), Félix de Parte B (Avatar e inventario) y Henry de Parte C (Ecommerce y DuckyBank). | Propuesta interna pendiente de validación por el Equipo 5 y de confirmar con Félix y Henry; DAR3 no asigna individualmente estas partes a los integrantes. |
+| D-14 | Mantener el servicio común de recompensas como responsabilidad compartida. Vincular la coordinación inicial del contrato/orquestación a Parte A; las partes B y C proporcionarán las operaciones de inventario y economía, respectivamente. | Propuesta interna pendiente de validación por el Equipo 5 y de confirmar con Félix y Henry. |
+| D-15 | Adoptar fronteras iniciales revisables: A es propietaria de XP, épocas y evolución; B de catálogo, inventario y equipamiento; C de DuckyCoins, wallet, transacciones, tienda y compras. Recompensas orquesta sin duplicar lógica de negocio. | Propuesta interna pendiente de validación por el Equipo 5 y de confirmar con Félix y Henry; no fija modelos ni contrato técnico definitivo. |
+| D-16 | Permitir datos ficticios/provisionales de desarrollo y demostración hasta recibir datos oficiales del profesor. Identificarlos como provisionales, nunca como requisitos reales, separarlos de la lógica y evitar números mágicos en servicios. Los tests pueden usar umbrales y recompensas propios solo para verificar comportamiento. La arquitectura se diseñará para que los valores puramente paramétricos —por ejemplo, umbrales y cantidades de recompensa— puedan sustituirse por los datos oficiales sin modificar la lógica de negocio. Si el profesor modifica también las reglas funcionales, se revisará la arquitectura correspondiente. | Propuesta interna pendiente de validación por el Equipo 5 y de confirmar con Félix y Henry; DAR3 define capacidades, pero no proporciona todos los valores numéricos definitivos. |
+
+Validación del reparto interno y fronteras D-13 a D-16 por los tres integrantes del Equipo 5.
+
 Las cuestiones sin resolver están en [pending-decisions.md](pending-decisions.md).
 Los campos concretos de `UserProfileEcomotor` y `UserProfileBank` siguen pendientes.
 XP, DuckyCoins y demás lógica de negocio todavía no se han decidido. Cuando llegue
