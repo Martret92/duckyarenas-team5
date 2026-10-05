@@ -1,12 +1,14 @@
-# duckyarenas-team5
+# DuckyArenas · Team 5
 
 Repositorio del Equipo 5 del proyecto de clase DuckyArenas.
 
 ## Estado actual
 
-Existe el proyecto Django con las apps `ecomotor` y `users`, los perfiles base
+Existe el proyecto Django con las apps `ecomotor` y `users` bajo `apps/`, los perfiles base
 `UserProfileEcomotor` y `UserProfileBank`, migraciones y tests básicos. El
 repositorio incluye documentación de arquitectura, decisiones y planificación.
+
+Se utiliza el User estándar de Django; no se ha implementado autenticación local.
 
 Todavía no hay lógica funcional de XP, evolución, recompensas, inventario,
 tienda o economía. `main` representa estados estables y `develop` es la rama
