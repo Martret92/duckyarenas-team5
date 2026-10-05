@@ -152,9 +152,16 @@ aclaraciones funcionales anteriores, así como los
 datos oficiales, el contrato de recompensas y su integración. La existencia de
 un servicio común no determina su implementación ni su forma de comunicación.
 
-El PDF contiene planes anteriores con repartos de equipos y propuestas técnicas
-diferentes (páginas 19-31). Deben contrastarse con las secciones 9 y 10 y con la
-documentación restante de clase antes de adoptar detalles de dominio.
+Los planes técnicos antiguos de DAR3 (páginas 19-31) y las propuestas internas
+del equipo pueden utilizarse como referencia, pero no se adoptan automáticamente.
+Las propuestas sobre organización por apps, reparto o contrato de recompensas
+no constituyen requisitos oficiales ni decisiones aprobadas mientras no se
+registren como tales.
+
+La arquitectura interna corresponde al Equipo 5 y puede seguir diseñándose.
+Debe respetar DAR3, las aclaraciones funcionales conocidas y las necesidades de
+integración. No se considera fijada todavía una estructura definitiva de apps,
+modelos, campos ni un contrato técnico de Rewards.
 
 Las cuestiones abiertas se mantienen en
 [pending-decisions.md](pending-decisions.md).

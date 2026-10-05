@@ -45,8 +45,8 @@ sin esperar modelos concretos del profesor ni tratarlas como bloqueos externos:
   de cada especialización; operación para volver al punto de Era Digital y cambiarla.
 - Campos concretos de `UserProfileEcomotor` y `UserProfileBank`, y los demás
   modelos, relaciones y restricciones que no estén cubiertos por los puntos anteriores.
-- Contratos internos A/B/C, consistencia entre operaciones y mecanismo técnico
-  de idempotencia, para revisión conjunta durante la arquitectura.
+- Contratos internos A/B/C, consistencia entre operaciones, idempotencia técnica
+  y concurrencia, para revisión conjunta durante la arquitectura.
 
 ### Reglas funcionales todavía abiertas
 
@@ -54,8 +54,8 @@ sin esperar modelos concretos del profesor ni tratarlas como bloqueos externos:
 - Uso concreto de consumibles y sus efectos en cada modo de juego.
 - Encaje de la tienda estética descrita en DAR3 con el catálogo de combate de las
   aclaraciones de clase, manteniendo los sets históricos no comprables.
-- Revisar la documentación restante de clase y las diferencias entre planes
-  anteriores de DAR3 y sus secciones 9 y 10 que no resuelvan estas aclaraciones.
+- Aclarar las diferencias entre los planes anteriores de DAR3 y sus secciones
+  9 y 10 cuando afecten a reglas no resueltas por las aclaraciones conocidas.
 
 ## 3. Datos oficiales pendientes
 
