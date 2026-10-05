@@ -70,6 +70,29 @@ internas del Equipo 5:
 D-17 es provisional hasta recibir esa aclaración. No declara resuelto el conflicto
 ni sustituye los acuerdos de clase anteriores.
 
+## Decisión técnica de estructura e identidad de las apps
+
+| ID | Decisión | Origen | Estado |
+| --- | --- | --- | --- |
+| D-18 | Alojar físicamente las aplicaciones del Equipo 5 bajo `apps/`, con rutas Python canónicas `apps.ecomotor` y `apps.users`. Conservar expresamente los labels Django `ecomotor` y `users` para preservar la identidad de las aplicaciones y su historial de migraciones. Incorporar `apps/` al path según la adaptación de PR07. | Equipo 5 | Vigente |
+
+`INSTALLED_APPS` utiliza `apps.ecomotor.apps.EcomotorConfig` y
+`apps.users.apps.UsersConfig`; los `AppConfig` declaran los nombres canónicos y
+los labels anteriores. `settings.py` conserva
+`sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))`.
+Para imports absolutos, las rutas canónicas son `apps.ecomotor` y `apps.users`.
+No deben mezclarse imports absolutos `users...` con `apps.users...`, ni
+`ecomotor...` con `apps.ecomotor...`. Así se evita cargar una misma app con dos
+identidades Python. Los imports relativos internos de una app, por ejemplo
+`from .models import ...`, siguen siendo válidos y no deben sustituirse
+innecesariamente.
+D-18 cambia únicamente la ubicación física de aquella app: el archivo
+correspondiente a D-11 se encuentra ahora en `apps/users/models.py`, sin alterar
+la decisión funcional registrada en D-11.
+Esta decisión no cambia modelos, contenido de migraciones, User ni autenticación;
+D-17 sigue vigente. La parte estructural y técnica aplicable del Día 1 está
+validada; el ERD y diccionario previos al ORM de dominio siguen pendientes.
+
 ## Aceptación interna de Parte A
 
 Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.

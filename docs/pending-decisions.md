@@ -110,8 +110,6 @@ la arquitectura de autenticación.
 Estas tareas no requieren que el profesor diseñe la arquitectura del Equipo 5.
 Se ejecutarán en PR posteriores; las cuestiones de la sección 5 siguen separadas:
 
-- Reorganizar las apps bajo `apps/`, revisando configuración y compatibilidad
-  con los modelos y migraciones existentes antes de moverlas.
 - Preparar ERD y diccionario de datos antes de nuevos modelos; documentar
   cardinalidades, restricciones y reglas `on_delete`.
 - Incorporar el ERD revisado de Parte A y el detalle de su arquitectura aceptada.
@@ -125,3 +123,8 @@ Se ejecutarán en PR posteriores; las cuestiones de la sección 5 siguen separad
 - Mantener evidencias Git y PR y aportaciones identificables de cada integrante.
 
 La aceptación de Parte A no resuelve los contratos internos A/B/C y Rewards.
+
+La adaptación a `apps/` ya está completada y validada según D-18, con rutas Python
+canónicas `apps.*`, labels Django conservados y sin cambios de modelos o migraciones.
+El Día 2 (ERD y diccionario) sigue pendiente; la aclaración de usuarios y
+autenticación continúa bajo D-17.
