@@ -30,6 +30,12 @@ Estos son requisitos para el trabajo futuro. Las decisiones de clase que se
 recogen a continuación solo concretan la estructura base de usuarios y perfiles;
 no se adoptan las propuestas técnicas de dominio del PDF.
 
+DAR3 distingue Parte A (Ecomotor y evolución), Parte B (Avatar e inventario),
+Parte C (Ecommerce y DuckyBank) y el servicio común de recompensas. No asigna
+individualmente estas partes a los tres integrantes. Define capacidades de XP,
+épocas, evolución y recompensas, pero no proporciona todos los valores numéricos
+definitivos; las tablas y datos oficiales pendientes se solicitarán al profesor.
+
 ## 2. Decisiones confirmadas del profesor y del equipo
 
 El profesor ha indicado que cada equipo trabajará inicialmente en un repositorio
@@ -57,7 +63,58 @@ provisional `ecomotor` y la app `users` registrada en `INSTALLED_APPS`. Esta fas
 añade la migración inicial de los dos perfiles y tests de creación y unicidad,
 sin implementar autenticación ni lógica de dominio.
 
-## 3. Decisiones pendientes
+## 3. Propuestas internas pendientes de validación por el Equipo 5
+
+Las propuestas D-13 a D-16 están pendientes de confirmar con Félix y Henry y de
+validación por los tres integrantes del Equipo 5; no son decisiones definitivas.
+
+### Propuesta de reparto interno
+
+La siguiente distribución es una propuesta de reparto interno pendiente de validación por el Equipo 5
+(D-13), no una asignación individual realizada por DAR3:
+
+| Responsable principal propuesto | Parte |
+| --- | --- |
+| Jaime | Parte A: Ecomotor y evolución. |
+| Félix | Parte B: Avatar e inventario. |
+| Henry | Parte C: Ecommerce y DuckyBank. |
+
+Se propone que el servicio común de recompensas sea responsabilidad compartida del Equipo 5.
+La coordinación inicial de su contrato y orquestación se vincularía a Parte A;
+las operaciones de inventario y economía deberán ser proporcionadas por las
+partes B y C, respectivamente, si se valida la propuesta D-14.
+
+### Fronteras arquitectónicas iniciales, revisables
+
+Estas fronteras se proponen en D-15 y están pendientes de validación por el Equipo 5:
+
+- Parte A es propietaria de XP, épocas y evolución.
+- Parte B es propietaria del catálogo, inventario y equipamiento.
+- Parte C es propietaria de DuckyCoins, wallet, transacciones, tienda y compras.
+- El servicio de recompensas orquesta estas áreas sin duplicar su lógica de negocio.
+
+Estas fronteras no fijan los modelos internos ni el contrato técnico definitivo.
+
+### Política de datos provisionales
+
+Hasta recibir las tablas y datos oficiales del profesor, D-16 propone usar
+valores ficticios o provisionales para desarrollar y probar (D-16):
+
+- Nunca se documentarán como requisitos reales.
+- Se identificarán claramente como datos provisionales o de demostración.
+- Se mantendrán separados de la lógica de negocio para poder sustituirse.
+- No se introducirán números mágicos en los servicios.
+- Los tests podrán usar umbrales y recompensas propios, exclusivamente para
+  verificar comportamiento.
+
+La arquitectura se diseñará para que los valores puramente paramétricos —por ejemplo, umbrales y cantidades de recompensa— puedan sustituirse por los datos oficiales sin modificar la lógica de negocio. Si el profesor modifica también las reglas funcionales, se revisará la arquitectura correspondiente.
+
+Esta propuesta de política no establece valores concretos de XP,
+DuckyCoins o umbrales, ni decide las reglas de dominio todavía pendientes.
+
+## 4. Decisiones pendientes
+
+Validación del reparto interno y fronteras D-13 a D-16 por los tres integrantes del Equipo 5.
 
 Quedan pendientes los campos concretos de `UserProfileEcomotor` y
 `UserProfileBank`, los demás modelos de dominio, la estructura funcional, los
@@ -66,6 +123,13 @@ DuckyCoins, nivel, evolución, wallet y demás lógica de negocio todavía no se
 han decidido ni implementado. DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija la estructura definitiva de estos perfiles ni todos los campos y parámetros concretos.
 La existencia de un servicio común de recompensas no determina por sí sola su
 implementación ni su forma de comunicación.
+
+Siguen pendientes los umbrales reales de XP por época, las cantidades reales de
+XP por actividad y de DuckyCoins, el catálogo y las reglas definitivas de
+desbloqueo de piezas, las reglas de especializaciones y XP de dominio, el contrato
+técnico definitivo de recompensas, los modelos internos definitivos de
+XP/evolución, la clave definitiva de idempotencia y los detalles de integración
+con los equipos 0–4. El uso de datos provisionales no resuelve estos acuerdos.
 
 El PDF contiene planes anteriores con referencias a otros repartos de equipos,
 modelos y funciones concretas (por ejemplo, páginas 19-31), además del reparto
