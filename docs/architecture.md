@@ -63,7 +63,7 @@ Quedan pendientes los campos concretos de `UserProfileEcomotor` y
 `UserProfileBank`, los demás modelos de dominio, la estructura funcional, los
 contratos de recompensas y los mecanismos de integración. Las reglas de XP,
 DuckyCoins, nivel, evolución, wallet y demás lógica de negocio todavía no se
-han decidido ni implementado. El alcance de DAR3 no fija esos campos o reglas.
+han decidido ni implementado. DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija la estructura definitiva de estos perfiles ni todos los campos y parámetros concretos.
 La existencia de un servicio común de recompensas no determina por sí sola su
 implementación ni su forma de comunicación.
 
