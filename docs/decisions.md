@@ -93,6 +93,36 @@ Esta decisión no cambia modelos, contenido de migraciones, User ni autenticaci�
 D-17 sigue vigente. La parte estructural y técnica aplicable del Día 1 está
 validada; el ERD y diccionario previos al ORM de dominio siguen pendientes.
 
+## D-19 · Política transversal de concurrencia SQLite para V1
+
+| ID | Decisión | Origen | Estado |
+| --- | --- | --- | --- |
+| D-19 | Mientras la V1 use SQLite, adoptar globalmente `transaction_mode = "IMMEDIATE"` y un timeout explícito de 5 segundos. Las operaciones críticas de escritura deben abrir `transaction.atomic()` antes de leer el estado mutable que van a decidir o modificar. | Equipo 5 | Vigente |
+
+`BEGIN IMMEDIATE` es la garantía efectiva utilizada en SQLite V1 para serializar
+escritores. SQLite serializa escritores para toda la base de datos, no mediante
+locks por fila. `select_for_update()` no proporciona row locking en este backend
+y se considera un no-op; puede mantenerse en servicios para expresar intención
+de bloqueo y facilitar una futura migración a un backend con row locking.
+
+Las transacciones deben ser cortas y no contener HTTP, I/O externo, esperas ni
+trabajo lento. No se adopta `ATOMIC_REQUESTS` como solución de concurrencia.
+Si el lock no se obtiene dentro del timeout, la operación debe fallar y hacer
+rollback. Un retry seguro debe comenzar una nueva transacción; cuando la operación
+sea idempotente, debe reutilizar la misma `operation_key`.
+
+Las constraints de base de datos y la idempotencia persistente siguen siendo
+defensas obligatorias: `BEGIN IMMEDIATE` no las sustituye. Los tests críticos de
+concurrencia deberán usar `TransactionTestCase` y contar con al menos una ejecución
+específica contra SQLite respaldada por archivo (file-backed), sin depender
+únicamente de una base SQLite de test en memoria. Estos tests siguen pendientes
+de implementación.
+
+D-19 no modifica D-17 ni D-18, no decide contratos A/B/C ni el contrato de Rewards.
+Tampoco garantiza por sí sola atomicidad de una operación repartida entre varias
+transacciones o servicios ni resuelve las fronteras transaccionales entre Rewards,
+A, B y C, que siguen pendientes.
+
 ## Aceptación interna de Parte A
 
 Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.

@@ -231,8 +231,14 @@ y autenticación bajo D-17.
 | H2 · Modelos y servicios de dominio | Con la adaptación a `apps/` completada y el ERD y diccionario de H1 revisados, implementar nuevos modelos y migraciones de dominio en PR posteriores. A: concesión de XP (grant XP), progreso y evolución, con la base de especializaciones de su diseño documentado. B: conceder sets, equipar, inventario y cantidades. C: ingresos, gastos y compra. Consumir las operaciones acordadas y probar sus reglas. No cambiar User/auth sin aclaración. |
 | H3 · Admin, interfaz y vertical mínima | Registrar modelos principales en Admin después de H2. Preparar URLs, vistas, templates, navegación, listados, detalles y formularios con permisos desde el inicio. Actividad simulada → XP + monedas → evolución → nuevo set → compra de consumible → inventario. Para demo bastan Prehistoria, Grecia y Roma, como contempla DAR3; el recorrido con consumible incorpora las aclaraciones de clase. |
 | H4 · CRUD, historial y Museo | Completar CRUD evaluable de al menos dos entidades principales, una vez concretado su alcance, con validación en servidor y permisos. A: historial XP/evolución. B: sets históricos y apariencia/Museo. C: historial DuckyBank. Depende de los estados, eventos e interfaz de H2–H3; el CRUD respeta las operaciones de dominio. |
-| H5 · Seguridad, testing y robustez | Permisos y acceso por propietario, tests de modelos/vistas/permisos, concurrencia, duplicados, saldo no negativo, coherencia compra/inventario, evolución única, conservación de progreso y restricciones. Los tests y controles críticos empiezan con cada implementación; aquí se completa la revisión transversal. |
+| H5 · Seguridad, testing y robustez | Pendiente: permisos y acceso por propietario, tests de modelos/vistas/permisos y tests reales de concurrencia con `TransactionTestCase` según D-19; duplicados/idempotencia, evolución única, wallet/saldo/compra cuando corresponda, saldo no negativo, coherencia compra/inventario, conservación de progreso y restricciones. Al menos una ejecución específica de los tests críticos con SQLite file-backed. Los tests y controles críticos empiezan con cada implementación; aquí se completa la revisión transversal. |
 | H6 · Integración, evidencias y demo | Equipos 1–4, Equipo 0, contrato final Rewards, datos demo, documentación y tests integrados. Preparar evidencias Git/PR y contribuciones individuales, presentación y entregables finales de PR07, según la aclaración de su calendario. Depende de los contratos externos y del recorrido mínimo estable. |
+
+D-19 fija la política transversal SQLite V1: `IMMEDIATE`, timeout de 5 segundos
+y `transaction.atomic()` antes de leer estado mutable en escrituras críticas.
+Los servicios deberán mantener transacciones cortas, constraints e idempotencia
+persistente; la configuración no sustituye los contratos ni decide las fronteras
+transaccionales de Rewards/A/B/C. Su implementación y tests siguen pendientes.
 
 ## 7. Backlog inicial por integrante
 
@@ -326,6 +332,7 @@ no existen todavía como tests implementados de dominio.
 | B | Set inicial; set completo al evolucionar; equipamiento automático; conservar sets anteriores; reequipar un set anterior sin cambiar época; no duplicar piezas únicas; cantidades de consumibles; aislamiento entre usuarios. |
 | C | Ingresos; saldo suficiente; saldo no negativo; compra; atomicidad saldo/transacción/inventario; reenvío no duplica compra. |
 | Rewards | Una actividad no se recompensa dos veces; utiliza dominios propietarios; devuelve resumen coherente. |
+| Concurrencia SQLite (D-19) | `TransactionTestCase`; escrituras concurrentes; mismo `operation_key`; rollback/timeout; al menos una ejecución específica SQLite file-backed. Pendiente de implementación. |
 | Transversal PR07 | Tests de modelos, vistas y permisos: accesos autorizados, redirección o denegación según corresponda (200/302/403), detalle inexistente controlado (404), formularios válidos e inválidos y protección del CRUD por propietario. La autenticación concreta sigue pendiente de aclaración. |
 
 ## 10. Definition of Done
