@@ -247,9 +247,9 @@ del usuario/perfil cuando corresponda.
 
 ---
 
-# 7. Diccionario de datos
+## 7. Diccionario de datos
 
-## 7.1. `UserProfileEcomotor`
+### 7.1. `UserProfileEcomotor`
 
 Ubicación:
 
@@ -259,7 +259,7 @@ apps/users/models.py
 
 El perfil actúa como agregado actual de Parte A.
 
-### `user`
+#### `user`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -274,7 +274,7 @@ Un `User` puede existir sin perfil Ecomotor.
 La existencia de un perfil significa que la inicialización de Parte A ha sido
 completada correctamente.
 
-### `historical_xp_total`
+#### `historical_xp_total`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -289,7 +289,7 @@ Este campo es el estado agregado actual; `XPEvent` conserva el historial.
 
 No contiene XP de especialización.
 
-### `current_era_code`
+#### `current_era_code`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -312,7 +312,7 @@ UserProfileEcomotor.current_era_code
 → Era.code
 ```
 
-### `active_specialization_code`
+#### `active_specialization_code`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -339,7 +339,7 @@ Cambiar esta propiedad no elimina ni reinicia los progresos almacenados en
 
 ---
 
-## 7.2. `Era`
+### 7.2. `Era`
 
 Ubicación:
 
@@ -349,7 +349,7 @@ apps/ecomotor/models.py
 
 Catálogo persistente de épocas históricas.
 
-### `code`
+#### `code`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -363,7 +363,7 @@ Código técnico estable utilizado para integraciones y para
 
 No se han fijado todavía los literales definitivos de todos los códigos.
 
-### `name`
+#### `name`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -373,7 +373,7 @@ No se han fijado todavía los literales definitivos de todos los códigos.
 
 Puede cambiarse sin alterar la identidad de la época.
 
-### `ordinal`
+#### `ordinal`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -391,7 +391,7 @@ Los ordinales configurados forman un prefijo continuo desde `1`.
 La continuidad es una regla de catálogo y no se resuelve únicamente mediante
 un `CheckConstraint` por fila.
 
-### `minimum_xp`
+#### `minimum_xp`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -409,7 +409,7 @@ Los valores oficiales concretos siguen pendientes.
 
 ---
 
-## 7.3. `XPEvent`
+### 7.3. `XPEvent`
 
 Ubicación:
 
@@ -419,7 +419,7 @@ apps/ecomotor/models.py
 
 Registro inmutable de una concesión de XP histórica aceptada.
 
-### `profile`
+#### `profile`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -428,7 +428,7 @@ Registro inmutable de una concesión de XP histórica aceptada.
 | `on_delete` | `CASCADE` |
 | `related_name` previsto | `xp_events` |
 
-### `amount`
+#### `amount`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -440,7 +440,7 @@ V1 no permite concesiones de XP cero ni negativas.
 
 Correcciones/reversiones de XP quedan fuera de V1.
 
-### `xp_before`
+#### `xp_before`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -450,7 +450,7 @@ Correcciones/reversiones de XP quedan fuera de V1.
 
 Snapshot de XP histórica inmediatamente anterior a la concesión.
 
-### `xp_after`
+#### `xp_after`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -467,7 +467,7 @@ xp_after = xp_before + amount
 Esta igualdad debe protegerse también mediante constraint de base de datos si
 el backend permite expresarla limpiamente.
 
-### `operation_key`
+#### `operation_key`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -489,7 +489,7 @@ La construcción definitiva de la clave pertenece al consumidor/Rewards.
 
 Parte A no interpreta ni normaliza semánticamente el valor.
 
-### `created_at`
+#### `created_at`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -500,7 +500,7 @@ Momento en que la concesión quedó registrada.
 
 ---
 
-## 7.4. `EvolutionEvent`
+### 7.4. `EvolutionEvent`
 
 Ubicación:
 
@@ -512,7 +512,7 @@ Registro inmutable de una evolución histórica procesada.
 
 Prehistoria inicial **no** genera un `EvolutionEvent`.
 
-### `profile`
+#### `profile`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -521,7 +521,7 @@ Prehistoria inicial **no** genera un `EvolutionEvent`.
 | `on_delete` | `CASCADE` |
 | `related_name` previsto | `evolution_events` |
 
-### `era`
+#### `era`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -538,7 +538,7 @@ UNIQUE(profile, era)
 
 Un usuario solo puede registrar una evolución formal hacia una misma época.
 
-### `xp_event`
+#### `xp_event`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -559,7 +559,7 @@ EvolutionEvent.xp_event.profile
 
 Esta regla cruza relaciones y se validará mediante servicios de dominio.
 
-### `created_at`
+#### `created_at`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -570,7 +570,7 @@ Momento de procesamiento de la evolución.
 
 ---
 
-## 7.5. `Specialization`
+### 7.5. `Specialization`
 
 Ubicación:
 
@@ -580,7 +580,7 @@ apps/ecomotor/models.py
 
 Catálogo persistente de ramas tecnológicas.
 
-### `code`
+#### `code`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -595,7 +595,7 @@ El código se utiliza también en:
 UserProfileEcomotor.active_specialization_code
 ```
 
-### `name`
+#### `name`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -618,7 +618,7 @@ Los códigos técnicos definitivos se fijarán junto con los datos maestros.
 
 ---
 
-## 7.6. `UserSpecializationProgress`
+### 7.6. `UserSpecializationProgress`
 
 Ubicación:
 
@@ -628,7 +628,7 @@ apps/ecomotor/models.py
 
 Conserva de forma independiente el progreso de un jugador en cada rama.
 
-### `profile`
+#### `profile`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -637,7 +637,7 @@ Conserva de forma independiente el progreso de un jugador en cada rama.
 | `on_delete` | `CASCADE` |
 | `related_name` previsto | `specialization_progresses` |
 
-### `specialization`
+#### `specialization`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -652,7 +652,7 @@ Restricción:
 UNIQUE(profile, specialization)
 ```
 
-### `domain_xp_total`
+#### `domain_xp_total`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -667,7 +667,7 @@ Nunca se mezcla con `historical_xp_total`.
 
 Las reglas oficiales para conceder XP de dominio siguen pendientes.
 
-### `rank`
+#### `rank`
 
 | Propiedad | Valor |
 | --- | --- |
@@ -696,9 +696,9 @@ oficiales de progresión de especialización estén definidas.
 
 ---
 
-# 8. Restricciones de integridad
+## 8. Restricciones de integridad
 
-## 8.1. Restricciones protegidas por la base de datos
+### 8.1. Restricciones protegidas por la base de datos
 
 El diseño exige como mínimo:
 
@@ -727,7 +727,7 @@ El diseño exige como mínimo:
 Los nombres concretos de los constraints se fijarán durante la implementación
 ORM sin modificar estas invariantes.
 
-## 8.2. Reglas de servicio
+### 8.2. Reglas de servicio
 
 Las siguientes reglas no deben intentarse resolver únicamente mediante
 constraints por fila:
@@ -750,7 +750,7 @@ Estas reglas corresponden a los servicios de dominio de Parte A.
 
 ---
 
-# 9. Inicialización del Ecomotor — A-12
+## 9. Inicialización del Ecomotor — A-12
 
 La inicialización será explícita mediante:
 
@@ -784,7 +784,7 @@ El catálogo `Era` debe existir previamente.
 
 ---
 
-# 10. Concesión de XP y evolución — A-06 / A-07 / A-13
+## 10. Concesión de XP y evolución — A-06 / A-07 / A-13
 
 La operación pública prevista es:
 
@@ -836,7 +836,7 @@ automáticamente.
 
 ---
 
-# 11. Idempotencia — A-13
+## 11. Idempotencia — A-13
 
 La identidad local de una concesión es:
 
@@ -883,7 +883,7 @@ UNIQUE(profile, operation_key)
 
 ---
 
-# 12. Concurrencia SQLite — C-01 / D-19
+## 12. Concurrencia SQLite — C-01 / D-19
 
 La V1 utiliza SQLite.
 
@@ -946,7 +946,7 @@ dominio.
 
 ---
 
-# 13. Estrategia de migración del perfil existente — M-01
+## 13. Estrategia de migración del perfil existente — M-01
 
 Actualmente puede existir una versión legacy de `UserProfileEcomotor` que solo
 contenga la relación con `User`.
@@ -991,7 +991,7 @@ pueda crear silenciosamente un perfil parcialmente inicializado.
 
 ---
 
-# 14. Especializaciones — A-09
+## 14. Especializaciones — A-09
 
 El progreso histórico y el progreso de especialización son dominios separados:
 
@@ -1028,7 +1028,7 @@ este diseño.
 
 ---
 
-# 15. Historial y Museo — A-16
+## 15. Historial y Museo — A-16
 
 Parte A proporcionará posteriormente una API de lectura específica:
 
@@ -1064,7 +1064,7 @@ Parte B
 
 ---
 
-# 16. Frontera con Parte B
+## 16. Frontera con Parte B
 
 Parte A decide cuándo ocurre una evolución.
 
@@ -1098,7 +1098,7 @@ Parte B antes de considerarse contrato definitivo del Equipo 5.
 
 ---
 
-# 17. Frontera con Rewards
+## 17. Frontera con Rewards
 
 DAR3 establece un servicio común de recompensas que recibe resultados validados,
 evita recompensas duplicadas, registra el evento, añade XP/monedas y procesa
@@ -1145,7 +1145,7 @@ qué servicio abre la transacción exterior de una recompensa multidominio.
 
 ---
 
-# 18. Entidades deliberadamente excluidas
+## 18. Entidades deliberadamente excluidas
 
 No forman parte del modelo persistente de Parte A V1:
 
@@ -1169,7 +1169,7 @@ No forman parte del modelo persistente de Parte A V1:
 
 ---
 
-# 19. Política de catálogo de épocas — A-15
+## 19. Política de catálogo de épocas — A-15
 
 El catálogo no necesita contener obligatoriamente las nueve épocas desde la
 primera implementación.
@@ -1219,7 +1219,7 @@ La reconciliación masiva por cambio de umbrales queda fuera de V1.
 
 ---
 
-# 20. Inmutabilidad y Admin
+## 20. Inmutabilidad y Admin
 
 `XPEvent` y `EvolutionEvent` representan historial.
 
@@ -1244,7 +1244,7 @@ a una fase posterior.
 
 ---
 
-# 21. Estado inicial y ausencia de estados parciales
+## 21. Estado inicial y ausencia de estados parciales
 
 Parte A no define un perfil parcialmente inicializado como estado válido.
 
@@ -1277,7 +1277,7 @@ NULL
 
 ---
 
-# 22. Lecturas públicas previstas
+## 22. Lecturas públicas previstas
 
 La API pública conceptual de Parte A será:
 
@@ -1313,7 +1313,7 @@ La modificación de estado se realizará mediante operaciones de dominio.
 
 ---
 
-# 23. Cuestiones todavía pendientes
+## 23. Cuestiones todavía pendientes
 
 Estas cuestiones no bloquean el ERD de Parte A:
 
@@ -1334,7 +1334,7 @@ No se introducirán valores inventados como si fueran requisitos oficiales.
 
 ---
 
-# 24. Trazabilidad
+## 24. Trazabilidad
 
 | Diseño | Origen |
 | --- | --- |
@@ -1364,7 +1364,7 @@ No se introducirán valores inventados como si fueran requisitos oficiales.
 
 ---
 
-# 25. Estado de revisión
+## 25. Estado de revisión
 
 Con este documento quedan definidos para Parte A:
 
