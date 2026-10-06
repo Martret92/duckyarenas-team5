@@ -76,6 +76,39 @@ diccionario de datos se incorporarán en un PR documental posterior, antes de
 implementar nuevos modelos. Esta aceptación interna no aprueba los contratos
 compartidos con B/C ni Rewards, que requieren validación conjunta.
 
+### Política de concurrencia SQLite V1
+
+D-19 es una decisión técnica transversal del Equipo 5, no un requisito de DAR3
+ni de PR07. Mientras la V1 use SQLite, la configuración global utiliza
+`transaction_mode = "IMMEDIATE"` y un timeout de bloqueo de 5 segundos.
+La base de garantías V1 combina:
+
+`transaction.atomic()` + `BEGIN IMMEDIATE` + constraints de BD + idempotencia
+
+Las operaciones críticas de escritura comienzan `transaction.atomic()` antes
+de leer el estado mutable relevante. `BEGIN IMMEDIATE` adquiere la capacidad de
+escritura antes de leer o modificar ese estado. Existe un único escritor SQLite
+efectivo a la vez para toda la base de datos: no se serializa por usuario ni por
+fila, por lo que puede haber contención entre operaciones de usuarios distintos.
+
+Si no se obtiene el lock dentro de los 5 segundos, la operación falla y hace
+rollback; no espera indefinidamente. Un retry comienza una nueva transacción y,
+en operaciones idempotentes, reutiliza la misma `operation_key`.
+`select_for_update()` es un no-op bajo SQLite y no aporta row locking real;
+puede mantenerse para expresar intención de bloqueo y facilitar portabilidad futura.
+
+Las transacciones deben mantenerse cortas, sin llamadas HTTP, I/O externo,
+esperas ni trabajo lento. No se utiliza `ATOMIC_REQUESTS` para resolver la
+concurrencia. Las constraints de BD y la idempotencia persistente siguen siendo
+necesarias; `BEGIN IMMEDIATE` no las sustituye. Una futura migración a PostgreSQL
+u otro backend con row locking requerirá revisar esta política.
+
+Esta configuración no implementa servicios ni resuelve contratos compartidos.
+No garantiza por sí sola atomicidad entre varias transacciones o servicios:
+las fronteras transaccionales de Rewards/A/B/C siguen pendientes cuando una
+operación atraviesa varios dominios. Los tests críticos de concurrencia usarán
+`TransactionTestCase`, con al menos una ejecución específica SQLite file-backed.
+
 ## 3. Aclaraciones funcionales conocidas de clase
 
 Las siguientes reglas proceden de las aclaraciones de clase y la información

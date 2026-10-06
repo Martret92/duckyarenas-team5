@@ -52,8 +52,17 @@ sin esperar modelos concretos del profesor ni tratarlos como bloqueos externos:
   de cada especialización; operación para volver al punto de Era Digital y cambiarla.
 - Campos concretos de `UserProfileEcomotor` y `UserProfileBank`, y los demás
   modelos, relaciones y restricciones que no estén cubiertos por los puntos anteriores.
-- Contratos internos A/B/C, consistencia entre operaciones, idempotencia técnica
-  y concurrencia, para revisión conjunta durante la arquitectura.
+- Contratos internos y claves A/B/C, consistencia entre operaciones e idempotencia
+  concreta de cada dominio, para revisión conjunta durante la arquitectura.
+- Contrato y orquestación de Rewards y fronteras transaccionales cuando una
+  operación atraviesa varios dominios; D-19 no las resuelve.
+- Implementación de los servicios y tests reales de concurrencia con
+  `TransactionTestCase`, incluida al menos una ejecución SQLite file-backed.
+
+La estrategia transversal de concurrencia SQLite V1 está cerrada en D-19:
+`IMMEDIATE`, timeout de 5 segundos y transacciones críticas antes de leer estado
+mutable. Su configuración está aplicada; la implementación en servicios,
+la idempotencia concreta y las validaciones concurrentes siguen pendientes.
 
 ### Reglas funcionales todavía abiertas
 
