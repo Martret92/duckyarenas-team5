@@ -102,8 +102,6 @@ arquitectónicas ni acuerdos pendientes de aprobación:
 | Completar entregables PR07 | Equipo 5, después de aclarar alcance evaluable en §5 | Admin, URLs/vistas/templates, navegación, formularios, CRUD, permisos y tests; evidencias Git/PR y aportaciones individuales |
 | Revisar documentación y plan operativo | Equipo 5, sin cambiar estados por notas editoriales | Enlaces Markdown, finales de línea y coherencia entre arquitectura, decisiones, ERD y [plan de trabajo](team5-work-plan.md) |
 
-La referencia de arquitectura §12 que aún dice que el registro no incorpora el
-ERD quedó desactualizada tras `ca8d182`; requiere corrección documental posterior
-autorizada. No se modifica arquitectura en esta actualización. Resolver una fila
-de esta lista requerirá evidencia del acuerdo y, cuando proceda, su registro
+Resolver una fila de esta lista requerirá evidencia del acuerdo y, cuando
+proceda, su registro
 formal en decisions.md; ninguna se considera aprobada por publicarla aquí.

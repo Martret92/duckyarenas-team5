@@ -205,5 +205,6 @@ El detalle y la procedencia de los requisitos trasladados se recogen en
 Los conflictos con V1 se conservan pendientes de revisión formal por los
 responsables afectados; las ambigüedades funcionales requieren aclaración de Óscar.
 La gestión exhaustiva de preguntas corresponde a
-[pending-decisions.md](pending-decisions.md), cuya actualización posterior sigue
-pendiente, incluidas sus referencias antiguas al ERD y a las reglas de V1.
+[pending-decisions.md](pending-decisions.md), ya actualizado como lista operativa
+para V2. La adaptación del ERD V1 y las validaciones funcionales y técnicas allí
+recogidas siguen pendientes.

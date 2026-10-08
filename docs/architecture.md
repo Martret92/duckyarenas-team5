@@ -334,7 +334,7 @@ la dirección interna V2 no cambia su estado ni confirma el reparto individual.
 | Rewards dentro de Ecomotor | Compatible como dirección con la coordinación propuesta desde A, pero D-14/D-15 y contratos compartidos siguen pendientes de validación conjunta. |
 | Coordinación de compras y recompensas | Acordar reparto de validaciones entre Ecomotor, Bank y Shop, coordinador completo, fronteras transaccionales, claves y entrega de Inventory; D-19 no garantiza atomicidad global. |
 | PR07 frente a D-09/D-10 | Persiste el conflicto documentado sobre CustomUser y autenticación local. D-17 mantiene las decisiones existentes hasta aclaración de Óscar. También siguen abiertos CRUD evaluable y calendario. |
-| Estado documental de Parte A | El registro y las pendientes dicen que falta incorporar el ERD; `erd/ecomotor.md` ya existe. Su existencia no acredita revisión global ni aceptación de V2. Corregir referencias y estado en trabajo posterior autorizado. |
+| Estado documental de Parte A | El registro y las decisiones pendientes reconocen el ERD V1 existente en `erd/ecomotor.md`. Su adaptación a V2 y la consolidación con los demás dominios siguen pendientes; su existencia no acredita revisión global ni aceptación de V2. |
 | Integración y tiempo real | Concretar contratos REST y eventos WebSocket de la arquitectura objetivo comunicada, responsabilidades entre equipos y alcance V1; identidad/JWT pertenece a Core. |
 | Integraciones externas y pedidos físicos | Referencias documentales comunicadas cuyo alcance, responsables y priorización deben acordarse separadamente de la V1 mínima. |
 | Parámetros y catálogo | Confirmar umbrales, recompensas, desbloqueos, precios, objetos y reglas de evolución; no inventar valores oficiales. |
@@ -348,7 +348,7 @@ ordena implementar V2 contra el ERD V1 sin resolverlos.
 - [decisions.md](decisions.md): registro principal de acuerdos. No se modifica ni
   se reclasifican sus propuestas desde esta candidata.
 - [pending-decisions.md](pending-decisions.md): preguntas y trabajo abierto;
-  necesita revisión posterior de las reglas antiguas y del estado del ERD.
+  lista operativa actualizada de validaciones, adaptación a V2, contratos y trabajo posterior; distingue el ERD V1 existente del diseño V2 pendiente.
 - [erd/ecomotor.md](erd/ecomotor.md): ERD y diccionario V1 de Parte A;
   requiere revisión posterior frente a etapas, equipamiento, especializaciones
   y stats de V2 antes de implementar modelos.
@@ -356,6 +356,7 @@ ordena implementar V2 contra el ERD V1 sin resolverlos.
   revisar su alineación en un trabajo posterior, sin asumir cambios de alcance.
 
 El ERD consolidado `docs/ERD.md` no existe en esta revisión, aunque el ERD de
-Parte A lo menciona como destino futuro. No se crea aquí. La actualización de
-los demás documentos, contratos y decisiones se realizará en trabajos posteriores
-tras la revisión correspondiente.
+Parte A lo menciona como destino futuro. El registro y la lista de decisiones
+pendientes ya están actualizados para la candidata V2. La revisión del ERD, los
+contratos y la formalización de los acuerdos pendientes siguen siendo trabajo
+posterior sujeto a la revisión correspondiente.
