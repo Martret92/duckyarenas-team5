@@ -1,4 +1,4 @@
-# Plan de trabajo · Equipo 5
+# Plan de trabajo V2 · Equipo 5
 
 Estado: propuesta operativa para revisión por los tres integrantes del Equipo 5.
 
@@ -9,7 +9,8 @@ Este plan sirve como guía práctica de trabajo, no como aprobación de modelos 
 
 ## 1. Alcance y procedencia
 
-DAR3, sección 9 (páginas 48-50 del PDF consultado), atribuye al Equipo 5:
+DAR3 sigue siendo la fuente general principal. Según los requisitos recogidos
+en la documentación del repositorio, atribuye al Equipo 5:
 
 - Parte A: Ecomotor y evolución.
 - Parte B: Avatar e inventario.
@@ -22,22 +23,27 @@ de verdad para XP, evolución, inventario, DuckyCoins, compras y recompensas.
 La sección 10 requiere coordinación de recompensas con el Equipo 0 y los juegos.
 DAR3 no asigna individualmente A/B/C a Jaime, Félix y Henry.
 
-Las reglas de la sección 2 son aclaraciones funcionales conocidas de clase e
-información funcional disponible para este plan. No se presentan como citas
-textuales de DAR3 cuando el documento no las detalla exactamente.
-El reparto, las fronteras, la autonomía, los hitos y el backlog son propuestas
-internas. Parte A ya ha aceptado internamente su arquitectura V1 (A-01…A-16),
-cuyo contenido no está disponible aquí y no se reconstruye. Su detalle se
-documentará desde «01 · Ecomotor y evolución». Esa aceptación no aprueba contratos
-compartidos con B/C o Rewards ni valida D-13 a D-16.
-Los diseños aún abiertos y los contratos se revisarán durante la arquitectura;
-este documento no diseña modelos concretos.
+Las especificaciones posteriores `DuckyEcomotor.pdf` y `DAR_formulas.pdf`,
+facilitadas por Óscar, actualizan explícitamente determinados aspectos de DAR3.
+Esta revisión utiliza la información contrastada externamente y trasladada a
+[architecture.md](architecture.md); no afirma lectura directa de los PDF.
+Se distinguen requisitos documentales, decisiones vigentes, propuestas internas,
+trabajo completado y trabajo pendiente.
+
+La candidata V2 y la actualización de decisiones/pendientes se integraron en
+`develop` mediante PR #15, squash `256dd9e`. Esto es un hito documental, no una
+aprobación global de Óscar, Core o todos los integrantes. El reparto, las fronteras,
+la autonomía, los hitos y el backlog continúan siendo propuestas.
+El [ERD y diccionario V1 de Parte A](erd/ecomotor.md) ya existe como antecedente
+interno A-01…A-16. Su adaptación a V2 y los contratos A/B/C siguen pendientes;
+no se implementará ORM definitivo desde reglas V1 incompatibles ni se darán
+D-13…D-16 por validadas.
 
 ### PR07 como marco transversal complementario
 
-Fuente directa: Documento PR07 · Ciclo de vida de una aplicación web, facilitado
-por el profesor (17 páginas), no copiado al repositorio. DAR3 sigue siendo la
-fuente funcional principal. PR07 aporta estructura, proceso, entregables y
+PR07 · Ciclo de vida de una aplicación web es la referencia de proceso y
+evaluación recogida en el repositorio; no se consulta directamente en esta revisión.
+DAR3 sigue siendo la fuente funcional principal. PR07 aporta estructura, proceso, entregables y
 evaluación: apps bajo `apps/`; diseño conceptual con ERD y diccionario antes
 del ORM; cardinalidades y reglas `on_delete`; modelos y migraciones; Admin;
 URLs, vistas, templates, navegación, listados, detalles, formularios y CRUD;
@@ -62,71 +68,60 @@ implementar registro/login/logout local. Los permisos deberán encajar con la
 solución aclarada. También está pendiente si el calendario de 15 días y sus
 entregables Git son literales o una guía/rúbrica; H1–H6 no equivalen a sus días.
 
-## 2. Modelo funcional conocido
+## 2. Modelo funcional y cuestiones de adaptación
 
-### Progreso histórico
+### Progreso histórico y evolución
 
-| Nivel histórico | Época |
+| Orden de etapa (no nivel) | Etapa |
 | --- | --- |
 | 1 | Prehistoria |
-| 2 | Grecia |
-| 3 | Roma |
-| 4 | Edad Media |
-| 5 | Renacimiento |
-| 6 | Revolución Industrial |
-| 7 | Siglo XX |
-| 8 | Era Espacial |
-| 9 | Era Digital |
+| 2 | Griega |
+| 3 | Romana |
+| 4 | Renacentista |
+| 5 | Contemporánea |
+| 6 | Siglo XX |
+| 7 | Actual |
 
-El usuario comienza en Prehistoria. La XP total es acumulativa y no se gasta.
-Puede mostrarse una barra relativa hacia el siguiente nivel, calculada a partir
-del progreso y los umbrales; no sustituye ni reduce la XP histórica acumulada.
-Los umbrales reales todavía no son oficiales. El plan propone usar valores
-provisionales separados de la lógica, según la política pendiente D-16.
+La XP histórica es acumulativa y no decreciente: no se gasta en compras ni se
+reduce por consumo o penalizaciones económicas. Nivel, etapa y progreso son
+conceptos distintos; la barra visual representa el estado canónico. La evolución
+es automática cuando se cumplen los requisitos definidos. No se inventan umbrales,
+fórmulas ni condiciones; su representación y las transiciones múltiples deben
+revisarse en el ERD V2 conservando trazabilidad.
 
-### Evolución y sets históricos
+### Equipamiento y objetos
 
-- Cada época tiene seis piezas principales.
-- Al iniciar el juego, se conceden y equipan automáticamente las seis de Prehistoria.
-- Al evolucionar, se conceden juntas las seis piezas de la nueva época y se equipa
-  automáticamente el nuevo set.
-- Los sets anteriores se conservan permanentemente y pueden volver a equiparse libremente.
-- Las piezas históricas no se compran con DuckyCoins.
-- Equipar un set antiguo cambia solo la apariencia, no la época real ni el progreso.
+DAR3 conserva seis piezas principales por época, diferenciadas de complementos
+estéticos. Su adaptación a siete etapas y cobertura V1 están pendientes. El ERD
+V1 concedía conjuntos completos y equipaba automáticamente al inicializar y
+evolucionar: es un antecedente que requiere revisión formal, no una instrucción
+V2 aprobada. Apariencia y equipamiento no sustituyen el progreso canónico.
 
-Si una concesión de XP atraviesa varios umbrales, se procesan todas las evoluciones
-intermedias, se registra cada evolución y se concede cada set correspondiente.
-Al final queda equipado el set de la época más avanzada alcanzada.
+Inventory define identidad de objetos, posesión, cantidades, concesiones y
+consumos; Avatar/Equipment valida compatibilidad y posesión. Shop mantiene ofertas,
+precios y disponibilidad comercial. Deben aclararse conservación y reequipamiento
+de conjuntos, efectos de consumibles y encaje de tienda estética/combate, incluida
+la regla anterior de conjuntos históricos no comprables, sin resolverla unilateralmente.
 
 ### Especializaciones
 
-Después de Era Digital se puede elegir Developer, Ciberseguridad, AdminSys,
-Gamer o Data & AI. Cada especialización tiene progreso independiente:
+Developer, Ciberseguridad, Sistemas, Data y Gamer aparecen dentro de Actual.
+Quedan pendientes normalización Data / Data & IA y nombres anteriores, acceso,
+cambios, conservación de progreso, XP y rangos. Era Digital y los rangos fijos
+antiguos pertenecen al antecedente V1; no se adoptan automáticamente para V2.
 
-`Inicial → Junior → Middle → Senior → Master`
+### Stats y recompensas
 
-Puede explicarse conceptualmente como niveles 10–14, pero se recomienda mantener
-separados el progreso histórico global, la especialización activa y el progreso
-o rango de cada especialización. No es una continuación obligatoria del mismo
-nivel histórico ni una propuesta de campos Django.
+Las estadísticas canónicas son `ATK`, `DEF`, `LOG`, `SPE`, `VEL`, `INT`.
+Cálculo o persistencia, fórmulas, efectos de objetos y parámetros deben concretarse
+para el alcance acordado. Ecomotor es la autoridad candidata sobre stats y progreso.
+Rewards se plantea como capacidad coordinada por Ecomotor que evalúa reglas y
+solicita monedas a Bank y objetos a Inventory. Puntuación provisional de partida,
+resultado validado, recompensa y XP histórica consolidada son estados distintos.
+No se aprueban aquí modelos, apps, endpoints ni contratos nuevos.
 
-Se puede cambiar de especialización volviendo al punto de Era Digital. El cambio
-no elimina XP histórica ni progreso anterior: cada especialización conserva su
-rango. Por ejemplo, un usuario puede tener Gamer = Senior y Developer = Junior.
-La navegación o transición concreta para volver a ese punto está por diseñar.
-Siguen pendientes las reglas de XP de dominio y los requisitos y umbrales de rangos.
-
-### Tipos de objetos
-
-| Tipo | Obtención y comportamiento |
-| --- | --- |
-| Sets históricos | Apariencia; seis piezas por época; obtenidos por evolución; permanentes y no comprables. |
-| Objetos de combate | Distintos del set histórico; comprados con DuckyCoins; consumibles con múltiples unidades, por ejemplo x1, x3 o x5. |
-
-Se conocen inicialmente tres objetos de ataque y tres de defensa. No se fijan
-efectos ni precios definitivos. La utilización concreta por cada modo de juego
-sigue pendiente. DAR3 también contempla una tienda estética; se debe aclarar su
-encaje con este catálogo comercial sin convertir los sets históricos en compras.
+El detalle funcional está en arquitectura §§3–8; las preguntas operativas,
+responsables e impactos están en [pending-decisions.md](pending-decisions.md).
 
 ## 3. Reparto y fronteras propuestos
 
@@ -135,72 +130,61 @@ confirmación con Félix y Henry (D-13 a D-15). No es una asignación individual
 
 ### Jaime · Parte A
 
-Responsabilidad principal propuesta: XP acumulada, historial de XP, épocas,
-umbrales, evolución automática, historial de evolución y progreso histórico.
-Incluye la base del progreso por especializaciones, la integración de XP con
-Rewards y la coordinación inicial del contrato común de recompensas.
-Parte A decide cuándo ocurre una evolución. No debe implementar inventario.
+Responsabilidad propuesta: XP, progreso, evolución, especializaciones, stats,
+historiales y coordinación de Rewards. Prioridad inmediata: revisar decisiones
+estructurales y adaptar el ERD/diccionario V1 a V2. A decide progreso y solicita
+operaciones a los propietarios B/C; no escribe inventario ni saldo directamente.
 
 ### Félix · Parte B
 
-Responsabilidad principal propuesta: catálogo de objetos, sets históricos,
-piezas principales, inventario, equipamiento, apariencia actual y conservación
-de sets. Incluye equipamiento automático tras evolución, objetos de combate,
-cantidades de consumibles y datos necesarios para Museo.
-Parte B decide cómo se representa y modifica el inventario. No debe recalcular
-XP ni evolución.
+Responsabilidad propuesta: identidad/definición de objetos, Inventory, posesión,
+cantidades, Avatar/Equipment e historial de equipamiento. Coordina conjuntos,
+compatibilidad y lecturas para Museo con A. Equipamiento automático sigue pendiente.
 
 ### Henry · Parte C
 
-Responsabilidad principal propuesta: wallet, saldo DuckyCoins, historial financiero,
-ingresos y gastos, tienda, catálogo comercial, precios y compras. Incluye validar
-saldo suficiente, proteger frente a compras repetidas y mantener consistencia
-entre saldo, transacción e inventario.
-Parte C decide y valida la operación económica. No debe crear un inventario paralelo.
+Responsabilidad propuesta: Bank (wallet, saldo y movimientos), catálogo comercial,
+Shop y compras. Bank es el único propietario del saldo; Shop no posee inventario.
 
-### Propiedad de dominio propuesta
+### Fronteras y dependencias candidatas
 
-| Dominio | Propietario propuesto |
+| Área | Autoridad candidata y coordinación |
 | --- | --- |
-| XP | A |
-| Épocas | A |
-| Evolución | A |
-| Especializaciones/progreso de dominio | A |
-| Catálogo de objetos | B |
-| Sets históricos | B |
-| Inventario | B |
-| Equipamiento | B |
-| Consumibles poseídos | B |
-| DuckyCoins | C |
-| Wallet | C |
-| Transacciones | C |
-| Tienda | C |
-| Compras | C |
+| A / Ecomotor | XP, evolución, especializaciones y stats; evalúa Rewards y participa documentalmente en comprobaciones de compra |
+| B / Inventory | Identidad/definición de objetos y posesión; concede, consume y valida cantidades |
+| B / Avatar-Equipment | Apariencia, compatibilidad y estado de equipamiento; consulta posesión a Inventory |
+| C / Bank | Saldo y movimientos; valida y ejecuta créditos/débitos idempotentes |
+| C / Shop | Ofertas, precios, disponibilidad comercial y compra; coordina pago y entrega |
 
-A decide evolución → B concede/equipa set. C valida compra → B añade consumibles.
-Rewards concede XP mediante A y monedas mediante C. Ninguna parte debe modificar
-directamente el estado interno de otra si existe una operación de dominio para hacerlo.
+El catálogo de objetos de B se distingue del catálogo comercial de C; esta
+interpretación y su relación con D-15 requieren validación conjunta, sin modificar
+la propuesta registrada. También debe acordarse cómo Ecomotor comprueba condiciones
+y consulta saldo con Shop/Bank/Inventory, y quién coordina la compra completa.
 
-## 4. Servicio común de recompensas y dependencias
+## 4. Rewards, contratos y dependencias
 
-La propuesta D-14 mantiene Rewards como responsabilidad compartida. Debe orquestar
-y utilizar las operaciones propietarias, sin duplicar lógica de negocio.
-Su flujo conceptual es:
+D-14 mantiene Rewards como propuesta compartida, coordinada inicialmente desde A.
+El flujo conceptual es actividad validada → evaluación de regla e idempotencia →
+operaciones propietarias de XP/monedas/objetos → trazabilidad y resumen.
+No fija orden de escrituras ni garantiza atomicidad global.
 
-`resultado validado → comprobar duplicado → registrar evento → XP → DuckyCoins → evolución/objetos → resumen`
+El mínimo funcional DAR3 ya está recogido en arquitectura §8. H1 debe acordar
+contratos internos mínimos, identidad, claves, errores/reintentos y fronteras
+transaccionales; los contratos externos se validan con Core y juegos antes de
+integrar. Reglas configurables, vigencia, límites, compatibilidad y repetibilidad
+se concretarán para V1 sin aprobar `RewardRule`/`RewardEvent` como ORM.
 
-En el reparto propuesto, Jaime/A aporta XP y evolución, Félix/B concesión de
-objetos e inventario, y Henry/C DuckyCoins y registro financiero. La coordinación
-inicial desde A no convierte Rewards en propietario de inventario o economía.
-El flujo no fija una firma de función, una API ni el orden técnico de escrituras.
-La idempotencia general y la consistencia entre dominios se revisarán conjuntamente.
+- A/B: concesiones, equipamiento y efectos de objetos; conservar trazabilidad.
+- A/C: monedas de Rewards y participación de Ecomotor en comprobaciones de compra.
+- B/C: Shop referencia objetos de Inventory y solicita entrega tras compra válida.
+- A/B/C: coordinador, claves idempotentes y rollback o recuperación de fallos parciales.
+- Core: User, JWT, autorización e integración global; sin autenticación paralela.
+- Juegos: resultados validados y consultas canónicas de progreso/stats; no imponen
+  XP/monedas ni escriben estado del Equipo 5.
 
-Dependencias internas:
-
-- A depende de B para materializar sets y equipamiento.
-- B depende de A para saber cuándo hay evolución.
-- C depende de B para entregar consumibles comprados.
-- Rewards depende de A/B/C y del resultado validado de los equipos de juego.
+REST y WebSockets son arquitectura objetivo documental. Formatos, eventos,
+productores/consumidores, infraestructura y cobertura V1 siguen pendientes;
+servicios Python internos no requieren HTTP obligatorio.
 
 ## 5. Autonomía propuesta y revisión conjunta
 
@@ -217,22 +201,19 @@ no autoriza a dar por definitivos asuntos abiertos en D-07.
 
 ## 6. Plan por hitos
 
-El orden H1–H6 es una propuesta de ejecución adaptada al diseño previo al ORM
-de PR07. A/B/C pueden avanzar en paralelo tras acordar las operaciones que
-conectan sus dominios, sin saltarse la revisión del diseño. Los hitos no fijan fechas.
-H0 incluye la adaptación a `apps/` ya validada, no el cumplimiento de toda PR07.
-Siguen pendientes el diseño documentado previo al ORM y la aclaración de usuarios
-y autenticación bajo D-17.
+H0–H6 son una propuesta operativa sin fechas, no una equivalencia con los días
+PR07. Los responsables pueden avanzar conceptualmente en paralelo; cerrar ORM
+requiere diseño revisado del dominio y acuerdos compartidos necesarios.
 
-| Hito | Entregable y dependencias |
+| Hito | Estado, entregable y dependencias |
 | --- | --- |
-| H0 · Base | Completado: repositorio, bootstrap, `users` y `ecomotor` bajo `apps/`, perfiles base, documentación inicial y parte estructural/técnica aplicable del Día 1 validada. D-17 sigue pendiente de aclaración. |
-| H1 · Diseño conceptual y documentación | Pendiente: diseño conceptual, ERD y diccionario revisados antes de nuevos modelos; entidades, cardinalidades, restricciones y reglas `on_delete`. A: documentar A-01…A-16 e incorporar ERD/diccionario revisados, sin reconstruir su contenido. B: diseñar catálogo, sets, inventario, equipamiento y consumibles/cantidades, con ERD/diccionario revisados antes del ORM. C: diseñar wallet, transacciones, tienda y compra, con ERD/diccionario revisados antes del ORM. Compartido: revisar Rewards v0, contratos internos e idempotencia. |
-| H2 · Modelos y servicios de dominio | Con la adaptación a `apps/` completada y el ERD y diccionario de H1 revisados, implementar nuevos modelos y migraciones de dominio en PR posteriores. A: concesión de XP (grant XP), progreso y evolución, con la base de especializaciones de su diseño documentado. B: conceder sets, equipar, inventario y cantidades. C: ingresos, gastos y compra. Consumir las operaciones acordadas y probar sus reglas. No cambiar User/auth sin aclaración. |
-| H3 · Admin, interfaz y vertical mínima | Registrar modelos principales en Admin después de H2. Preparar URLs, vistas, templates, navegación, listados, detalles y formularios con permisos desde el inicio. Actividad simulada → XP + monedas → evolución → nuevo set → compra de consumible → inventario. Para demo bastan Prehistoria, Grecia y Roma, como contempla DAR3; el recorrido con consumible incorpora las aclaraciones de clase. |
-| H4 · CRUD, historial y Museo | Completar CRUD evaluable de al menos dos entidades principales, una vez concretado su alcance, con validación en servidor y permisos. A: historial XP/evolución. B: sets históricos y apariencia/Museo. C: historial DuckyBank. Depende de los estados, eventos e interfaz de H2–H3; el CRUD respeta las operaciones de dominio. |
-| H5 · Seguridad, testing y robustez | Pendiente: permisos y acceso por propietario, tests de modelos/vistas/permisos y tests reales de concurrencia con `TransactionTestCase` según D-19; duplicados/idempotencia, evolución única, wallet/saldo/compra cuando corresponda, saldo no negativo, coherencia compra/inventario, conservación de progreso y restricciones. Al menos una ejecución específica de los tests críticos con SQLite file-backed. Los tests y controles críticos empiezan con cada implementación; aquí se completa la revisión transversal. |
-| H6 · Integración, evidencias y demo | Equipos 1–4, Equipo 0, contrato final Rewards, datos demo, documentación y tests integrados. Preparar evidencias Git/PR y contribuciones individuales, presentación y entregables finales de PR07, según la aclaración de su calendario. Depende de los contratos externos y del recorrido mínimo estable. |
+| H0 · Base | Completados bootstrap, estructura bajo `apps/`, perfiles iniciales y comprobaciones documentadas del Día 1 (check, cuatro tests, migraciones y HTTP 200). Core/PR07 y D-17 continúan pendientes; no está completada toda PR07. |
+| H1 · Diseño conceptual y documentación | Parcial: candidata V2, registro y lista operativa integrados en PR #15; ERD/diccionario V1 de A existente. Pendientes decisiones estructurales, adaptación de A a V2, diseños y consolidación A/B/C, y fronteras/contratos mínimos de Rewards y compras antes del ORM afectado. No completado globalmente. |
+| H2 · Modelos y servicios de dominio | Pendiente tras revisar ERD/diccionario y contratos necesarios. Implementar servicios reutilizables y modelos/migraciones del alcance acordado; no usar automáticamente reglas V1 incompatibles ni cambiar User/auth. Tests críticos con cada operación. |
+| H3 · Admin, interfaz y vertical mínima | Pendiente tras H2: Admin, URLs, vistas, templates, formularios y permisos. Demo de actividad validada → recompensa → progreso/monedas/objetos → compra e inventario/equipamiento según acuerdos. DAR3 contempla Prehistoria, Grecia y Roma para demo, distintas del catálogo de siete etapas. El equipamiento automático continúa pendiente de confirmación. |
+| H4 · CRUD, historiales y Museo | Pendiente tras diseño e interfaz: CRUD evaluable aclarado con Óscar, historiales de XP/evolución/equipamiento y Bank, y Museo según cobertura acordada. Lecturas y permisos respetan operaciones de dominio. |
+| H5 · Seguridad, testing y robustez | Pendiente: completar revisión transversal de permisos, integridad, idempotencia, fallos parciales y concurrencia D-19. Los tests empiezan en H2; al menos una ejecución crítica SQLite file-backed con TransactionTestCase. |
+| H6 · Integración, evidencias y demo | Pendiente: Core y equipos 1–4, contratos acordados, tests integrados, datos demo, documentación y contribuciones identificables mediante Git/PR. Alcance final y calendario sujetos a aclaración; sin comprometer RPG completo, WebSockets o integraciones externas por defecto. |
 
 D-19 fija la política transversal SQLite V1: `IMMEDIATE`, timeout de 5 segundos
 y `transaction.atomic()` antes de leer estado mutable en escrituras críticas.
@@ -242,49 +223,44 @@ transaccionales de Rewards/A/B/C. Su implementación y tests siguen pendientes.
 
 ## 7. Backlog inicial por integrante
 
-Orden de prioridad propuesto, sujeto a validar el reparto. Cada paso utiliza las
-aclaraciones funcionales conocidas y distingue el diseño aceptado de Parte A de
-los diseños y contratos todavía abiertos.
+Reparto individual propuesto bajo D-13, pendiente de aceptación conjunta. El
+backlog no convierte A-01…A-16 en instrucciones V2 para puntos incompatibles.
 
-### Jaime
+### Jaime · A (propuesto)
 
-1. Documentar en H1 la arquitectura interna V1 aceptada A-01…A-16 desde
-   «01 · Ecomotor y evolución», sin inventar su contenido; incorporar el ERD y
-   diccionario revisados antes de implementar modelos, con cardinalidades y `on_delete`.
-2. Mantener pendientes las reglas de XP de dominio y requisitos oficiales no
-   definidos; identificar en el diseño documentado qué depende de esas aclaraciones.
-3. Coordinar con B/C las operaciones internas y Rewards v0, incluida idempotencia.
-4. Construir en H2 concesión de XP, progreso y evolución, con múltiples umbrales;
-   solicitar a B cada set y dejar equipado el más avanzado.
-5. Conectar la vertical H3, Admin e interfaz; completar historial H4, contribuir
-   al CRUD acordado y validar permisos, tests y robustez H5.
-6. Apoyar contrato final, integración de juegos y demo H6.
+1. Revisar decisiones estructurales de progresión, especializaciones, stats,
+   Rewards e historiales, con la lista de pendientes y alcance V1.
+2. Adaptar ERD V2 y diccionario desde el antecedente existente, documentando
+   cardinalidades, restricciones y `on_delete`, sin nuevos campos ORM aquí.
+3. Validar dependencias y contratos mínimos con B/C y Core, incluidos claves y
+   coordinador; elevar a Óscar solo ambigüedades funcionales.
+4. Tras revisión H1, implementar servicios y modelos/migraciones H2 del alcance
+   acordado, sin asumir equipamiento automático ni rangos antiguos.
+5. Probar progreso, XP no decreciente, evolución múltiple, Rewards, idempotencia
+   y concurrencia; después lecturas, Admin, historial/CRUD y demo H3–H6.
 
-### Félix
+### Félix · B (propuesto)
 
-1. Diseñar en H1 catálogo, seis piezas por set, inventario y equipamiento;
-   separar sets permanentes de consumibles con cantidades. Preparar ERD y
-   diccionario con cardinalidades y `on_delete` antes del ORM.
-2. Acordar con A la inicialización y concesión/equipamiento de sets, y con C la
-   entrega de consumibles comprados, sin duplicar inventarios.
-3. Construir en H2 set inicial, concesión de sets, equipamiento y cantidades;
-   conservar y reutilizar sets sin alterar el progreso real.
-4. Conectar el inventario de H3, Admin e interfaz; preparar apariencia y Museo
-   H4 y contribuir al CRUD acordado con permisos y tests.
-5. Probar piezas únicas, cantidades, aislamiento entre usuarios y concurrencia H5.
-6. Integrar concesión de objetos de Rewards y preparar datos demo/documentación H6.
+1. Diseñar identidad/definición de objetos, posesión, cantidades, equipamiento e
+   historiales; adaptar conjuntos de seis piezas a etapas sin inventar contenido.
+2. Acordar con A inicialización, concesión y comportamiento de equipamiento;
+   con C referencias comerciales y entrega, distinguiendo ambos catálogos.
+3. Revisar ERD/diccionario antes de ORM y servicios H2; no aprobar equipamiento
+   automático por conservarlo en el antecedente V1.
+4. Preparar interfaz, apariencia y Museo/CRUD según alcance H3–H4.
+5. Probar posesión, cantidades, consumos, compatibilidad, aislamiento, idempotencia
+   y concurrencia; integrar concesiones Rewards y entregas Shop H5–H6.
 
-### Henry
+### Henry · C (propuesto)
 
-1. Diseñar en H1 wallet, saldo, transacciones, catálogo comercial, tienda y compra;
-   preparar ERD y diccionario con cardinalidades y `on_delete` antes del ORM.
-2. Acordar con B la entrega de consumibles y con Rewards los ingresos y el registro
-   financiero; revisar conjuntamente compras repetidas y consistencia.
-3. Construir en H2 ingresos, gastos y compra validada en servidor, con saldo suficiente.
-4. Conectar monedas y compra de consumible de H3, Admin e interfaz; completar
-   historial DuckyBank H4 y contribuir al CRUD acordado con permisos y tests.
-5. Verificar en H5 saldo no negativo, atomicidad y reenvíos sin compras duplicadas.
-6. Apoyar contrato final, integración y datos comerciales demo H6.
+1. Diseñar Bank, movimientos, catálogo comercial, Shop y compras; revisar
+   ERD/diccionario y separar ofertas comerciales de identidad de objetos.
+2. Acordar con A/B participación de Ecomotor, cargo, entrega, claves y coordinador
+   de compras/recompensas; no prometer atomicidad entre servicios independientes.
+3. Tras H1, implementar créditos, débitos y compra en servidor bajo D-19.
+4. Preparar Admin, interfaz, historial Bank y CRUD acordado H3–H4.
+5. Probar fondos insuficientes, saldo no negativo, cargos/entregas sin duplicados,
+   fallos parciales y concurrencia; integrar demo y datos comerciales H5–H6.
 
 ## 8. Datos provisionales y pendientes
 
@@ -300,38 +276,38 @@ usar datos de prueba explícitos mientras se espera el valor oficial. La arquite
 se diseñará para sustituir parámetros sin cambiar la lógica; si el profesor cambia
 también reglas funcionales, se revisará la arquitectura correspondiente.
 
-Siguen pendientes:
+La lista operativa de [pending-decisions.md](pending-decisions.md) es la fuente
+para responsables, impacto y condiciones de cierre; este plan no la duplica.
 
-- Umbrales oficiales, XP oficial por actividad y DuckyCoins oficiales.
-- Contenido definitivo de sets, precios y efectos definitivos de consumibles.
-- XP de dominio y requisitos de rangos.
-- Formato final equipos 1–4 → Rewards y contrato definitivo con Equipo 0.
-- Utilización concreta de consumibles por modos de juego.
-- Documentación del diseño interno V1 aceptado de Parte A y su ERD/diccionario;
-  diseños aún abiertos, contratos internos y mecanismo técnico de idempotencia,
-  que deberán revisarse por el Equipo 5 durante H1 antes del ORM de H2.
-- Aclaraciones de PR07 sobre CustomUser, autenticación local, entidades del CRUD
-  y calendario/entregables, recogidas en [pending-decisions.md](pending-decisions.md).
+El siguiente paso es iniciar la adaptación conceptual del ERD V2 de A: no hace
+falta esperar todos los parámetros oficiales ni diseños definitivos de otros
+equipos. Para cerrarlo deben concretarse representación de progreso y evolución,
+especializaciones y stats incluidos, persistencia de historiales y relaciones
+compartidas. Las claves, fronteras transaccionales y contratos necesarios deben
+cerrarse antes del ORM/servicio afectado, sin bloquear todo el diseño conceptual.
 
-### Fuera de prioridad en la primera versión
+### Alcance aplazable por acuerdo
 
-Contenido final de todas las épocas, especializaciones completas, efectos avanzados,
-Techies, cotización variable y ampliaciones innecesarias para la demo mínima.
-Esto no elimina la base mínima de especializaciones prevista en H1 ni su conservación.
-Techies y cotización variable están fuera de la primera entrega según DAR3;
-la priorización restante es parte de esta propuesta operativa.
+Contenido de etapas fuera de la demo, especializaciones completas, efectos
+avanzados, interfaz avanzada del Museo, RPG completo, WebSockets, integraciones
+externas y pedidos físicos no se comprometen para V1 sin confirmar cobertura.
+Techies y cotización variable se mantienen fuera de prioridad según antecedentes
+DAR3. Aplazar cobertura no elimina requisitos ni sustituye la confirmación del
+alcance evaluable con Óscar.
 
 ## 9. Tests mínimos por área
 
-Estos tests se proponen para verificar requisitos y aclaraciones funcionales;
+Los cuatro tests correctos del bootstrap son evidencia histórica del setup, no
+validación del dominio V2 ni una nueva ejecución en esta tarea. Los siguientes
+tests corresponden a requisitos y reglas finalmente acordadas;
 no existen todavía como tests implementados de dominio.
 
 | Área | Comprobaciones mínimas |
 | --- | --- |
-| A | XP acumulativa; XP no se gasta; evolución por umbral; múltiples umbrales en una recompensa; historial; conservación del progreso; no duplicar evolución. |
-| B | Set inicial; set completo al evolucionar; equipamiento automático; conservar sets anteriores; reequipar un set anterior sin cambiar época; no duplicar piezas únicas; cantidades de consumibles; aislamiento entre usuarios. |
-| C | Ingresos; saldo suficiente; saldo no negativo; compra; atomicidad saldo/transacción/inventario; reenvío no duplica compra. |
-| Rewards | Una actividad no se recompensa dos veces; utiliza dominios propietarios; devuelve resumen coherente. |
+| A | XP no decreciente; nivel/etapa/progreso separados; evolución automática según condiciones acordadas y transiciones múltiples; stats y efectos confirmados; historial; idempotencia de XP/evolución. |
+| B | Posesión y cantidades; concesiones/consumos idempotentes; compatibilidad; conjuntos de seis piezas según adaptación revisada; equipamiento e historial conforme a reglas acordadas, sin imponer automatismo; aislamiento entre usuarios. |
+| C | Ingresos, fondos suficientes y saldo no negativo; compra/cargo/entrega sin duplicados; rollback o recuperación conforme a coordinación acordada, sin presuponer atomicidad global. |
+| Rewards | Condiciones, vigencia, límites, emisor, compatibilidad y repetibilidad configurados; actividad no recompensada dos veces; dominios propietarios y resumen coherente; separación de puntuación provisional y XP consolidada. |
 | Concurrencia SQLite (D-19) | `TransactionTestCase`; escrituras concurrentes; mismo `operation_key`; rollback/timeout; al menos una ejecución específica SQLite file-backed. Pendiente de implementación. |
 | Transversal PR07 | Tests de modelos, vistas y permisos: accesos autorizados, redirección o denegación según corresponda (200/302/403), detalle inexistente controlado (404), formularios válidos e inválidos y protección del CRUD por propietario. La autenticación concreta sigue pendiente de aclaración. |
 
@@ -344,8 +320,9 @@ Como criterio operativo propuesto, una funcionalidad se considera terminada cuan
 - Está integrada y otro integrante puede comprenderla.
 - Está documentada si introduce decisiones importantes.
 - El PR tiene una responsabilidad clara.
-- Los nuevos modelos parten de ERD y diccionario revisados, con cardinalidades
-  y reglas `on_delete`; Admin, interfaz y permisos se verifican cuando correspondan.
+- Los nuevos modelos parten de ERD V2 y diccionario revisados del dominio, con
+  incompatibilidades V1 resueltas formalmente y contratos mínimos acordados, con
+  cardinalidades y reglas `on_delete`; Admin, interfaz y permisos se verifican cuando correspondan.
 - La aportación y su validación son identificables mediante commits y PR.
 
 Estos criterios recogen la orientación de entrega integrada de DAR3 y añaden la
@@ -367,9 +344,9 @@ los PR originales cuando la integración use squash; este plan no cambia el
 método de integración registrado. Los entregables diarios quedan sujetos a la
 aclaración del calendario, sin eliminar la obligación de evidenciar el trabajo.
 
-El cierre detallado de PR07 incluye documentación de pruebas y de tres bugs
-complejos en `docs/postmortem-bugs.md`, PR de release, etiqueta `v1.0.0`, instrucciones
-de despliegue local y presentación (página 11). Se prepararán en la fase de entrega
+Según el antecedente PR07 documentado, la entrega contempla pruebas, análisis
+de tres bugs complejos, PR de release, etiqueta `v1.0.0`, instrucciones de
+despliegue local y presentación. Se prepararán en la fase de entrega
 que corresponda; este PR no crea esos archivos ni realiza una release.
 
 El plan debe actualizarse cuando se valide el reparto, cambie un hito, llegue
