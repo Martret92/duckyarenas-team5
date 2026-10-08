@@ -53,7 +53,11 @@ cuando se indica una decisión o un apartado del ERD V2 provisional.
 
 No se reabre la aceptación interna de ocho entidades, estadísticas persistentes,
 causa XPEvent de evoluciones múltiples, niveles independientes, inicialización
-explícita ni progreso de dominio mínimo sin rank. Los detalles siguientes siguen
+explícita ni progreso de dominio mínimo sin rank. También están fijados
+internamente V2-A20 (niveles positivos consecutivos, primero XP 0 y
+stat_points_awarded no negativo) y V2-A21 (exactamente siete etapas, ordinales
+1–7 y Prehistoria XP 0). Lo pendiente es configuración restante y cambios
+administrativos, no estas invariantes. Los detalles siguientes siguen
 abiertos; no impiden seguir revisando el diseño conceptual.
 
 | Pregunta concreta | Estado | Responsable de validación | Impacto | Prioridad y condición | Referencia |

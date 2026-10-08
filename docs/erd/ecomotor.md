@@ -39,7 +39,7 @@ erDiagram
         integer historical_xp_total
         integer current_level
         code current_stage_code
-        code active_specialization_code_nullable
+        code active_specialization_code
     }
     CHARACTER_STATS {
         identifier profile
@@ -52,14 +52,14 @@ erDiagram
         integer available_points
     }
     LEVEL_THRESHOLD {
-        integer level_unique
+        integer level
         integer minimum_xp
-        integer characteristic_points
+        integer stat_points_awarded
     }
     EVOLUTION_STAGE {
-        code code_unique
+        code code
         text name
-        integer ordinal_unique
+        integer ordinal
         integer minimum_xp
     }
     XP_EVENT {
@@ -68,17 +68,17 @@ erDiagram
         integer xp_before
         integer xp_after
         key operation_key
-        datetime occurred_at
+        datetime created_at
     }
     EVOLUTION_EVENT {
         identifier profile
         identifier stage
         identifier xp_event
-        datetime occurred_at
+        datetime created_at
     }
     SPECIALIZATION {
         identifier id
-        code code_unique
+        code code
         text name
     }
     USER_SPECIALIZATION_PROGRESS {
@@ -104,18 +104,19 @@ Cada catálogo puede tener cero o muchas referencias históricas/progresos.
 
 ## 3. Diccionario V2 provisional
 
-Los nombres describen el diseño interno; no fijan tipos Django, tamaños, defaults
-ni migraciones. Los identificadores técnicos de las entidades se concretarán en
-el ORM revisado, sin duplicar la identidad de User.
+El diccionario detalla tipos Django **previstos**, sin implementar ORM ni
+migraciones. Las reglas aceptadas internamente se distinguen de propuestas de
+representación física y parámetros pendientes. D-12 sigue describiendo los perfiles
+implementados hoy; los nuevos campos son diseño documental futuro.
 
 | Entidad | Datos y significado | Integridad y trazabilidad |
 | --- | --- | --- |
 | UserProfileEcomotor | `user`: identidad Core; `historical_xp_total`: XP histórica consolidada; `current_level`: nivel alcanzado; `current_stage_code`: etapa; `active_specialization_code`: código nullable de especialización activa | Un perfil por User; XP acumulativa no negativa y no decreciente; códigos y nivel válidos según catálogos; V2-A6/A7/A21/A29 |
 | CharacterStats | `profile`: OneToOne; `ATK`, `DEF`, `LOG`, `SPE`, `VEL`, `INT`: atributos persistentes; `available_points`: puntos disponibles para asignar | Uno por perfil inicializado; asignación transaccional sin gastar puntos dos veces; límites y valores iniciales pendientes; V2-A2/A8/A17/A18 |
-| LevelThreshold | `level`: nivel único; `minimum_xp`: umbral independiente del de etapas; `characteristic_points`: puntos concedidos al alcanzar el nivel | Configurable; no fijar numeración, cantidades ni valores oficiales; validar coherencia antes de activar configuración; cambios administrativos condicionados; V2-A7/A20 |
-| EvolutionStage | `code`: estable y único; `name`: presentación; `ordinal`: único; `minimum_xp`: umbral | Siete etapas ordenadas; Prehistoria XP 0 y umbrales estrictamente crecientes; comprobación del orden entre filas en validación de configuración; V2-A1/A9/A21 |
-| XPEvent | `profile`, `amount`, `xp_before`, `xp_after`, `operation_key`, `occurred_at` | Cantidad positiva; snapshots coherentes; clave persistente por perfil; historial inmutable; V2-A10/A22 |
-| EvolutionEvent | `profile`, `stage`, `xp_event` causal, `occurred_at` | Unicidad perfil/etapa; mismo perfil que la causa; todas las etapas cruzadas registradas; V2-A5/A11/A23 |
+| LevelThreshold | `level`: nivel único; `minimum_xp`: umbral independiente del de etapas; `stat_points_awarded`: puntos concedidos al alcanzar el nivel | Niveles positivos consecutivos; primer umbral XP 0; puntos otorgados no negativos; cantidades oficiales y cambios administrativos pendientes; V2-A7/A20 |
+| EvolutionStage | `code`: estable y único; `name`: presentación; `ordinal`: único; `minimum_xp`: umbral | Exactamente siete etapas, ordinales consecutivos 1–7; Prehistoria XP 0 y umbrales estrictamente crecientes; comprobación del orden entre filas en validación de configuración; V2-A1/A9/A21 |
+| XPEvent | `profile`, `amount`, `xp_before`, `xp_after`, `operation_key`, `created_at` | Cantidad positiva; snapshots coherentes; clave persistente por perfil; historial inmutable; V2-A10/A22 |
+| EvolutionEvent | `profile`, `stage`, `xp_event` causal, `created_at` | Unicidad perfil/etapa; mismo perfil que la causa; todas las etapas cruzadas registradas; V2-A5/A11/A23 |
 | Specialization | `id`: identificador; `code`: estable y único; `name`: etiqueta | Catálogo protegido cuando está referenciado; códigos definitivos pendientes; V2-A24 |
 | UserSpecializationProgress | `profile`, `specialization`, `domain_xp_total`: XP de dominio acumulada | Unicidad por pareja; XP no negativa e independiente de XP histórica; sin `rank` en el mínimo; V2-A25/A26 |
 
@@ -124,6 +125,111 @@ fuera de las ocho entidades físicas mínimas. No se aprueban campos, FKs, tabla
 apps ni contratos. La trazabilidad de XP de dominio se concretará con Rewards;
 no se inventa aquí una novena entidad ni se reutiliza XPEvent como si fueran la
 misma magnitud.
+
+### Detalle técnico previsto por campo
+
+`Null` expresa `null` de almacenamiento; todas las relaciones requieren destino
+existente salvo el código nullable de especialización activa. `Unique` se refiere
+al campo individual: las unicidades compuestas se indican en constraints.
+`—` en default significa **sin default de modelo**; el servicio debe proporcionar
+el valor. Un default propuesto no inicializa por sí solo el agregado ni autoriza
+backfills legacy. Se propone `blank=False` salvo el código activo nullable
+(`blank=True`, normalizando ausencia a NULL, no a cadena vacía).
+
+`BigAutoField` para identificadores sigue `DEFAULT_AUTO_FIELD` actual, sin duplicar
+User. `CharField` con longitudes 32 (códigos), 100 (nombres) y 255 (clave) retoma
+el antecedente V1 como **previsión pendiente de confirmar**, especialmente con los
+contratos de claves. `related_name`, índices adicionales y nombres físicos de
+constraints se concretarán antes del ORM; no se aprueban aquí. `created_at` es
+fecha de registro local, no fecha de actividad recibida del juego.
+
+### 3.1. `UserProfileEcomotor` · `apps.users`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| user | OneToOneField(settings.AUTH_USER_MODEL) | No | Sí | — | FK a User de Core; D-11/D-12 vigentes | CASCADE actual D-12; retención futura pendiente Core |
+| historical_xp_total | PositiveBigIntegerField | No | No | 0 previsto | CHECK >= 0; no decrecimiento por servicio; V2-A6 | — |
+| current_level | PositiveIntegerField | No | No | — | CHECK > 0; asociación lógica a LevelThreshold.level; inicialización explícita | Sin FK/on_delete |
+| current_stage_code | CharField(max_length=32), longitud provisional | No | No | — | No vacío; asociación lógica a EvolutionStage.code; V2-A6/A21 | Sin FK/on_delete |
+| active_specialization_code | CharField(max_length=32), longitud provisional | Sí | No | None previsto | Código válido o NULL; solo en Actual; obligatoriedad pendiente V2-A19 | Sin FK/on_delete |
+
+### 3.2. `CharacterStats` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| profile | OneToOneField(UserProfileEcomotor) | No | Sí | — | FK al perfil; exactamente uno tras inicialización V2-A13 | CASCADE provisional, condicionado a Core |
+| ATK | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| DEF | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| LOG | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| SPE | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| VEL | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| INT | IntegerField provisional | No | No | Sin default: iniciales pendientes | Base persistente V2-A2; límites por rol/especialización pendientes V2-A18; no fijar todos a 5 | — |
+| available_points | PositiveIntegerField provisional | No | No | Sin default: iniciales pendientes | CHECK >= 0 previsto; concesión/asignación transaccional V2-A8; capacidad numérica por confirmar | — |
+
+### 3.3. `LevelThreshold` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| level | PositiveIntegerField | No | Sí | — | CHECK > 0; catálogo consecutivo validado globalmente V2-A20 | — |
+| minimum_xp | PositiveBigIntegerField | No | No | — | CHECK >= 0; primer nivel configurado XP 0; orden/coherencia de umbrales por validación de catálogo | — |
+| stat_points_awarded | PositiveIntegerField provisional | No | No | — | CHECK >= 0; configurables por nivel V2-A20; cero permitido, sin cantidad oficial | — |
+
+### 3.4. `EvolutionStage` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| code | CharField(max_length=32), longitud provisional | No | Sí | — | No vacío; identidad estable; códigos finales pendientes V2-A21 | — |
+| name | CharField(max_length=100), longitud provisional | No | No | — | Etiqueta obligatoria; no usarla como identidad técnica | — |
+| ordinal | PositiveSmallIntegerField | No | Sí | — | CHECK entre 1 y 7; catálogo completo exactamente siete ordinales consecutivos V2-A21 | — |
+| minimum_xp | PositiveBigIntegerField | No | No | — | CHECK >= 0; ordinal 1 / Prehistoria XP 0; estrictamente creciente por catálogo | — |
+
+### 3.5. `XPEvent` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| profile | ForeignKey(UserProfileEcomotor) | No | No | — | FK; UNIQUE(profile, operation_key) | CASCADE provisional, condicionado a Core |
+| amount | PositiveBigIntegerField | No | No | — | CHECK > 0; concesión histórica positiva | — |
+| xp_before | PositiveBigIntegerField | No | No | — | CHECK >= 0; snapshot previo | — |
+| xp_after | PositiveBigIntegerField | No | No | — | CHECK >= 0 y xp_after = xp_before + amount | — |
+| operation_key | CharField(max_length=255), longitud provisional | No | No global | — | No vacío; UNIQUE(profile, operation_key); contrato/contenido global pendientes | — |
+| created_at | DateTimeField(auto_now_add=True) previsto | No | No | Sin default; fecha automática de creación | Fecha local de registro; historial inmutable V2-A22; no fecha de partida | — |
+
+### 3.6. `EvolutionEvent` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| profile | ForeignKey(UserProfileEcomotor) | No | No | — | FK; UNIQUE(profile, stage); mismo perfil de causa por servicio | CASCADE provisional, condicionado a Core |
+| stage | ForeignKey(EvolutionStage) | No | No | — | FK; UNIQUE(profile, stage); catálogo histórico protegido | PROTECT interno |
+| xp_event | ForeignKey(XPEvent) | No | No | — | FK causal; varias evoluciones por concesión V2-A5 | CASCADE provisional; conservación conjunta pendiente Core |
+| created_at | DateTimeField(auto_now_add=True) previsto | No | No | Sin default; fecha automática de creación | Registro de transición; historial inmutable V2-A23 | — |
+
+### 3.7. `Specialization` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| code | CharField(max_length=32), longitud provisional | No | Sí | — | No vacío; identidad estable V2-A24; literales Sistemas/Data pendientes | — |
+| name | CharField(max_length=100), longitud provisional | No | No | — | Etiqueta obligatoria; normalización Data / Data & IA pendiente | — |
+
+### 3.8. `UserSpecializationProgress` · `apps.ecomotor`
+
+| Campo | Tipo Django previsto | Null | Unique | Default | Constraints, FK y estado | on_delete |
+| --- | --- | --- | --- | --- | --- | --- |
+| id | BigAutoField | No | PK | Autogenerado | Clave primaria; previsión según configuración actual | — |
+| profile | ForeignKey(UserProfileEcomotor) | No | No | — | FK; UNIQUE(profile, specialization) | CASCADE provisional, condicionado a Core |
+| specialization | ForeignKey(Specialization) | No | No | — | FK; UNIQUE(profile, specialization) | PROTECT interno |
+| domain_xp_total | PositiveBigIntegerField | No | No | 0 previsto | CHECK >= 0; XP de dominio independiente; contrato idempotente V2-A26 condicionado | — |
+
+No hay campo `rank` en UserSpecializationProgress mínimo. Los seis atributos se
+listan por separado, sin aprobar sus valores iniciales ni límites físicos.
+Las asociaciones por códigos/nivel no son ForeignKey: el servicio valida catálogos
+antes de escribir y no un `CheckConstraint` que consulte otras tablas.
 
 ## 4. Borrado y conservación
 
@@ -150,7 +256,8 @@ resuelta por este ERD. Antes de cerrar migraciones debe validarse con Core.
 | `UNIQUE(profile, stage)` en EvolutionEvent | Restricción de BD; no repetir evolución en retries |
 | Perfil de EvolutionEvent igual al del XPEvent causal | Validación transaccional de servicio; no asumir CheckConstraint entre tablas |
 | `UNIQUE(profile, specialization)` y XP de dominio no negativa | Restricciones de BD y servicio propietario |
-| Etapas estrictamente crecientes, primera en XP 0 | Validación del catálogo completo; no se reduce a un CHECK de fila |
+| Niveles positivos consecutivos, primer umbral XP 0 y stat_points_awarded >= 0 (V2-A20) | CHECK > 0 / >= 0 por fila; continuidad y primer umbral por validación de catálogo completo |
+| Exactamente siete etapas, ordinales consecutivos 1–7, Prehistoria XP 0 y umbrales estrictamente crecientes (V2-A21) | Unicidad y CHECK 1–7 por fila; número de filas, continuidad y orden de XP por validación del catálogo completo |
 | XP histórica no decreciente y eventos inmutables | Servicios propietarios, permisos y pruebas; un CHECK de fila no compara por sí solo el estado anterior |
 
 Las constraints complementan los servicios, no los sustituyen. La coherencia de
@@ -161,11 +268,18 @@ requiere validación explícita (V2-A14/A18/A20/A28).
 
 Orden funcional: **Prehistoria → Griega → Romana → Renacentista → Contemporánea
 → Siglo XX → Actual**. Los códigos son estables; no se inventa una lista oficial
-de códigos. Etapas y niveles tienen umbrales independientes configurables.
+de códigos. V2-A21 exige exactamente siete etapas y ordinales consecutivos
+1–7, con Prehistoria en el ordinal 1 y XP mínima 0. V2-A20 exige niveles positivos
+consecutivos, primer nivel configurado con umbral XP 0 y
+`stat_points_awarded` no negativo (cero permitido). Niveles y etapas tienen
+umbrales independientes configurables; los valores restantes y la política de
+cambios administrativos siguen pendientes. Estas invariantes de catálogo no
+se garantizan únicamente con constraints de fila.
 
 La inicialización explícita (V2-A13) crea/valida perfil y stats conjuntamente,
-con XP histórica 0, Prehistoria y sin especialización activa. Nivel y puntos
-iniciales se determinarán con la configuración revisada; atributos iniciales no
+con XP histórica 0, primer nivel configurado, Prehistoria y sin especialización
+activa. Los puntos iniciales y la aplicación de los puntos del primer nivel deben
+concretarse con la configuración revisada, sin doble concesión; atributos iniciales no
 están fijados. Un reintento devuelve el estado inicializado sin resetearlo.
 No utiliza signals ni crea XPEvent/EvolutionEvent ficticios. Un perfil legacy o
 parcial no se trata silenciosamente como nuevo: se aplica M-01.

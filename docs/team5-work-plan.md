@@ -56,8 +56,9 @@ siendo `ecomotor` y `users`. Se preservaron los modelos y migraciones existentes
 La parte estructural y técnica aplicable del Día 1 queda completada: `config/`,
 `apps/`, `requirements.txt`, `.gitignore`, `check` correcto, cuatro tests correctos,
 sin nuevas migraciones y servidor con HTTP 200. CustomUser/auth sigue pendiente
-bajo D-17. El siguiente paso es diseño conceptual, ERD y diccionario revisados
-antes del ORM de dominio; el Día 2 no está completado.
+bajo D-17. Ya existen ERD y diccionario técnico V2 provisionales de Parte A;
+el siguiente paso es validar sus condiciones y consolidar A/B/C antes del ORM
+de dominio. El Día 2 no está completado globalmente.
 El CRUD de al menos dos entidades principales exigido por PR07 debe concretarse
 con el profesor. No implica permitir modificaciones arbitrarias de XP,
 evolución o registros financieros al margen de sus operaciones de dominio.
@@ -87,8 +88,10 @@ La XP histórica es acumulativa y no decreciente: no se gasta en compras ni se
 reduce por consumo o penalizaciones económicas. Nivel, etapa y progreso son
 conceptos distintos; la barra visual representa el estado canónico. La evolución
 es automática cuando se cumplen los requisitos definidos. No se inventan umbrales,
-fórmulas ni condiciones; su representación y las transiciones múltiples deben
-revisarse en el ERD V2 conservando trazabilidad.
+fórmulas ni condiciones adicionales. El ERD V2 provisional ya documenta
+transiciones múltiples y trazabilidad. V2-A20 fija niveles positivos consecutivos, primero XP 0 y stat_points_awarded no negativo; V2-A21 fija exactamente
+siete etapas, ordinales 1–7 y Prehistoria XP 0. Restan parámetros y política
+administrativa, no volver a decidir estas invariantes.
 
 ### Equipamiento y objetos
 
@@ -117,7 +120,8 @@ siguen pendientes. Cambio posterior fuera del mínimo; no adoptar INITIAL de V1.
 Las estadísticas canónicas son `ATK`, `DEF`, `LOG`, `SPE`, `VEL`, `INT`.
 CharacterStats persistente y puntos configurables por nivel están aceptados
 internamente; iniciales por rol, límites físicos, fórmulas efectivas y efectos
-de objetos siguen pendientes. No fijar todos los atributos a 5 por un ejemplo. Ecomotor es la autoridad candidata sobre stats y progreso.
+de objetos siguen pendientes. No fijar todos los atributos a 5 por un ejemplo.
+Ecomotor es la autoridad candidata sobre stats y progreso.
 Rewards se plantea como capacidad coordinada por Ecomotor que evalúa reglas y
 solicita monedas a Bank y objetos a Inventory. Puntuación provisional de partida,
 resultado validado, recompensa y XP histórica consolidada son estados distintos.
@@ -231,9 +235,9 @@ backlog no convierte A-01…A-16 en instrucciones V2 para puntos incompatibles.
 
 ### Jaime · A (propuesto)
 
-1. Revisar decisiones estructurales de progresión, especializaciones, stats,
-   Rewards e historiales, con la lista de pendientes y alcance V1.
-2. Revisar el ERD V2 provisional y diccionario ya documentados, sus condiciones
+1. Validar las condiciones aún abiertas de V2-A1…V2-A29 con la lista de
+   pendientes y alcance V1, sin reabrir las reglas internas ya documentadas.
+2. Revisar el ERD V2 provisional y diccionario técnico campo por campo, sus condiciones
    de borrado/Core y trazabilidad V2-A1…V2-A29 antes de cerrar diseño para ORM.
 3. Validar dependencias y contratos mínimos con B/C y Core, incluidos claves y
    coordinador; elevar a Óscar solo ambigüedades funcionales.
@@ -315,7 +319,6 @@ no existen todavía como tests implementados de dominio.
 | Rewards | Condiciones, vigencia, límites, emisor, compatibilidad y repetibilidad configurados; actividad no recompensada dos veces; dominios propietarios y resumen coherente; separación de puntuación provisional y XP consolidada. |
 | Concurrencia SQLite (D-19) | `TransactionTestCase`; escrituras concurrentes; mismo `operation_key`; rollback/timeout; al menos una ejecución específica SQLite file-backed. Pendiente de implementación. |
 | Transversal PR07 | Tests de modelos, vistas y permisos: accesos autorizados, redirección o denegación según corresponda (200/302/403), detalle inexistente controlado (404), formularios válidos e inválidos y protección del CRUD por propietario. La autenticación concreta sigue pendiente de aclaración. |
-
 
 ### Verificaciones posteriores del diseño provisional de Parte A
 

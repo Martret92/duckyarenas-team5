@@ -159,7 +159,10 @@ especializaciones, valores de stats ni efectos de objetos sin confirmación.
 El ERD V2 provisional acepta niveles persistentes con LevelThreshold independiente
 de EvolutionStage, puntos por nivel configurables y concesión transaccional de XP,
 nivel, puntos, etapa y eventos de todas las transiciones alcanzadas. Prehistoria
-comienza en XP 0 y los umbrales de etapa son estrictamente crecientes. La
+comienza en XP 0; exactamente siete etapas tienen ordinales consecutivos 1–7
+y umbrales estrictamente crecientes (V2-A21). Los niveles son positivos y
+consecutivos, el primero tiene umbral XP 0 y stat_points_awarded es
+no negativo (V2-A20). La
 inicialización es explícita e idempotente, sin signals ni eventos ficticios;
 valores iniciales y política de cambios administrativos quedan pendientes.
 

@@ -245,8 +245,8 @@ juego/día; Escape penaliza XP de partida, no histórica consolidada.
 | V2-A17 | Estadísticas persistentes y efectivas separadas | Efectos de objetos y cálculo efectivo pendientes; no sobrescribir base por presentación. |
 | V2-A18 | Límites de estadísticas por especialización | Representación física definitiva pendiente; no adoptar valores de ejemplo. |
 | V2-A19 | Selección inicial de especialización en Actual | Obligatoriedad pendiente; cambio posterior fuera del mínimo. |
-| V2-A20 | Reglas de LevelThreshold y cambios de configuración | Política administrativa y tratamiento del progreso existente pendientes. |
-| V2-A21 | Siete etapas, códigos estables y umbrales | Prehistoria en XP 0; umbrales estrictamente crecientes y configurables. |
+| V2-A20 | Reglas de LevelThreshold y cambios de configuración | Niveles positivos consecutivos; primer nivel configurado XP 0; stat_points_awarded >= 0. Política administrativa y tratamiento del progreso existente pendientes. |
+| V2-A21 | Siete etapas, códigos estables y umbrales | Exactamente siete etapas, ordinales consecutivos 1–7; Prehistoria en XP 0; umbrales estrictamente crecientes y configurables. |
 | V2-A22 | Integridad e inmutabilidad de XPEvent | UNIQUE(profile, operation_key), amount > 0 y xp_after = xp_before + amount. |
 | V2-A23 | Integridad del historial EvolutionEvent | UNIQUE(profile, stage) y mismo perfil que el XPEvent causal. |
 | V2-A24 | Catálogo estable Specialization | Identificador, código estable y nombre; códigos definitivos Sistemas/Data pendientes. |
