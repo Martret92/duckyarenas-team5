@@ -1,264 +1,362 @@
-# Arquitectura: alcance y límites
+# Arquitectura candidata V2 · DuckyArenas — Equipo 5
 
-El proyecto tiene una estructura base de usuarios y perfiles, sin lógica de
-dominio implementada. Parte A dispone de una arquitectura interna V1 aceptada;
-su detalle y los contratos compartidos aún no están documentados o validados aquí.
+## 1. Propósito y estado
 
-## 1. Requisitos procedentes de DAR3
+Este documento recoge la arquitectura candidata V2 como dirección interna del
+Equipo 5. Permite preparar una V1 pequeña, funcional, testeable e integrable antes
+de implementar servicios y modelos de dominio. No constituye una aprobación del
+profesor Óscar ni de contratos compartidos con otros equipos.
 
-Fuente consultada: `DAR3_ (1).pdf`, sección 9, páginas 48-50. La numeración de
-páginas corresponde al PDF facilitado por el equipo, no copiado al repositorio.
+Se distinguen cuatro estados: **requisito funcional especificado**, **decisión
+aceptada y documentada**, **propuesta candidata** y **pendiente de confirmación**.
+Las responsabilidades y flujos V2 descritos aquí son propuestas candidatas salvo
+cuando se identifica expresamente una decisión vigente o un requisito documental
+trasladado desde la revisión externa. Los cambios respecto al
+diseño V1 requieren revisión formal; este documento no deroga acuerdos anteriores.
+No define campos ORM, migraciones, tablas ni endpoints definitivos.
 
-| Área | Responsabilidad confirmada |
+## 2. Fuentes y criterios de autoridad
+
+| Fuente | Autoridad y procedencia |
 | --- | --- |
-| Ecomotor y evolución | XP histórica, épocas y umbrales, desbloqueo de piezas, evolución automática, historial de épocas y equipamiento, Museo Ducky y preparación de especializaciones y XP de dominio. |
-| Avatar e inventario | Catálogo e inventario, equipar y desequipar, impedir objetos incompatibles en una zona, distinguir seis piezas principales de complementos estéticos y mostrar la apariencia en perfil y home. |
-| Ecommerce y DuckyBank | Cartera de DuckyCoins, historial, tienda estética, compras validadas en servidor con saldo suficiente, actualización conjunta de saldo/transacción/inventario y protección ante reenvíos. |
-| Recompensas | Recibir resultados validados de los equipos 1 a 4, comprobar origen e identidad, evitar recompensar dos veces una actividad, registrar el evento, conceder XP y monedas, desbloquear o evolucionar cuando corresponda y devolver un resumen. |
+| `DAR3_ (1).pdf` | Referencia principal del alcance general y reparto entre equipos. Sus requisitos se recogen mediante la documentación del repositorio y la revisión externa comunicada. |
+| `DuckyEcomotor.pdf` y `DAR_formulas.pdf` | Fuentes funcionales posteriores proporcionadas por Óscar. Prevalecen donde actualicen explícitamente una especificación anterior; los requisitos aquí trasladados proceden de la revisión externa comunicada. |
+| [Registro de decisiones](decisions.md) | Fuente de decisiones aceptadas y de propuestas aún pendientes. Se respetan las decisiones vigentes hasta revisión formal. |
+| [ERD de Ecomotor V1](erd/ecomotor.md) | Evidencia del diseño interno anterior de Parte A, A-01…A-16, y de sus contratos compartidos pendientes. No equivale a aprobación del conjunto del Equipo 5. |
+| `11201_PR07_proyecto Ducky Arenas.pdf` (PR07) | Referencia de proceso y evaluación; sus condicionantes se recogen en la documentación del repositorio y la revisión externa comunicada. |
+| Contexto de la candidata V2 | Orientación interna para esta propuesta; no sustituye requisitos verificados ni resuelve preguntas abiertas. |
 
-Para la demostración, DAR3 contempla Prehistoria, Grecia y Roma. Techies y la
-cotización variable quedan fuera de la primera entrega (sección 9).
-La demostración mínima recorre una actividad de QuizArenas, la recompensa, el
-desbloqueo de una pieza, la compra y el equipamiento de un accesorio, con historial.
+Los requisitos documentales trasladados desde la revisión externa se identifican
+como tales, sin afirmar lectura o verificación directa de los PDF ni reproducir
+citas textuales. Se distinguen de decisiones aceptadas y propuestas internas;
+las referencias de páginas se limitan a las comunicadas en esa revisión.
 
-La sección 10 (páginas 50-53) atribuye el acuerdo del contrato de recompensas al
-Equipo 5 junto con el Equipo 0. Cada equipo de juego aporta su formato de resultados;
-el catálogo de épocas y piezas corresponde al Equipo 5. El documento enumera
-información mínima a intercambiar, pero aún no se ha definido una API,
-una firma de función ni un esquema de datos definitivo.
+El alcance funcional atribuido a DAR3 en la documentación existente comprende
+Ecomotor/evolución, avatar/inventario, Ecommerce/Bank y recompensas comunes;
+el contrato de recompensas debe acordarse con Core. Los valores, fórmulas y
+reglas que no se puedan verificar quedan pendientes, sin inventar requisitos.
 
-Estos requisitos orientan el trabajo futuro; no implican adoptar las propuestas
-técnicas de dominio del PDF.
+## 3. Alcance y límites del Equipo 5
 
-DAR3 distingue Parte A (Ecomotor y evolución), Parte B (Avatar e inventario),
-Parte C (Ecommerce y DuckyBank) y el servicio común de recompensas. No asigna
-individualmente estas partes a los tres integrantes. Define capacidades de XP,
-épocas, evolución y recompensas, pero no proporciona todos los valores numéricos
-definitivos; las tablas y datos oficiales pendientes se solicitarán al profesor.
+El Equipo 5 propone concentrar la autoridad sobre progreso, estadísticas RPG,
+economía, objetos, compras y equipamiento en servicios propietarios. Los juegos
+producen resultados y hechos de actividad validados; no deciden arbitrariamente
+XP, monedas, saldo, stats canónicos ni evolución.
 
-## 2. Estructura actual y límites conocidos
+Como requisitos de DAR3 trasladados desde la revisión externa, se mantienen el
+historial de épocas, el historial de equipamiento, el Museo Ducky y la distinción
+entre piezas principales de equipamiento y complementos estéticos. Actualizar
+las etapas no elimina estas funcionalidades: DAR3 establece seis piezas principales
+por época. La especificación posterior actualiza la progresión a siete etapas
+sin eliminar expresamente esa regla. La adaptación de los conjuntos y su alcance
+V1 requieren definición conjunta, sin aprobar equipamiento automático al evolucionar.
 
-El proyecto Django utiliza el paquete de configuración `config`. Están
-registradas las apps `ecomotor`, todavía provisional, y `users`.
+Core (Equipo 0) es propietario de User, autenticación, JWT y la integración global.
+El Equipo 5 no redefine User ni implementa autenticación paralela. La interfaz
+presenta el estado canónico y solicita operaciones al servidor; no lo recalcula
+como fuente de verdad ni aplica cambios críticos por su cuenta.
 
-Ambas se alojan físicamente bajo `apps/`. Sus rutas Python canónicas son
-`apps.ecomotor` y `apps.users`, con los `AppConfig` registrados como
-`apps.ecomotor.apps.EcomotorConfig` y `apps.users.apps.UsersConfig`.
-Los labels Django se conservan expresamente como `ecomotor` y `users` (D-18).
-`settings.py` incorpora `apps/` al path mediante
-`sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))`, según la adaptación de PR07.
-Los imports del proyecto deben utilizar las rutas canónicas `apps.*`.
+## 4. Módulos y responsabilidades candidatas
 
-Según lo acordado en clase con el profesor, `users` utiliza el User estándar de
-Django, sin User personalizado ni herencia de `AbstractUser`. Los perfiles
-específicos del Equipo 5 se centralizan ahora en `apps/users/models.py`: inicialmente
-`UserProfileEcomotor` y `UserProfileBank`, relacionados uno a uno con el usuario
-(D-09 y D-11).
+Los módulos de esta tabla son responsabilidades conceptuales, no un compromiso
+de crear una app Django por fila.
 
-Como elección técnica de implementación del Equipo 5, cada perfil contiene un
-identificador automático y una relación `user` con `settings.AUTH_USER_MODEL`,
-usando `on_delete=models.CASCADE`. No se ha modificado `AUTH_USER_MODEL`, no hay
-campos de negocio ni signals para crear perfiles automáticamente (D-12).
-La migración inicial y los tests verifican la creación y unicidad de ambos perfiles.
+| Módulo o capacidad | Responsabilidad y fuente de verdad | Coordinación |
+| --- | --- | --- |
+| Ecomotor y evolución | XP histórica acumulativa y no decreciente, nivel, progreso, etapas, evolución, especializaciones, stats RPG canónicos e historial relevante. Evalúa y coordina recompensas. | Recibe actividad validada y consulta reglas configuradas; solicita monedas a Bank y objetos a Inventory; participa con Bank y Shop en comprobaciones de saldo y condiciones de compra, sin poseer el saldo. |
+| Rewards, dentro de Ecomotor | Identifica reglas y emisor; evalúa condiciones, vigencia, límites temporales, compatibilidad y repetibilidad cuando proceda; evita duplicados y registra trazabilidad de recompensas. | Coordina servicios propietarios sin duplicar su lógica. No exige app independiente en V1. |
+| DuckyBank | Única fuente de verdad de wallet, saldo de Duki Coins, movimientos, créditos y débitos; concurrencia e idempotencia monetarias. | Otros módulos usan su servicio y nunca modifican directamente el saldo. |
+| DuckyShop | Catálogo comercial, precios, disponibilidad comercial y proceso de compra. | Bank realiza el cargo e Inventory la entrega. Shop no posee saldo ni posesiones. |
+| Inventory | Identidad y definición de objetos, coordinada con sus consumidores; posesión, cantidades, concesiones y consumos controlados e idempotentes cuando corresponda. | Shop referencia objetos para sus ofertas; Ecomotor concede recompensas a través del servicio propietario. |
+| Avatar / Equipment | Apariencia, elementos equipados, compatibilidad y estado de equipamiento. | Valida posesión con Inventory; contempla historial de equipamiento y distingue piezas principales de complementos estéticos; la apariencia no reemplaza el progreso canónico. |
+| Core — Equipo 0 | User, autenticación, JWT y mecanismos compartidos de identidad e integración global. | Proporciona identidad y contratos comunes. |
+| Juegos y otros equipos | Resultados y hechos de actividad previamente validados en su dominio. | Comunican actividad y consultan progreso/stats mediante contratos acordados. |
 
-El Equipo 5 no implementará login ni autenticación en este repositorio temporal.
-La integración global de usuarios y autenticación corresponde al proyecto común,
-a cargo del profesor y del Equipo 0 (D-05 y D-10).
+## 5. Arquitectura conceptual
 
-No hay todavía lógica de XP, épocas, evolución, recompensas, inventario ni economía.
-Los acuerdos confirmados y las decisiones técnicas se registran en
-[decisions.md](decisions.md).
+La lógica de negocio reside en servicios Python reutilizables. Vistas, endpoints
+y templates delegan en ellos. El servidor valida las operaciones críticas y cada
+servicio propietario escribe exclusivamente su estado.
 
-Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.
-Su contenido no está disponible en este repositorio y no se reconstruye en este
-documento. Se documentará desde «01 · Ecomotor y evolución»; su ERD revisado y
-diccionario de datos se incorporarán en un PR documental posterior, antes de
-implementar nuevos modelos. Esta aceptación interna no aprueba los contratos
-compartidos con B/C ni Rewards, que requieren validación conjunta.
+Conceptos candidatos, sin aprobar modelos ORM nuevos:
 
-### Política de concurrencia SQLite V1
-
-D-19 es una decisión técnica transversal del Equipo 5, no un requisito de DAR3
-ni de PR07. Mientras la V1 use SQLite, la configuración global utiliza
-`transaction_mode = "IMMEDIATE"` y un timeout de bloqueo de 5 segundos.
-La base de garantías V1 combina:
-
-`transaction.atomic()` + `BEGIN IMMEDIATE` + constraints de BD + idempotencia
-
-Las operaciones críticas de escritura comienzan `transaction.atomic()` antes
-de leer el estado mutable relevante. `BEGIN IMMEDIATE` adquiere la capacidad de
-escritura antes de leer o modificar ese estado. Existe un único escritor SQLite
-efectivo a la vez para toda la base de datos: no se serializa por usuario ni por
-fila, por lo que puede haber contención entre operaciones de usuarios distintos.
-
-Si no se obtiene el lock dentro de los 5 segundos, la operación falla y hace
-rollback; no espera indefinidamente. Un retry comienza una nueva transacción y,
-en operaciones idempotentes, reutiliza la misma `operation_key`.
-`select_for_update()` es un no-op bajo SQLite y no aporta row locking real;
-puede mantenerse para expresar intención de bloqueo y facilitar portabilidad futura.
-
-Las transacciones deben mantenerse cortas, sin llamadas HTTP, I/O externo,
-esperas ni trabajo lento. No se utiliza `ATOMIC_REQUESTS` para resolver la
-concurrencia. Las constraints de BD y la idempotencia persistente siguen siendo
-necesarias; `BEGIN IMMEDIATE` no las sustituye. Una futura migración a PostgreSQL
-u otro backend con row locking requerirá revisar esta política.
-
-Esta configuración no implementa servicios ni resuelve contratos compartidos.
-No garantiza por sí sola atomicidad entre varias transacciones o servicios:
-las fronteras transaccionales de Rewards/A/B/C siguen pendientes cuando una
-operación atraviesa varios dominios. Los tests críticos de concurrencia usarán
-`TransactionTestCase`, con al menos una ejecución específica SQLite file-backed.
-
-## 3. Aclaraciones funcionales conocidas de clase
-
-Las siguientes reglas proceden de las aclaraciones de clase y la información
-funcional disponible. No son citas textuales de DAR3 cuando este no las detalla.
-
-El progreso histórico comprende los niveles 1–9: Prehistoria, Grecia, Roma,
-Edad Media, Renacimiento, Revolución Industrial, Siglo XX, Era Espacial y Era
-Digital. El usuario comienza en Prehistoria. La XP histórica es acumulativa y no
-se gasta; una barra visual puede mostrar progreso relativo hacia el siguiente
-nivel sin sustituir ni reducir esa XP. Los umbrales oficiales siguen pendientes.
-
-Cada época tiene seis piezas principales. Al iniciar el juego se conceden y
-equipan las seis de Prehistoria. Al evolucionar se conceden juntas las seis de
-la nueva época y se equipa automáticamente ese set. Los sets anteriores se
-conservan y pueden reequiparse libremente: la apariencia es independiente de
-la época real y del progreso. Las piezas históricas no se compran con DuckyCoins.
-
-Si una concesión de XP cruza varios umbrales, deben procesarse y registrarse todas
-las evoluciones intermedias y concederse todos sus sets. Queda equipado el set
-de la época más avanzada alcanzada, sin omitir el historial intermedio.
-
-El progreso por especialización se separa del histórico. Tras Era Digital se
-puede elegir Developer, Ciberseguridad, AdminSys, Gamer o Data & AI. Cada una
-conserva su rango independiente (Inicial, Junior, Middle, Senior, Master).
-Cambiar de especialización volviendo al punto de Era Digital no elimina XP
-histórica ni progreso previo. La especialización activa y sus rangos no deben
-tratarse como una continuación obligatoria del nivel histórico. Siguen pendientes
-la XP de dominio, los requisitos de rangos y la transición técnica del cambio.
-
-Los sets históricos son permanentes y distintos de los objetos de combate.
-Estos últimos son consumibles comprados con DuckyCoins y admiten múltiples
-unidades; se conocen inicialmente tres de ataque y tres de defensa. Efectos,
-precios y utilización concreta por cada juego siguen pendientes.
-El diseño interno V1 de Parte A está aceptado, pendiente de documentar en detalle.
-Los modelos concretos del conjunto del proyecto y sus contratos compartidos no
-se dan por definidos mediante estas aclaraciones.
-
-El recorrido operativo, los hitos y las dependencias están en
-[team5-work-plan.md](team5-work-plan.md), como propuesta para revisión conjunta.
-
-## 4. Propuestas arquitectónicas pendientes de validación
-
-D-13 a D-16 son propuestas internas pendientes de validación por los tres
-integrantes del Equipo 5, incluida la confirmación con Félix y Henry.
-
-### Reparto interno y coordinación de recompensas
-
-D-13 propone este reparto, que no constituye una asignación individual de DAR3:
-
-| Responsable principal propuesto | Parte |
+| Concepto | Papel |
 | --- | --- |
-| Jaime | Parte A: Ecomotor y evolución. |
-| Félix | Parte B: Avatar e inventario. |
-| Henry | Parte C: Ecommerce y DuckyBank. |
+| `CharacterStats` | Representación canónica de las seis estadísticas RPG bajo autoridad de Ecomotor; persistencia o cálculo pendiente. |
+| `XPEvent` | Trazabilidad de concesiones de XP. Ya aparece como entidad diseñada en el ERD V1; aquí se utiliza como concepto, sin aprobar nuevos campos ni su implementación V2. |
+| `EvolutionEvent` | Trazabilidad de transiciones de etapa. También está diseñado en el ERD V1; su adaptación a V2 requiere revisión. |
+| `RewardRule` | Regla configurable que vincula actividad con condiciones y recompensas; concepto propuesto, sin modelo ORM aprobado. |
+| `RewardEvent` | Evidencia de evaluación y aplicación de una recompensa para trazabilidad e idempotencia; concepto propuesto, sin modelo ORM aprobado. |
 
-D-14 propone que recompensas sea responsabilidad compartida del Equipo 5, con
-coordinación inicial del contrato y la orquestación desde Parte A. Las operaciones
-de inventario y economía serían proporcionadas por B y C, respectivamente.
+La configuración debe concentrar umbrales de nivel, condiciones de evolución,
+recompensas, desbloqueos y valores de progresión pendientes. Su soporte concreto
+se decidirá después, sin dispersar reglas cambiantes en vistas o templates ni
+introducir infraestructura adicional sin necesidad. No se fijan valores ficticios
+como oficiales; D-16 sigue siendo una propuesta pendiente en el registro.
 
-### Fronteras entre áreas
+## 6. Diagrama de responsabilidades
 
-D-15 propone estas fronteras iniciales, revisables:
+```mermaid
+flowchart LR
+    Core["Core: User y JWT"] -. identidad .-> Games["Juegos: actividad validada"]
+    Core -. identidad .-> Eco["Ecomotor: progreso, stats y Rewards"]
+    Games -->|actividad y clave| Eco
+    Others["Otros módulos"] -->|consulta de progreso y stats| Eco
+    Eco -->|concesión de monedas| Bank["Bank: wallet y movimientos"]
+    Eco -->|concesión de objetos| Inv["Inventory: objetos y posesión"]
+    Shop["Shop: ofertas y compras"] -->|cargo| Bank
+    Shop -. comprobaciones de compra .-> Eco
+    Shop -->|entrega tras compra válida| Inv
+    Avatar["Avatar / Equipment"] -->|validación de posesión| Inv
+```
 
-- Parte A: XP, épocas y evolución.
-- Parte B: catálogo, inventario y equipamiento.
-- Parte C: DuckyCoins, wallet, transacciones, tienda y compras.
-- Recompensas: orquestar las áreas sin duplicar su lógica de negocio.
+Las flechas representan dependencias conceptuales, no llamadas HTTP obligatorias
+ni fronteras de despliegue. La identidad de todos los consumidores debe integrarse
+con Core; el diagrama simplifica esas relaciones.
 
-Las fronteras propuestas no fijan los modelos internos ni el contrato técnico.
+## 7. Progresión, evolución, especializaciones y stats
 
-### Datos provisionales
+La dirección funcional actual comunicada para V2 contempla siete etapas:
 
-Mientras no se disponga de los datos oficiales, se propone utilizar valores
-provisionales para desarrollo y pruebas (D-16):
+1. Prehistoria.
+2. Griega.
+3. Romana.
+4. Renacentista.
+5. Contemporánea.
+6. Siglo XX.
+7. Actual.
 
-- Identificarlos como datos provisionales o de demostración, nunca como requisitos reales.
-- Mantenerlos separados de la lógica de negocio para poder sustituirlos.
-- Evitar números mágicos en los servicios.
-- Permitir umbrales y recompensas propios en los tests, solo para verificar comportamiento.
+Según el requisito documental trasladado de `DuckyEcomotor.pdf`, páginas 6–7,
+la evolución es automática cuando se cumplen sus requisitos y las
+especializaciones aparecen dentro de la etapa Actual. Esto no determina
+equipamiento automático: ese comportamiento continúa sujeto a revisión.
+No se añaden umbrales ni condiciones de evolución o especialización.
 
-La arquitectura se diseñaría para sustituir valores puramente paramétricos,
-como umbrales y cantidades de recompensa, por datos oficiales sin modificar
-la lógica de negocio. Si el profesor cambia también las reglas funcionales,
-se revisaría la arquitectura correspondiente.
+Las seis estadísticas RPG canónicas son `ATK`, `DEF`, `LOG`, `SPE`, `VEL` e `INT`.
+Las cinco especializaciones identificadas son Developer, Ciberseguridad, Sistemas,
+Data y Gamer. La revisión externa comunica una discrepancia: `DuckyEcomotor.pdf`
+usa **Data**, mientras `DAR_formulas.pdf` incluye **Data & IA** y `data_ia` como
+código de ejemplo. Queda pendiente normalizar nombres y códigos, sin establecer
+una equivalencia definitiva. Como propuesta técnica pendiente de aceptación,
+se plantean identificadores internos estables y etiquetas de presentación
+configurables, sin modificar el modelo de datos ni aprobar el código de ejemplo.
+Las fórmulas concretas deben precisarse antes de cerrar el diseño y los contratos.
 
-## 5. Impacto de PR07: estructura, proceso y evaluación
+La XP histórica es acumulativa y no decreciente: compras, penalizaciones económicas
+y consumo de objetos no la reducen. Nivel, etapa y especialización son conceptos
+distintos; no se presupone una equivalencia entre nivel y etapa. Una barra de
+progreso es una representación del estado canónico, nunca otro saldo de XP.
 
-Fuente directa: Documento PR07 · Ciclo de vida de una aplicación web, facilitado
-por el profesor (17 páginas), no copiado al repositorio. DAR3 sigue siendo la
-fuente funcional principal. PR07 complementa el proyecto con requisitos y criterios de estructura, proceso, entregables y
-evaluación; no sustituye automáticamente los acuerdos de clase ni decide la
-arquitectura funcional del Equipo 5.
+La XP o puntuación provisional de una partida se distingue de la recompensa
+calculada a partir del resultado validado y de la XP histórica ya consolidada.
+Una penalización dentro de la partida puede afectar al resultado o a la recompensa
+antes de consolidarse; no descuenta XP histórica previamente concedida.
 
-PR07 sitúa las aplicaciones bajo `apps/` (páginas 4-6). La adaptación física de
-`ecomotor` y `users` ya está completada, preservando sin cambios el contenido de
-modelos y migraciones existentes y la identidad Django de ambas apps (D-18).
+Quedan configurables los umbrales, las condiciones de evolución, los desbloqueos
+y los parámetros de progresión. No se fijan fórmulas, requisitos de acceso a
+especializaciones, valores de stats ni efectos de objetos sin confirmación.
+El tratamiento de varios umbrales en una operación debe revisarse conservando
+la trazabilidad; el ERD V1 ya exige registrar todas las evoluciones intermedias.
 
-La parte estructural y técnica del Día 1 aplicable a este repositorio queda
-completada y validada: `config/`, `apps/`, `requirements.txt` y `.gitignore`;
-`check` sin incidencias, cuatro tests correctos, comprobación de migraciones
-con `No changes detected` y servidor arrancando con respuesta HTTP 200.
-Esto no resuelve CustomUser/auth bajo D-17 ni completa el Día 2. El siguiente
-paso antes del ORM de dominio sigue siendo revisar el ERD y diccionario de datos.
+Se mantiene el requisito original de DAR3 de seis piezas principales por época,
+diferenciadas de los complementos estéticos. Queda pendiente adaptar los conjuntos
+a las siete etapas y concretar su alcance V1, sin inventar su contenido.
+La candidata no adopta como invariantes obligatorios las nueve épocas, el
+equipamiento automático al evolucionar, los rangos `INITIAL`,
+`JUNIOR`, `MIDDLE`, `SENIOR`, `MASTER` ni la progresión antigua de XP por
+especialización. Estos elementos están documentados en V1 y siguen pendientes
+de revisión formal; omitirlos de V2 no declara revocada su aceptación anterior.
 
-Antes de implementar nuevos modelos, PR07 pide un ERD y un diccionario de datos,
-con entidades, cardinalidades y reglas `on_delete` documentadas (página 5).
-Después contempla modelos y migraciones, registro de modelos principales en
-Admin, URLs y vistas, templates y navegación, listados y detalles, formularios
-y CRUD de al menos dos entidades principales (páginas 6-9). El alcance concreto
-del CRUD evaluable debe aclararse con el profesor, sin suponer que autoriza a
-editar directamente estados derivados o historiales de dominio.
+## 8. Servicios, contratos conceptuales y flujos
 
-Incluye permisos, seguridad y tests, así como evidencia mediante Git y PR y
-aportaciones identificables de cada integrante (páginas 10-11 y 17). Estos trabajos
-se incorporan al [plan operativo](team5-work-plan.md), sin implementarlos aquí.
+| Flujo | Operación conceptual y límite de autoridad |
+| --- | --- |
+| Juegos → Ecomotor | Enviar actividad validada, identidad verificable y clave estable de operación. Rewards evalúa la regla; el juego no impone la cantidad concedida. |
+| Ecomotor → Bank | Solicitar concesión de monedas; Bank valida, registra y acredita mediante su servicio. |
+| Ecomotor → Inventory | Solicitar concesión de objetos; Inventory valida identidad de objetos, posesión y cantidades, y registra la operación. |
+| Shop / Ecomotor / Bank | Ecomotor participa en la comprobación de saldo y condiciones de compra descrita en la revisión de `DuckyEcomotor.pdf`, consultando al propietario Bank; el reparto de validaciones y la coordinación completa quedan pendientes. |
+| Shop → Bank | Solicitar cargo por una compra validada en servidor; Bank comprueba fondos y evita el débito duplicado. |
+| Shop → Inventory | Solicitar entrega tras compra válida conforme a la coordinación acordada; no entregar sin pago válido ni dejar un cargo sin resolución. |
+| Avatar / Equipment → Inventory | Comprobar posesión antes de equipar y coordinar cambios que puedan afectar a esa posesión. Equipment valida compatibilidad. |
+| Otros módulos → Ecomotor | Consultar progreso y stats canónicos a través de una interfaz de lectura, sin escribir sus datos directamente. |
 
-### Contradicción sobre usuarios y autenticación
+Rewards recibe el hecho validado, identifica la regla, evalúa condiciones,
+vigencia y límites temporales, entidad o módulo emisor, compatibilidad entre
+recompensas y repetibilidad cuando corresponda. Comprueba idempotencia,
+coordina XP/monedas/objetos y
+registra el resultado para trazabilidad. El resumen debe distinguir resultados
+aplicados, ya procesados o fallidos según el contrato que se acuerde.
 
-El plan detallado de PR07 pide `apps/users`, extender `AbstractUser`, configurar
-`AUTH_USER_MODEL` e implementar registro, login y logout (página 5). Esto contradice
-D-09 y D-10. El resumen inicial menciona el usuario personalizado de forma
-condicional (página 1), por lo que tampoco resuelve por sí solo esa contradicción.
+La intervención de Ecomotor en compras es un requisito documental trasladado;
+Bank conserva la autoridad sobre el saldo, Shop gestiona la compra e Inventory
+la posesión. El reparto concreto de validaciones y quién coordina la operación
+completa deben acordarse, incluyendo transacciones, idempotencia y fallos parciales.
+Consultar el saldo no sustituye la validación de fondos de Bank al efectuar el cargo.
 
-Hasta aclararlo con el profesor se mantienen D-09 y D-10: User estándar, sin
-CustomUser ni autenticación local. No se cambia `AUTH_USER_MODEL` ni se modifican
-migraciones. Cualquier cambio posterior se registrará como nueva decisión.
-También debe aclararse si los 15 días y sus entregables Git son un calendario
-literal obligatorio o una guía/rúbrica: PR07 utiliza ambas formulaciones.
-Las preguntas se recogen en [pending-decisions.md](pending-decisions.md).
+Como mínimo funcional de DAR3, sección 10, trasladado desde la revisión externa,
+cada equipo de juego comunica el identificador único de actividad terminada,
+el usuario que la completó, el tipo de juego, el resultado validado, la fecha y
+hora y los datos necesarios para determinar la recompensa. El Equipo 5 devuelve
+la XP y las monedas concedidas, la nueva pieza, evolución o logro si procede,
+y la indicación de resultado ya procesado cuando sea un duplicado. Este mínimo
+funcional no fija payloads, endpoints ni firmas técnicas definitivas.
 
-## 6. Límites todavía sin resolver
+Los contratos deberán precisar identidad y origen autorizados, referencia de
+actividad o compra, alcance y construcción de la clave de operación, resultado,
+errores y comportamiento ante reintentos. Son necesidades conceptuales, no un
+esquema de payload, firma Python o endpoint aprobado.
 
-DAR3 define requisitos funcionales sobre XP, evolución y economía, pero no fija
-la estructura definitiva de los perfiles ni todos sus campos y parámetros.
-Falta documentar el diseño interno aceptado de Parte A e incorporar su ERD
-revisado. Siguen pendientes los diseños no aceptados y los contratos compartidos,
-las reglas no resueltas por las aclaraciones funcionales anteriores, así como los
-datos oficiales, el contrato de recompensas y su integración. La existencia de
-un servicio común no determina su implementación ni su forma de comunicación.
+Los servicios pueden invocarse desde distintos puntos de entrada mediante Python
+cuando compartan ejecución. Según la revisión externa, `DAR_formulas.pdf`
+describe una arquitectura objetivo con endpoints REST y eventos WebSocket,
+incluyendo especificaciones y ejemplos documentales. Sus contratos concretos,
+responsables y alcance V1 deben acordarse entre equipos; aquí no se inventan
+endpoints ni se compromete toda la funcionalidad WebSocket para V1. Esta
+arquitectura externa no obliga a usar HTTP para toda comunicación interna.
 
-Los planes técnicos antiguos de DAR3 (páginas 19-31) y las propuestas internas
-del equipo pueden utilizarse como referencia, pero no se adoptan automáticamente.
-Las propuestas sobre organización por apps, reparto o contrato de recompensas
-no constituyen requisitos oficiales ni decisiones aprobadas mientras no se
-registren como tales.
+## 9. Integridad, transacciones e idempotencia
 
-La arquitectura interna corresponde al Equipo 5 y puede seguir diseñándose.
-Debe respetar DAR3, las aclaraciones funcionales conocidas, los condicionantes
-de PR07 y las necesidades de integración. La aceptación interna V1 de Parte A
-no fija por sí sola la estructura del conjunto ni un contrato técnico de Rewards.
+Una recompensa no debe aplicarse dos veces y una compra no debe descontar monedas
+dos veces. La idempotencia debe ser persistente y abarcar los efectos coordinados,
+no depender de desactivar un botón. Cada servicio valida y escribe su propio
+estado, con restricciones de base de datos que complementan las comprobaciones
+de aplicación y con operaciones diseñadas para concurrencia.
 
-Las cuestiones abiertas se mantienen en
-[pending-decisions.md](pending-decisions.md).
+Como referencia aceptada de Parte A, el ERD V1 define que repetir una clave con
+el mismo importe de XP no aplica nuevos efectos; reutilizarla con otro importe
+produce conflicto sin cambios. La extensión de esa semántica a Rewards, Bank,
+Shop e Inventory, y la relación entre sus claves, requiere contrato conjunto.
+
+**D-19 sigue vigente para SQLite V1:**
+
+- `transaction.atomic()` antes de leer el estado mutable relevante.
+- `transaction_mode = "IMMEDIATE"`, `BEGIN IMMEDIATE` y timeout de 5 segundos.
+- Restricciones de BD e idempotencia persistente como defensas obligatorias.
+- Un único escritor efectivo para toda la BD; no hay serialización por usuario
+  o fila y `select_for_update()` es un no-op en SQLite.
+- Transacciones cortas, sin HTTP, I/O externo, esperas ni trabajo lento;
+  `ATOMIC_REQUESTS` no es la solución adoptada.
+- Si no se obtiene el lock en el timeout, fallo y rollback. Un reintento abre
+  otra transacción y reutiliza la misma clave de operación idempotente.
+
+Un fallo parcial no debe dejar incoherencias permanentes entre saldo, inventario
+y recompensas. Si los servicios comparten BD y ejecución, deberá acordarse quién
+abre y delimita la transacción exterior. Si hay servicios independientes o varias
+transacciones, deberá definirse recuperación, compensación o reconciliación antes
+de implementar el flujo. No se promete atomicidad global ni se escoge aquí esa
+estrategia. D-19 no resuelve esta coordinación multidominio.
+
+Una futura migración a un backend con bloqueo por fila requiere revisar la
+política, no sustituir D-19 silenciosamente.
+
+## 10. Integración con Core y otros equipos
+
+Se respetan D-05, D-09, D-10 y D-17: User estándar en el repositorio temporal, sin
+CustomUser ni login local, y responsabilidad global de Core. Las referencias
+Django al usuario respetarán `settings.AUTH_USER_MODEL`. JWT pertenece a Core;
+la forma de validar origen, permisos e identidad en contratos externos se acuerda
+con ese equipo, sin crear mecanismos paralelos.
+
+D-11 y D-12 mantienen los perfiles iniciales del Equipo 5 centralizados en
+`apps/users/models.py`, actualmente sin campos de negocio ni signals de creación
+automática. D-18 conserva rutas canónicas `apps.ecomotor` y `apps.users` y labels
+`ecomotor` y `users`. La propiedad funcional de un servicio no exige mover modelos
+ni cambiar esa estructura en esta revisión.
+
+Los equipos de juegos validan resultados en su dominio; Ecomotor evalúa la
+recompensa y Bank/Inventory controlan sus efectos. Deben acordarse formatos,
+autorización, claves, errores, reintentos y consultas de stats/progreso con Core
+y los equipos consumidores. REST y eventos WebSocket forman parte de la
+arquitectura objetivo documental comunicada; la asignación de productores y
+consumidores de eventos, los contratos y el alcance definitivo V1 siguen
+pendientes. JWT permanece en Core. También debe concretarse el alcance de
+las capacidades RPG completas en V1.
+
+## 11. Alcance V1 y validación futura
+
+Se propone una primera versión con un recorrido integrado reducido: actividad
+validada, evaluación de una recompensa, actualización de progreso, concesión
+económica o material, compra y equipamiento conforme al alcance acordado.
+Según DAR3, tal como se comunica en la revisión externa, para la demostración
+inicial bastan Prehistoria, Grecia y Roma. Este alcance de demostración propuesto
+se distingue del catálogo completo de siete etapas y de la planificación
+definitiva pendiente; no obliga a completar todo RPG.
+Debe definirse y priorizarse cómo cubrir historial de épocas, historial de
+equipamiento y Museo Ducky en V1. Como propuesta conceptual, el Museo podría
+componer lecturas de progreso e inventario/equipamiento; no se aprueba un modelo
+ni una app adicional. Se conserva el requisito de seis piezas principales por
+época, diferenciadas de complementos estéticos; la adaptación de los conjuntos
+a las siete etapas y su alcance V1 siguen pendientes, sin aprobar equipamiento
+automático al evolucionar.
+
+La revisión documental también comunica referencias a integraciones externas y
+pedidos físicos. Su alcance debe distinguirse de la V1 mínima y acordarse antes
+de planificar implementación; no se incorporan como obligaciones inmediatas.
+
+La V1 debe priorizar servicios reutilizables, lecturas canónicas y operaciones
+trazables, sin una app por concepto ni servicios desplegados adicionales por
+motivos exclusivamente organizativos. Antes del ORM se revisarán el ERD y el
+diccionario de datos, como recoge PR07 en el repositorio.
+
+Al implementar serán necesarios tests de:
+
+- XP no decreciente y separación respecto a compras, penalizaciones y consumos;
+  progresión, evolución y stats con las reglas finalmente confirmadas.
+- Evaluación de recompensas, condiciones, repetibilidad y límites configurados.
+- Reintentos y conflictos de claves: ausencia de XP, créditos, cargos o entregas
+  duplicados, también después de fallos parciales.
+- Fondos insuficientes, cantidades y consumos válidos, posesión y compatibilidad
+  de equipamiento, y conservación de la separación entre apariencia y progreso.
+- Rollback o recuperación del flujo coordinado de recompensas y compras.
+- Concurrencia real con `TransactionTestCase` y al menos una ejecución SQLite
+  file-backed, incluyendo compras simultáneas y operaciones repetidas (D-19).
+- Identidad, autorización y contratos de integración con Core y juegos;
+  concordancia entre consultas canónicas y representaciones de interfaz.
+
+Esta actualización es documental; no implementa ni ejecuta esos tests de dominio.
+
+## 12. Decisiones vigentes, discrepancias y pendientes
+
+Se mantienen D-01…D-04 para integración y trabajo en ramas, D-05 y D-09…D-12 para
+usuarios/perfiles, D-07 para no cerrar diseños pendientes, D-17 ante el conflicto
+PR07, D-18 para estructura y D-19 para concurrencia. D-06 y D-08 son fases cumplidas,
+no compromisos nuevos. D-13…D-16 siguen registradas como propuestas pendientes:
+la dirección interna V2 no cambia su estado ni confirma el reparto individual.
+
+| Discrepancia o cuestión | Tratamiento y validación necesaria |
+| --- | --- |
+| Siete etapas V2 frente a nueve épocas V1 | Cambio funcional significativo respecto al ERD y a las aclaraciones antiguas. Verificar especificaciones posteriores con Óscar y revisar formalmente el diseño afectado. |
+| Seis piezas y equipamiento automático | DAR3 exige seis piezas principales por época; la actualización a siete etapas no elimina expresamente ese requisito. Acordar adaptación de conjuntos y alcance V1 con Inventory/Equipment. El equipamiento automático al evolucionar, exigido por el ERD V1, no se da por aprobado para V2 y requiere revisión formal. |
+| Especializaciones y XP de dominio | V1 usa AdminSys y Data & AI, progreso independiente y rangos fijos; V2 identifica Sistemas y Data sin cerrar XP/rangos. Confirmar equivalencias, acceso, cambio y conservación de progreso. |
+| Normalización Data / Data & IA | La revisión externa identifica Data en `DuckyEcomotor.pdf` y Data & IA / `data_ia` en `DAR_formulas.pdf`. Acordar nomenclatura y códigos; identificadores estables y etiquetas configurables son una propuesta técnica pendiente. |
+| Historial y Museo | Se conservan los requisitos trasladados de DAR3 sobre épocas, equipamiento, Museo y tipos de piezas; definir cobertura y prioridad V1 conservando las seis piezas principales por época y adaptando sus conjuntos a las siete etapas. |
+| Stats y fórmulas | V2 incorpora seis stats canónicos; falta verificar fórmulas, efectos de objetos y alcance RPG V1 con las fuentes posteriores y consumidores. |
+| Rewards dentro de Ecomotor | Compatible como dirección con la coordinación propuesta desde A, pero D-14/D-15 y contratos compartidos siguen pendientes de validación conjunta. |
+| Coordinación de compras y recompensas | Acordar reparto de validaciones entre Ecomotor, Bank y Shop, coordinador completo, fronteras transaccionales, claves y entrega de Inventory; D-19 no garantiza atomicidad global. |
+| PR07 frente a D-09/D-10 | Persiste el conflicto documentado sobre CustomUser y autenticación local. D-17 mantiene las decisiones existentes hasta aclaración de Óscar. También siguen abiertos CRUD evaluable y calendario. |
+| Estado documental de Parte A | El registro y las decisiones pendientes reconocen el ERD V1 existente en `erd/ecomotor.md`. Su adaptación a V2 y la consolidación con los demás dominios siguen pendientes; su existencia no acredita revisión global ni aceptación de V2. |
+| Integración y tiempo real | Concretar contratos REST y eventos WebSocket de la arquitectura objetivo comunicada, responsabilidades entre equipos y alcance V1; identidad/JWT pertenece a Core. |
+| Integraciones externas y pedidos físicos | Referencias documentales comunicadas cuyo alcance, responsables y priorización deben acordarse separadamente de la V1 mínima. |
+| Parámetros y catálogo | Confirmar umbrales, recompensas, desbloqueos, precios, objetos y reglas de evolución; no inventar valores oficiales. |
+
+La aceptación interna A-01…A-16 registrada para V1 se conserva como antecedente.
+Los puntos incompatibles de esta candidata requieren revisión explícita; no se
+ordena implementar V2 contra el ERD V1 sin resolverlos.
+
+## 13. Relación con otros documentos
+
+- [decisions.md](decisions.md): registro principal de acuerdos. No se modifica ni
+  se reclasifican sus propuestas desde esta candidata.
+- [pending-decisions.md](pending-decisions.md): preguntas y trabajo abierto;
+  lista operativa actualizada de validaciones, adaptación a V2, contratos y trabajo posterior; distingue el ERD V1 existente del diseño V2 pendiente.
+- [erd/ecomotor.md](erd/ecomotor.md): ERD y diccionario V1 de Parte A;
+  requiere revisión posterior frente a etapas, equipamiento, especializaciones
+  y stats de V2 antes de implementar modelos.
+- [team5-work-plan.md](team5-work-plan.md): plan operativo propuesto; habrá que
+  revisar su alineación en un trabajo posterior, sin asumir cambios de alcance.
+
+El ERD consolidado `docs/ERD.md` no existe en esta revisión, aunque el ERD de
+Parte A lo menciona como destino futuro. El registro y la lista de decisiones
+pendientes ya están actualizados para la candidata V2. La revisión del ERD, los
+contratos y la formalización de los acuerdos pendientes siguen siendo trabajo
+posterior sujeto a la revisión correspondiente.
