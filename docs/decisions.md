@@ -14,6 +14,13 @@ el Equipo 5 y el Equipo 0; no implica que ese contrato esté ya decidido.
 Fuente: `DAR3_ (1).pdf`, consultado y no copiado al repositorio. El alcance y los
 requisitos se resumen en [architecture.md](architecture.md).
 
+`DuckyEcomotor.pdf` y `DAR_formulas.pdf` son fuentes funcionales posteriores
+facilitadas por Óscar: prevalecen donde actualizan explícitamente especificaciones
+anteriores. Su información fue contrastada externamente y trasladada a la
+arquitectura candidata; esta actualización no afirma consulta directa de los PDF.
+Estos requisitos trasladados se distinguen de propuestas internas y acuerdos
+aprobados, según los criterios de fuentes de arquitectura (sección 2).
+
 ## Decisiones confirmadas
 
 `Vigente` indica que la decisión sigue aplicándose. `Cumplida` identifica una
@@ -91,7 +98,9 @@ correspondiente a D-11 se encuentra ahora en `apps/users/models.py`, sin alterar
 la decisión funcional registrada en D-11.
 Esta decisión no cambia modelos, contenido de migraciones, User ni autenticación;
 D-17 sigue vigente. La parte estructural y técnica aplicable del Día 1 está
-validada; el ERD y diccionario previos al ORM de dominio siguen pendientes.
+validada. Ya existe el ERD y diccionario V1 de Parte A en
+[erd/ecomotor.md](erd/ecomotor.md); quedan pendientes su adaptación a V2 y el ERD
+consolidado del Equipo 5 con los demás dominios, antes del ORM definitivo.
 
 ## D-19 · Política transversal de concurrencia SQLite para V1
 
@@ -126,12 +135,24 @@ A, B y C, que siguen pendientes.
 ## Aceptación interna de Parte A
 
 Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.
-Aquí se registra únicamente esa aceptación, no su contenido: el detalle no está
-disponible en el repositorio. Se documentará desde «01 · Ecomotor y evolución»
-en un PR posterior de Parte A, con incorporación de su ERD y diccionario revisados
-antes de implementar nuevos modelos. No se añaden identificadores de Parte A.
+Su ERD y diccionario V1 ya existen en [erd/ecomotor.md](erd/ecomotor.md), como
+antecedente interno aceptado. A-01…A-16 se conservan como acuerdos históricos de
+V1; su aceptación no se extiende automáticamente a los puntos incompatibles con
+V2. Quedan pendientes la adaptación de Parte A y la integración del ERD consolidado
+con los demás dominios. Los modelos Django y migraciones definitivos todavía no
+están aprobados. No se añaden identificadores de Parte A.
 La aceptación interna no aprueba contratos compartidos con B/C o Rewards, que
 siguen pendientes de validación conjunta, ni valida D-13 a D-16.
+
+## Hito documental: arquitectura candidata V2
+
+La arquitectura candidata V2 está elaborada y revisada internamente en
+[architecture.md](architecture.md), incorporada mediante el commit local
+`52c3865`. Este hito documental no constituye una nueva decisión arquitectónica
+aprobada ni recibe un identificador D-20. La candidata no está aprobada globalmente
+por Óscar y los demás equipos; las decisiones compartidas requieren validación
+conjunta. Antes del ORM debe revisarse el ERD V1 frente a V2, sin cambiar acuerdos
+aceptados mediante notas editoriales.
 
 ## Propuestas pendientes de validación
 
@@ -151,6 +172,38 @@ modificar la lógica de negocio. Si el profesor cambia también las reglas
 funcionales, se revisaría la arquitectura correspondiente. No se fijan valores
 concretos ni se resuelven las reglas pendientes mediante esta propuesta.
 
-El detalle arquitectónico está en [architecture.md](architecture.md). Las
-cuestiones sin resolver se mantienen en
-[pending-decisions.md](pending-decisions.md).
+La candidata V2 desarrolla, sin cambiar el estado de D-13…D-16, las siguientes
+propuestas (arquitectura, secciones 4, 5 y 8): Ecomotor como autoridad de XP,
+evolución y stats y coordinador de Rewards; Bank como propietario del saldo;
+Inventory de la posesión de objetos; Shop del proceso comercial; y Avatar/Equipment
+del estado de equipamiento. Incluye reglas configurables, idempotencia e integración
+con Core y juegos mediante contratos pendientes. Son responsabilidades conceptuales,
+no nuevas decisiones formales ni aprobaciones de apps, modelos o endpoints.
+D-19 conserva íntegramente su política vigente y no resuelve la coordinación
+transaccional entre dominios.
+
+### Discrepancias y validaciones compartidas
+
+El detalle y la procedencia de los requisitos trasladados se recogen en
+[architecture.md](architecture.md), secciones 7, 8, 11 y 12:
+
+- Siete etapas actuales frente a nueve épocas del ERD V1; evolución automática
+  como requisito trasladado, distinta del equipamiento automático pendiente.
+  Se conservan las seis piezas principales por época de DAR3, con adaptación de
+  conjuntos a siete etapas y alcance V1 pendientes.
+- Especializaciones actuales y normalización Data / Data & IA; XP y rangos por
+  especialización sin cerrar, sin revocar silenciosamente el diseño V1.
+- Participación documental de Ecomotor en compras: reparto de validaciones y
+  coordinación con Bank, Shop e Inventory pendientes, sin duplicar autoridad
+  sobre saldo ni prometer atomicidad global.
+- Mínimo funcional de recompensas de DAR3 frente a formatos, claves y contratos
+  técnicos pendientes con Core y juegos. REST y WebSockets son arquitectura
+  objetivo documental; contratos, responsables y alcance V1 siguen pendientes.
+- Historiales, Museo Ducky y prioridades V1: se mantienen los requisitos funcionales
+  y queda por acordar su cobertura y solución concreta.
+
+Los conflictos con V1 se conservan pendientes de revisión formal por los
+responsables afectados; las ambigüedades funcionales requieren aclaración de Óscar.
+La gestión exhaustiva de preguntas corresponde a
+[pending-decisions.md](pending-decisions.md), cuya actualización posterior sigue
+pendiente, incluidas sus referencias antiguas al ERD y a las reglas de V1.
