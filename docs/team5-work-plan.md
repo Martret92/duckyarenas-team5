@@ -34,8 +34,9 @@ La candidata V2 y la actualización de decisiones/pendientes se integraron en
 `develop` mediante PR #15, squash `256dd9e`. Esto es un hito documental, no una
 aprobación global de Óscar, Core o todos los integrantes. El reparto, las fronteras,
 la autonomía, los hitos y el backlog continúan siendo propuestas.
-El [ERD y diccionario V1 de Parte A](erd/ecomotor.md) ya existe como antecedente
-interno A-01…A-16. Su adaptación a V2 y los contratos A/B/C siguen pendientes;
+El [ERD y diccionario V2 provisional](erd/ecomotor.md) ya documenta ocho entidades
+y V2-A1…V2-A29 aceptadas internamente por Parte A, con condiciones. Conserva
+A-01…A-16 como antecedentes V1. Consolidación y contratos A/B/C siguen pendientes;
 no se implementará ORM definitivo desde reglas V1 incompatibles ni se darán
 D-13…D-16 por validadas.
 
@@ -55,8 +56,9 @@ siendo `ecomotor` y `users`. Se preservaron los modelos y migraciones existentes
 La parte estructural y técnica aplicable del Día 1 queda completada: `config/`,
 `apps/`, `requirements.txt`, `.gitignore`, `check` correcto, cuatro tests correctos,
 sin nuevas migraciones y servidor con HTTP 200. CustomUser/auth sigue pendiente
-bajo D-17. El siguiente paso es diseño conceptual, ERD y diccionario revisados
-antes del ORM de dominio; el Día 2 no está completado.
+bajo D-17. Ya existen ERD y diccionario técnico V2 provisionales de Parte A;
+el siguiente paso es validar sus condiciones y consolidar A/B/C antes del ORM
+de dominio. El Día 2 no está completado globalmente.
 El CRUD de al menos dos entidades principales exigido por PR07 debe concretarse
 con el profesor. No implica permitir modificaciones arbitrarias de XP,
 evolución o registros financieros al margen de sus operaciones de dominio.
@@ -86,8 +88,10 @@ La XP histórica es acumulativa y no decreciente: no se gasta en compras ni se
 reduce por consumo o penalizaciones económicas. Nivel, etapa y progreso son
 conceptos distintos; la barra visual representa el estado canónico. La evolución
 es automática cuando se cumplen los requisitos definidos. No se inventan umbrales,
-fórmulas ni condiciones; su representación y las transiciones múltiples deben
-revisarse en el ERD V2 conservando trazabilidad.
+fórmulas ni condiciones adicionales. El ERD V2 provisional ya documenta
+transiciones múltiples y trazabilidad. V2-A20 fija niveles positivos consecutivos, primero XP 0 y stat_points_awarded no negativo; V2-A21 fija exactamente
+siete etapas, ordinales 1–7 y Prehistoria XP 0. Restan parámetros y política
+administrativa, no volver a decidir estas invariantes.
 
 ### Equipamiento y objetos
 
@@ -106,15 +110,18 @@ la regla anterior de conjuntos históricos no comprables, sin resolverla unilate
 ### Especializaciones
 
 Developer, Ciberseguridad, Sistemas, Data y Gamer aparecen dentro de Actual.
-Quedan pendientes normalización Data / Data & IA y nombres anteriores, acceso,
-cambios, conservación de progreso, XP y rangos. Era Digital y los rangos fijos
-antiguos pertenecen al antecedente V1; no se adoptan automáticamente para V2.
+El catálogo estable y progreso mínimo de XP de dominio independiente, sin rank,
+están aceptados internamente por Parte A. Se conservan rangos funcionales Junior,
+Middle, Senior y Maestro; códigos Sistemas/Data, obligatoriedad, acceso y reglas
+siguen pendientes. Cambio posterior fuera del mínimo; no adoptar INITIAL de V1.
 
 ### Stats y recompensas
 
 Las estadísticas canónicas son `ATK`, `DEF`, `LOG`, `SPE`, `VEL`, `INT`.
-Cálculo o persistencia, fórmulas, efectos de objetos y parámetros deben concretarse
-para el alcance acordado. Ecomotor es la autoridad candidata sobre stats y progreso.
+CharacterStats persistente y puntos configurables por nivel están aceptados
+internamente; iniciales por rol, límites físicos, fórmulas efectivas y efectos
+de objetos siguen pendientes. No fijar todos los atributos a 5 por un ejemplo.
+Ecomotor es la autoridad candidata sobre stats y progreso.
 Rewards se plantea como capacidad coordinada por Ecomotor que evalúa reglas y
 solicita monedas a Bank y objetos a Inventory. Puntuación provisional de partida,
 resultado validado, recompensa y XP histórica consolidada son estados distintos.
@@ -132,7 +139,7 @@ confirmación con Félix y Henry (D-13 a D-15). No es una asignación individual
 
 Responsabilidad propuesta: XP, progreso, evolución, especializaciones, stats,
 historiales y coordinación de Rewards. Prioridad inmediata: revisar decisiones
-estructurales y adaptar el ERD/diccionario V1 a V2. A decide progreso y solicita
+condicionadas y validar el ERD/diccionario V2 provisional. A decide progreso y solicita
 operaciones a los propietarios B/C; no escribe inventario ni saldo directamente.
 
 ### Félix · Parte B
@@ -208,7 +215,7 @@ requiere diseño revisado del dominio y acuerdos compartidos necesarios.
 | Hito | Estado, entregable y dependencias |
 | --- | --- |
 | H0 · Base | Completados bootstrap, estructura bajo `apps/`, perfiles iniciales y comprobaciones documentadas del Día 1 (check, cuatro tests, migraciones y HTTP 200). Core/PR07 y D-17 continúan pendientes; no está completada toda PR07. |
-| H1 · Diseño conceptual y documentación | Parcial: candidata V2, registro y lista operativa integrados en PR #15; ERD/diccionario V1 de A existente. Pendientes decisiones estructurales, adaptación de A a V2, diseños y consolidación A/B/C, y fronteras/contratos mínimos de Rewards y compras antes del ORM afectado. No completado globalmente. |
+| H1 · Diseño conceptual y documentación | Parcial: candidata V2, registro y lista operativa integrados en PR #15; ERD/diccionario V2 provisional de A existente, ocho entidades aceptadas internamente y V1 conservado como antecedente. Pendientes condiciones funcionales/Core, diseños y consolidación A/B/C, y fronteras/contratos mínimos de Rewards y compras antes del ORM afectado. No completado globalmente. |
 | H2 · Modelos y servicios de dominio | Pendiente tras revisar ERD/diccionario y contratos necesarios. Implementar servicios reutilizables y modelos/migraciones del alcance acordado; no usar automáticamente reglas V1 incompatibles ni cambiar User/auth. Tests críticos con cada operación. |
 | H3 · Admin, interfaz y vertical mínima | Pendiente tras H2: Admin, URLs, vistas, templates, formularios y permisos. Demo de actividad validada → recompensa → progreso/monedas/objetos → compra e inventario/equipamiento según acuerdos. DAR3 contempla Prehistoria, Grecia y Roma para demo, distintas del catálogo de siete etapas. El equipamiento automático continúa pendiente de confirmación. |
 | H4 · CRUD, historiales y Museo | Pendiente tras diseño e interfaz: CRUD evaluable aclarado con Óscar, historiales de XP/evolución/equipamiento y Bank, y Museo según cobertura acordada. Lecturas y permisos respetan operaciones de dominio. |
@@ -228,14 +235,14 @@ backlog no convierte A-01…A-16 en instrucciones V2 para puntos incompatibles.
 
 ### Jaime · A (propuesto)
 
-1. Revisar decisiones estructurales de progresión, especializaciones, stats,
-   Rewards e historiales, con la lista de pendientes y alcance V1.
-2. Adaptar ERD V2 y diccionario desde el antecedente existente, documentando
-   cardinalidades, restricciones y `on_delete`, sin nuevos campos ORM aquí.
+1. Validar las condiciones aún abiertas de V2-A1…V2-A29 con la lista de
+   pendientes y alcance V1, sin reabrir las reglas internas ya documentadas.
+2. Revisar el ERD V2 provisional y diccionario técnico campo por campo, sus condiciones
+   de borrado/Core y trazabilidad V2-A1…V2-A29 antes de cerrar diseño para ORM.
 3. Validar dependencias y contratos mínimos con B/C y Core, incluidos claves y
    coordinador; elevar a Óscar solo ambigüedades funcionales.
 4. Tras revisión H1, implementar servicios y modelos/migraciones H2 del alcance
-   acordado, sin asumir equipamiento automático ni rangos antiguos.
+   acordado, sin asumir equipamiento automático ni rank físico en el mínimo.
 5. Probar progreso, XP no decreciente, evolución múltiple, Rewards, idempotencia
    y concurrencia; después lecturas, Admin, historial/CRUD y demo H3–H6.
 
@@ -279,12 +286,14 @@ también reglas funcionales, se revisará la arquitectura correspondiente.
 La lista operativa de [pending-decisions.md](pending-decisions.md) es la fuente
 para responsables, impacto y condiciones de cierre; este plan no la duplica.
 
-El siguiente paso es iniciar la adaptación conceptual del ERD V2 de A: no hace
-falta esperar todos los parámetros oficiales ni diseños definitivos de otros
-equipos. Para cerrarlo deben concretarse representación de progreso y evolución,
-especializaciones y stats incluidos, persistencia de historiales y relaciones
-compartidas. Las claves, fronteras transaccionales y contratos necesarios deben
-cerrarse antes del ORM/servicio afectado, sin bloquear todo el diseño conceptual.
+El siguiente paso es validar las condiciones del ERD V2 provisional de A y
+sus dependencias, no volver a diseñar desde cero las ocho entidades internas.
+Vestimenta, iniciales/límites de stats, selección de especialización, Rewards/XP
+de dominio, retención Core y cambios administrativos requieren respuesta para
+cerrar su ORM o servicio afectado; no todo parámetro bloquea el ERD conceptual.
+M-01 permanece fail-closed ante perfiles legacy, sin inventar inicialización.
+Las claves, fronteras transaccionales y contratos se cierran antes de implementar
+operaciones multidominio; D-19 no garantiza su atomicidad global.
 
 ### Alcance aplazable por acuerdo
 
@@ -310,6 +319,16 @@ no existen todavía como tests implementados de dominio.
 | Rewards | Condiciones, vigencia, límites, emisor, compatibilidad y repetibilidad configurados; actividad no recompensada dos veces; dominios propietarios y resumen coherente; separación de puntuación provisional y XP consolidada. |
 | Concurrencia SQLite (D-19) | `TransactionTestCase`; escrituras concurrentes; mismo `operation_key`; rollback/timeout; al menos una ejecución específica SQLite file-backed. Pendiente de implementación. |
 | Transversal PR07 | Tests de modelos, vistas y permisos: accesos autorizados, redirección o denegación según corresponda (200/302/403), detalle inexistente controlado (404), formularios válidos e inválidos y protección del CRUD por propietario. La autenticación concreta sigue pendiente de aclaración. |
+
+### Verificaciones posteriores del diseño provisional de Parte A
+
+Tras validar el alcance, cubrir inicialización idempotente sin eventos ficticios,
+legacy fail-closed, niveles/etapas independientes y múltiples, puntos concedidos
+y asignados una sola vez, eventos causales del mismo perfil, XP de dominio
+independiente, claves conflictivas y rollback. Rewards debe distinguir XP repetible
+de Training del límite de una moneda por juego/día; Escape no reduce XP histórica
+por penalizaciones de partida. Correcciones y recuperación multidominio dependen
+del contrato compartido. Son tests de dominio futuros; no los tests de bootstrap.
 
 ## 10. Definition of Done
 
