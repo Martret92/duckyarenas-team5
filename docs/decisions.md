@@ -98,9 +98,9 @@ correspondiente a D-11 se encuentra ahora en `apps/users/models.py`, sin alterar
 la decisión funcional registrada en D-11.
 Esta decisión no cambia modelos, contenido de migraciones, User ni autenticación;
 D-17 sigue vigente. La parte estructural y técnica aplicable del Día 1 está
-validada. Ya existe el ERD y diccionario V1 de Parte A en
-[erd/ecomotor.md](erd/ecomotor.md); quedan pendientes su adaptación a V2 y el ERD
-consolidado del Equipo 5 con los demás dominios, antes del ORM definitivo.
+validada. El [ERD y diccionario de Parte A](erd/ecomotor.md) ya documenta V2
+provisional aceptada internamente y conserva V1 como antecedente. Queda pendiente
+el ERD consolidado del Equipo 5 con los demás dominios, antes del ORM definitivo.
 
 ## D-19 · Política transversal de concurrencia SQLite para V1
 
@@ -135,12 +135,13 @@ A, B y C, que siguen pendientes.
 ## Aceptación interna de Parte A
 
 Parte A ha aceptado internamente su arquitectura V1, identificada como A-01…A-16.
-Su ERD y diccionario V1 ya existen en [erd/ecomotor.md](erd/ecomotor.md), como
+Los antecedentes del ERD y diccionario V1 se conservan en [erd/ecomotor.md](erd/ecomotor.md), como
 antecedente interno aceptado. A-01…A-16 se conservan como acuerdos históricos de
 V1; su aceptación no se extiende automáticamente a los puntos incompatibles con
-V2. Quedan pendientes la adaptación de Parte A y la integración del ERD consolidado
-con los demás dominios. Los modelos Django y migraciones definitivos todavía no
-están aprobados. No se añaden identificadores de Parte A.
+V2. El diseño V2 provisional de Parte A ya está documentado; queda pendiente
+la integración del ERD consolidado con los demás dominios. Los modelos Django
+y migraciones definitivos todavía no están aprobados globalmente. Los identificadores V2-A1…V2-A29 distinguen la
+aceptación interna condicionada de Parte A de las decisiones D vigentes.
 La aceptación interna no aprueba contratos compartidos con B/C o Rewards, que
 siguen pendientes de validación conjunta, ni valida D-13 a D-16.
 
@@ -151,8 +152,8 @@ La arquitectura candidata V2 está elaborada y revisada internamente en
 `52c3865`. Este hito documental no constituye una nueva decisión arquitectónica
 aprobada ni recibe un identificador D-20. La candidata no está aprobada globalmente
 por Óscar y los demás equipos; las decisiones compartidas requieren validación
-conjunta. Antes del ORM debe revisarse el ERD V1 frente a V2, sin cambiar acuerdos
-aceptados mediante notas editoriales.
+conjunta. El diseño V2 provisional revisa expresamente el antecedente V1; sus condiciones
+deben validarse antes del ORM afectado, sin cambiar decisiones D vigentes.
 
 ## Propuestas pendientes de validación
 
@@ -192,7 +193,8 @@ El detalle y la procedencia de los requisitos trasladados se recogen en
   Se conservan las seis piezas principales por época de DAR3, con adaptación de
   conjuntos a siete etapas y alcance V1 pendientes.
 - Especializaciones actuales y normalización Data / Data & IA; XP y rangos por
-  especialización sin cerrar, sin revocar silenciosamente el diseño V1.
+  especialización: XP de dominio mínima aceptada internamente y rangos funcionales
+  Junior, Middle, Senior y Maestro conservados; reglas y campos adicionales pendientes.
 - Participación documental de Ecomotor en compras: reparto de validaciones y
   coordinación con Bank, Shop e Inventory pendientes, sin duplicar autoridad
   sobre saldo ni prometer atomicidad global.
@@ -206,5 +208,50 @@ Los conflictos con V1 se conservan pendientes de revisión formal por los
 responsables afectados; las ambigüedades funcionales requieren aclaración de Óscar.
 La gestión exhaustiva de preguntas corresponde a
 [pending-decisions.md](pending-decisions.md), ya actualizado como lista operativa
-para V2. La adaptación del ERD V1 y las validaciones funcionales y técnicas allí
-recogidas siguen pendientes.
+para V2. El ERD provisional ya recoge las ocho entidades internas; las validaciones
+funcionales y técnicas allí recogidas y la consolidación compartida siguen pendientes.
+
+## Aceptación interna provisional de Parte A V2
+
+Se registran únicamente V2-A1…V2-A29 comunicadas y aceptadas internamente por
+Parte A. No son decisiones D nuevas, aprobación de Óscar/Core/B/C ni validación
+de D-13…D-16. El [ERD V2 provisional](erd/ecomotor.md) concreta ocho entidades
+y conserva A-01…A-16 como antecedentes. La implementación actual D-12 permanece
+intacta; el diseño de campos futuros no cambia retroactivamente su estado.
+
+Las fuentes posteriores DuckyClash, DuckyTraining y DuckyEscape se incorporan
+como requisitos trasladados, sin consulta directa de PDF: tipos de combate no
+limitan productos de Shop; Training distingue XP repetible de una moneda por
+juego/día; Escape penaliza XP de partida, no histórica consolidada.
+
+| ID | Decisión aceptada internamente por Parte A | Condiciones y alcance |
+| --- | --- | --- |
+| V2-A1 | EvolutionStage y siete etapas | Catálogo interno; contenido y parámetros oficiales pendientes. |
+| V2-A2 | Estadísticas RPG persistentes en CharacterStats | Valores iniciales, fórmulas y efectos pendientes. |
+| V2-A3 | Simplificación inicial de especializaciones | Revisada parcialmente por V2-A25: se recupera progreso de dominio; sin rank en el mínimo. |
+| V2-A4 | Idempotencia de la concesión completa de recompensa | Contrato global, coordinador y efectos multidominio pendientes; XPEvent solo cubre XP histórica. |
+| V2-A5 | EvolutionEvent causado directamente por XPEvent | Una concesión puede causar varias evoluciones. |
+| V2-A6 | Campos del perfil y estadísticas separadas | Diseño documental futuro; D-12 describe la implementación actual. |
+| V2-A7 | current_level y LevelThreshold persistentes | Niveles independientes de etapas; sin valores oficiales inventados. |
+| V2-A8 | Puntos por nivel configurables y asignación transaccional | Reglas de asignación y límites físicos pendientes de concreción. |
+| V2-A9 | Catálogo EvolutionStage y condiciones de progresión | Evolución automática; no implica equipamiento automático. |
+| V2-A10 | Definición e integridad de XPEvent | Cantidad positiva, snapshots, clave por perfil y fecha. |
+| V2-A11 | Definición e integridad de EvolutionEvent | Perfil, etapa, evento XP causal y fecha; integridad entre tablas por servicio. |
+| V2-A12 | Concesión transaccional de XP y evolución | Actualiza total, nivel, puntos, etapa y eventos; atomicidad local, no global. |
+| V2-A13 | Inicialización explícita e idempotente | Transaccional, sin signals ni eventos ficticios. |
+| V2-A14 | Constraints, validaciones de servicio y migraciones seguras | Las reglas entre tablas no se suponen CheckConstraint; M-01 fail-closed. |
+| V2-A15 | RewardRule conceptual | Condicionada al diseño compartido de Rewards; sin campos físicos aprobados. |
+| V2-A16 | RewardEvent conceptual | Condicionada a contratos compartidos; sin FKs definitivas. |
+| V2-A17 | Estadísticas persistentes y efectivas separadas | Efectos de objetos y cálculo efectivo pendientes; no sobrescribir base por presentación. |
+| V2-A18 | Límites de estadísticas por especialización | Representación física definitiva pendiente; no adoptar valores de ejemplo. |
+| V2-A19 | Selección inicial de especialización en Actual | Obligatoriedad pendiente; cambio posterior fuera del mínimo. |
+| V2-A20 | Reglas de LevelThreshold y cambios de configuración | Política administrativa y tratamiento del progreso existente pendientes. |
+| V2-A21 | Siete etapas, códigos estables y umbrales | Prehistoria en XP 0; umbrales estrictamente crecientes y configurables. |
+| V2-A22 | Integridad e inmutabilidad de XPEvent | UNIQUE(profile, operation_key), amount > 0 y xp_after = xp_before + amount. |
+| V2-A23 | Integridad del historial EvolutionEvent | UNIQUE(profile, stage) y mismo perfil que el XPEvent causal. |
+| V2-A24 | Catálogo estable Specialization | Identificador, código estable y nombre; códigos definitivos Sistemas/Data pendientes. |
+| V2-A25 | UserSpecializationProgress mínimo | Revisa V2-A3: XP de dominio no negativa, única por perfil/especialización, sin rank. |
+| V2-A26 | XP de dominio trazable e idempotente | Condicionada al contrato Rewards; no se aprueba otra entidad física de eventos. |
+| V2-A27 | Desbloqueos históricos coordinados con Inventory | Condicionada a aclarar vestimenta; sin equipamiento ni adquisición individual impuestos. |
+| V2-A28 | Conservación del progreso ante cambios administrativos | Parcialmente condicionada: política de ajustes/reconciliación pendiente, sin pérdida silenciosa. |
+| V2-A29 | Core y migraciones legacy fail-closed | Parcialmente condicionada a conservación e integración con Core; no cambiar AUTH_USER_MODEL. |

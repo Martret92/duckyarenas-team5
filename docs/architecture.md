@@ -22,8 +22,9 @@ No define campos ORM, migraciones, tablas ni endpoints definitivos.
 | `DAR3_ (1).pdf` | Referencia principal del alcance general y reparto entre equipos. Sus requisitos se recogen mediante la documentación del repositorio y la revisión externa comunicada. |
 | `DuckyEcomotor.pdf` y `DAR_formulas.pdf` | Fuentes funcionales posteriores proporcionadas por Óscar. Prevalecen donde actualicen explícitamente una especificación anterior; los requisitos aquí trasladados proceden de la revisión externa comunicada. |
 | [Registro de decisiones](decisions.md) | Fuente de decisiones aceptadas y de propuestas aún pendientes. Se respetan las decisiones vigentes hasta revisión formal. |
-| [ERD de Ecomotor V1](erd/ecomotor.md) | Evidencia del diseño interno anterior de Parte A, A-01…A-16, y de sus contratos compartidos pendientes. No equivale a aprobación del conjunto del Equipo 5. |
+| [ERD V2 provisional de Ecomotor](erd/ecomotor.md) | Ocho entidades aceptadas internamente por Parte A con condiciones V2-A1…V2-A29; conserva A-01…A-16 como antecedentes V1. No equivale a aprobación global ni del ORM definitivo. |
 | `11201_PR07_proyecto Ducky Arenas.pdf` (PR07) | Referencia de proceso y evaluación; sus condicionantes se recogen en la documentación del repositorio y la revisión externa comunicada. |
+| `DAR_DuckyClash.pdf`, `DuckyTraining.pdf`, `DuckyEscape.pdf` | Ampliaciones trasladadas por revisión externa: roles/límites de stats, tipos de combate, repetibilidad y penalizaciones de partida; no se afirma lectura directa. |
 | Contexto de la candidata V2 | Orientación interna para esta propuesta; no sustituye requisitos verificados ni resuelve preguntas abiertas. |
 
 Los requisitos documentales trasladados desde la revisión externa se identifican
@@ -82,9 +83,9 @@ Conceptos candidatos, sin aprobar modelos ORM nuevos:
 
 | Concepto | Papel |
 | --- | --- |
-| `CharacterStats` | Representación canónica de las seis estadísticas RPG bajo autoridad de Ecomotor; persistencia o cálculo pendiente. |
-| `XPEvent` | Trazabilidad de concesiones de XP. Ya aparece como entidad diseñada en el ERD V1; aquí se utiliza como concepto, sin aprobar nuevos campos ni su implementación V2. |
-| `EvolutionEvent` | Trazabilidad de transiciones de etapa. También está diseñado en el ERD V1; su adaptación a V2 requiere revisión. |
+| `CharacterStats` | Base persistente de los seis stats y puntos disponibles, aceptada internamente por Parte A; valores iniciales, límites y cálculo efectivo pendientes (V2-A2/A8/A17/A18). |
+| `XPEvent` | Trazabilidad de concesiones de XP. Entidad del ERD V2 provisional interno con snapshots, cantidad positiva e idempotencia por perfil; no implementada. |
+| `EvolutionEvent` | Trazabilidad de transiciones de etapa. Entidad del ERD V2 interno causada por XPEvent; una concesión puede producir varias evoluciones, sin implementar todavía el ORM. |
 | `RewardRule` | Regla configurable que vincula actividad con condiciones y recompensas; concepto propuesto, sin modelo ORM aprobado. |
 | `RewardEvent` | Evidencia de evaluación y aplicación de una recompensa para trazabilidad e idempotencia; concepto propuesto, sin modelo ORM aprobado. |
 
@@ -137,9 +138,9 @@ Las cinco especializaciones identificadas son Developer, Ciberseguridad, Sistema
 Data y Gamer. La revisión externa comunica una discrepancia: `DuckyEcomotor.pdf`
 usa **Data**, mientras `DAR_formulas.pdf` incluye **Data & IA** y `data_ia` como
 código de ejemplo. Queda pendiente normalizar nombres y códigos, sin establecer
-una equivalencia definitiva. Como propuesta técnica pendiente de aceptación,
-se plantean identificadores internos estables y etiquetas de presentación
-configurables, sin modificar el modelo de datos ni aprobar el código de ejemplo.
+una equivalencia definitiva. V2-A24 acepta internamente un catálogo con identificador,
+código estable y nombre; códigos finales y etiquetas configurables quedan pendientes,
+sin aprobar el código de ejemplo ni implementar modelos.
 Las fórmulas concretas deben precisarse antes de cerrar el diseño y los contratos.
 
 La XP histórica es acumulativa y no decreciente: compras, penalizaciones económicas
@@ -155,17 +156,29 @@ antes de consolidarse; no descuenta XP histórica previamente concedida.
 Quedan configurables los umbrales, las condiciones de evolución, los desbloqueos
 y los parámetros de progresión. No se fijan fórmulas, requisitos de acceso a
 especializaciones, valores de stats ni efectos de objetos sin confirmación.
-El tratamiento de varios umbrales en una operación debe revisarse conservando
-la trazabilidad; el ERD V1 ya exige registrar todas las evoluciones intermedias.
+El ERD V2 provisional acepta niveles persistentes con LevelThreshold independiente
+de EvolutionStage, puntos por nivel configurables y concesión transaccional de XP,
+nivel, puntos, etapa y eventos de todas las transiciones alcanzadas. Prehistoria
+comienza en XP 0 y los umbrales de etapa son estrictamente crecientes. La
+inicialización es explícita e idempotente, sin signals ni eventos ficticios;
+valores iniciales y política de cambios administrativos quedan pendientes.
 
 Se mantiene el requisito original de DAR3 de seis piezas principales por época,
 diferenciadas de los complementos estéticos. Queda pendiente adaptar los conjuntos
 a las siete etapas y concretar su alcance V1, sin inventar su contenido.
-La candidata no adopta como invariantes obligatorios las nueve épocas, el
-equipamiento automático al evolucionar, los rangos `INITIAL`,
-`JUNIOR`, `MIDDLE`, `SENIOR`, `MASTER` ni la progresión antigua de XP por
-especialización. Estos elementos están documentados en V1 y siguen pendientes
-de revisión formal; omitirlos de V2 no declara revocada su aceptación anterior.
+Las nueve épocas y el equipamiento automático del antecedente V1 no son reglas
+V2 aprobadas. Se conserva el requisito funcional de rangos Junior, Middle, Senior
+y Maestro, con reglas y campos adicionales pendientes: UserSpecializationProgress
+mínimo acumula XP de dominio independiente, sin `rank` (V2-A25 revisa V2-A3).
+No se adopta INITIAL ni una equivalencia automática con MASTER. V2-A27 no asume
+adquisición individual, seis campos por etapa ni identidad entre vestimenta y
+objetos de combate. Se conservan los acuerdos V1 como antecedentes históricos.
+
+Los atributos iniciales iguales a 5 de DAR_formulas son ejemplo; DuckyClash
+documenta iniciales por rol y límites específicos, pendientes de concreción
+sin cambios automáticos al especializarse. Training permite XP por repetición
+y una moneda por juego/día; Escape penaliza XP de partida. Correcciones, devoluciones,
+concesión idempotente de XP de dominio y coordinación global de Rewards siguen pendientes.
 
 ## 8. Servicios, contratos conceptuales y flujos
 
@@ -325,16 +338,16 @@ la dirección interna V2 no cambia su estado ni confirma el reparto individual.
 
 | Discrepancia o cuestión | Tratamiento y validación necesaria |
 | --- | --- |
-| Siete etapas V2 frente a nueve épocas V1 | Cambio funcional significativo respecto al ERD y a las aclaraciones antiguas. Verificar especificaciones posteriores con Óscar y revisar formalmente el diseño afectado. |
+| Siete etapas V2 frente a nueve épocas V1 | El ERD V2 provisional interno documenta las siete etapas; parámetros oficiales y política administrativa siguen pendientes, con V1 conservado como antecedente. |
 | Seis piezas y equipamiento automático | DAR3 exige seis piezas principales por época; la actualización a siete etapas no elimina expresamente ese requisito. Acordar adaptación de conjuntos y alcance V1 con Inventory/Equipment. El equipamiento automático al evolucionar, exigido por el ERD V1, no se da por aprobado para V2 y requiere revisión formal. |
-| Especializaciones y XP de dominio | V1 usa AdminSys y Data & AI, progreso independiente y rangos fijos; V2 identifica Sistemas y Data sin cerrar XP/rangos. Confirmar equivalencias, acceso, cambio y conservación de progreso. |
-| Normalización Data / Data & IA | La revisión externa identifica Data en `DuckyEcomotor.pdf` y Data & IA / `data_ia` en `DAR_formulas.pdf`. Acordar nomenclatura y códigos; identificadores estables y etiquetas configurables son una propuesta técnica pendiente. |
+| Especializaciones y XP de dominio | V1 usa AdminSys y Data & AI, progreso independiente y rangos fijos; V2 identifica Sistemas y Data, acepta XP de dominio mínima independiente y conserva rangos Junior/Middle/Senior/Maestro sin rank físico mínimo. Confirmar códigos, obligatoriedad, reglas de rangos y cambios. |
+| Normalización Data / Data & IA | La revisión externa identifica Data en `DuckyEcomotor.pdf` y Data & IA / `data_ia` en `DAR_formulas.pdf`. Acordar nomenclatura y códigos; catálogo con identificador y código estable aceptado internamente por Parte A; códigos finales y etiquetas configurables pendientes. |
 | Historial y Museo | Se conservan los requisitos trasladados de DAR3 sobre épocas, equipamiento, Museo y tipos de piezas; definir cobertura y prioridad V1 conservando las seis piezas principales por época y adaptando sus conjuntos a las siete etapas. |
-| Stats y fórmulas | V2 incorpora seis stats canónicos; falta verificar fórmulas, efectos de objetos y alcance RPG V1 con las fuentes posteriores y consumidores. |
+| Stats y fórmulas | CharacterStats persistente aceptado internamente; iniciales por rol, límites físicos, fórmulas, efectos y alcance RPG V1 pendientes. No fijar todos a 5 por un ejemplo. |
 | Rewards dentro de Ecomotor | Compatible como dirección con la coordinación propuesta desde A, pero D-14/D-15 y contratos compartidos siguen pendientes de validación conjunta. |
 | Coordinación de compras y recompensas | Acordar reparto de validaciones entre Ecomotor, Bank y Shop, coordinador completo, fronteras transaccionales, claves y entrega de Inventory; D-19 no garantiza atomicidad global. |
 | PR07 frente a D-09/D-10 | Persiste el conflicto documentado sobre CustomUser y autenticación local. D-17 mantiene las decisiones existentes hasta aclaración de Óscar. También siguen abiertos CRUD evaluable y calendario. |
-| Estado documental de Parte A | El registro y las decisiones pendientes reconocen el ERD V1 existente en `erd/ecomotor.md`. Su adaptación a V2 y la consolidación con los demás dominios siguen pendientes; su existencia no acredita revisión global ni aceptación de V2. |
+| Estado documental de Parte A | El ERD y diccionario V2 provisional ya existen en `erd/ecomotor.md`, con ocho entidades y V2-A1…V2-A29 internas condicionadas. V1 se conserva como antecedente; consolidación, contratos y ORM definitivo siguen pendientes. |
 | Integración y tiempo real | Concretar contratos REST y eventos WebSocket de la arquitectura objetivo comunicada, responsabilidades entre equipos y alcance V1; identidad/JWT pertenece a Core. |
 | Integraciones externas y pedidos físicos | Referencias documentales comunicadas cuyo alcance, responsables y priorización deben acordarse separadamente de la V1 mínima. |
 | Parámetros y catálogo | Confirmar umbrales, recompensas, desbloqueos, precios, objetos y reglas de evolución; no inventar valores oficiales. |
@@ -348,15 +361,15 @@ ordena implementar V2 contra el ERD V1 sin resolverlos.
 - [decisions.md](decisions.md): registro principal de acuerdos. No se modifica ni
   se reclasifican sus propuestas desde esta candidata.
 - [pending-decisions.md](pending-decisions.md): preguntas y trabajo abierto;
-  lista operativa actualizada de validaciones, adaptación a V2, contratos y trabajo posterior; distingue el ERD V1 existente del diseño V2 pendiente.
-- [erd/ecomotor.md](erd/ecomotor.md): ERD y diccionario V1 de Parte A;
-  requiere revisión posterior frente a etapas, equipamiento, especializaciones
+  lista operativa de condiciones V2, contratos y trabajo posterior; distingue aceptación interna de validación compartida.
+- [erd/ecomotor.md](erd/ecomotor.md): ERD y diccionario V2 provisional de Parte A;
+  conserva antecedentes V1 y condiciones sobre equipamiento, especializaciones
   y stats de V2 antes de implementar modelos.
-- [team5-work-plan.md](team5-work-plan.md): plan operativo propuesto; habrá que
-  revisar su alineación en un trabajo posterior, sin asumir cambios de alcance.
+- [team5-work-plan.md](team5-work-plan.md): plan operativo propuesto, alineado con
+  el ERD V2 provisional y las condiciones pendientes; no cambia aprobaciones.
 
 El ERD consolidado `docs/ERD.md` no existe en esta revisión, aunque el ERD de
-Parte A lo menciona como destino futuro. El registro y la lista de decisiones
+Parte A aún debe consolidarse con B/C. El registro y la lista de decisiones
 pendientes ya están actualizados para la candidata V2. La revisión del ERD, los
 contratos y la formalización de los acuerdos pendientes siguen siendo trabajo
 posterior sujeto a la revisión correspondiente.
