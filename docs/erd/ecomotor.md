@@ -5,13 +5,16 @@
 Diseño documental aceptado **internamente por Parte A**, V2-A1…V2-A29, con las
 condiciones del [registro](../decisions.md). No es aprobación global de Óscar,
 Core ni Partes B/C, ni autorización del ORM definitivo. D-01…D-19 siguen intactas;
-D-13…D-16 siguen pendientes. No se implementan modelos ni migraciones aquí.
+D-20/D-21 registran acuerdos internos de reparto/apps del 08/10. D-13 queda
+como antecedente y D-14…D-16 conservan validación técnica pendiente.
+No se implementan modelos ni migraciones aquí.
 
 DAR3 es la referencia general. Las especificaciones posteriores de
 `DuckyEcomotor.pdf`, `DAR_formulas.pdf`, `DAR_DuckyClash.pdf`, `DuckyTraining.pdf`
 y `DuckyEscape.pdf` prevalecen cuando actualizan explícitamente una anterior.
-Se utilizan requisitos contrastados trasladados por revisión externa y la
-[arquitectura](../architecture.md), sin afirmar lectura directa de los PDF.
+La consolidación transversal consulta directamente sus pasajes pertinentes,
+según [arquitectura](../architecture.md). Daily del 09/10/2026: se indicaron
+aclaraciones parciales, sin aprobación global del diseño físico.
 Ejemplos numéricos y código no constituyen parámetros oficiales.
 
 Este documento sustituye la descripción operativa V1 por el diseño V2 provisional.
@@ -122,7 +125,9 @@ implementados hoy; los nuevos campos son diseño documental futuro.
 
 `RewardRule` y `RewardEvent` son conceptos compartidos candidatos (V2-A15/A16),
 fuera de las ocho entidades físicas mínimas. No se aprueban campos, FKs, tablas,
-apps ni contratos. La trazabilidad de XP de dominio se concretará con Rewards;
+apps ni contratos definitivos. [Rewards v0](../contracts/rewards-v0.md) concentra
+su propuesta conceptual compartida. La trazabilidad de XP de dominio se
+concretará con Rewards;
 no se inventa aquí una novena entidad ni se reutiliza XPEvent como si fueran la
 misma magnitud.
 
@@ -348,7 +353,8 @@ recuperación con Inventory siguen pendientes.
 XPEvent/EvolutionEvent cubren historial de progreso; historial de equipamiento y
 Museo Ducky se coordinan con B. No se inventa un modelo Museo ni se elimina su
 requisito. Cobertura V1, lecturas y conservación conjunta requieren acuerdo.
-El mínimo funcional de recompensas de DAR3 se mantiene en arquitectura §8; payloads,
+El mínimo funcional de recompensas de DAR3 se recoge en
+[Rewards v0](../contracts/rewards-v0.md) y arquitectura; payloads,
 REST, WebSockets, autorizaciones y contratos definitivos no se aprueban aquí.
 
 ## 9. Cambios administrativos, Core y M-01
@@ -404,3 +410,36 @@ independientes, umbrales múltiples, puntos, eventos causales, invariantes y cla
 conflictivas, permisos, rollback y recuperación multidominio. D-19 exige
 TransactionTestCase y al menos una ejecución SQLite file-backed para concurrencia.
 Son pruebas futuras, no tests implementados por esta tarea documental.
+
+## 12. Contexto 08/10–09/10 y Rewards v0 candidato
+
+Actualización exclusivamente conceptual: el diagrama, las ocho entidades, campos,
+cardinalidades, constraints y políticas provisionales de §§2–5 permanecen intactos.
+D-20/D-21 fijan reparto/apps objetivo, sin trasladar modelos o aprobar integración.
+
+[Rewards v0](../contracts/rewards-v0.md) es la referencia única de la semántica
+candidata compartida: identidad/huella, reglas/versiones, resultados, duplicados,
+conflictos, efectos independientes y transacción exterior condicionada a misma
+BD/conexión. No se duplican sus campos aquí. RewardEvent queda fuera de estas
+ocho entidades y RewardRule no se aprueba como tabla; tampoco nuevas FKs/on_delete.
+La idempotencia local de XPEvent no cubre por sí sola el premio completo.
+
+Daily del 09/10/2026: la rectificación de XP externa exige aclarar
+elegibilidad/vigencia de XP histórica y de dominio (V2-A10/A22/A25/A26/A28),
+sin borrar progreso ni cambiar estos campos por inferencia.
+Antes de Actual se habló de stats determinadas por rol y en Actual de distribuir
+o editar puntos. Es una aclaración parcial: iniciales,
+presupuesto/límites y redistribución de CharacterStats siguen pendientes
+(V2-A2/A8/A17/A18). Posibles puntos de cursos requieren un servicio independiente
+de concesión, sin crear XPEvent ficticios ni atribuirlo automáticamente a V2-A12.
+
+Training mantiene XP repetible y moneda por juego/día; Escape distingue pruebas
+y premio final, con nueva versión consolidada pendiente y momento de registro por
+acordar. El texto previo sobre penalización describe el PDF local, no resolución
+definitiva del contrato Escape actualizado. Reservas de Clash corresponden a Bank
+si se implementan; no se añaden al ERD de A ni se imponen en V1.
+
+Óscar/Core debe validar User/auth, integración, conservación y migración legacy.
+D-17 y M-01 continúan; los CASCADE provisionales no adquieren aprobación por esta
+reunión. D-19 sigue vigente y no garantiza atomicidad multidominio por sí sola.
+[Pendientes](../pending-decisions.md) concentra las preguntas de cierre.
