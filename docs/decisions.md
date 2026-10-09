@@ -16,10 +16,11 @@ requisitos se resumen en [architecture.md](architecture.md).
 
 `DuckyEcomotor.pdf` y `DAR_formulas.pdf` son fuentes funcionales posteriores
 facilitadas por Óscar: prevalecen donde actualizan explícitamente especificaciones
-anteriores. Su información fue contrastada externamente y trasladada a la
-arquitectura candidata; esta actualización no afirma consulta directa de los PDF.
+anteriores. Sus pasajes pertinentes se han consultado directamente, junto con
+DAR3, PR07, DuckyClash, Training y Escape. La procedencia y las discrepancias se mantienen en
+[architecture.md](architecture.md).
 Estos requisitos trasladados se distinguen de propuestas internas y acuerdos
-aprobados, según los criterios de fuentes de arquitectura (sección 2).
+aprobados, según los criterios de fuentes de arquitectura (sección 1).
 
 ## Decisiones confirmadas
 
@@ -65,8 +66,9 @@ internas del Equipo 5:
   contribuciones identificables de cada integrante (páginas 10-11 y 17).
 - El plan detallado pide `AbstractUser`, `AUTH_USER_MODEL`, registro, login y
   logout (página 5), en conflicto con D-09 y D-10. Su aplicación requiere
-  aclaración del profesor, al igual que el alcance del CRUD y la obligatoriedad
-  literal del calendario de 15 días y sus entregables.
+  aclaración del profesor y validación del alcance del CRUD. Daily del 06/10/2026:
+  se aclaró que el calendario de quince días es una guía de trabajo; se conservan
+  sus entregables y criterios de evaluación.
 
 ## Decisión transversal provisional ante PR07
 
@@ -143,86 +145,90 @@ la integración del ERD consolidado con los demás dominios. Los modelos Django
 y migraciones definitivos todavía no están aprobados globalmente. Los identificadores V2-A1…V2-A29 distinguen la
 aceptación interna condicionada de Parte A de las decisiones D vigentes.
 La aceptación interna no aprueba contratos compartidos con B/C o Rewards, que
-siguen pendientes de validación conjunta, ni valida D-13 a D-16.
+siguen pendientes de validación conjunta. D-20 registra un reparto posterior a
+D-13; no valida retrospectivamente D-14…D-16.
 
 ## Hito documental: arquitectura candidata V2
 
 La arquitectura candidata V2 está elaborada y revisada internamente en
 [architecture.md](architecture.md), incorporada mediante el commit local
 `52c3865`. Este hito documental no constituye una nueva decisión arquitectónica
-aprobada ni recibe un identificador D-20. La candidata no está aprobada globalmente
+aprobada ni recibió un identificador D en aquel hito. La candidata no está
+aprobada globalmente
 por Óscar y los demás equipos; las decisiones compartidas requieren validación
 conjunta. El diseño V2 provisional revisa expresamente el antecedente V1; sus condiciones
 deben validarse antes del ORM afectado, sin cambiar decisiones D vigentes.
 
-## Propuestas pendientes de validación
+Como antecedente verificable, PR #15 integró la candidata mediante el squash
+`256dd9e` (`Docs/team5 architecture candidate (#15)`). El commit `ca8d182`
+actualizó previamente el registro de decisiones para la arquitectura V2.
+Estos hitos documentales no equivalen a aprobación global.
 
-D-13 a D-16 requieren validación por los tres integrantes del Equipo 5, incluida
-la confirmación con Félix y Henry. No son decisiones definitivas.
+## D-20 y D-21 · Acuerdos internos del 08/10/2026
 
-| ID | Propuesta | Origen | Validación pendiente |
+Identificadores libres en el registro anterior. Fuente: acuerdos internos
+comunicados expresamente por el Equipo 5 para esta consolidación; no se atribuyen
+a una aprobación de Óscar.
+
+| ID | Acuerdo | Origen | Estado |
 | --- | --- | --- | --- |
-| D-13 | Establecer inicialmente a Jaime como responsable principal de Parte A (Ecomotor y evolución), Félix de Parte B (Avatar e inventario) y Henry de Parte C (Ecommerce y DuckyBank). | Propuesta interna | Tres integrantes del Equipo 5, incluida la confirmación con Félix y Henry. DAR3 no asigna individualmente estas partes. |
-| D-14 | Mantener el servicio común de recompensas como responsabilidad compartida. Vincular la coordinación inicial del contrato/orquestación a Parte A; B y C proporcionarían las operaciones de inventario y economía, respectivamente. | Propuesta interna | Tres integrantes del Equipo 5, incluida la confirmación con Félix y Henry. |
-| D-15 | Adoptar fronteras iniciales revisables: A sería propietaria de XP, épocas y evolución; B de catálogo, inventario y equipamiento; C de DuckyCoins, wallet, transacciones, tienda y compras. Recompensas orquestaría sin duplicar lógica de negocio. | Propuesta interna | Tres integrantes del Equipo 5, incluida la confirmación con Félix y Henry. No fija modelos ni contrato técnico definitivo. |
-| D-16 | Permitir datos ficticios/provisionales de desarrollo y demostración hasta recibir datos oficiales del profesor, identificados como provisionales, nunca como requisitos reales y separados de la lógica. Evitar números mágicos en servicios. Los tests podrían usar umbrales y recompensas propios solo para verificar comportamiento. | Propuesta interna | Tres integrantes del Equipo 5, incluida la confirmación con Félix y Henry. DAR3 no proporciona todos los valores numéricos definitivos. |
+| D-20 | Reparto principal: Jaime, Parte A (Ecomotor, Rewards, XP, evolución y estadísticas); Henry, Parte B (Duckies, avatar, inventario y equipamiento); Fernando, Parte C (DukiBank y DukiShop). | Equipo 5, 08/10/2026 | Vigente como acuerdo interno |
+| D-21 | Organización objetivo en cuatro apps de dominio: `apps.ecomotor`, `apps.duckies`, `apps.bank` y `apps.shop`, conservando `apps.users`. Rewards se coordina desde Ecomotor, sin app independiente obligatoria. | Equipo 5, 08/10/2026 | Vigente como acuerdo interno; implementación posterior |
 
-Como parte de D-16, la arquitectura se diseñaría para sustituir valores puramente
-paramétricos, como umbrales y cantidades de recompensa, por datos oficiales sin
-modificar la lógica de negocio. Si el profesor cambia también las reglas
-funcionales, se revisaría la arquitectura correspondiente. No se fijan valores
-concretos ni se resuelven las reglas pendientes mediante esta propuesta.
+D-20 reemplaza el reparto propuesto en D-13 para la planificación actual.
+La redacción histórica de D-13 se conserva debajo: nunca fue una decisión
+confirmada. D-21 amplía la organización objetivo, sin cambiar D-18, las rutas
+y labels existentes, la ubicación de perfiles D-11 ni modelos o migraciones.
+No afirma que las tres apps nuevas ya estén creadas ni valida el diseño de la
+rama de Parte C. D-17 y D-19 continúan íntegramente vigentes.
+En la mini daily del 06/10/2026 se propuso esta organización y quedó pendiente
+su revisión. Daily del 08/10/2026: Óscar indicó una revisión por encima del documento,
+con examen detallado pendiente. Los límites de apps y contratos requieren todavía
+validación con Óscar/Core, Henry, Fernando y los equipos implicados.
 
-La candidata V2 desarrolla, sin cambiar el estado de D-13…D-16, las siguientes
-propuestas (arquitectura, secciones 4, 5 y 8): Ecomotor como autoridad de XP,
-evolución y stats y coordinador de Rewards; Bank como propietario del saldo;
-Inventory de la posesión de objetos; Shop del proceso comercial; y Avatar/Equipment
-del estado de equipamiento. Incluye reglas configurables, idempotencia e integración
-con Core y juegos mediante contratos pendientes. Son responsabilidades conceptuales,
-no nuevas decisiones formales ni aprobaciones de apps, modelos o endpoints.
-D-19 conserva íntegramente su política vigente y no resuelve la coordinación
-transaccional entre dominios.
+## Propuestas y antecedente de reparto
 
-### Discrepancias y validaciones compartidas
+| ID | Propuesta histórica | Origen | Estado en esta consolidación |
+| --- | --- | --- | --- |
+| D-13 | Establecer inicialmente a Jaime como responsable principal de Parte A (Ecomotor y evolución), Félix de Parte B (Avatar e inventario) y Henry de Parte C (Ecommerce y DuckyBank). | Propuesta interna anterior | Antecedente no confirmado; reparto posterior registrado en D-20 |
+| D-14 | Mantener recompensas como responsabilidad compartida, con coordinación inicial desde A y operaciones de inventario y economía proporcionadas por B y C. | Propuesta interna | Validación técnica conjunta pendiente; la coordinación funcional se recoge en arquitectura |
+| D-15 | Fronteras iniciales revisables: A propietaria de XP, épocas y evolución; B de catálogo, inventario y equipamiento; C de DuckyCoins, wallet, transacciones, tienda y compras; Rewards orquesta sin duplicar lógica. | Propuesta interna | Contratos y límites técnicos pendientes; D-20 no los aprueba automáticamente |
+| D-16 | Datos ficticios/provisionales identificados y separados de la lógica, sin números mágicos ni presentación como oficiales; tests con datos propios. | Propuesta interna | Validación del Equipo 5 pendiente |
 
-El detalle y la procedencia de los requisitos trasladados se recogen en
-[architecture.md](architecture.md), secciones 7, 8, 11 y 12:
+D-16 propone sustituir parámetros por datos oficiales sin cambiar la lógica.
+Un cambio de regla funcional requiere revisar el diseño, no solo la configuración.
 
-- Siete etapas actuales frente a nueve épocas del ERD V1; evolución automática
-  como requisito trasladado, distinta del equipamiento automático pendiente.
-  Se conservan las seis piezas principales por época de DAR3, con adaptación de
-  conjuntos a siete etapas y alcance V1 pendientes.
-- Especializaciones actuales y normalización Data / Data & IA; XP y rangos por
-  especialización: XP de dominio mínima aceptada internamente y rangos funcionales
-  Junior, Middle, Senior y Maestro conservados; reglas y campos adicionales pendientes.
-- Participación documental de Ecomotor en compras: reparto de validaciones y
-  coordinación con Bank, Shop e Inventory pendientes, sin duplicar autoridad
-  sobre saldo ni prometer atomicidad global.
-- Mínimo funcional de recompensas de DAR3 frente a formatos, claves y contratos
-  técnicos pendientes con Core y juegos. REST y WebSockets son arquitectura
-  objetivo documental; contratos, responsables y alcance V1 siguen pendientes.
-- Historiales, Museo Ducky y prioridades V1: se mantienen los requisitos funcionales
-  y queda por acordar su cobertura y solución concreta.
+## Aclaraciones del 09/10 y propuesta Rewards v0
 
-Los conflictos con V1 se conservan pendientes de revisión formal por los
-responsables afectados; las ambigüedades funcionales requieren aclaración de Óscar.
-La gestión exhaustiva de preguntas corresponde a
-[pending-decisions.md](pending-decisions.md), ya actualizado como lista operativa
-para V2. El ERD provisional ya recoge las ocho entidades internas; las validaciones
-funcionales y técnicas allí recogidas y la consolidación compartida siguen pendientes.
+Las notas de la daily del 09/10/2026 se recogen en la matriz de
+[arquitectura](architecture.md), distinguiendo aclaraciones del profesor,
+respuestas parciales, propuestas de participantes y cuestiones pendientes.
+No se registra aquí una aprobación global del ERD ni una respuesta que resuelva D-17.
+
+La rectificación verbal sobre XP reservada a juegos y monedas externas queda
+pendiente de alcance, vigencia y confirmación escrita; no autoriza eliminar o
+recalcular progreso. Stats editables en Actual y posibles premios de cursos no
+fijan presupuestos, límites ni parámetros oficiales.
+
+[Rewards v0](contracts/rewards-v0.md) es una propuesta técnica aceptada
+provisionalmente como base de trabajo, pendiente de validación conjunta A/B/C,
+Core y juegos. Propone idempotencia de la recompensa completa y transacción
+exterior compartida condicionada a la misma BD/conexión. No es una nueva decisión
+D confirmada ni aprueba `RewardRule` como tabla, `RewardEvent` como ORM, nuevas
+FKs o políticas `on_delete`. D-19 no resuelve por sí sola ese contrato.
 
 ## Aceptación interna provisional de Parte A V2
 
 Se registran únicamente V2-A1…V2-A29 comunicadas y aceptadas internamente por
 Parte A. No son decisiones D nuevas, aprobación de Óscar/Core/B/C ni validación
-de D-13…D-16. El [ERD V2 provisional](erd/ecomotor.md) concreta ocho entidades
+automática de D-14…D-16. El [ERD V2 provisional](erd/ecomotor.md) concreta ocho entidades
 y conserva A-01…A-16 como antecedentes. La implementación actual D-12 permanece
 intacta; el diseño de campos futuros no cambia retroactivamente su estado.
 
-Las fuentes posteriores DuckyClash, DuckyTraining y DuckyEscape se incorporan
-como requisitos trasladados, sin consulta directa de PDF: tipos de combate no
-limitan productos de Shop; Training distingue XP repetible de una moneda por
-juego/día; Escape penaliza XP de partida, no histórica consolidada.
+La revisión documental directa y las aclaraciones del 09/10 se recogen en
+arquitectura; no cambian silenciosamente las condiciones físicas de V2-A1…V2-A29.
+RewardEvent/RewardRule siguen conceptuales. El contrato Rewards v0 concentra
+su semántica compartida para evitar duplicarla en el ERD.
 
 | ID | Decisión aceptada internamente por Parte A | Condiciones y alcance |
 | --- | --- | --- |
