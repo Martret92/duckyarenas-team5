@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.ecomotor.apps.EcomotorConfig',
     'apps.users.apps.UsersConfig',
+    "apps.duckies.apps.DuckiesConfig",
 ]
 
 MIDDLEWARE = [
