@@ -38,13 +38,16 @@ La rama de Fernando requiere revisión antes de integrar y no se modifica aquí.
 
 ## 3. Orden de trabajo y condiciones
 
-**Dependencia prioritaria:** revisar con Óscar el código existente de recompensas,
-puntos y monedas comentado en las dailys del 06, 07 y 09/10/2026 antes de crear
-servicios equivalentes. Identificar repositorio/versión, reutilización o adaptación,
-alcance propio del Equipo 5, propietario canónico de Wallet y punto común de
-concesión; coordinarlo con la candidata de Fernando y acordar contratos.
-No se conocen todavía sus firmas, modelos ni estructura verificados. Esta revisión
-completa la validación de Rewards v0, sin duplicar wallet, saldo o recompensas.
+**Dependencia de integración:** acordar con Óscar/Core y Fernando la fuente
+canónica de Wallet/saldo, identidad/autorización, movimientos, idempotencia,
+concurrencia y contratos Rewards/Bank/Shop. Daily del 13/10/2026: no es obligatorio
+esperar ni reutilizar el controlador antiguo sencillo de DuckyCoins para continuar
+nuestro desarrollo. La aclaración se limita a ese componente; no declara
+desaparecidos todos los servicios anteriores de recompensas, puntos o economía.
+Consultar código previo es opcional si resulta útil; no se conocen aquí sus firmas,
+modelos o estructura verificados. La integración requiere coordinación con Henry,
+Fernando, Core y consumidores, sin duplicar Wallet, saldo canónico o recompensas;
+Rewards v0 conserva su estado candidato.
 
 1. **Reglas que cambian comportamiento:** confirmar alcance/vigencia de XP externa,
    stats editables en Actual, iniciales/límites y posibles puntos/objetos de cursos;
@@ -111,8 +114,11 @@ a condiciones del ERD y pendientes, no se descartan por una propuesta de MVP.
 
 ### Fernando · Parte C
 
-- Revisar primero la implementación existente de Óscar y su encaje con la candidata,
-  antes de crear servicios equivalentes de Bank o recompensas.
+- Acordar con Core el encaje económico de la candidata y la fuente canónica del
+  saldo. Consultar código anterior de Óscar es opcional: la daily del 13/10/2026
+  aclaró que no es necesario esperar ni reutilizar el controlador antiguo sencillo
+  de DuckyCoins para continuar; identidad/autorización, movimientos, idempotencia,
+  concurrencia y contratos Rewards/Bank/Shop siguen pendientes.
 - Revisar Bank/Shop, fuentes de verdad, movimientos y distinción del catálogo
   comercial frente a identidad de objetos de Duckies.
 - Acordar créditos Rewards y compra/cargo/entrega: coordinador, claves,
