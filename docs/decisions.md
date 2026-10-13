@@ -261,3 +261,33 @@ su semántica compartida para evitar duplicarla en el ERD.
 | V2-A27 | Desbloqueos históricos coordinados con Inventory | Condicionada a aclarar vestimenta; sin equipamiento ni adquisición individual impuestos. |
 | V2-A28 | Conservación del progreso ante cambios administrativos | Parcialmente condicionada: política de ajustes/reconciliación pendiente, sin pérdida silenciosa. |
 | V2-A29 | Core y migraciones legacy fail-closed | Parcialmente condicionada a conservación e integración con Core; no cambiar AUTH_USER_MODEL. |
+
+## Daily del 13/10/2026 · evidencias verificadas y alcance
+
+Procedencia: acta de la reunión del 13/10/2026
+y aclaraciones verificadas comunicadas por Jaime. Se registran únicamente los
+puntos contrastados de conformidad, controlador antiguo, autonomía, LMS/Bank y
+recursos gráficos; las demás notas del acta no se adoptan aquí como acuerdos.
+El contexto de LMS/Bank y los recursos gráficos se desarrollan en
+[architecture.md](architecture.md).
+
+Óscar manifestó haber leído el documento enviado por Jaime y expresó conformidad
+funcional general. El contexto permite relacionarlo con el criterio funcional
+enviado el 07/10, pero no identificó oralmente su título o versión exacta.
+No es aprobación detallada del ERD V2, la estructura física de D-21, Rewards v0,
+modelos, migraciones ni las ocho interfaces propuestas por Henry, todavía
+pendientes de consenso A/B/C.
+
+El controlador antiguo sencillo descrito para incrementar DuckyCoins no es de
+reutilización obligatoria ni debe esperarse para avanzar con los servicios.
+La aclaración se limita a ese controlador: no declara desaparecidos todos los
+componentes anteriores de recompensas, puntos o economía. Consultarlos puede ser
+útil, pero siguen pendientes con Core y Fernando Wallet/saldo canónicos, identidad,
+autorización, movimientos, idempotencia, concurrencia y contratos Rewards/Bank;
+no se autoriza duplicar saldos.
+
+Óscar dejó margen de implementación y pidió trasladarle las dudas. El equipo
+puede continuar desarrollando dentro de sus responsabilidades, manteniendo la
+validación de contratos compartidos y la reconciliación de migraciones antes de
+integrar. D-17/D-19/D-20/D-21, V2-A1…V2-A29, M-01 y el estado candidato de
+Rewards v0 permanecen vigentes, sin nueva decisión D ni aprobación global.

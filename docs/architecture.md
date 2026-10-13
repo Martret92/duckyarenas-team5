@@ -2,10 +2,12 @@
 
 ## 1. Estado y fuentes
 
-Consolidación documental de los acuerdos internos del 08/10/2026 y las novedades
-del 09/10. **Rewards v0 es una propuesta técnica aceptada provisionalmente como
-base de trabajo, pendiente de validación conjunta.** No hay aprobación global
-de Óscar, Core, B/C o juegos del ERD V2 ni de los contratos.
+Consolidación documental de los acuerdos internos del 08/10/2026 y las aclaraciones
+del 09/10 y 13/10. Óscar expresó conformidad verbal general con el documento
+funcional leído, sin identificar su versión exacta ni aprobar diseños técnicos
+detallados. **Rewards v0 sigue siendo una propuesta técnica aceptada provisionalmente
+como base de trabajo, pendiente de validación conjunta.** No hay aprobación global
+de Óscar, Core, B/C o juegos del ERD V2, la estructura física de D-21 o los contratos.
 
 | Fuente | Procedencia y autoridad |
 | --- | --- |
@@ -15,6 +17,7 @@ de Óscar, Core, B/C o juegos del ERD V2 ni de los contratos.
 | `DAR_formulas.pdf`, pp. 7–12 y 18 | Consulta directa de cálculo de acciones, consolidación, REST/WebSockets y ejemplo de stats; no se adoptan automáticamente fórmulas, código u ORM. |
 | `DAR_DuckyClash.pdf`, p. 8; `DuckyTraining.pdf`, p. 1; `DuckyEscape.pdf`, pp. 1–2 | Consulta directa de tabla de stats por rol, repetibilidad/límite diario y premios parciales/finales. El Escape local no se identifica como la nueva versión consolidada mencionada en la reunión. |
 | Dailys del 06, 07, 08 y 09/10/2026 | Notas y conclusiones: aclaraciones del profesor, propuestas de participantes y asuntos pendientes; no aprobación global de modelos o contratos. |
+| Acta de la daily del 13/10/2026 y aclaraciones verificadas comunicadas por Jaime | Solo los puntos contrastados de conformidad, controlador antiguo, autonomía, LMS/Bank y recursos gráficos; las demás notas no se elevan a acuerdos. |
 | Acuerdos internos comunicados del 08/10 | Reparto y organización objetivo registrados en D-20/D-21; no se infieren de comentarios de la reunión. |
 | [Decisiones](decisions.md), [ERD](erd/ecomotor.md) y [Rewards v0](contracts/rewards-v0.md) | Se distinguen decisiones D vigentes, aceptación interna condicionada de Parte A y contrato candidato. |
 
@@ -104,7 +107,7 @@ fuentes, rangos y obligatoriedad no tienen validación global.
 
 | Daily / tema | Contenido y categoría | Estado y tratamiento |
 | --- | --- | --- |
-| 06, 07 y 09/10/2026 · código común | Se habló de funciones existentes para recompensas, puntos y monedas, de compartir código y de evitar duplicar funcionalidades. | Dependencia prioritaria con Óscar: repositorio/versión, código reutilizable, Wallet canónica, punto común de concesión y encaje con Fernando pendientes. No conocemos firmas ni modelos verificados. |
+| 06, 07 y 09/10/2026 · código común | Se habló de funciones existentes para recompensas, puntos y monedas, de compartir código y de evitar duplicar funcionalidades. | Antecedente de coordinación. El 13/10 se aclaró que el controlador antiguo sencillo de DuckyCoins no debe esperarse ni reutilizarse obligatoriamente; Wallet/saldo canónicos, autorizaciones y contratos siguen pendientes. No conocemos firmas ni modelos verificados del código anterior. |
 | 09/10/2026 · Ecomotor | Óscar indicó centralización funcional de recompensas y estadísticas; el emisor valida su actividad. | Aclaración funcional, no aprobación de modelos, funciones o payloads. |
 | 09/10/2026 · XP externa | Óscar planteó reservar XP a juegos y monedas a actividades externas, rectificando la dirección anterior. | Conflicto con Ecomotor pp. 1–2 y 6: falta confirmar XP histórica/de dominio, actividades, vigencia, usuarios/recompensas existentes y configuración futura. No se autoriza borrar XP ni convertir automáticamente todas las actividades externas en premios sin XP. |
 | 09/10/2026 · stats | Antes de Actual se habló de estadísticas determinadas por rol; en Actual se planteó distribuir o editar puntos. | Aclaración parcial: iniciales, presupuesto y límites pendientes. No adoptar todos a 5, tabla de Clash o suma de 45 como valores oficiales; tampoco cambios/reinicio de especialización. |
@@ -114,6 +117,11 @@ fuentes, rangos y obligatoriedad no tienen validación global.
 | 09/10/2026 · Quiz | Tiempo, aciertos, estadísticas y resultados participan en el cálculo. | Aclaración funcional; cantidades ilustrativas no son premios obligatorios y el contrato sigue por validar. |
 | 09/10/2026 · Clash | Resultado validado y participantes; Bank reserva fondos de ambos al aceptar un duelo con apuesta. | Instrucción condicional a apuestas. DAR3 p. 42 contempla primera entrega sin ellas; V1, liberación/liquidación y cancelación pendientes. |
 | 09/10/2026 · evaluación | Se vinculó el 19/10 a exámenes/documentación práctica y se planteó codificar la semana siguiente. | Orientación formativa, no fecha final de todo DuckyArenas ni autorización del ORM. |
+| 13/10/2026 · conformidad funcional | Óscar confirmó lectura y valoración general favorable del documento enviado por Jaime. | La vinculación con el criterio funcional enviado el 07/10 es razonable por contexto, sin versión exacta identificada. No aprueba ERD V2, D-21 física, Rewards v0, modelos, migraciones ni interfaces. |
+| 13/10/2026 · controlador antiguo | Óscar describió un controlador sencillo para incrementar DuckyCoins y aclaró que no es necesario esperar ni reutilizarlo obligatoriamente. | Aclaración limitada a ese componente, no desaparición de todos los servicios anteriores. Consultar código previo es opcional; Core, Wallet/saldo canónicos, movimientos, autorización, idempotencia, concurrencia y contratos económicos siguen abiertos. |
+| 13/10/2026 · autonomía | Óscar dejó margen de implementación y pidió comunicar dudas; el equipo expuso avances y coordinación pendiente. | Se puede continuar desarrollando, sin validación técnica detallada. Las ocho interfaces de Henry siguen como propuestas pendientes de consenso A/B/C. |
+| 13/10/2026 · LMS/insignias/Bank | Óscar mencionó corrección automática en LMS, insignias, euros, cotización de DuckyCoins y posible relación futura con Bank. | Expectativa de integración futura, sin fórmula, conversión, cantidades, XP externa, reglas, modelos, endpoints ni inclusión obligatoria en V1. P1 no queda resuelta ni reabierta. |
+| 13/10/2026 · recursos gráficos | Óscar mostró y publicó en Classroom materiales de ataques, escudos, relojes, botiquines, pócimas y comida. Henry comunicó internamente haberlos localizado. | Disponibilidad, no aprobación del catálogo. Inspección pendiente; algunas imágenes requieren separar objetos y normalizar tamaños. Códigos, precios, efectos, duraciones, consumo, compatibilidad y V1 no están decididos. |
 
 Cambio de rol por pago/objeto, freemium, reducción a Quiz y DukiStats 2.0 son
 propuestas de participantes. No justifican aplazar globalmente RPG o WebSockets,
@@ -191,10 +199,13 @@ reservas, correcciones y devoluciones requieren contrato específico.
 
 [Pendientes](pending-decisions.md) concentra preguntas y validadores;
 [plan](team5-work-plan.md) asigna trabajo bajo D-20/D-21.
-Prioridades: revisar código existente de Óscar antes de servicios equivalentes;
-alcance de XP externa; stats/cursos; Core y conservación;
-Escape consolidado; contratos Rewards A/B/C/juegos; compras y apuestas;
-compatibilidad REST y ownership realtime; alcance evaluable PR07.
+Prioridades: Core, identidad/autorización, conservación y Wallet/saldo canónicos;
+contratos Rewards/Bank/Shop/Inventory y consenso de interfaces A/B/C; reconciliar
+modelos y migraciones A/C antes de merge; hechos validados y dependencias reales
+con los juegos, Escape consolidado, compras e idempotencia/concurrencia.
+Se mantiene el conflicto de XP externa, stats/cursos, compatibilidad REST,
+ownership realtime y alcance evaluable PR07. El controlador antiguo sencillo
+no bloquea el avance ni exige reutilización; el resto de la integración sigue abierta.
 
 El [ERD V2 provisional](erd/ecomotor.md) conserva sus ocho entidades físicas y
 V2-A1…V2-A29 internas condicionadas. Esta consolidación solo amplía su contexto

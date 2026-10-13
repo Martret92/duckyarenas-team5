@@ -8,7 +8,7 @@ como antecedente. D-14…D-16 siguen sin aprobación técnica conjunta automáti
 D-17, D-18 y D-19 continúan vigentes; no se reabre la política SQLite.
 
 [Arquitectura](architecture.md) concentra requisitos documentales y conclusiones
-de las dailys del 06, 07, 08 y 09/10/2026, con su categoría y estado.
+de las dailys del 06, 07, 08, 09 y 13/10/2026, con su categoría y estado.
 [Rewards v0](contracts/rewards-v0.md) es base técnica provisional, no contrato
 global aprobado. El [ERD de Parte A](erd/ecomotor.md) conserva ocho entidades y
 V2-A1…V2-A29 internas condicionadas; no hay aprobación global ni ORM definitivo.
@@ -23,31 +23,34 @@ por sí solos toda la revisión conceptual.
 | --- | --- | --- | --- |
 | P1 · XP externa | Daily del 09/10/2026: rectificación funcional, en tensión con Ecomotor pp. 1–2 y 6 | ¿XP solo juegos afecta a histórica o también dominio? ¿Qué actividades externas conservan monedas, objetos o puntos? ¿Desde cuándo, qué ocurre con usuarios/recompensas existentes y cómo configurar nuevas actividades? Confirmación escrita sin borrados, recálculos ni conversión automática de todas las actividades externas a premios sin XP. | Óscar, Jaime/Core; bloquea elegibilidad definitiva y migración afectada, no el contrato conceptual. |
 | P2 · Stats | Daily del 09/10/2026: se habló de stats por rol antes de Actual y distribución/edición de puntos en Actual; aclaración parcial | Iniciales, tabla/presupuesto, límites, redistribución y efectos al especializarse. No adoptar todos a 5, tabla de Clash o suma de 45 como defaults oficiales. | Óscar, Jaime, Henry y juegos; inicialización, límites y servicios de asignación. |
-| P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? | Óscar y A/B/C; reglas, puntos e integración externa. |
+| P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y tratamiento legacy. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
 | P6 · Vestimenta/Museo | Antecedente DAR3; mecanismo y cobertura pendientes | ¿Las seis piezas principales de cada época deben obtenerse exclusivamente mediante progreso y misiones, o pueden existir también variantes históricas comprables? ¿Cómo se diferencian de los complementos estéticos y qué ocurre al evolucionar? Aclarar conservación, compatibilidad e historiales/Museo sin imponer autoequipamiento o conservación de todos los conjuntos al saltar etapas. | Óscar, Henry y Fernando, con Jaime para evolución; ERD consolidado y vertical. |
 | P7 · Especializaciones | Actual aclarado; selección/rangos parciales | Obligatoriedad, acceso, cambios/reinicio/nueva elección no aprobados, XP de dominio y rangos Junior/Middle/Senior/Maestro. Normalizar Sistemas/AdminSys, Data/Data & IA y códigos sin adoptar ejemplos. | Óscar, Jaime y juegos; catálogos y servicios. |
 | P8 · Umbrales/configuración | Invariantes internas V2-A20/A21 documentadas; política restante abierta | Valores oficiales y cambios prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
-### Dependencia prioritaria: código y servicios comunes de Óscar
+### Integración pendiente con Core y servicios económicos comunes
 
-Dailys del 06, 07 y 09/10/2026: se habló de funciones existentes para recompensas,
-puntos y monedas, de compartir código y de evitar duplicar funcionalidades.
-Antes de crear servicios equivalentes, Jaime y Fernando deben revisar con
-Óscar/Core, Henry y consumidores:
+Dailys del 06, 07 y 09/10/2026: se habló de funciones anteriores de recompensas,
+puntos y monedas. Daily del 13/10/2026: el controlador antiguo sencillo descrito
+para incrementar DuckyCoins no es de reutilización obligatoria ni debe esperarse
+para avanzar. Esta aclaración no declara desaparecidos todos los componentes
+anteriores de recompensas, puntos o economía.
 
-- Qué implementación reutilizar/adaptar y en qué repositorio y versión está.
-- Qué parte corresponde implementar al Equipo 5.
-- Qué componente será propietario canónico de la Wallet y del saldo.
-- Qué servicio será el punto común de concesión de recompensas.
-- Cómo encaja con la implementación candidata de Fernando y qué contratos
-  validar con Óscar antes de implementar.
+- **Aclarado:** el controlador antiguo no bloquea el desarrollo de nuestros servicios.
+- **Pendiente:** acordar con Óscar/Core, Jaime, Fernando, Henry y consumidores
+  Wallet/saldo canónicos, identidad, autorización, movimientos contables,
+  idempotencia, concurrencia, punto común de concesión y contratos A/B/C/juegos.
+  Reconciliar modelos y migraciones A/C antes de integrar; no se resuelve aquí
+  el conflicto conocido de versiones de `ecomotor.0001_initial`.
+- **Opcional:** consultar código anterior si resulta útil, sin condicionar el avance
+  a recibirlo ni asumir firmas o modelos no verificados.
 
-No se han recibido y verificado aquí firmas, modelos ni estructura de ese código.
-La validación completa Rewards v0; no aprueba una segunda Wallet, otro saldo
-canónico o un sistema duplicado de recompensas. Los límites de apps D-21 y
-contratos requieren revisión de Óscar/Core y validación técnica A/B/C/juegos.
+La autonomía expresada permite continuar y trasladar dudas a Óscar, sin dar por
+cerrados esos contratos ni validar las ocho interfaces propuestas por Henry.
+No se aprueba una segunda Wallet, otro saldo canónico ni la integración económica.
+D-21 y Rewards v0 conservan su estado interno/candidato y validación conjunta pendiente.
 
 ## 3. Validación conjunta de Rewards v0
 
@@ -74,7 +77,7 @@ por sí solas la autoridad funcional de Ecomotor, Bank o Duckies.
 | I2 · Training | PDF y reunión reiteran XP repetible y moneda diaria. Acceso gratuito/membresía sigue parcialmente ambiguo. | Training/Óscar: aclarar acceso separado del contrato de premios; no adoptar moneda única para toda la vida propuesta por participantes. |
 | I3 · Clash/apuestas | Daily del 09/10/2026: reserva de ambas apuestas al aceptar. DAR3 p. 42 no exige apuestas en primera entrega. | Fernando, Clash y Óscar: confirmar V1 y reserva, liberación, liquidación, cancelación, timeout, claves y saldo disponible/reservado. |
 | I4 · Compra | Ecomotor pp. 4–5 participa en comprobaciones; Shop proceso comercial, Bank fondos y Duckies entrega. | A/B/C: fijar coordinador, validaciones, claves y frontera transaccional/recuperación de compra, sin duplicar saldo ni aprobarlo por Rewards v0. |
-| I5 · Objetos y equipo | Catálogo mínimo, efectos/consumos, precios, caducidad, roles y vestimenta sin cerrar; compra por rol es preferencia de Óscar. | Henry/Fernando con Jaime/juegos/Óscar: definir catálogo y compatibilidad. No confundir tipos de combate con productos Shop. |
+| I5 · Objetos y equipo | Catálogo mínimo, efectos/consumos, precios, caducidad, roles y vestimenta sin cerrar; compra por rol es preferencia de Óscar. Daily del 13/10/2026: recursos gráficos publicados en Classroom, localización comunicada internamente por Henry; no es aprobación funcional. | Henry/Fernando con Jaime/juegos/Óscar: inspeccionar materiales, separar imágenes compuestas y normalizar tamaños; acordar catálogo y compatibilidad. Los gráficos no fijan códigos, precios, efectos, duraciones, consumos ni V1. No confundir tipos de combate con productos Shop. |
 | I6 · REST/realtime/RPG | DAR_formulas documenta REST y sockets de Ecomotor; cobertura y ownership realtime pendientes. DukiStats 2.0 es propuesta de participante. | Óscar/Core, Equipo 5 y juegos: productores/consumidores, infraestructura, permisos y alcance V1 sin descarte unilateral. |
 | I7 · Evaluación PR07 | ERD/diccionario antes de ORM, CRUD, permisos/tests/evidencias. Daily del 06/10/2026: plan diario aclarado como guía, no calendario literal obligatorio. | Óscar y Equipo 5: CRUD evaluable y planificación. El 19/10 se vincula a exámenes/prácticas, no a entrega final confirmada. |
 | I9 · Quiz | Daily del 09/10/2026: tiempo, aciertos, stats y resultados intervienen en el cálculo, sin cifras obligatorias de ejemplo. | Jaime, Quiz y Óscar: validar resultado, datos de cálculo y contrato conjunto. |

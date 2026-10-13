@@ -43,9 +43,14 @@ este documento no los da por aprobados.
 XP de dominio y puntos estadísticos requieren operaciones diferenciadas pendientes
 de cerrar. Esta tabla no fija firmas Python, endpoints REST, FKs ni migraciones.
 El saldo devuelto por un duplicado corresponde al resultado persistido de la operación.
-Antes de implementar, revisar el código existente de Óscar y acordar su reutilización,
-el propietario canónico de Wallet y el punto común de concesión con Fernando/Core;
-no se crea un segundo saldo o sistema de recompensas.
+Daily del 13/10/2026: no es necesario esperar ni reutilizar obligatoriamente el
+antiguo controlador sencillo de DuckyCoins descrito por Óscar. La aclaración se
+limita a ese componente; consultar otro código anterior puede ser útil.
+Sigue pendiente acordar con Core y Fernando la fuente canónica de Wallet/saldo y
+el punto común de concesión, identidad/autorización, movimientos, idempotencia,
+concurrencia e integración con los propietarios. No se permite un segundo saldo
+canónico. Rewards v0 sigue como contrato conceptual candidato: la conformidad
+funcional general no aprueba su semántica técnica ni las interfaces de Henry.
 
 ## 3. Identidad y contenido validado
 
