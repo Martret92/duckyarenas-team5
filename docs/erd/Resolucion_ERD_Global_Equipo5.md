@@ -347,9 +347,7 @@ El diseño se considera **listo para revisión conjunta**, pero no se atribuye a
 
 # Dudas aclaradas respecto a la solución en este documento
 
-## R-01: Evolución y piezas históricas
-
-Separar la relación entre `EvolutionItem` y `EvolutionStage` de la concesión automática de las seis piezas por etapa, ya que esta última regla debía contrastarse con DAR3 y la obtención mediante progreso y misiones.
+## *R-01:* separar la relación entre EvolutionItem y EvolutionStage de la concesión automática de las seis piezas por etapa, ya que esta última regla debemos contrastarla con DAR3 y la obtención mediante progreso y misiones.
 
 Cuando un Ducky evoluciona a una nueva etapa, recibe automáticamente las piezas históricas correspondientes en su inventario, pero estas no se equipan automáticamente.
 
@@ -432,9 +430,7 @@ Cada etapa contará con seis piezas históricas principales, cuya configuración
 
 ---
 
-## Shop/Bank/Duckies: coordinación de compra, cobro y entrega
-
-Definir la coordinación de compra, cobro y entrega, y unificar los nombres de los servicios con los contratos.
+## *Shop/Bank/Duckies:* definir la coordinación de compra, cobro y entrega, y unificar los nombres de los servicios con los contratos.
 
 ### Contratos unificados
 
@@ -458,9 +454,7 @@ Esto permite cerrar las relaciones `Purchase`–`Transaction` y la trazabilidad 
 
 ---
 
-## Juegos: identificadores de actividades, resultados y consumo
-
-Cerrar los identificadores de actividades y los formatos de resultados y consumo con los equipos correspondientes.
+## *Juegos:* cerrar los identificadores de actividades y los formatos de resultados y consumo con los equipos correspondientes.
 
 No se recomienda inventar unilateralmente los identificadores definitivos. Podemos establecer un contrato mínimo común.
 
