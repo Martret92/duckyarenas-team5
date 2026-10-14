@@ -344,3 +344,164 @@ Las firmas son **contratos internos propuestos**; los nombres definitivos y exce
 El diseño se considera **listo para revisión conjunta**, pero no se atribuye aprobación inexistente. Para adoptarlo, los tres deben ratificar especialmente: **(1)** concesión automática de seis piezas al entrar en etapa, **(2)** FK de EvolutionItem a EvolutionStage, **(3)** ShopItem FK a Item/ItemLevel, **(4)** ItemGrant y RewardEvent, **(5)** packs y política de permanentes, **(6)** transacción local compartida y **(7)** deshabilitación de reembolsos automáticos V1. El equipo puede aprobar estas decisiones y empezar a implementar los contratos locales sin esperar el diseño de integración global de Óscar, siempre que no afirme garantías de saldo/autorización que aún dependen de Core.
 
 **Fuentes de contraste:** `ecomotor.md` (ERD V2 provisional Parte A); `parte-c-ecommerce-bank.md` (diseño Parte C); actualización `parte-c-ecommerce-bank.md.crdownload` (borrador 0.2, 13/10/2026); `rewards-v0.md`; `parte-b-duckies.md` y modelos Python compartidos en la conversación. Las decisiones de este informe que van más allá de esos documentos están señaladas como recomendaciones y utilizan las nuevas restricciones de alcance aportadas por el usuario.
+
+# Dudas aclaradas respecto a la solucion en este documento
+
+## *R-01:* separar la relación entre EvolutionItem y EvolutionStage de la concesión automática de las seis piezas por etapa, ya que esta última regla debemos contrastarla con DAR3 y la obtención mediante progreso y misiones.
+
+Cuando un Ducky evoluciona a una nueva etapa, recibe automáticamente las piezas históricas correspondientes en su inventario, pero estas no se equipan automáticamente.
+
+Qué queda resuelto de R-01
+Aspecto	                                      Decisión definitiva
+Obtención de piezas históricas	               Automática al alcanzar una etapa evolutiva
+Entrega al inventario	                        Automática
+Equipamiento	                                 Manual, por decisión del usuario
+Piezas de etapas anteriores	                  Se conservan
+Piezas iniciales de Prehistoria	              Se entregan al crear e inicializar el personaje
+Cantidad de piezas principales	               Seis por etapa, según el catálogo
+Misiones	                                     No intervienen, se deja para implementaciones futuras
+XP necesario	                                 Lo determina EvolutionStage, sin duplicarlo en EvolutionItem
+
+Por tanto, ya no es necesario mantener abierta la cuestión de la adquisición automática.
+
+Propuesta de modificar EvolutionItem:
+
+class EvolutionItem(models.Model):
+    stage = models.ForeignKey(
+        "ecomotor.EvolutionStage",
+        on_delete=models.PROTECT,
+        related_name="historical_items",
+    )
+
+    item = models.ForeignKey(
+        "duckies.Item",
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["stage", "item"],
+                name="unique_evolution_stage_item",
+            )
+        ]
+
+Esto permite eliminar:
+- stage_code: sustituido por una relación real con EvolutionStage.
+- required_xp: el umbral de evolución ya pertenece a EvolutionStage.
+- is_automatic: todas las piezas históricas asociadas a una etapa se entregarán automáticamente, por lo que el campo deja de aportar información.
+
+**Importante: la FK entre duckies.EvolutionItem y ecomotor.EvolutionStage es viable si ambas aplicaciones comparten el mismo esquema de base de datos. La dependencia entre aplicaciones deberá respetarse en sus migraciones, aunque no es necesario resolver eso dentro de este apartado funcional.**
+
+**R-01 · Evolución y piezas históricas — RESUELTO**
+
+**Responsables:** Jaime (Ecomotor) y Henry (Duckies).
+
+**Decisión funcional acordada:**
+
+Al alcanzar una nueva etapa evolutiva, el usuario desbloqueará y recibirá automáticamente en el inventario de su Ducky todas las piezas históricas configuradas para dicha etapa.
+
+La entrega será automática, pero el equipamiento será siempre manual. Las piezas obtenidas en etapas anteriores permanecerán en el inventario y podrán seguir utilizándose conforme a las reglas de equipamiento.
+
+Cada etapa contará con seis piezas históricas principales, cuya configuración y validación corresponderán al catálogo.
+
+**Decisión técnica:**
+
+EvolutionItem.stage será una clave foránea hacia ecomotor.EvolutionStage.
+
+EvolutionItem.item seguirá siendo una clave foránea hacia duckies.Item.
+
+Se mantendrá la restricción UNIQUE(stage, item).
+
+Se eliminarán stage_code, required_xp e is_automatic del modelo objetivo.
+
+Las piezas iniciales de Prehistoria se concederán durante la inicialización del personaje, sin generar un XPEvent artificial.
+
+Las evoluciones posteriores desencadenarán la entrega mediante un servicio de Duckies, tomando EvolutionEvent como referencia.
+
+La entrega será idempotente para impedir duplicaciones.
+
+La concesión de piezas no modificará automáticamente EquippedItem.
+
+**Reparto de responsabilidades:**
+
+Jaime: detectar y registrar la transición evolutiva, y coordinar la inicialización del perfil.
+
+Henry: mantener la relación entre etapas y piezas, implementar la entrega al inventario y garantizar que no se produzcan duplicaciones.
+
+**Estado:** RESUELTO funcionalmente. Pendiente de implementación e integración entre Ecomotor y Duckies.
+
+
+## *Shop/Bank/Duckies:* definir la coordinación de compra, cobro y entrega, y unificar los nombres de los servicios con los contratos.
+
+Contratos unificados
+Servicio	               Responsable	         Función
+purchase_item()	        Fernando — Shop	     Coordina toda la compra
+debit_coins()	          Fernando — Bank	     Descuenta DuckyCoins
+grant_item()	           Henry — Duckies	     Entrega objetos
+get_item_ownership()	   Henry — Duckies	     Consulta posesión
+credit_coins()	         Fernando — Bank	     Acredita recompensas
+La recomendación es que Shop abra una única transacción transaction.atomic() y llame a los servicios de Bank y Duckies dentro de ella, siempre que utilicen la misma conexión transaccional.
+La secuencia debe comprobar primero si la operación ya existe, validar producto y propiedad, calcular precio y cantidades, realizar el débito, conceder los objetos y registrar la compra. Todo se confirma conjuntamente; si falla una escritura, se revierte la operación completa.
+También hay que unificar las claves de idempotencia. Una misma compra debe tener una identidad principal y claves derivadas estables para el pago y la entrega.
+Responsables: Fernando implementa la coordinación y Bank; Henry implementas la entrega y las comprobaciones definitivas de inventario.
+Esto permite cerrar las relaciones Purchase–Transaction y la trazabilidad de las entregas mediante el ItemGrant propuesto.
+
+## *Juegos:* cerrar los identificadores de actividades y los formatos de resultados y consumo con los equipos correspondientes.
+
+No se recomienda inventare unilateralmente los identificadores definitivos.
+Podemos establecer un contrato mínimo común.
+
+Ejemplo de identificadores minimos a establecer: 
+
+Juegos → Ecomotor
+
+process_game_result(
+    user=user,
+    game_code="quiz_battle",
+    session_id="battle-854",
+    result_id="result-854",
+    score=850,
+    correct_answers=8,
+    total_questions=10,
+)
+
+Los identificadores y métricas mostrados son ejemplos. Cada equipo de juegos deberá confirmar qué datos produce y cómo garantiza que proceden de una partida válida.
+Jaime será responsable de validar la identidad del resultado, aplicar las reglas de XP y coordinar Rewards.
+
+
+Juegos → Duckies
+
+consume_item(
+    user=user,
+    item_code="escudo",
+    level=2,
+    quantity=1,
+    operation_key="battle-854-use-1",
+    source_game="quiz_battle",
+    session_id="battle-854",
+)
+
+Henry controlarás la propiedad, la cantidad, el nivel, la idempotencia y el historial de consumo.
+El equipo del juego deberá confirmar cuándo se considera utilizado un objeto, cómo se aplica su efecto y qué sucede si una partida falla después de descontarlo.
+Decisión importante: el consumo no debe depender exclusivamente de que el cliente envíe una solicitud. El servidor del juego debe autorizarlo y utilizar una identidad de operación verificable.
+
+**Conclusión: con estas precisiones, el ERD global del Equipo 5 puede mantenerse como propuesta estructural cerrada para las cuatro aplicaciones, dejando explícitamente pendientes las mecánicas de obtención histórica y los contratos externos de los juegos.**
+
+## *Henry y Fernando:* concretar las relaciones ShopItem ↔️ Item/ItemLevel, las variantes, cantidades y entregas sin duplicados.
+
+Este apartado está resuelto en las R-03, R-04, R-05 y R-06. El documento contiene decisiones técnicas concretas para todos esos puntos.
+
+Apartado	Qué resuelve
+R-03 · Catálogo único de objetos y ofertas       Define las relaciones ShopItem.item → Item y ShopItem.item_level → ItemLevel mediante claves                                                  foráneas. Establece los SKU comerciales y permite distintas ofertas o paquetes de una misma                                                   variante.
+R-04 · Cantidades, permanentes y consumibles	    Define included_quantity, Purchase.quantity, el cálculo de unidades entregadas, la                                                            prohibición de recomprar permanentes y la acumulación de consumibles.
+R-05 · Entrega idempotente e ItemGrant	          Introduce ItemGrant y grant_item() para registrar las entregas e impedir duplicados por                                                       reintentos.
+R-06 · Compra atómica Shop → Bank → Duckies	     Define cómo coordinar el cobro, la entrega y el registro de la compra, con rollback completo                                                  si falla cualquier operación.
+
+Además, R-14 refuerza estas decisiones con validaciones y restricciones de integridad.
+
+Ya está cubierta por las R-03, R-04, R-05 y R-06.
+El documento las presenta como «Decisión propuesta». Por tanto:
+- Resuelto a nivel de diseño: sí, completamente.
+- Ratificado por Henry y Fernando: depende de que ambos aceptéis esas propuestas.
+- Implementado en código: todavía no queda demostrado por el documento.
