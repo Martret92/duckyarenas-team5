@@ -214,7 +214,24 @@ La Parte A también añade `CharacterStats`, `XPEvent`, `EvolutionEvent`, `UserS
 | C-09 | Revisar transacción compartida real: misma BD/alias, sin commits independientes ni I/O externo | A/B/C | Atomicidad de la vertical |
 | C-10 | Confirmar alcance de V1 para productos digitales, merchandising físico y apuestas/Clash | Equipo 5 + Core | Alcance de Shop/Bank |
 
-## 10. Criterio de salida de H1
+## 10. Reglas candidatas de aceptación
+
+Las siguientes reglas recuperan criterios del borrador anterior de Parte C. Son propuestas para revisión conjunta, no contratos aprobados ni garantías de atomicidad entre dominios.
+
+1. Repetir una operación de crédito con la misma clave y una intención compatible no genera un segundo movimiento local.
+2. Reutilizar una clave con parámetros incompatibles debe producir un conflicto sin generar un nuevo movimiento.
+3. Un débito no puede dejar el saldo en negativo.
+4. No se puede completar una compra de un producto que no esté disponible.
+5. El precio y la disponibilidad deben validarse en el servidor; no se debe confiar en importes enviados por el cliente.
+6. Si el saldo es insuficiente, no debe confirmarse la compra ni registrarse un débito.
+7. Repetir una compra con la misma clave no debe duplicar el cargo ni la entrega.
+8. Un fallo de entrega no debe dejar una compra marcada como completada con un cargo aislado. Si no existe una transacción compartida real, se debe acordar una recuperación explícita antes de habilitar el flujo.
+9. Los movimientos y las compras deben conservar trazabilidad suficiente para reconstruir su origen y sus referencias.
+10. Las pruebas deben cubrir flujos correctos, duplicados, claves incompatibles, saldo insuficiente y fallos intermedios, incluidos rollback o recuperación según el diseño acordado.
+
+Estos criterios deberán contrastarse con los contratos de Bank, Shop, Rewards e Inventory antes de utilizarlos como especificación de implementación.
+
+## 11. Criterio de salida de H1
 
 Antes de cambiar ORM o migraciones, el ERD conjunto debe mostrar las entidades A/B/C, sus cardinalidades, `on_delete`, restricciones e interfaces externas; marcar explícitamente lo provisional y registrar las decisiones que dependan de Core. Después se podrá fijar la arquitectura física y preparar una secuencia de migraciones que preserve los historiales.
 
