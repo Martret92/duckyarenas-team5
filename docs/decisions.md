@@ -505,3 +505,15 @@ Namespace ecomotor, sin montaje global ni nueva autenticación. No inicializa,
 concede XP, reconstruye historia ni promete snapshot concurrente único.
 Core, configuración oficial, contratos compartidos y CRUD PR07 siguen pendientes;
 no constituye aprobación global de Óscar/Core.
+
+## S6-A · Configuración y diagnóstico — Decisión interna aprobada de Parte A
+
+Jaime aprueba [S6-A](contracts/ecomotor-configuration-v1.md): JSON interno local
+de carga explícita, sin activación en imports, arranque, AppConfig.ready o comando.
+INITIAL_CONFIGURATION sigue inicialmente None; el cargador devuelve un candidato
+inmutable sin instalarlo. Rangos técnicos no equivalen a valores funcionales DAR3.
+Diagnóstico de configuración/catálogos exclusivamente de lectura con cinco estados
+y precedencia documentada; TECHNICALLY_READY no aprueba producción. El comando
+distingue diagnóstico no preparado de fallo operativo. No altera S2-A/S3 ni S4-A/S5-A.
+Instalación futura del servidor, parámetros oficiales, Core, conservación, Rewards
+y cambios históricos V2-A28 siguen pendientes, sin aprobación global atribuida.

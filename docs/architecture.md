@@ -303,3 +303,14 @@ La URL local ecomotor:progress se prueba mediante URLconf aislada; config/urls.p
 no cambia. Montaje, login final, home y plantilla compartida dependen de Core.
 No sustituye CRUD PR07 ni resuelve configuración oficial o contratos globales.
 Conserva la ausencia de snapshot transaccional conjunto de S4-A.
+
+## S6-A · Candidato de configuración y diagnóstico local (en revisión)
+
+El [contrato S6-A](contracts/ecomotor-configuration-v1.md) añade lectura explícita
+de JSON interno y diagnóstico SELECT de configuración/catálogos. El cargador
+devuelve un objeto sin activar la referencia INITIAL_CONFIGURATION; no hay hooks
+de arranque ni cambios de settings. El comando comprueba un candidato o el estado
+real de su propio proceso, nunca afirma activar el servidor web. Preparación
+técnica y aprobación funcional son independientes. S2-A/S3 conservan contratos,
+S4-A/S5-A sus consultas básicas. Sin esquema nuevo ni reparación/concurrencia
+transaccional añadida. Instalación autorizada, valores oficiales y V2-A28 pendientes.
