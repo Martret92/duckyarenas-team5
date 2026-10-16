@@ -343,3 +343,27 @@ inicialización, servicios XP/evolución/Rewards, asignación de puntos ni Admin
 Conservación, contratos A/B/C/Core/Rewards y reconciliación de la migración antigua
 de Fernando siguen pendientes. Se preservan las aclaraciones recientes de Óscar;
 esta aceptación interna para preparar el PR no autoriza su merge.
+
+## Integración de Django Admin · Día 5
+
+Sobre develop con S1/S1.1 y Día 4-A/B integrados, se prepara para revisión el Admin
+original de Parte A (`fa6858f3ebde9142778f09926ceb99b0859e69c0`) y sus 20 tests.
+DAR3 aporta los requisitos funcionales de progresión; la siguiente política de
+administración es un acuerdo interno, no un requisito atribuido al profesor.
+
+Solo superusuarios activos pueden acceder a los ocho modelos de Parte A, aunque
+otros usuarios staff tengan permisos ordinarios. LevelThreshold, EvolutionStage
+y Specialization permiten carga gradual y modificación únicamente sin perfiles
+Ecomotor; al existir cualquiera quedan de consulta. Se revalida al guardar dentro
+de transaction.atomic(), bajo SQLite IMMEDIATE de D-19. Siempre se prohíben borrados
+y acciones masivas. UserProfileEcomotor, CharacterStats, XPEvent, EvolutionEvent y
+UserSpecializationProgress son exclusivamente de lectura, incluidos POST directos.
+No se registra UserProfileBank ni se altera User o la autenticación/Admin de Core.
+
+Se recuperan únicamente Admin y tests, sin modificar modelos ni migraciones.
+Estas barreras pertenecen al Admin; no garantizan inmutabilidad universal del ORM
+ni sustituyen la política de concurrencia de futuros servicios. Conservación,
+tratamiento legacy, contratos Core/A/B/C/Rewards y servicios de inicialización,
+XP, evolución y puntos siguen pendientes. No se concede XP ni se crean perfiles
+desde el Admin. Se preservan los acuerdos provisionales y aclaraciones recientes;
+no hay aprobación global ni autorización de merge. PR #21 se trata por separado.
