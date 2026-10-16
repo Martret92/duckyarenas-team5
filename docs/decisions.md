@@ -293,11 +293,89 @@ validación de contratos compartidos y la reconciliación de migraciones antes d
 integrar. D-17/D-19/D-20/D-21, V2-A1…V2-A29, M-01 y el estado candidato de
 Rewards v0 permanecen vigentes, sin nueva decisión D ni aprobación global.
 
+## Integración estructural de catálogos · Día 4-A
+
+Se prepara para revisión hacia develop únicamente LevelThreshold, EvolutionStage
+y Specialization, sus validadores explícitos y 36 tests recuperados del Día 4
+(`c78be74258dbe1eff3f552edeb5a0727cc316d41`). DAR3 define progreso/evolución y el
+modelo inicial de especializaciones; DuckyEcomotor concreta siete etapas y
+configuración de umbrales. V2-A7/A20/A21/A24 son decisiones internas sobre los
+catálogos: nivel positivo, ordinales únicos 1–7, códigos únicos y campos no vacíos;
+consecutividad, primer umbral 0 y crecimiento estricto por validación completa.
+La carga gradual sigue permitida, sin validación global automática en save().
+
+No se fijan umbrales, puntos ni códigos oficiales, ni se cargan datos maestros.
+No se incorporan perfiles, estadísticas, historiales, progreso por usuario,
+Admin o servicios; S1/S1.1 permanece independiente del ORM. La identidad antigua
+ecomotor.0001_initial de Fernando tiene otro contenido y debe reconciliarse con
+su responsable antes de combinar implementaciones A/C; este incremento no la
+modifica ni resuelve esa colisión. La autorización interna para preparar este PR
+no es aprobación global: contratos A/B/C/Core/Rewards y conservación siguen abiertos.
+
+## Integración estructural de progreso · Día 4-B
+
+Se prepara para revisión hacia develop el resto estructural de Parte A, recuperado
+sin rediseño de Día 4 (`c78be74258dbe1eff3f552edeb5a0727cc316d41`): ampliación de
+UserProfileEcomotor, CharacterStats, XPEvent, EvolutionEvent y
+UserSpecializationProgress. Se preservan los catálogos de PR #23, UserProfileBank,
+settings.AUTH_USER_MODEL y S1/S1.1. DAR3/DuckyEcomotor son referencias funcionales;
+campos, relaciones y restricciones concretan acuerdos internos V2, no una aprobación
+global del diseño físico ni parámetros oficiales.
+
+users.0002 aplica M-01 como primera operación: ante perfiles Ecomotor legacy aborta
+sin alterar esquema ni datos; usuarios sin ese perfil y perfiles Bank permiten
+continuar. Nivel y etapa siguen siendo obligatorios sin defaults ficticios.
+ecomotor.0002 depende de users.0002; 0003 y 0004 preservan esa dependencia. Las cuatro
+migraciones son atómicas y explícitamente irreversibles, también con tablas vacías.
+La estrategia de conservación/migración legacy sigue pendiente de Core.
+
+Se mantienen unicidad de estadísticas por perfil, de XPEvent por perfil/operation_key,
+de evolución por perfil/etapa y de progreso por perfil/especialización; XP y puntos
+disponibles no negativos, importe XP positivo, snapshots coherentes, nivel positivo
+y etapa/clave no vacías. CASCADE al perfil y al XPEvent causal es provisional;
+etapas y especializaciones referenciadas usan PROTECT. La coincidencia de perfiles
+entre EvolutionEvent y su causa exige un futuro servicio transaccional. El historial
+es conceptualmente inmutable, sin protección física completa de modificación/borrado.
+
+V2-A22/A23 mantienen idempotencia local de XP histórica, distinta de Rewards v0;
+V2-A25/A26 mantienen XP de dominio independiente, default 0 al crear explícitamente
+el progreso y sin rank, trazabilidad ni concesión implementadas. No hay señales,
+inicialización, servicios XP/evolución/Rewards, asignación de puntos ni Admin.
+Conservación, contratos A/B/C/Core/Rewards y reconciliación de la migración antigua
+de Fernando siguen pendientes. Se preservan las aclaraciones recientes de Óscar;
+esta aceptación interna para preparar el PR no autoriza su merge.
+
+## Integración de Django Admin · Día 5
+
+Sobre develop con S1/S1.1 y Día 4-A/B integrados, se prepara para revisión el Admin
+original de Parte A (`fa6858f3ebde9142778f09926ceb99b0859e69c0`) y sus 20 tests.
+DAR3 aporta los requisitos funcionales de progresión; la siguiente política de
+administración es un acuerdo interno, no un requisito atribuido al profesor.
+
+Solo superusuarios activos pueden acceder a los ocho modelos de Parte A, aunque
+otros usuarios staff tengan permisos ordinarios. LevelThreshold, EvolutionStage
+y Specialization permiten carga gradual y modificación únicamente sin perfiles
+Ecomotor; al existir cualquiera quedan de consulta. Se revalida al guardar dentro
+de transaction.atomic(), bajo SQLite IMMEDIATE de D-19. Siempre se prohíben borrados
+y acciones masivas. UserProfileEcomotor, CharacterStats, XPEvent, EvolutionEvent y
+UserSpecializationProgress son exclusivamente de lectura, incluidos POST directos.
+No se registra UserProfileBank ni se altera User o la autenticación/Admin de Core.
+
+Se recuperan únicamente Admin y tests, sin modificar modelos ni migraciones.
+Estas barreras pertenecen al Admin; no garantizan inmutabilidad universal del ORM
+ni sustituyen la política de concurrencia de futuros servicios. Conservación,
+tratamiento legacy, contratos Core/A/B/C/Rewards y servicios de inicialización,
+XP, evolución y puntos siguen pendientes. No se concede XP ni se crean perfiles
+desde el Admin. Se preservan los acuerdos provisionales y aclaraciones recientes;
+no hay aprobación global ni autorización de merge. PR #21 se trata por separado.
+
 ## Contraste de acuerdos internos · 14–16/10/2026
 
 Fuente: resumen verificado de la coordinación interna del Equipo 5 comunicado
 el 16/10/2026. Se distingue la aceptación organizativa de la conformidad conceptual
 y de los contratos físicos todavía pendientes; no se atribuye aprobación a Óscar/Core.
+Por coordinación, esta PR documental no espera nuevas revisiones formales de Henry
+y Fernando; esto no les atribuye una revisión personal de la PR en GitHub.
 
 | Referencia | Grado de acuerdo | Pendiente |
 | --- | --- | --- |

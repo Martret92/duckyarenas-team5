@@ -47,11 +47,24 @@ fueron aceptados por Jaime, Henry y Fernando para organizar el trabajo. No se
 reabre ese reparto: siguen pendientes la revisión física de apps, las interfaces
 A/B/C y los requisitos de Óscar/Core y de los equipos consumidores.
 
-La estructura implementada en el `develop` examinado sigue siendo el bootstrap:
-`config/`, `apps.ecomotor` y `apps.users`, con perfiles iniciales sin campos de
-negocio. D-21 es organización objetivo, no evidencia de apps nuevas creadas.
-D-18 conserva las rutas/labels existentes y D-11 la ubicación de los perfiles.
-La presente consolidación no mueve modelos ni valida la rama de Fernando.
+El estado de `develop` al 16/10/2026 (`05d65f2`) incluye S1/S1.1 (PR #22),
+los catálogos y validadores de Día 4-A (PR #23), la estructura de progreso de
+Día 4-B (PR #24) y Django Admin de Parte A (PR #25). S1 calcula niveles, etapas
+y puntos sin ORM. En `apps.ecomotor` existen LevelThreshold, EvolutionStage,
+Specialization, CharacterStats, XPEvent, EvolutionEvent y
+UserSpecializationProgress; `apps.users` conserva UserProfileBank y amplía
+UserProfileEcomotor con XP histórica, nivel, etapa y especialización activa.
+Las migraciones estructurales mantienen M-01 fail-closed y reversiones protegidas.
+El Admin permite acceso a superusuarios activos: catálogos editables solo sin
+perfiles Ecomotor y progreso/historiales de consulta, sin borrados ni acciones
+masivas. Esta protección no implica inmutabilidad universal del ORM.
+
+Inicialización local S2-A, concesión de XP, evolución automática, asignación de
+puntos y Rewards siguen sin implementar en esta baseline. D-21 mantiene las
+cuatro apps objetivo; no acredita integración de Duckies, Bank o Shop ni resuelve
+sus contratos. D-18 conserva rutas/labels y D-11 la ubicación de los perfiles.
+Esta consolidación documental no mueve modelos ni valida la rama de Fernando;
+conservación, contratos físicos y reconciliación de migraciones siguen pendientes.
 
 D-05/D-09/D-10/D-17 conservan User estándar y ausencia de autenticación local.
 Se utiliza `settings.AUTH_USER_MODEL`. **Óscar es el interlocutor de Core/Equipo 0**
