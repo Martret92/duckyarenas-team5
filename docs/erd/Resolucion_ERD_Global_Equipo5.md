@@ -437,11 +437,11 @@ Las seis piezas por época son antecedente de DAR3, no un catálogo físico de s
 - `EvolutionItem.stage` será una clave foránea hacia `ecomotor.EvolutionStage`.
 - `EvolutionItem.item` seguirá siendo una clave foránea hacia `duckies.Item`.
 - Se mantendrá la restricción `UNIQUE(stage, item)`.
-- Se eliminarán `stage_code`, `required_xp` e `is_automatic` del modelo objetivo.
+- Si se ratifica la relación con `EvolutionStage`, se propone sustituir `stage_code` por la FK. La eliminación de `required_xp` depende de confirmar que el umbral vive únicamente en `EvolutionStage`; la de `is_automatic`, de la política final de concesión. Ninguna de estas modificaciones de esquema está autorizada todavía.
 - Se propone conceder las piezas iniciales de Prehistoria durante la inicialización global, sin `XPEvent` artificial; fuera de S2-A local.
 - Las evoluciones posteriores desencadenarán la entrega mediante un servicio de Duckies, tomando `EvolutionEvent` como referencia.
 - La entrega será idempotente para impedir duplicaciones.
-- La concesión de piezas no modificará automáticamente `EquippedItem`.
+- La concesión de piezas y el equipamiento son operaciones distintas. Si se acuerda equipamiento manual, conceder piezas no modificará automáticamente `EquippedItem`; cualquier autoequipamiento requiere aprobación funcional explícita.
 
 **Reparto de responsabilidades:**
 
