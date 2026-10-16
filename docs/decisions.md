@@ -474,3 +474,21 @@ no global de Rewards. Configuración autorizada, conservación, cambios históri
 de catálogo V2-A28 y contratos Core/A/B/C/Rewards permanecen pendientes.
 Estas son decisiones internas aprobadas, no nuevos requisitos específicos de
 DAR3 ni aprobación global de Óscar/Core; sin cambios de modelos ni migraciones.
+
+## S4-A · Consultas locales V1 — Decisión interna aprobada de Parte A
+
+Jaime aprueba [S4-A](contracts/ecomotor-progress-queries-v1.md):
+get_progress_overview(profile) y list_progress_history(profile, *, limit=50,
+before_id=None), exclusivamente internas y de lectura sobre estado persistido.
+El overview básico no requiere configuración inicial; niveles y etapas proyectan
+independientemente CALCULABLE, COMPLETED o UNAVAILABLE tras validar catálogos y
+coherencia actual. Etapas necesitan solo la correspondencia interna confiable.
+
+El historial pagina por PK descendente, máximo técnico 100, y agrupa evoluciones
+por causa con PK ascendente. No reconstruye niveles/puntos ni códigos históricos
+de etapas mediante catálogos actuales. Rechaza causalidad incompatible sin corregir.
+Resultados frozen y errores diferenciados de perfil, estructura, parámetros y BD.
+No hay atomic(), bloqueos ni escrituras; esta V1 no promete un snapshot único
+entre lecturas concurrentes. No inicializa ni calcula premios y no sustituye las
+vistas autenticadas/interfaz/CRUD pendientes de PR07. Convenciones técnicas internas,
+no parámetros oficiales nuevos de DAR3 ni aprobación global de Óscar/Core/Rewards.
