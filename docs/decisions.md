@@ -454,3 +454,23 @@ No se crean User, eventos, progresos de especialización ni efectos económicos.
 SQLite IMMEDIATE serializa escritores antes de leer, con atomic(), constraints,
 timeout 5 y rollback; errores de BD se comunican, no se disfrazan de éxito.
 M-01, conservación legacy, alta global Core y contratos Rewards siguen pendientes.
+
+## S3 V1 · Concesión de XP histórica — Decisión interna aprobada de Parte A
+
+Jaime aprueba `grant_historical_xp(profile, amount, operation_key)` bajo
+V2-A12/A22/A23, D-19 y el [contrato S2-A](contracts/ecomotor-initialization-v1.md).
+El [contrato S3 V1](contracts/ecomotor-xp-v1.md) concreta cálculo exclusivo mediante
+S1, validación de catálogos/correspondencia interna, snapshots XP, un XPEvent y
+todas las evoluciones cruzadas, sumando solo puntos de nuevos niveles. Requiere
+perfil con estadísticas; no inicializa ni repara. Comprueba coherencia actual y
+límites técnicos antes de persistir dentro de atomic()/SQLite IMMEDIATE.
+
+Un replay recupera snapshots y evoluciones persistidos sin catálogos actuales ni
+nuevas escrituras. Niveles, códigos históricos de etapa y puntos no almacenados
+se devuelven como None, sin inventar una reconstrucción. Los IDs de etapas y eventos
+sí son recuperables; no se confunden con códigos históricos ni progreso actual.
+Misma clave/cantidad diferente es conflicto explícito. Idempotencia local de XP,
+no global de Rewards. Configuración autorizada, conservación, cambios históricos
+de catálogo V2-A28 y contratos Core/A/B/C/Rewards permanecen pendientes.
+Estas son decisiones internas aprobadas, no nuevos requisitos específicos de
+DAR3 ni aprobación global de Óscar/Core; sin cambios de modelos ni migraciones.
