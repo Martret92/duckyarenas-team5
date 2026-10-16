@@ -219,6 +219,17 @@ reservas, correcciones y devoluciones requieren contrato específico.
 
 ## 8. Pendientes y siguiente entrega
 
+### S4-A: consultas locales de progreso e historial en revisión
+
+[S4-A V1](contracts/ecomotor-progress-queries-v1.md), aprobado internamente por
+Jaime, consulta perfiles inicializados sin escrituras ni llamadas a S2-A/S3.
+El overview conserva datos básicos aunque falte configuración; sus objetivos de
+nivel y etapa se validan independientemente. El historial muestra snapshots XP e
+IDs de evoluciones persistidos, sin reconstruir niveles, puntos o códigos históricos.
+No utiliza atomic()/IMMEDIATE para lectura ni promete un snapshot único entre
+consultas concurrentes. No incorpora HTTP, autenticación de vistas ni CRUD PR07;
+Core, conservación, configuración oficial y contratos compartidos siguen pendientes.
+
 ### S3 V1: concesión local de XP histórica en revisión
 
 [S3 V1](contracts/ecomotor-xp-v1.md), aprobado internamente por Jaime bajo
