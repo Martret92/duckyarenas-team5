@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi progreso · Ecomotor</title>
+</head>
+<body>
+<main>
+  <h1>Mi progreso</h1>
+  <section aria-labelledby="summary">
+    <h2 id="summary">Progreso actual</h2>
+    <dl>
+      <dt>XP histórica acumulada</dt><dd>{{ overview.historical_xp_total }}</dd>
+      <dt>Nivel actual</dt><dd>{{ overview.current_level }}</dd>
+      <dt>Etapa actual</dt><dd>{{ overview.current_stage_code }}</dd>
+    </dl>
+  </section>
+  <section aria-labelledby="stats">
+    <h2 id="stats">Estadísticas base</h2>
+    <table>
+      <caption>Atributos base y puntos disponibles</caption>
+      <thead><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">ATK</th><td>{{ overview.atk }}</td></tr>
+        <tr><th scope="row">DEF</th><td>{{ overview.def_stat }}</td></tr>
+        <tr><th scope="row">LOG</th><td>{{ overview.log_stat }}</td></tr>
+        <tr><th scope="row">SPE</th><td>{{ overview.spe }}</td></tr>
+        <tr><th scope="row">VEL</th><td>{{ overview.vel }}</td></tr>
+        <tr><th scope="row">INT</th><td>{{ overview.int_stat }}</td></tr>
+        <tr><th scope="row">Puntos disponibles</th><td>{{ overview.available_points }}</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section aria-labelledby="goals">
+    <h2 id="goals">Próximos objetivos</h2>
+    <h3>Próximo nivel</h3>
+    {% if overview.next_level.state == "CALCULABLE" %}
+      <p>Nivel {{ overview.next_level.level }}. Umbral XP: {{ overview.next_level.minimum_xp }}.
+        XP restante: {{ overview.next_level.remaining_xp }}.</p>
+    {% elif overview.next_level.state == "COMPLETED" %}
+      <p>Has alcanzado el último nivel del catálogo actualmente configurado.</p>
+    {% else %}
+      <p>El próximo nivel no está disponible para consulta.</p>
+    {% endif %}
+    <h3>Próxima etapa</h3>
+    {% if overview.next_stage.state == "CALCULABLE" %}
+      <p>Etapa {{ overview.next_stage.stage_code }}. Umbral XP: {{ overview.next_stage.minimum_xp }}.
+        XP restante: {{ overview.next_stage.remaining_xp }}.</p>
+    {% elif overview.next_stage.state == "COMPLETED" %}
+      <p>Has alcanzado la última etapa del catálogo actualmente configurado.</p>
+    {% else %}
+      <p>La próxima etapa no está disponible para consulta.</p>
+    {% endif %}
+  </section>
+  <section aria-labelledby="history">
+    <h2 id="history">Historial reciente</h2>
+    <p>Se muestran como máximo las diez concesiones más recientes.</p>
+    {% for entry in history.entries %}
+      <article>
+        <h3>Concesión {{ entry.id }}</h3>
+        <dl>
+          <dt>Fecha</dt><dd><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at }}</time></dd>
+          <dt>XP concedida</dt><dd>{{ entry.amount }}</dd>
+          <dt>XP anterior</dt><dd>{{ entry.xp_before }}</dd>
+          <dt>XP posterior</dt><dd>{{ entry.xp_after }}</dd>
+        </dl>
+        {% if entry.evolutions %}
+          <h4>Evoluciones registradas</h4>
+          <ul>{% for evolution in entry.evolutions %}
+            <li>Referencia de etapa {{ evolution.stage_id }}; evento XP causal {{ evolution.xp_event_id }}.</li>
+          {% endfor %}</ul>
+        {% endif %}
+      </article>
+    {% empty %}
+      <p>Aún no hay concesiones de XP registradas.</p>
+    {% endfor %}
+  </section>
+</main>
+</body>
+</html>

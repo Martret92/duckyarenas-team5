@@ -290,3 +290,16 @@ sigue como referencia, con alcance final por contrastar. Historiales/Museo,
 integraciones externas y pedidos físicos deben priorizarse sin eliminarlos
 silenciosamente. Techies y cotización variable quedan fuera de primera entrega
 según DAR3.
+
+## S5-A · Adaptador web personal local (en revisión)
+
+El [contrato S5-A](contracts/ecomotor-progress-web-v1.md), aprobado internamente
+por Jaime/Parte A, adapta S4-A a una plantilla autónoma de lectura GET/HEAD.
+login_required utiliza Django; request.user resuelve exclusivamente el perfil propio.
+404 para ausencia, 409 para inconsistencia y 503 para BD, sin detalles internos.
+Muestra progreso, stats base, objetivos independientes y diez concesiones recientes
+sin reconstrucciones históricas. No escribe ni invoca inicialización/concesión.
+La URL local ecomotor:progress se prueba mediante URLconf aislada; config/urls.py
+no cambia. Montaje, login final, home y plantilla compartida dependen de Core.
+No sustituye CRUD PR07 ni resuelve configuración oficial o contratos globales.
+Conserva la ausencia de snapshot transaccional conjunto de S4-A.
