@@ -43,8 +43,9 @@ D-14…D-16 no quedan confirmadas automáticamente.
 En la mini daily del 06/10/2026 se propuso la organización de apps y quedó
 pendiente de revisión. En la daily del 08/10/2026 Óscar indicó una revisión
 por encima del documento y que faltaba examinarlo con más detalle. D-20/D-21
-son acuerdos internos para organizar trabajo: límites de apps y contratos
-requieren validación de Óscar/Core, Henry, Fernando y equipos consumidores.
+fueron aceptados por Jaime, Henry y Fernando para organizar el trabajo. No se
+reabre ese reparto: siguen pendientes la revisión física de apps, las interfaces
+A/B/C y los requisitos de Óscar/Core y de los equipos consumidores.
 
 La estructura implementada en el `develop` examinado sigue siendo el bootstrap:
 `config/`, `apps.ecomotor` y `apps.users`, con perfiles iniciales sin campos de
@@ -93,12 +94,20 @@ niveles independientes y transiciones múltiples; [erd/ecomotor.md](erd/ecomotor
 conserva el detalle físico provisional. Ningún ejemplo del PDF aprueba iniciales,
 límites o tablas nuevas.
 
-DAR3 describe seis piezas principales de equipamiento por época y las distingue
-de complementos estéticos; mantiene inventario, compatibilidad, historiales y
-Museo Ducky. Obtención, variantes comprables, adaptación a siete etapas y
-comportamiento al evolucionar requieren aclaración: no se imponen seis campos,
-seis entregas automáticas, autoequipamiento ni conservación de todos los conjuntos
-al saltar etapas. La pregunta compartida se concentra en [pendientes](pending-decisions.md).
+DAR3 describe seis piezas principales por época obtenidas mediante progreso y
+misiones, diferenciadas de complementos estéticos, y conserva progresos y conjuntos
+anteriores tras evolucionar. Mantiene inventario, compatibilidad, historiales y
+Museo Ducky. Su adaptación de nueve épocas a las siete etapas V2 provisionales
+requiere contraste; no impone seis campos físicos por etapa.
+
+**Desbloquear**, **conceder/poseer**, **equipar** y **elegir apariencia** son operaciones
+distintas. R-01 sigue en estado mixto: Jaime recordó entrega y equipamiento
+automáticos; no consta aceptación inequívoca de Henry del autoequipamiento.
+La entrega automática sin equipamiento del ERD global es una propuesta, no un
+cierre aceptado. El 15–16/10 Jaime y Henry acordaron proponer a Óscar seleccionar
+libremente apariencias completas de cualquier época desbloqueada; no adoptaron
+esa política. Obtención, variantes comprables y comportamiento al saltar etapas
+siguen pendientes en [pendientes](pending-decisions.md).
 Las nueve épocas y INITIAL del V1 no son reglas actuales. El mínimo interno
 UserSpecializationProgress sin rank conserva XP de dominio independiente;
 fuentes, rangos y obligatoriedad no tienen validación global.
@@ -196,6 +205,21 @@ condicionada, no una reinterpretación de D-19. Recuperación distribuida, compr
 reservas, correcciones y devoluciones requieren contrato específico.
 
 ## 8. Pendientes y siguiente entrega
+
+El contraste interno hasta el 16/10 distingue conformidad conceptual de integración:
+Henry aceptó conceptualmente el 14/10 las propuestas de Jaime R-05 (ItemGrant,
+entregas y deduplicación) y R-08 (RewardEvent, trazabilidad e idempotencia completa).
+No ratifica campos, ORM, migraciones ni contratos físicos con Fernando/Core/juegos.
+El ERD global y H01–H08 son base documental interna de trabajo, no APIs aprobadas
+ni implementadas. Fernando aceptó revisar la reubicación de Bank/Shop; el traslado
+y la reconciliación de migraciones A/C siguen abiertos.
+
+El acuerdo local R-12 de Jaime y Henry del 13/10 permite avanzar con el inicializador
+Ecomotor. S1 y S2-A locales no quedan bloqueados por el diseño físico de Rewards
+ni por la aprobación externa de Core. S2-A1/S2-A2 permanecen intactas: perfil y
+stats atómicos e idempotentes, sin signals ni nuevo User; seis stats y puntos desde
+configuración confiable. La creación global de User y la orquestación final de
+Ducky/Wallet, legacy y autorizaciones siguen bajo coordinación de Core.
 
 [Pendientes](pending-decisions.md) concentra preguntas y validadores;
 [plan](team5-work-plan.md) asigna trabajo bajo D-20/D-21.

@@ -168,7 +168,8 @@ Estos hitos documentales no equivalen a aprobación global.
 
 Identificadores libres en el registro anterior. Fuente: acuerdos internos
 comunicados expresamente por el Equipo 5 para esta consolidación; no se atribuyen
-a una aprobación de Óscar.
+a una aprobación de Óscar. Jaime, Henry y Fernando aceptaron D-20 y D-21;
+esta ratificación interna no aprueba otros contratos ni su integración física.
 
 | ID | Acuerdo | Origen | Estado |
 | --- | --- | --- | --- |
@@ -291,3 +292,25 @@ puede continuar desarrollando dentro de sus responsabilidades, manteniendo la
 validación de contratos compartidos y la reconciliación de migraciones antes de
 integrar. D-17/D-19/D-20/D-21, V2-A1…V2-A29, M-01 y el estado candidato de
 Rewards v0 permanecen vigentes, sin nueva decisión D ni aprobación global.
+
+## Contraste de acuerdos internos · 14–16/10/2026
+
+Fuente: resumen verificado de la coordinación interna del Equipo 5 comunicado
+el 16/10/2026. Se distingue la aceptación organizativa de la conformidad conceptual
+y de los contratos físicos todavía pendientes; no se atribuye aprobación a Óscar/Core.
+
+| Referencia | Grado de acuerdo | Pendiente |
+| --- | --- | --- |
+| D-20/D-21 | Ratificados por Jaime, Henry y Fernando: reparto y cuatro apps objetivo, con Rewards en Ecomotor. | Implementación física, interfaces e integración; no se reabre el reparto. |
+| R-01 | Mixto: se debatió EvolutionItem–EvolutionStage y la adquisición. Jaime recordó entrega y equipamiento automáticos; no consta aceptación inequívoca de Henry del autoequipamiento. El 15–16/10 ambos acordaron proponer a Óscar apariencias completas seleccionables de cualquier época desbloqueada. | Resolver adquisición, entrega y equipamiento sin adoptar aún una alternativa; contrastar nueve épocas de DAR3 y siete etapas V2 provisionales. |
+| R-05 | Henry expresó conformidad conceptual el 14/10 con la propuesta de Jaime de ItemGrant para entregas y deduplicación. | Fernando, contrato, esquema físico, ORM y migraciones sin ratificar. |
+| R-08 | Henry expresó conformidad conceptual el 14/10 con la propuesta de Jaime de RewardEvent para trazabilidad e idempotencia de toda la recompensa. | Campos, reglas, migraciones y APIs de Core/juegos sin ratificar globalmente. |
+| R-12 | Jaime y Henry acordaron el 13/10 avanzar con el inicializador local de Ecomotor sin esperar la integración global. | Core conserva alta global de User, orquestación final de Ducky/Wallet, legacy y autoridad externa. |
+| Bank/Shop | Fernando aceptó revisar su reubicación respecto a Ecomotor; D-21 ya fija la organización objetivo. | Traslado físico y reconciliación de migraciones A/C; el conflicto no está resuelto. |
+| ERD global y H01–H08 | Base documental interna aceptada para trabajar. | Sin aprobación expresa y completa de detalles físicos, APIs ni transacciones por los tres responsables. |
+
+S2-A1/S2-A2 permanecen sin cambios: inicialización local atómica e idempotente
+de perfil y stats, sin signals ni nuevo User; seis stats iniciales y puntos desde
+configuración confiable, sin defaults inventados. Este contraste no incorpora
+las decisiones o implementaciones de las features a develop ni modifica D-17,
+D-19, V2-A1…V2-A29 o Rewards v0, que conserva su estado candidato.

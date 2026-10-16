@@ -1,8 +1,10 @@
+> **Estado al 16/10/2026.** H01–H08 son interfaces candidatas y base documental interna de trabajo, no APIs aprobadas ni implementadas. D-20/D-21 están ratificados por Jaime, Henry y Fernando. R-05/R-08 tienen conformidad conceptual Jaime–Henry, sin ratificación física global. R-12 permite avanzar con la inicialización local de Ecomotor (S2-A1/S2-A2 intactas); el alta global, identidad y permisos siguen pendientes de Core. Las firmas siguientes son ejemplos, no autorización de ORM, migraciones ni transacciones compartidas.
+
 ## 1. Tabla de soluciones y responsables
 
 | **Integración**      | **Solución propuesta**                                                                                   | **¿Por qué conviene?**                                                                                       | **Responsable**                                      |
 | -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Ecomotor → Duckies   | Crear `unlock_stage_items()` para conceder las piezas históricas cuando Ecomotor confirme una evolución. | Jaime controla la evolución y Henry el inventario. Evita duplicar piezas y conserva las anteriores.          | Henry implementa; Jaime define etapas y condiciones. |
+| Ecomotor → Duckies   | Proponer `unlock_stage_items()` para coordinar desbloqueos; concesión y equipamiento pendientes en R-01. | Jaime controla la evolución y Henry el inventario. Evita duplicar piezas y conserva las anteriores.          | Henry implementa; Jaime define etapas y condiciones. |
 | Shop → Duckies       | Crear `grant_item()` para entregar al inventario los objetos comprados.                                  | Centraliza las entregas, valida cantidades y niveles y evita duplicados. También sirve para Rewards.         | Henry implementa; Fernando integra.                  |
 | Duckies → Shop       | Crear `get_item_ownership()` para consultar si el usuario ya posee un objeto.                            | Evita ofrecer compras innecesarias de objetos permanentes y permite consultar el inventario sin modificarlo. | Henry implementa; Fernando utiliza.                  |
 | Shop → Bank          | Crear `debit_coins()` para descontar monedas y registrar el movimiento.                                  | Centraliza los gastos, comprueba fondos y evita cobros duplicados.                                           | Fernando implementa ambas partes.                    |
@@ -19,7 +21,7 @@ Propuesta lista para aprobar
 
 Responsables: Jaime define las etapas y confirma la evolución; Henry implementa la entrega de piezas.
 
-Solución: Ecomotor notifica una evolución confirmada y Duckies concede las piezas históricas correspondientes.
+Solución candidata: Ecomotor notifica la transición confirmada; Duckies controla la entrega y el equipamiento. El ejemplo `unlock_stage_items()` no presupone concesión automática aprobada: desbloquear, conceder/poseer, equipar y elegir apariencia son operaciones distintas.
 
 ```python
 unlock_stage_items(
@@ -33,14 +35,14 @@ unlock_stage_items(
 | ------------------ | ---------------------------------------------------------------------------------- |
 | **Entrada**        | Usuario, código de etapa, clave de operación                                       |
 | **Validación**     | Etapa confirmada por Ecomotor, piezas configuradas y ausencia de entrega duplicada |
-| **Acción**         | Conceder piezas mediante grant_item()                                              |
+| **Acción**         | Se propone conceder piezas mediante grant_item(); condición y automatismo pendientes en R-01 |
 | **Respuesta**      | Piezas entregadas, piezas ya poseídas y estado de operación                        |
 | **Errores**        | Etapa inválida, operación no autorizada, conflicto de clave                        |
-| **Regla especial** | Conservar piezas anteriores; no equipar automáticamente                            |
+| **Regla especial** | DAR3 exige conservar piezas anteriores; equipamiento manual propuesto, sin cierre de R-01 |
 
 Por qué: Ecomotor sigue siendo responsable de la evolución y Duckies de la propiedad de los objetos. Se evita almacenar inventarios paralelos.
 
-Para cerrarlo: Jaime debe confirmar los códigos oficiales de etapas y si todas las piezas se conceden al alcanzar la etapa o existen condiciones adicionales.
+Para cerrarlo: Jaime y Henry deben acordar códigos y contratos, adquisición, entrega y equipamiento. DAR3 contempla nueve épocas, seis piezas principales por época mediante progreso y misiones y conservación de progresos y conjuntos anteriores; la Parte A V2 utiliza siete etapas provisionales. El 15–16/10 ambos acordaron proponer a Óscar seleccionar libremente apariencias completas de cualquier época desbloqueada; no es una política aprobada. La entrega automática sin equipamiento sigue siendo una propuesta ERD, no un cierre aceptado.
 
 ## Contrato 2. Shop → Duckies
 
