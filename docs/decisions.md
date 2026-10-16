@@ -436,3 +436,21 @@ S1 no limita los enteros por almacenamiento: su adaptación a campos persistente
 corresponde al futuro S3. La consistencia/concurrencia de S3 sigue pendiente de
 diseño bajo D-19. No se fijan límites de juego, umbrales, puntos ni códigos oficiales,
 ni se aprueban cambios administrativos de catálogos o contratos Core/A/B/C/Rewards.
+
+## S2-A · Inicialización local — Decisión interna aprobada de Parte A
+
+Jaime aprueba la inicialización local conforme a V2-A13, D-19 y R-12, sin nueva
+decisión D ni aprobación global de Óscar/Core. El contrato
+[ecomotor-initialization-v1](contracts/ecomotor-initialization-v1.md) fija
+`ensure_ecomotor_initialized(user)`: User existente, creación atómica de perfil y
+CharacterStats, XP 0, nivel 1 y Prehistoria desde catálogos completos validados,
+sin especialización activa. Los puntos iniciales son stat_points_awarded del nivel 1.
+Seis atributos y correspondencia funcional de códigos proceden de configuración
+interna inmutable; permanece ausente hasta disponer de valores autorizados.
+
+Un estado completo se devuelve sin reset ni validación de la configuración inicial
+actual; un perfil parcial/estructuralmente inválido se rechaza sin reparación.
+No se crean User, eventos, progresos de especialización ni efectos económicos.
+SQLite IMMEDIATE serializa escritores antes de leer, con atomic(), constraints,
+timeout 5 y rollback; errores de BD se comunican, no se disfrazan de éxito.
+M-01, conservación legacy, alta global Core y contratos Rewards siguen pendientes.

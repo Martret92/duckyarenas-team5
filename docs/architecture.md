@@ -219,6 +219,19 @@ reservas, correcciones y devoluciones requieren contrato específico.
 
 ## 8. Pendientes y siguiente entrega
 
+### S2-A local: contrato aprobado para implementación
+
+Parte A implementará [S2-A](contracts/ecomotor-initialization-v1.md), aprobado
+internamente por Jaime bajo V2-A13/D-19/R-12. Inicializa conjuntamente perfil y
+estadísticas de un User existente, con configuración confiable, catálogos validados
+y puntos del nivel 1. La configuración de atributos y códigos queda ausente hasta
+su autorización; los fixtures de tests no son configuración de producción.
+La idempotencia conserva progreso existente; estados parciales/legacy se rechazan.
+No sustituye el provisionamiento global Core ni implementa XP/Rewards/inventario.
+La baseline descrita en §2 es anterior a este incremento en revisión; no se alteran
+modelos ni migraciones. Conservación, contratos compartidos y parámetros oficiales
+permanecen pendientes, sin aprobación global de Óscar.
+
 El contraste interno hasta el 16/10 distingue conformidad conceptual de integración:
 Henry aceptó conceptualmente el 14/10 las propuestas de Jaime R-05 (ItemGrant,
 entregas y deduplicación) y R-08 (RewardEvent, trazabilidad e idempotencia completa).
