@@ -492,3 +492,16 @@ No hay atomic(), bloqueos ni escrituras; esta V1 no promete un snapshot único
 entre lecturas concurrentes. No inicializa ni calcula premios y no sustituye las
 vistas autenticadas/interfaz/CRUD pendientes de PR07. Convenciones técnicas internas,
 no parámetros oficiales nuevos de DAR3 ni aprobación global de Óscar/Core/Rewards.
+
+## S5-A · Vista web personal V1 — Decisión interna aprobada de Parte A
+
+Jaime aprueba el [contrato local S5-A](contracts/ecomotor-progress-web-v1.md):
+página GET/HEAD autenticada, identidad solo desde request.user y consultas S4-A
+sin escrituras. Overview y diez concesiones recientes, objetivos independientes
+CALCULABLE/COMPLETED/UNAVAILABLE e historial limitado a snapshots/IDs persistidos.
+Ausencia de perfil produce 404; estado inconsistente 409 y fallo de BD 503,
+siempre genéricos. Estas convenciones HTTP son internas, no requisitos DAR3.
+Namespace ecomotor, sin montaje global ni nueva autenticación. No inicializa,
+concede XP, reconstruye historia ni promete snapshot concurrente único.
+Core, configuración oficial, contratos compartidos y CRUD PR07 siguen pendientes;
+no constituye aprobación global de Óscar/Core.
