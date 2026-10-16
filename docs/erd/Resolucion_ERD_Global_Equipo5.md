@@ -1,7 +1,8 @@
 # DuckyArena · Equipo 5
 ## Resolución propuesta del ERD global y contratos A/B/C
 **Versión:** 1.0 · 13 de octubre de 2026  
-**Estado:** propuesta técnica cerrada para ratificación de Jaime, Henry y Fernando; dependencias con Óscar/Core señaladas aparte.  
+**Contraste:** acuerdos internos revisados hasta el 16/10/2026.
+**Estado:** base documental aceptada para trabajo interno; no todo el ERD está ratificado por Jaime, Henry y Fernando. Detalles físicos, APIs, transacciones y dependencias con Óscar/Core siguen pendientes.
 **Ámbito:** únicamente DuckyArena, dentro de notodoescodigo.com. No modifica ni redefine el sistema económico global de la plataforma.
 
 > **Cómo leer el documento.** «Decisión propuesta» significa que este informe recomienda adoptar una solución concreta, no que los compañeros o Core ya la hayan aprobado. «Actual» identifica elementos constatados en los modelos y documentos compartidos. «Pendiente Core» es una interfaz externa que el Equipo 5 no puede imponer.
@@ -29,11 +30,13 @@ Se recomienda mantener **cuatro aplicaciones Django**: `apps.ecomotor` (Jaime), 
 ## 3. Resolución de decisiones: una por una
 
 ### R-01 · Evolución y piezas históricas (JAIME - HENRY)
-**Problema actual.** `EvolutionStage.code` y `EvolutionItem.stage_code` son códigos de distinta longitud/validación; `EvolutionItem.required_xp` duplica potencialmente el umbral de etapa; `is_automatic` no tiene semántica acordada. No hay misiones.
+**Problema actual.** `EvolutionStage.code` y `EvolutionItem.stage_code` son códigos de distinta longitud/validación; `EvolutionItem.required_xp` duplica potencialmente el umbral de etapa; `is_automatic` no tiene semántica acordada. No hay implementación de misiones en el diseño examinado; esto no descarta el requisito de progreso y misiones de DAR3.
 
 **Decisión propuesta.** Convertir `EvolutionItem.stage_code` en `stage = ForeignKey('ecomotor.EvolutionStage', on_delete=PROTECT, related_name='historical_items')`; mantener `item = ForeignKey('duckies.Item', PROTECT)`; `UNIQUE(stage,item)`. Eliminar `required_xp` y `is_automatic` del esquema objetivo. Al entrar en una etapa se entregan todas sus piezas históricas configuradas, **sin equiparlas**; se conservan las de etapas anteriores. Para el alta inicial, conceder las piezas de Prehistoria durante la inicialización coordinada, sin inventar un XPEvent. Las evoluciones posteriores disparan concesiones usando la causa `EvolutionEvent`. Exigir **seis piezas principales por etapa** mediante validación de catálogo/seed (no mediante CHECK de una fila).
 
-**Por qué es óptimo.** Una FK elimina códigos huérfanos y evita dos fuentes de verdad para XP; el servicio conserva la regla de seis piezas y la separación entre poseer y equipar. La dependencia de migración B→A es aceptable en el monolito modular si A no crea FKs de retorno a B. **Responsable:** Henry cambia EvolutionItem y concesión; Jaime emite transiciones e inicialización. **Afecta:** Henry y Jaime; Fernando solo si Shop muestra objetos históricos (no los vende V1). **Condición:** ratificar la concesión automática, ya que el documento de Jaime la dejaba abierta.
+**Estado mixto al 16/10.** La FK, la eliminación de campos y la auto-concesión anteriores siguen siendo propuestas físicas/funcionales. Jaime recordó un acuerdo de entrega y equipamiento automáticos, sin aceptación inequívoca de Henry del autoequipamiento. La alternativa de entrega sin equipar tampoco está ratificada. El 15–16/10 ambos acordaron proponer a Óscar apariencias completas seleccionables de cualquier época desbloqueada, no adoptarlas. Desbloquear, conceder/poseer, equipar y elegir apariencia deben distinguirse. DAR3 establece nueve épocas, seis piezas principales por época mediante progreso y misiones y conservación del progreso y conjuntos anteriores; su adaptación a las siete etapas V2 provisionales sigue pendiente. La concesión histórica inicial queda fuera de S2-A.
+
+**Justificación de la propuesta.** Una FK elimina códigos huérfanos y evita dos fuentes de verdad para XP; el servicio conserva la regla de seis piezas y la separación entre poseer y equipar. La dependencia de migración B→A es aceptable en el monolito modular si A no crea FKs de retorno a B. **Responsable:** Henry cambia EvolutionItem y concesión; Jaime emite transiciones e inicialización. **Afecta:** Henry y Jaime; Fernando solo si Shop muestra objetos históricos (no los vende V1). **Condición:** ratificar adquisición, concesión, equipamiento y adaptación del catálogo; la prohibición de venta histórica en V1 también es una propuesta, no un cierre de R-01.
 
 ### R-02 · Equipamiento y avatar (JAIME - HENRY - FERNANDO) 
 **Problema.** Poseer un objeto no significa llevarlo equipado; hay seis piezas principales pero los códigos de slots no están cerrados.
@@ -57,6 +60,8 @@ Se recomienda mantener **cuatro aplicaciones Django**: `apps.ecomotor` (Jaime), 
 **Por qué.** Modelo comercial flexible y reglas de inventario simples; elimina interpretaciones incompatibles y sobrecargos. **Implementa:** Fernando calcula importes/paquetes y rechaza duplicados; Henry garantiza las invariantes definitivas de inventario. **Afecta:** Fernando y Henry.
 
 ### R-05 · Entrega idempotente y modelo ItemGrant (NUEVO) (FERNANDO - JAIME - HENRY)
+**Contraste del 14/10.** Henry expresó conformidad conceptual con la propuesta de Jaime de registrar entregas y deduplicarlas mediante ItemGrant. No ratifica el esquema físico, contrato, ORM o migraciones ni acredita aceptación de Fernando.
+
 **Problema.** `ItemUsage` registra consumo, pero no existe trazabilidad persistente de cada concesión. Reintentos de Shop o Rewards pueden duplicar objetos.
 
 **Decisión propuesta.** Añadir `ItemGrant` a Duckies: `ducky FK`, `item FK`, `item_level FK nullable`, `quantity PositiveInteger`, `source` (`SHOP`,`REWARDS`,`EVOLUTION`,`INITIALIZATION`), `operation_key CharField(255)`, `reference_type`, `reference_id`, `request_fingerprint`, `created_at`. `UNIQUE(ducky,operation_key)`. Un `grant_item()` transaccional valida fuente, objeto, nivel, cantidad y posesión; ante clave repetida con misma huella devuelve el **resultado histórico**, sin incrementar inventario; con huella diferente devuelve conflicto. No usar una única clave para varios ítems: derivar clave por recompensa/evolución **y código de ítem y nivel**. No introducir FK de ItemGrant a Purchase o RewardEvent: conservar referencia lógica evita ciclos entre apps.
@@ -78,9 +83,11 @@ Se recomienda mantener **cuatro aplicaciones Django**: `apps.ecomotor` (Jaime), 
 **Por qué.** Evita colisiones semánticas y mantiene trazabilidad financiera. **Implementa:** Fernando. **Afecta:** Jaime (créditos Rewards), Fernando (Shop) y Óscar (integración global). **Pendiente Core:** decidir qué representa físicamente `available_balance` fuera de DuckyArena.
 
 ### R-08 · Rewards centralizado y RewardEvent (NUEVO) (FERNANDO - HENRY - JAIME)
+**Contraste del 14/10.** Henry expresó conformidad conceptual con la propuesta de Jaime de RewardEvent para trazabilidad persistente e idempotencia de la recompensa completa. Campos, reglas, migraciones y APIs de Core/juegos no están ratificados globalmente.
+
 **Problema.** `XPEvent` solo deduplica XP histórica; una recompensa puede conceder monedas u objetos sin XP. Las reglas diarias no son lo mismo que deduplicar hechos.
 
-**Decisión propuesta.** Añadir `RewardEvent` en `ecomotor` con `source`, `fact_id`, `user FK`, `payload_fingerprint`, `rules_version`, `status` (`APPLIED`,`NO_REWARD`), `result_snapshot JSON`, `created_at`, y `UNIQUE(source,fact_id,user)`. Rewards recibe **hechos validados por servidor**, comprueba identidad y huella, evalúa reglas/versiones y llama a Ecomotor (XP), Bank (monedas) y Duckies (objetos), todo en una transacción exterior si comparten conexión. El duplicado devuelve el snapshot original; `NO_REWARD` es final y deduplicable. No crear XPEvent para premios sin XP. No crear tabla RewardRule V1: reglas versionadas en configuración/código y registradas mediante `rules_version`. No implementar misiones.
+**Decisión propuesta.** Añadir `RewardEvent` en `ecomotor` con `source`, `fact_id`, `user FK`, `payload_fingerprint`, `rules_version`, `status` (`APPLIED`,`NO_REWARD`), `result_snapshot JSON`, `created_at`, y `UNIQUE(source,fact_id,user)`. Rewards recibe **hechos validados por servidor**, comprueba identidad y huella, evalúa reglas/versiones y llama a Ecomotor (XP), Bank (monedas) y Duckies (objetos), todo en una transacción exterior si comparten conexión. El duplicado devuelve el snapshot original; `NO_REWARD` es final y deduplicable. No crear XPEvent para premios sin XP. No crear tabla RewardRule V1: reglas versionadas en configuración/código y registradas mediante `rules_version`. La exclusión de misiones es una propuesta de alcance pendiente de contraste con DAR3, no un requisito confirmado.
 
 **Por qué.** Una sola evidencia de recompensa completa y trazabilidad de efectos independientes, sin sobreingeniería. **Implementa:** Jaime, con servicios propietarios de Fernando y Henry. **Afecta:** los tres. **Pendiente externo:** identidad de hechos, autenticación y reglas exactas de cada juego/plataforma.
 
@@ -106,11 +113,13 @@ Se recomienda mantener **cuatro aplicaciones Django**: `apps.ecomotor` (Jaime), 
 **Por qué.** Evita regalar monedas y objetos y reduce alcance. **Implementa:** Fernando deshabilita reembolso automático; Henry no necesita implementar retirada en V1. **Afecta:** Fernando y Henry. **Política V1 final propuesta:** solo COMPLETED, mantener `REFUNDED` reservado/no alcanzable por API hasta V2.
 
 ### R-12 · Provisionamiento y perfiles (OSCAR - JAIME - FERNANDO - HENRY)
+**Acuerdo local del 13/10.** Jaime y Henry acordaron desarrollar el inicializador local de Ecomotor sin esperar la integración global. S2-A1/S2-A2 permanecen intactas: perfil y stats atómicos e idempotentes, sin signals ni nuevo User; seis stats y puntos iniciales desde configuración confiable, sin defaults inventados. S1 y S2-A locales no dependen de ratificar el esquema físico de Rewards. El alta global de User, la orquestación final de Ducky/Wallet, legacy y autoridad externa siguen pendientes con Core. Las concesiones históricas iniciales de la propuesta siguiente quedan fuera de S2-A.
+
 **Problema.** El usuario global debe disponer de Ducky, Wallet y perfil de progreso; los OneToOne permiten ausencia física y no deben crearse perfiles legacy por migración silenciosa.
 
 **Decisión propuesta.** Un **servicio orquestador de alta** llamado desde la integración de Core aprovisiona `UserProfileEcomotor`, `CharacterStats`, `Ducky` y `Wallet`, de forma idempotente y transaccional, y concede las piezas iniciales de Prehistoria sin crear XPEvent. `UserProfileBank`, si Core lo mantiene, se provisiona según su contrato, pero no duplica saldo. Reintentos nunca reinician XP, monedas ni inventario. Si un usuario antiguo carece de datos, aplicar proceso de reconciliación explícito, no señales ni defaults que reseteen estado.
 
-**Por qué.** Un solo punto de entrada, cero estados parciales y control de legacy. **Implementa:** Óscar integra y autoriza el alta; Jaime, Henry y Fernando proporcionan sus inicializadores idempotentes. **Afecta:** todos; depende de Core.
+**Por qué.** Un solo punto de entrada, cero estados parciales y control de legacy. **Implementa:** Óscar integra y autoriza el alta; Jaime, Henry y Fernando proporcionan sus inicializadores idempotentes. **Afecta:** todos; la integración global depende de Core, no el avance del inicializador local de Ecomotor.
 
 ### R-13 · Historial, Museo y retención (JAIME - HENRY - OSCAR)
 **Problema.** EquipmentHistory no es historia completa del avatar; XPEvent, EvolutionEvent, ItemGrant, ItemUsage y Transaction pueden perderse con CASCADE.
@@ -259,9 +268,11 @@ erDiagram
 | `debit_wallet(user, amount, operation_key, source, reference)` | Fernando/Bank | Shop | Transaction negativa idempotente |
 | `purchase_item(user, sku, package_quantity, operation_key)` | Fernando/Shop | UI Shop | Compra, cobro, entrega y Purchase atómicos |
 
-Las firmas son **contratos internos propuestos**; los nombres definitivos y excepciones deben aceptarse por los tres. Los servicios no reciben importes de recompensa ni precios efectivos determinados por el navegador. Las claves locales derivan de un hecho validado y estable; no basta el timestamp del reintento.
+La auto-concesión de `grant_stage_items()` y su invocación desde inicialización/Rewards dependen del cierre de R-01 y quedan fuera de S2-A. Las firmas son **contratos internos propuestos**; los nombres definitivos y excepciones deben aceptarse por los tres. Los servicios no reciben importes de recompensa ni precios efectivos determinados por el navegador. Las claves locales derivan de un hecho validado y estable; no basta el timestamp del reintento.
 
 ## 6. Escenarios de aceptación que demuestran el ERD
+
+Escenarios del diseño candidato: los relativos a piezas iniciales, seis piezas por etapa y equipamiento dependen de R-01; no son criterios ya ratificados ni amplían S2-A.
 
 | Escenario | Resultado obligatorio |
 |---|---|
@@ -283,11 +294,13 @@ Las firmas son **contratos internos propuestos**; los nombres definitivos y exce
 
 ## 7. Reparto de implementación por miembro
 
+D-20/D-21 están ratificados por los tres responsables. Las tareas físicas siguientes son propuestas sujetas a los contratos y estados de §10; no autorizan su integración ni bloquean S1/S2-A locales.
+
 ### Jaime · Ecomotor
 1. Crear `RewardEvent`, unicidad por hecho/destinatario, huella, snapshot y estados.
 2. Implementar Rewards orquestador transaccional y adaptadores de efectos hacia Bank y Duckies.
 3. Finalizar XP histórica, niveles, EvolutionEvent, especializaciones y stats.
-4. Publicar eventos de evolución con identidad estable y coordinar concesión de etapas sin misiones.
+4. Publicar eventos de evolución con identidad estable y coordinar la propuesta de concesión de etapas, sin descartar las misiones de DAR3 antes de aclarar R-01.
 5. Proveer inicialización de UserProfileEcomotor/CharacterStats y semillas de siete etapas.
 6. Tests de XP multi-etapa, Rewards APPLIED/NO_REWARD, límites y rollback.
 
@@ -320,11 +333,11 @@ Las firmas son **contratos internos propuestos**; los nombres definitivos y exce
 | Retención | Historiales operativos inmutables en flujo normal | Borrado, anonimización, retención legal y `on_delete` final |
 | Conexión de datos | Transacción local compartida cuando apps están en mismo alias | Confirmar si integración global usa otra BD/servicio; si sí, acordar estrategia distribuida |
 
-**Límite esencial:** este documento cierra una **propuesta de ERD local**. No puede certificar que la economía global de notodoescodigo.com utilice `Wallet.available_balance`, ni que la provisión global pueda realizarse en la misma transacción. Esos puntos requieren la confirmación de Óscar. No se recomienda introducir un segundo saldo canónico para «hacer que funcione».
+**Límite esencial:** este documento mantiene una **propuesta de ERD local como base de trabajo**, sin ratificar todos sus detalles. No puede certificar que la economía global de notodoescodigo.com utilice `Wallet.available_balance`, ni que la provisión global pueda realizarse en la misma transacción. Esos puntos requieren la confirmación de Óscar. No se recomienda introducir un segundo saldo canónico para «hacer que funcione».
 
-## 9. Decisiones descartadas y por qué
+## 9. Alternativas y estado de su descarte propuesto
 
-| Alternativa descartada | Motivo |
+| Alternativa | Motivo / estado |
 |---|---|
 | Crear app independiente `rewards` | No es necesaria en V1; coordinación desde Ecomotor ya prevista |
 | Usar XPEvent como ledger de todo premio | No representa recompensas sin XP ni idempotencia global |
@@ -332,8 +345,8 @@ Las firmas son **contratos internos propuestos**; los nombres definitivos y exce
 | Shop modifica InventoryItem directamente | Rompe propiedad de dominio y validaciones de Duckies |
 | `ShopItem.item_code` como único identificador | No valida existencia ni nivel de objeto |
 | `EvolutionItem.required_xp` igual al umbral de etapa | Duplica regla y permite divergencia |
-| Autoequipar seis piezas al evolucionar | Confunde posesión con selección visual del usuario |
-| Añadir misiones | Fuera del alcance confirmado |
+| Autoequipar seis piezas al evolucionar | Pendiente en R-01: se distingue posesión de selección visual, pero no consta aceptación inequívoca para adoptar ni descartar el autoequipamiento |
+| Añadir misiones | DAR3 contempla progreso y misiones; no se descartan como requisito. Adaptación y alcance pendientes en R-01 |
 | Añadir merchandising físico | Fuera del alcance del Equipo 5 |
 | Reembolsar sin retirar inventario | Riesgo de duplicar valor económico |
 | Mantener saldo local y saldo global independientes | Divergencia financiera |
@@ -341,30 +354,41 @@ Las firmas son **contratos internos propuestos**; los nombres definitivos y exce
 
 ## 10. Acta de ratificación
 
-El diseño se considera **listo para revisión conjunta**, pero no se atribuye aprobación inexistente. Para adoptarlo, los tres deben ratificar especialmente: **(1)** concesión automática de seis piezas al entrar en etapa, **(2)** FK de EvolutionItem a EvolutionStage, **(3)** ShopItem FK a Item/ItemLevel, **(4)** ItemGrant y RewardEvent, **(5)** packs y política de permanentes, **(6)** transacción local compartida y **(7)** deshabilitación de reembolsos automáticos V1. El equipo puede aprobar estas decisiones y empezar a implementar los contratos locales sin esperar el diseño de integración global de Óscar, siempre que no afirme garantías de saldo/autorización que aún dependen de Core.
+El ERD global y H01–H08 son base documental interna aceptada para trabajar; no equivalen a aprobación completa del esquema físico, APIs o transacciones por los tres responsables.
+
+| Referencia | Estado al 16/10/2026 | Pendiente |
+|---|---|---|
+| D-20/D-21 | Ratificados por Jaime, Henry y Fernando: reparto y cuatro apps objetivo, Rewards en Ecomotor | Implementación e integración física; no se reabre la organización |
+| R-05 / R-08 | Conformidad conceptual Jaime–Henry del 14/10 sobre ItemGrant y RewardEvent | Fernando, campos, reglas, ORM, migraciones y contratos externos |
+| R-12 | Acuerdo local Jaime–Henry del 13/10: avanzar con inicialización Ecomotor, S2-A1/S2-A2 intactas | Alta global, Ducky/Wallet, legacy y autoridad Core |
+| R-01 | Mixto; adquisición, entrega y equipamiento sin cierre. Apariencias completas propuestas a Óscar | Contraste con DAR3 y siete etapas V2; FK y auto-concesión candidatas |
+| Bank/Shop y contratos B/C | Fernando aceptó revisar su reubicación respecto a Ecomotor | Traslado y reconciliación de migraciones A/C, relaciones ShopItem/Item, cantidades y entregas |
+| Core, juegos y transacciones | Dependencias externas explícitas | Saldo canónico, identidad/autorización, hechos y conexión transaccional real; sin saldo paralelo |
+
+La aceptación conceptual no ratifica nuevas tablas, contratos físicos ni políticas de compra/reembolso. No se espera la integración global para desarrollar S1/S2-A locales, pero tampoco se afirman garantías globales de saldo o autorización sin Core.
 
 **Fuentes de contraste:** `ecomotor.md` (ERD V2 provisional Parte A); `parte-c-ecommerce-bank.md` (diseño Parte C); actualización `parte-c-ecommerce-bank.md.crdownload` (borrador 0.2, 13/10/2026); `rewards-v0.md`; `parte-b-duckies.md` y modelos Python compartidos en la conversación. Las decisiones de este informe que van más allá de esos documentos están señaladas como recomendaciones y utilizan las nuevas restricciones de alcance aportadas por el usuario.
 
-# Dudas aclaradas respecto a la solución en este documento
+# Dudas y propuestas: contraste de estado hasta el 16/10/2026
 
 ## *R-01:* separar la relación entre EvolutionItem y EvolutionStage de la concesión automática de las seis piezas por etapa, ya que esta última regla debemos contrastarla con DAR3 y la obtención mediante progreso y misiones.
 
-Cuando un Ducky evoluciona a una nueva etapa, recibe automáticamente las piezas históricas correspondientes en su inventario, pero estas no se equipan automáticamente.
+El ERD propone entregar automáticamente las piezas históricas al evolucionar, sin equiparlas; esa alternativa no está ratificada y no resuelve la discrepancia sobre autoequipamiento.
 
-### Qué queda resuelto de R-01
+### Propuesta y pendientes de R-01
 
-| Aspecto | Decisión definitiva |
+| Aspecto | Propuesta / estado |
 |---|---|
-| Obtención de piezas históricas | Automática al alcanzar una etapa evolutiva |
-| Entrega al inventario | Automática |
-| Equipamiento | Manual, por decisión del usuario |
-| Piezas de etapas anteriores | Se conservan |
-| Piezas iniciales de Prehistoria | Se entregan al crear e inicializar el personaje |
-| Cantidad de piezas principales | Seis por etapa, según el catálogo |
-| Misiones | No intervienen; se deja para implementaciones futuras |
-| XP necesario | Lo determina `EvolutionStage`, sin duplicarlo en `EvolutionItem` |
+| Obtención de piezas históricas | DAR3: progreso y misiones; entrega al alcanzar etapa propuesta por el ERD, pendiente de contraste |
+| Entrega al inventario | Automática en la propuesta ERD; no ratificada |
+| Equipamiento | Manual en la propuesta ERD; no es cierre aceptado ni descarte del autoequipamiento |
+| Piezas de etapas anteriores | DAR3 conserva progresos y conjuntos anteriores tras evolucionar |
+| Piezas iniciales de Prehistoria | Entrega durante inicialización global propuesta; fuera de S2-A local |
+| Cantidad de piezas principales | DAR3: seis por época en nueve épocas; adaptación a siete etapas V2 provisionales pendiente |
+| Misiones | DAR3 las contempla; adaptación y alcance pendientes, no descartadas |
+| XP necesario | Se propone tomar el umbral de `EvolutionStage`, sin duplicarlo en `EvolutionItem` |
 
-Por tanto, ya no es necesario mantener abierta la cuestión de la adquisición automática.
+La adquisición automática sigue abierta. Jaime recordó entrega y equipamiento automáticos, sin aceptación inequívoca de Henry del autoequipamiento. El 15–16/10 ambos acordaron proponer a Óscar la selección libre de apariencias completas de cualquier época desbloqueada, no adoptarla. Desbloquear, conceder/poseer, equipar y elegir apariencia son decisiones distintas.
 
 ### Propuesta de modificación de `EvolutionItem`
 
@@ -390,43 +414,41 @@ class EvolutionItem(models.Model):
         ]
 ```
 
-Esto permite eliminar:
+La propuesta física, todavía no ratificada, permitiría eliminar:
 
 - `stage_code`: sustituido por una relación real con `EvolutionStage`.
 - `required_xp`: el umbral de evolución ya pertenece a `EvolutionStage`.
-- `is_automatic`: todas las piezas históricas asociadas a una etapa se entregarán automáticamente, por lo que el campo deja de aportar información.
+- `is_automatic`: su eliminación depende de ratificar la auto-concesión propuesta; hoy no tiene semántica acordada.
 
 **Importante:** La FK entre `duckies.EvolutionItem` y `ecomotor.EvolutionStage` es viable si ambas aplicaciones comparten el mismo esquema de base de datos. La dependencia entre aplicaciones deberá respetarse en sus migraciones, aunque no es necesario resolver eso dentro de este apartado funcional.
 
-### R-01 · Evolución y piezas históricas — RESUELTO
+### R-01 · Evolución y piezas históricas — MIXTO / PENDIENTE
 
 **Responsables:** Jaime (Ecomotor) y Henry (Duckies).
 
-**Decisión funcional acordada:**
+**Diseño funcional propuesto, sin ratificación:**
 
-Al alcanzar una nueva etapa evolutiva, el usuario desbloqueará y recibirá automáticamente en el inventario de su Ducky todas las piezas históricas configuradas para dicha etapa.
+Se propone entregar automáticamente las piezas configuradas al alcanzar etapa y mantener equipamiento manual. No se adopta esa alternativa: la política de desbloqueo, adquisición, entrega, equipamiento y apariencia sigue pendiente. DAR3 exige conservar progresos y conjuntos anteriores; las reglas de uso deben concretarse.
 
-La entrega será automática, pero el equipamiento será siempre manual. Las piezas obtenidas en etapas anteriores permanecerán en el inventario y podrán seguir utilizándose conforme a las reglas de equipamiento.
+Las seis piezas por época son antecedente de DAR3, no un catálogo físico de siete etapas ya aprobado. La propuesta de apariencias completas seleccionables de épocas desbloqueadas se trasladará a Óscar.
 
-Cada etapa contará con seis piezas históricas principales, cuya configuración y validación corresponderán al catálogo.
-
-**Decisión técnica:**
+**Propuesta técnica pendiente de ratificación (no implementación autorizada):**
 
 - `EvolutionItem.stage` será una clave foránea hacia `ecomotor.EvolutionStage`.
 - `EvolutionItem.item` seguirá siendo una clave foránea hacia `duckies.Item`.
 - Se mantendrá la restricción `UNIQUE(stage, item)`.
-- Se eliminarán `stage_code`, `required_xp` e `is_automatic` del modelo objetivo.
-- Las piezas iniciales de Prehistoria se concederán durante la inicialización del personaje, sin generar un `XPEvent` artificial.
+- Si se ratifica la relación con `EvolutionStage`, se propone sustituir `stage_code` por la FK. La eliminación de `required_xp` depende de confirmar que el umbral vive únicamente en `EvolutionStage`; la de `is_automatic`, de la política final de concesión. Ninguna de estas modificaciones de esquema está autorizada todavía.
+- Se propone conceder las piezas iniciales de Prehistoria durante la inicialización global, sin `XPEvent` artificial; fuera de S2-A local.
 - Las evoluciones posteriores desencadenarán la entrega mediante un servicio de Duckies, tomando `EvolutionEvent` como referencia.
 - La entrega será idempotente para impedir duplicaciones.
-- La concesión de piezas no modificará automáticamente `EquippedItem`.
+- La concesión de piezas y el equipamiento son operaciones distintas. Si se acuerda equipamiento manual, conceder piezas no modificará automáticamente `EquippedItem`; cualquier autoequipamiento requiere aprobación funcional explícita.
 
 **Reparto de responsabilidades:**
 
 - **Jaime:** detectar y registrar la transición evolutiva, y coordinar la inicialización del perfil.
 - **Henry:** mantener la relación entre etapas y piezas, implementar la entrega al inventario y garantizar que no se produzcan duplicaciones.
 
-**Estado:** RESUELTO funcionalmente. Pendiente de implementación e integración entre Ecomotor y Duckies.
+**Estado:** mixto y pendiente de validación funcional y física; la transición Ecomotor, la entrega Duckies y el equipamiento son responsabilidades distintas. No se declara resuelto R-01.
 
 ---
 
@@ -450,7 +472,7 @@ También hay que unificar las claves de idempotencia. Una misma compra debe tene
 
 **Responsables:** Fernando implementa la coordinación y Bank; Henry implementa la entrega y las comprobaciones definitivas de inventario.
 
-Esto permite cerrar las relaciones `Purchase`–`Transaction` y la trazabilidad de las entregas mediante el `ItemGrant` propuesto.
+Esto propone resolver las relaciones `Purchase`–`Transaction` y la trazabilidad mediante ItemGrant; contratos físicos y transacciones B/C siguen pendientes de ratificación.
 
 ---
 
@@ -498,7 +520,7 @@ El equipo del juego deberá confirmar cuándo se considera utilizado un objeto, 
 
 **Decisión importante:** El consumo no debe depender exclusivamente de que el cliente envíe una solicitud. El servidor del juego debe autorizarlo y utilizar una identidad de operación verificable.
 
-**Conclusión:** Con estas precisiones, el ERD global del Equipo 5 puede mantenerse como propuesta estructural cerrada para las cuatro aplicaciones, dejando explícitamente pendientes las mecánicas de obtención histórica y los contratos externos de los juegos.
+**Conclusión:** El ERD global se mantiene como base documental candidata para las cuatro apps objetivo ratificadas; no están aprobados todos los detalles físicos, APIs ni transacciones. Siguen pendientes R-01, contratos B/C, Core, juegos y reconciliación de migraciones.
 
 ---
 
@@ -506,7 +528,7 @@ El equipo del juego deberá confirmar cuándo se considera utilizado un objeto, 
 
 Concretar las relaciones `ShopItem` ↔ `Item`/`ItemLevel`, las variantes, cantidades y entregas sin duplicados.
 
-Este apartado está resuelto en las R-03, R-04, R-05 y R-06. El documento contiene decisiones técnicas concretas para todos esos puntos.
+Las R-03, R-04, R-05 y R-06 contienen propuestas técnicas para estos puntos, sin ratificación física conjunta B/C; R-05 cuenta con conformidad conceptual Jaime–Henry.
 
 | Apartado | Qué resuelve |
 |---|---|
@@ -519,6 +541,6 @@ Además, R-14 refuerza estas decisiones con validaciones y restricciones de inte
 
 Ya está cubierta por las R-03, R-04, R-05 y R-06. El documento las presenta como «Decisión propuesta». Por tanto:
 
-- **Resuelto a nivel de diseño:** sí, completamente.
-- **Ratificado por Henry y Fernando:** depende de que ambos aceptéis esas propuestas.
+- **Diseño:** base de trabajo candidata; no cierre completo de decisiones físicas.
+- **Ratificación B/C:** pendiente; la conformidad conceptual Jaime–Henry de R-05 no la sustituye.
 - **Implementado en código:** todavía no queda demostrado por el documento.
