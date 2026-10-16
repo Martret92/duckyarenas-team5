@@ -392,3 +392,47 @@ de perfil y stats, sin signals ni nuevo User; seis stats iniciales y puntos desd
 configuración confiable, sin defaults inventados. Este contraste no incorpora
 las decisiones o implementaciones de las features a develop ni modifica D-17,
 D-19, V2-A1…V2-A29 o Rewards v0, que conserva su estado candidato.
+
+## S1 · Cálculos puros de progresión — Aceptación interna provisional
+
+Contrato recuperado de `feature/part-a-progression-s1:docs/decisions.md`
+(`dc391bb`), contrastado con [progression.py](../apps/ecomotor/progression.py).
+S1/S1.1 ya está integrado en develop mediante PR #22, con 28 tests. Mantiene
+V2-A12/A20/A21 y su aceptación interna provisional, sin aprobación global de Core.
+
+- `resolve_level(xp_total, levels)` devuelve el mayor nivel cuyo umbral se alcanza.
+- `resolve_stage(xp_total, stages, *, ordered_stage_codes)` devuelve la etapa
+  alcanzada según XP y una correspondencia explícita de siete códigos, en el orden
+  funcional provisional Prehistoria, Griega, Romana, Renacentista, Contemporánea,
+  Siglo XX y Actual; no incorpora códigos técnicos oficiales.
+- `calculate_progression(xp_before, xp_after, levels, stages, *, ordered_stage_codes)`
+  recibe totales históricos y devuelve estados inicial/final, todos los niveles y
+  etapas nuevos cruzados en orden ascendente y la suma de puntos de esos niveles.
+  No cuenta la etapa ya alcanzada ni concede puntos iniciales del nivel 1.
+
+`LevelDefinition(level, minimum_xp, stat_points_awarded)`,
+`StageDefinition(code, ordinal, minimum_xp)` y `ProgressionResult` son dataclasses
+inmutables (`frozen=True`). El resultado contiene `xp_before`, `xp_after`,
+`level_before`, `level_after`, `stage_before_code`, `stage_after_code`,
+`crossed_levels`, `crossed_stages` y `total_stat_points_awarded`; las transiciones
+son tuplas de definiciones. Las colecciones recibidas se copian y ordenan sin
+mutarlas ni conservar referencias a listas mutables.
+
+`InvalidXPError` e `InvalidCatalogError` derivan de ValueError. Se exige XP entera
+no negativa, excluyendo booleanos y conversiones implícitas, y progresión no
+decreciente. Igualar un umbral lo alcanza; con XP anterior y final iguales no hay
+transiciones ni puntos. Los niveles son consecutivos desde 1, con primer umbral 0;
+los puntos son enteros no negativos. Las etapas son exactamente siete, ordinales
+únicos consecutivos 1–7, códigos únicos no vacíos de hasta 32 caracteres, coincidentes
+con la correspondencia recibida, y primera etapa a 0 XP. Ambos catálogos exigen
+umbrales enteros no negativos y estrictamente crecientes. La carga gradual del
+Admin permanece separada de esta validación funcional completa.
+
+S1 solo calcula, sin Django/ORM ni persistencia. No concede recompensas ni verifica
+idempotencia, usuarios, permisos o contratos Rewards/Bank. S2 inicializará perfil y
+stats con configuración confiable; S3 deberá cargar configuración coherente,
+utilizar S1 y persistir la concesión transaccional y todas las transiciones.
+S1 no limita los enteros por almacenamiento: su adaptación a campos persistentes
+corresponde al futuro S3. La consistencia/concurrencia de S3 sigue pendiente de
+diseño bajo D-19. No se fijan límites de juego, umbrales, puntos ni códigos oficiales,
+ni se aprueban cambios administrativos de catálogos o contratos Core/A/B/C/Rewards.
