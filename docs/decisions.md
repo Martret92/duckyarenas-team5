@@ -291,3 +291,22 @@ puede continuar desarrollando dentro de sus responsabilidades, manteniendo la
 validación de contratos compartidos y la reconciliación de migraciones antes de
 integrar. D-17/D-19/D-20/D-21, V2-A1…V2-A29, M-01 y el estado candidato de
 Rewards v0 permanecen vigentes, sin nueva decisión D ni aprobación global.
+
+## Integración estructural de catálogos · Día 4-A
+
+Se prepara para revisión hacia develop únicamente LevelThreshold, EvolutionStage
+y Specialization, sus validadores explícitos y 36 tests recuperados del Día 4
+(`c78be74258dbe1eff3f552edeb5a0727cc316d41`). DAR3 define progreso/evolución y el
+modelo inicial de especializaciones; DuckyEcomotor concreta siete etapas y
+configuración de umbrales. V2-A7/A20/A21/A24 son decisiones internas sobre los
+catálogos: nivel positivo, ordinales únicos 1–7, códigos únicos y campos no vacíos;
+consecutividad, primer umbral 0 y crecimiento estricto por validación completa.
+La carga gradual sigue permitida, sin validación global automática en save().
+
+No se fijan umbrales, puntos ni códigos oficiales, ni se cargan datos maestros.
+No se incorporan perfiles, estadísticas, historiales, progreso por usuario,
+Admin o servicios; S1/S1.1 permanece independiente del ORM. La identidad antigua
+ecomotor.0001_initial de Fernando tiene otro contenido y debe reconciliarse con
+su responsable antes de combinar implementaciones A/C; este incremento no la
+modifica ni resuelve esa colisión. La autorización interna para preparar este PR
+no es aprobación global: contratos A/B/C/Core/Rewards y conservación siguen abiertos.
