@@ -219,6 +219,20 @@ reservas, correcciones y devoluciones requieren contrato específico.
 
 ## 8. Pendientes y siguiente entrega
 
+### S3 V1: concesión local de XP histórica en revisión
+
+[S3 V1](contracts/ecomotor-xp-v1.md), aprobado internamente por Jaime bajo
+V2-A12/A22/A23 y D-19, concede XP solo sobre perfiles ya inicializados. Valida
+catálogos y correspondencia interna de etapas, usa exclusivamente S1 y persiste
+XPEvent, todas las EvolutionEvent y puntos nuevos dentro de una transacción.
+El replay es histórico: snapshots e IDs persistidos, campos no almacenados None;
+no recalcula contra catálogos actuales ni modifica eventos. No inicializa S2-A,
+concede objetos/monedas, modifica atributos base ni resuelve Rewards/Core.
+El esquema existente no guarda niveles/puntos/códigos históricos completos;
+esa limitación forma parte explícita del contrato. La configuración de códigos
+autorizados sigue ausente, por lo que las concesiones nuevas reales permanecen
+bloqueadas hasta disponer de ella. Este incremento no cambia modelos/migraciones.
+
 ### S2-A local: contrato aprobado para implementación
 
 Parte A implementará [S2-A](contracts/ecomotor-initialization-v1.md), aprobado
