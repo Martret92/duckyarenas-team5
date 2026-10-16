@@ -314,3 +314,13 @@ real de su propio proceso, nunca afirma activar el servidor web. Preparación
 técnica y aprobación funcional son independientes. S2-A/S3 conservan contratos,
 S4-A/S5-A sus consultas básicas. Sin esquema nuevo ni reparación/concurrencia
 transaccional añadida. Instalación autorizada, valores oficiales y V2-A28 pendientes.
+
+## S7-A · Asignación local de puntos (en revisión)
+
+[S7-A](contracts/ecomotor-stat-allocation-v1.md) añade gasto transaccional 1:1 en
+un atributo base, solo en Actual validada por S1/catálogo/códigos confiables.
+StatAllocationEvent registra snapshots independientes de XPEvent y replay sin
+configuración actual. D-19 serializa S3/S7-A; solo atributo elegido y saldo cambian
+junto al evento. Admin de consulta y 0005 aditiva con reversión protegida.
+S1–S6-A y otros equipos intactos; conservación CASCADE provisional, configuración
+funcional y contratos globales pendientes. Sin interfaz web de asignaciones.

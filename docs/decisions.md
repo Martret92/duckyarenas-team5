@@ -517,3 +517,14 @@ y precedencia documentada; TECHNICALLY_READY no aprueba producción. El comando
 distingue diagnóstico no preparado de fallo operativo. No altera S2-A/S3 ni S4-A/S5-A.
 Instalación futura del servidor, parámetros oficiales, Core, conservación, Rewards
 y cambios históricos V2-A28 siguen pendientes, sin aprobación global atribuida.
+
+## S7-A · Asignación de puntos V1 — Decisión interna aprobada de Parte A
+
+Jaime aprueba [S7-A](contracts/ecomotor-stat-allocation-v1.md): gasto 1:1 en un
+atributo base, solo en Actual derivada por S1 y coherente con XP/etapa persistidas.
+Catálogo/códigos confiables, sin validar niveles o stats iniciales. Nuevo historial
+StatAllocationEvent con snapshots y clave única por perfil. Replay histórico validado
+antes de exigir configuración/elegibilidad nueva, sin reinterpretación ni escritura.
+D-19 serializa con S3; overflow/inconsistencia no reparan. 0005 aditiva protegida
+y Admin solo lectura. CASCADE provisional y conservación Core/V2-A28 pendientes.
+Decisión interna, no aprobación técnica de DAR3, profesor, Core ni Rewards.

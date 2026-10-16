@@ -10,6 +10,7 @@ from .models import (
     EvolutionStage,
     LevelThreshold,
     Specialization,
+    StatAllocationEvent,
     UserSpecializationProgress,
     XPEvent,
 )
@@ -139,3 +140,12 @@ class UserSpecializationProgressAdmin(ReadOnlySuperuserAdmin):
     list_filter = ("specialization",)
     list_select_related = ("profile__user", "specialization")
     ordering = ("profile_id", "specialization_id")
+
+
+@admin.register(StatAllocationEvent)
+class StatAllocationEventAdmin(ReadOnlySuperuserAdmin):
+    list_display = ("profile", "attribute", "points_spent", "operation_key", "created_at")
+    search_fields = ("=profile__pk", "profile__user__username", "operation_key", "attribute")
+    list_filter = ("attribute", "created_at")
+    list_select_related = ("profile__user",)
+    ordering = ("-created_at", "-pk")

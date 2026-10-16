@@ -2,6 +2,37 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
+STAT_ATTRIBUTES = ("atk", "def_stat", "log_stat", "spe", "vel", "int_stat")
+
+
+class StatAllocationEvent(models.Model):
+    # CASCADE provisional, conservación definitiva pendiente de Core.
+    profile = models.ForeignKey("users.UserProfileEcomotor", on_delete=models.CASCADE)
+    operation_key = models.CharField(max_length=255)
+    attribute = models.CharField(max_length=16, choices=[(name, name) for name in STAT_ATTRIBUTES])
+    points_spent = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    increase_applied = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    available_points_before = models.PositiveIntegerField()
+    available_points_after = models.PositiveIntegerField()
+    attribute_before = models.IntegerField()
+    attribute_after = models.IntegerField()
+    stage_code_at_allocation = models.CharField(max_length=32)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["profile", "operation_key"], name="ecomotor_allocation_profile_key"),
+            models.CheckConstraint(condition=~models.Q(operation_key=""), name="ecomotor_allocation_key_nonempty"),
+            models.CheckConstraint(condition=models.Q(attribute__in=STAT_ATTRIBUTES), name="ecomotor_allocation_attribute"),
+            models.CheckConstraint(condition=models.Q(points_spent__gt=0), name="ecomotor_allocation_points_positive"),
+            models.CheckConstraint(condition=models.Q(increase_applied__gt=0), name="ecomotor_allocation_increase_positive"),
+            models.CheckConstraint(condition=models.Q(increase_applied=models.F("points_spent")), name="ecomotor_allocation_one_to_one"),
+            models.CheckConstraint(condition=models.Q(available_points_before=models.F("available_points_after") + models.F("points_spent")), name="ecomotor_allocation_balance"),
+            models.CheckConstraint(condition=models.Q(attribute_after=models.F("attribute_before") + models.F("increase_applied")), name="ecomotor_allocation_increment"),
+            models.CheckConstraint(condition=~models.Q(stage_code_at_allocation=""), name="ecomotor_allocation_stage_nonempty"),
+        ]
+
+
 class LevelThreshold(models.Model):
     level = models.PositiveIntegerField(unique=True, validators=[MinValueValidator(1)])
     minimum_xp = models.PositiveBigIntegerField()

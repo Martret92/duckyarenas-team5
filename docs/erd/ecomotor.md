@@ -1,5 +1,14 @@
 # Ecomotor y evolución · ERD V2 provisional de Parte A
 
+> Incremento S7-A en revisión: [contrato](../contracts/ecomotor-stat-allocation-v1.md).
+> UserProfileEcomotor 1:N StatAllocationEvent, CASCADE provisional. Añade
+> operation_key, attribute, points_spent, increase_applied, available_points_before/after,
+> attribute_before/after (con signo), stage_code_at_allocation sin FK y created_at.
+> Clave única por perfil, saldo no negativo, gasto/incremento positivos 1:1 y
+> snapshots aritméticos coherentes. Admin solo lectura, 0005 aditiva protegida.
+> Aceptación interna, conservación global pendiente; el ERD V2 histórico de ocho
+> entidades no incluye este incremento y no se reescribe.
+
 ## 1. Estado, fuentes y alcance
 
 Diseño documental aceptado **internamente por Parte A**, V2-A1…V2-A29, con las
