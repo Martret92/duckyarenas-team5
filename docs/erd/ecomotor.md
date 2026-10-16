@@ -7,7 +7,8 @@ condiciones del [registro](../decisions.md). No es aprobación global de Óscar,
 Core ni Partes B/C, ni autorización del ORM definitivo. D-01…D-19 siguen intactas;
 D-20/D-21 registran acuerdos internos de reparto/apps del 08/10. D-13 queda
 como antecedente y D-14…D-16 conservan validación técnica pendiente.
-No se implementan modelos ni migraciones aquí.
+El estado de implementación estructural se detalla en §1.1; no implica aprobación
+global ni implementación de los servicios descritos en el diseño.
 
 DAR3 es la referencia general. Las especificaciones posteriores de
 `DuckyEcomotor.pdf`, `DAR_formulas.pdf`, `DAR_DuckyClash.pdf`, `DuckyTraining.pdf`
@@ -20,6 +21,39 @@ Ejemplos numéricos y código no constituyen parámetros oficiales.
 Este documento sustituye la descripción operativa V1 por el diseño V2 provisional.
 A-01…A-16 se conservan como antecedentes en §10; no se revocan retroactivamente.
 El ERD consolidado del Equipo 5, los contratos y el ORM definitivo siguen pendientes.
+
+### 1.1. Integración estructural de Día 4
+
+Los catálogos LevelThreshold, EvolutionStage y Specialization ya están en
+`develop` mediante `ecomotor.0001_initial` (PR #23). La rama
+`feature/part-a-progress-models-day4-integration`, basada en `e8cc573`, incorpora
+para revisión las otras cinco entidades del ERD V2:
+
+| Entidad | Migración |
+| --- | --- |
+| UserProfileEcomotor: ampliación de progreso | users.0002_ecomotor_progress |
+| CharacterStats | ecomotor.0002_characterstats |
+| XPEvent y EvolutionEvent | ecomotor.0003_xp_and_evolution_events |
+| UserSpecializationProgress | ecomotor.0004_user_specialization_progress |
+
+Las ocho entidades tienen representación física en esta rama; la arquitectura
+V2 sigue siendo interna y provisional. M-01 aborta ante perfiles Ecomotor legacy
+antes de modificar el esquema; no asigna niveles ni etapas y permite usuarios
+sin ese perfil y perfiles Bank. Las cuatro migraciones bloquean su reversión
+automática, incluso sin datos. No crean personajes, catálogos ni eventos.
+
+CASCADE al perfil y al XPEvent causal sigue siendo provisional; las etapas y
+especializaciones referenciadas usan PROTECT. La igualdad entre el perfil de
+EvolutionEvent y el de su XPEvent causal pertenece al futuro servicio, no a una
+constraint entre tablas. Los historiales son conceptualmente inmutables, sin
+protección física completa. La clave de XPEvent es local al perfil y a XP
+histórica; no deduplica Rewards. La XP de dominio permanece independiente.
+
+No se integran Admin, inicialización S2, concesión de XP, evolución automática,
+asignación de puntos ni Rewards. S1/S1.1 permanece intacto. Continúan pendientes
+la conservación y el tratamiento legacy con Core, los contratos A/B/C/Rewards,
+los parámetros oficiales y las reglas funcionales de especialización. Esta
+preparación de PR no autoriza su merge ni atribuye aprobación global a Óscar.
 
 ## 2. Entidades y cardinalidades
 
@@ -107,10 +141,10 @@ Cada catálogo puede tener cero o muchas referencias históricas/progresos.
 
 ## 3. Diccionario V2 provisional
 
-El diccionario detalla tipos Django **previstos**, sin implementar ORM ni
-migraciones. Las reglas aceptadas internamente se distinguen de propuestas de
-representación física y parámetros pendientes. D-12 sigue describiendo los perfiles
-implementados hoy; los nuevos campos son diseño documental futuro.
+El diccionario conserva la especificación V2 provisional. Su representación física
+en la rama de integración se describe en §1.1; las reglas de servicio y parámetros
+pendientes no se consideran implementados por crear las tablas. D-12 se conserva
+como antecedente de los perfiles mínimos, ampliados estructuralmente en este PR.
 
 | Entidad | Datos y significado | Integridad y trazabilidad |
 | --- | --- | --- |

@@ -310,3 +310,36 @@ ecomotor.0001_initial de Fernando tiene otro contenido y debe reconciliarse con
 su responsable antes de combinar implementaciones A/C; este incremento no la
 modifica ni resuelve esa colisión. La autorización interna para preparar este PR
 no es aprobación global: contratos A/B/C/Core/Rewards y conservación siguen abiertos.
+
+## Integración estructural de progreso · Día 4-B
+
+Se prepara para revisión hacia develop el resto estructural de Parte A, recuperado
+sin rediseño de Día 4 (`c78be74258dbe1eff3f552edeb5a0727cc316d41`): ampliación de
+UserProfileEcomotor, CharacterStats, XPEvent, EvolutionEvent y
+UserSpecializationProgress. Se preservan los catálogos de PR #23, UserProfileBank,
+settings.AUTH_USER_MODEL y S1/S1.1. DAR3/DuckyEcomotor son referencias funcionales;
+campos, relaciones y restricciones concretan acuerdos internos V2, no una aprobación
+global del diseño físico ni parámetros oficiales.
+
+users.0002 aplica M-01 como primera operación: ante perfiles Ecomotor legacy aborta
+sin alterar esquema ni datos; usuarios sin ese perfil y perfiles Bank permiten
+continuar. Nivel y etapa siguen siendo obligatorios sin defaults ficticios.
+ecomotor.0002 depende de users.0002; 0003 y 0004 preservan esa dependencia. Las cuatro
+migraciones son atómicas y explícitamente irreversibles, también con tablas vacías.
+La estrategia de conservación/migración legacy sigue pendiente de Core.
+
+Se mantienen unicidad de estadísticas por perfil, de XPEvent por perfil/operation_key,
+de evolución por perfil/etapa y de progreso por perfil/especialización; XP y puntos
+disponibles no negativos, importe XP positivo, snapshots coherentes, nivel positivo
+y etapa/clave no vacías. CASCADE al perfil y al XPEvent causal es provisional;
+etapas y especializaciones referenciadas usan PROTECT. La coincidencia de perfiles
+entre EvolutionEvent y su causa exige un futuro servicio transaccional. El historial
+es conceptualmente inmutable, sin protección física completa de modificación/borrado.
+
+V2-A22/A23 mantienen idempotencia local de XP histórica, distinta de Rewards v0;
+V2-A25/A26 mantienen XP de dominio independiente, default 0 al crear explícitamente
+el progreso y sin rank, trazabilidad ni concesión implementadas. No hay señales,
+inicialización, servicios XP/evolución/Rewards, asignación de puntos ni Admin.
+Conservación, contratos A/B/C/Core/Rewards y reconciliación de la migración antigua
+de Fernando siguen pendientes. Se preservan las aclaraciones recientes de Óscar;
+esta aceptación interna para preparar el PR no autoriza su merge.
