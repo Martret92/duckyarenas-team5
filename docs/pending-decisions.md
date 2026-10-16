@@ -13,6 +13,43 @@ de las dailys del 06, 07, 08, 09 y 13/10/2026, con su categoría y estado.
 global aprobado. El [ERD de Parte A](erd/ecomotor.md) conserva ocho entidades y
 V2-A1…V2-A29 internas condicionadas; no hay aprobación global ni ORM definitivo.
 
+### 1.1. Criterio de clasificación y procedencia
+
+Se recupera selectivamente la trazabilidad de
+`feature/part-a-ecomotor-day4:docs/pending-decisions.md` (`c78be74`), preservando
+los acuerdos posteriores de PR #21. Las referencias a PDFs siguientes proceden
+de ese registro histórico; esta recuperación no supone una nueva consulta directa.
+DAR3 conserva su autoridad principal; los acuerdos internos y ejemplos se distinguen
+de sus requisitos y de los contratos externos todavía pendientes.
+
+- **D:** definido documentalmente, indicando fuente y ámbito.
+- **E:** ejemplo o propuesta no vinculante, sin parámetros oficiales por defecto.
+- **X:** contradicción normativa o ambigüedad funcional real que requiere aclaración.
+- **C:** coordinación externa con Core, propietarios o consumidores afectados.
+- **I:** decisión interna resoluble sin modificar contratos ni código ajenos.
+- **F:** fase o alcance de entrega, sin eliminar el requisito global.
+
+Un punto puede tener varias categorías. Dos ejemplos diferentes no constituyen
+necesariamente requisitos incompatibles. Estas etiquetas no crean decisiones D
+ni aprueban alternativas; P1–P8, R1–R8 e I1–I9 conservan sus identificadores.
+R1–R8 de Rewards no son los mismos identificadores que R-01…R-14 del ERD global.
+
+### 1.2. Ejemplos técnicos y preguntas residuales
+
+| Referencia | Evidencia histórica y categoría | Qué falta acordar / relación |
+| --- | --- | --- |
+| E-F1 · Redondeo XP | E: DAR_DuckyClash p. 18 ilustra 20,7 → 21; DAR_formulas p. 15 usa `math.floor(total_xp)`. Son variantes ilustrativas. | Política de redondeo antes de premios reales y coordinación si afecta al contrato; I/C, vinculada a I9/R8. No se escoge una variante. |
+| E-F2 · Rapidez y VEL | E: DAR_formulas pp. 2 y 7 describe umbrales temporales/rapidez; su snippet de p. 14 suma `VEL*0.01`. No prueba dos mandatos incompatibles. | Precisar efecto sobre tiempos o multiplicadores, escala, límites e intervalos; I/C, I9/R8. No se adopta el multiplicador del ejemplo. |
+| E-N1 · Umbrales de nivel | E: tabla de ejemplo de DAR_DuckyClash p. 23 frente a `1 + XP//10000` de DAR_formulas p. 27. | P8: valores/configuración oficiales. LevelThreshold y S1 siguen parametrizables; no se fija 10.000 XP por nivel. |
+| E-N2 · Puntos por nivel | E: frecuencias ilustrativas de DAR_DuckyClash pp. 23–24 y +1 por nivel en DAR_formulas pp. 12 y 27. | P2/P8: cantidades y frecuencia oficiales; `stat_points_awarded` configurable, sin convertir +1 en regla. |
+| E-I1 · Modalidad de Escape | D: DuckyEscape p. 1 describe juego individual. E: DAR_DuckyEscape__modelos pp. 1–10 propone estructura extensible con sesiones/equipos. | I1: confirmar versión integrada y contrato parcial/final; multijugador es posible ampliación F/C, no modalidad adoptada ni bloqueo del caso individual. |
+
+Los auxiliares históricos X-F1/X-F2/X-N1/X-N2/X-I1 pasan a E-F1/E-F2/E-N1/E-N2/E-I1
+porque describen ejemplos o extensiones. Esta trazabilidad no reabre V2-A21:
+siete etapas aceptadas internamente, sin resolver globalmente su adaptación a
+las nueve épocas de DAR3. P1 (XP externa), P2 (aplicación de stats) y P4/D-17
+(User/auth) conservan sus ambigüedades o contradicciones reales y responsables.
+
 ## 2. Aclaraciones prioritarias con Óscar / Core
 
 Óscar es también interlocutor de Core. Una respuesta parcial no cierra el diseño
@@ -26,7 +63,7 @@ por sí solos toda la revisión conceptual.
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y tratamiento legacy. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
-| P6 · Vestimenta/Museo | Antecedente DAR3; mecanismo y cobertura pendientes | ¿Las seis piezas principales de cada época deben obtenerse exclusivamente mediante progreso y misiones, o pueden existir también variantes históricas comprables? ¿Cómo se diferencian de los complementos estéticos y qué ocurre al evolucionar? Aclarar conservación, compatibilidad e historiales/Museo sin imponer autoequipamiento o conservación de todos los conjuntos al saltar etapas. | Óscar, Henry y Fernando, con Jaime para evolución; ERD consolidado y vertical. |
+| P6 · Vestimenta/Museo | DAR3 contempla progreso y misiones y conservación de progresos y conjuntos anteriores; arquitectura y ERD global consolidados por PR #21. | R-01 sigue mixto/pendiente: separar adquisición de piezas y posibles variantes comprables, concesión/posesión, equipamiento automático y selección de apariencia. Acordar condiciones al saltar etapas, compatibilidad, Museo y adaptación de nueve épocas a siete etapas V2 provisionales. La selección libre de apariencias completas desbloqueadas es propuesta a Óscar, no política adoptada; no se rebaja la conservación prevista en DAR3. | Óscar, Henry y Fernando, con Jaime para evolución; ERD consolidado y vertical. |
 | P7 · Especializaciones | Actual aclarado; selección/rangos parciales | Obligatoriedad, acceso, cambios/reinicio/nueva elección no aprobados, XP de dominio y rangos Junior/Middle/Senior/Maestro. Normalizar Sistemas/AdminSys, Data/Data & IA y códigos sin adoptar ejemplos. | Óscar, Jaime y juegos; catálogos y servicios. |
 | P8 · Umbrales/configuración | Invariantes internas V2-A20/A21 documentadas; política restante abierta | Valores oficiales y cambios prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
@@ -57,6 +94,13 @@ D-21 y Rewards v0 conservan su estado interno/candidato y validación conjunta p
 Los principios están aceptados provisionalmente como propuesta, no como decisión
 D nueva ni ORM. Las preguntas siguientes concretan el contrato; no reabren
 por sí solas la autoridad funcional de Ecomotor, Bank o Duckies.
+
+DAR3 pp. 49 y 52–53 ya describe un intercambio mínimo y protección funcional
+contra duplicados. Lo pendiente es el contrato técnico compartido completo:
+huella canónica (R2), estados APPLIED/NO_REWARD y ORM de trazabilidad (R3), y una
+transacción exterior compartida (R4) son mecanismos candidatos, no requisitos
+físicos impuestos por esos mínimos. La conformidad conceptual Jaime–Henry de
+R-05/R-08 del ERD global no ratifica esos detalles con Fernando/Core/juegos.
 
 | ID | Decisión técnica pendiente | Validadores / condición |
 | --- | --- | --- |
@@ -94,12 +138,23 @@ organización no los confirma por extensión.
 - Consolidar ERD/diccionarios A/B/C con referencias y borrado acordados antes
   del ORM afectado. Mantener las ocho entidades provisionales de A y condiciones
   M-01, V2-A20/A21 y conservación.
-- Implementar después servicios, ORM, migraciones y datos maestros del alcance
-  acordado, sin parámetros oficiales ficticios.
+- S1/S1.1, modelos/migraciones de Día 4 y Admin de Día 5 ya están integrados
+  (PR #22–#25). Las funciones puras y pruebas aisladas de Parte A pueden avanzar
+  sin esperar la integración global; no se inventan parámetros ni seeds oficiales.
+- R-12 y S2-A1/S2-A2 permiten avanzar con inicialización local atómica e idempotente
+  de perfil y stats, sin signals ni creación de User, con seis stats y puntos desde
+  configuración confiable. No sustituye el alta global/orquestación Ducky/Wallet de
+  Core ni cierra conservación legacy, identidad/auth o contratos compartidos.
+- Parte A puede diseñar y probar elegibilidad/reglas de Rewards con funciones puras
+  o fakes. El servicio local de XP histórica requiere cerrar su interfaz y diseño
+  transaccional; ningún avance aislado aprueba concesiones externas en conflicto
+  P1, APIs, tablas compartidas o contratos económicos. La integración con Fernando
+  sigue condicionada a reconciliar migraciones y fuentes canónicas, sin saldo paralelo.
 - Verificar duplicados/conflictos, premios sin XP, límites diarios concurrentes,
   rollback, permisos y compatibilidad de contratos. D-19 exige TransactionTestCase
   y una ejecución SQLite file-backed; tests pendientes, no ejecutados en este PR.
-- Completar Admin/interfaz/CRUD, historiales/Museo y evidencias PR07 según alcance.
+- Admin de Parte A ya está integrado; interfaz/CRUD restantes, historiales/Museo
+  y evidencias PR07 se completarán según alcance.
   [Plan de trabajo](team5-work-plan.md) concentra hitos y responsables.
 
 El cierre de una pregunta requiere evidencia y actualización del registro cuando
