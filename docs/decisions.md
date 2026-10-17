@@ -3,6 +3,18 @@
 Este es el registro principal de acuerdos y decisiones técnicas. Las propuestas
 pendientes se mantienen separadas de las decisiones confirmadas.
 
+## Lectura del registro y baseline DOC-1 · 18/10/2026
+
+Develop en `b42cb5f` incluye S1/S1.1, Día 4/5 y S2-A–S7-A (PR #22–#32).
+El [estado vigente de arquitectura](architecture.md#21-estado-vigente-de-implementación--doc-1)
+traza implementación, contratos y PR. Los apartados de bootstrap, V2 provisional,
+Día 4/5 y decisiones S1–S7-A conservan su redacción de origen: «futuro», «para
+revisión» o «pendiente» describen el incremento en que se registraron, no deshacen
+su integración posterior. En particular, D-12 documenta perfiles mínimos históricos;
+PR #24 los amplió y S7-A añadió StatAllocationEvent. La previsión D-19 de tests
+file-backed ya tiene cobertura local S2-A/S3/S7-A, sin extenderla a Rewards global.
+No se modifican decisiones confirmadas ni se atribuye aprobación externa.
+
 ## Requisitos de referencia: DAR3
 
 DAR3, sección 9 (páginas 48-50), asigna al Equipo 5 Ecomotor y evolución, avatar e
@@ -528,3 +540,16 @@ antes de exigir configuración/elegibilidad nueva, sin reinterpretación ni escr
 D-19 serializa con S3; overflow/inconsistencia no reparan. 0005 aditiva protegida
 y Admin solo lectura. CASCADE provisional y conservación Core/V2-A28 pendientes.
 Decisión interna, no aprobación técnica de DAR3, profesor, Core ni Rewards.
+
+## S8-A · Interfaz web de asignación — Aprobada y pausada
+
+Jaime aprueba internamente la arquitectura web S8-A y pausa su implementación
+por prioridad documental. **No está implementada ni integrada** en `b42cb5f`.
+Alcance acordado: interfaz GET/POST para asignación de puntos, utilizando
+exclusivamente [S7-A](contracts/ecomotor-stat-allocation-v1.md), autenticación
+Django existente, protección CSRF, identidad del perfil desde `request.user`
+e idempotencia. El adaptador no escribirá directamente stats o eventos ni
+creará un User o autenticación paralela. Esta nota no añade endpoints, reglas,
+valores ni un nuevo contrato global. No cambia decisiones S1–S7-A ni aprueba
+integración con Core, Rewards, Henry o Fernando. DOC-1 no implementa S8-A;
+DOC-2 y DOC-3 quedan fuera de este PR.

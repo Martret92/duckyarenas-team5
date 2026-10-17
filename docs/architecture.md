@@ -1,4 +1,4 @@
-# Arquitectura candidata V2 · Equipo 5 y Rewards v0
+# Arquitectura del Equipo 5 · Estado integrado y Rewards v0 candidato
 
 ## 1. Estado y fuentes
 
@@ -47,24 +47,12 @@ fueron aceptados por Jaime, Henry y Fernando para organizar el trabajo. No se
 reabre ese reparto: siguen pendientes la revisión física de apps, las interfaces
 A/B/C y los requisitos de Óscar/Core y de los equipos consumidores.
 
-El estado de `develop` al 16/10/2026 (`05d65f2`) incluye S1/S1.1 (PR #22),
-los catálogos y validadores de Día 4-A (PR #23), la estructura de progreso de
-Día 4-B (PR #24) y Django Admin de Parte A (PR #25). S1 calcula niveles, etapas
-y puntos sin ORM. En `apps.ecomotor` existen LevelThreshold, EvolutionStage,
-Specialization, CharacterStats, XPEvent, EvolutionEvent y
-UserSpecializationProgress; `apps.users` conserva UserProfileBank y amplía
-UserProfileEcomotor con XP histórica, nivel, etapa y especialización activa.
-Las migraciones estructurales mantienen M-01 fail-closed y reversiones protegidas.
-El Admin permite acceso a superusuarios activos: catálogos editables solo sin
-perfiles Ecomotor y progreso/historiales de consulta, sin borrados ni acciones
-masivas. Esta protección no implica inmutabilidad universal del ORM.
-
-Inicialización local S2-A, concesión de XP, evolución automática, asignación de
-puntos y Rewards siguen sin implementar en esta baseline. D-21 mantiene las
-cuatro apps objetivo; no acredita integración de Duckies, Bank o Shop ni resuelve
-sus contratos. D-18 conserva rutas/labels y D-11 la ubicación de los perfiles.
-Esta consolidación documental no mueve modelos ni valida la rama de Fernando;
-conservación, contratos físicos y reconciliación de migraciones siguen pendientes.
+**Antecedente del 16/10/2026 (`05d65f2`, PR #25):** el corte tras S1/S1.1,
+Día 4 y Admin aún no incluía S2-A–S7-A. Esa descripción queda superada por §2.1;
+no se reescriben las decisiones de aquellos incrementos. D-21 conserva cuatro apps
+objetivo, sin acreditar integración de Duckies, Bank o Shop. D-18 mantiene
+rutas/labels y D-11 la ubicación de perfiles. Conservación, contratos físicos y
+reconciliación de migraciones A/C siguen pendientes.
 
 D-05/D-09/D-10/D-17 conservan User estándar y ausencia de autenticación local.
 Se utiliza `settings.AUTH_USER_MODEL`. **Óscar es el interlocutor de Core/Equipo 0**
@@ -85,6 +73,47 @@ El catálogo comercial de Shop se distingue de la identidad/posesión de objetos
 Duckies. Cada servicio escribe su estado; la coordinación no autoriza escrituras
 directas en modelos de otra parte.
 
+### 2.1. Estado vigente de implementación · DOC-1
+
+Corte verificado el 18/10/2026: `origin/develop` en
+`b42cb5fdd5c4509670a337c1c79e260714c78c9f`. PR #32 es la última integrada;
+las PR de la tabla están fusionadas y sus commits pertenecen a esta baseline.
+Esto acredita implementación local, no aprobación externa ni integración global.
+
+| Incremento | PR integrada | Implementación y contrato local |
+| --- | --- | --- |
+| S1/S1.1 | [#22](https://github.com/Martret92/duckyarenas-team5/pull/22) | [progression.py](../apps/ecomotor/progression.py): resolve_level, resolve_stage y calculate_progression puros, sin ORM; [contrato S1](decisions.md#s1--cálculos-puros-de-progresión--aceptación-interna-provisional), trazado por [#26](https://github.com/Martret92/duckyarenas-team5/pull/26). |
+| Día 4-A/B | [#23](https://github.com/Martret92/duckyarenas-team5/pull/23), [#24](https://github.com/Martret92/duckyarenas-team5/pull/24) | Catálogos, perfil, stats, XPEvent, EvolutionEvent y progreso de especialización; [ERD y migraciones](erd/ecomotor.md#11-integración-estructural-vigente--día-4). |
+| Día 5 | [#25](https://github.com/Martret92/duckyarenas-team5/pull/25) | Admin solo para superusuarios; catálogos editables únicamente sin perfiles, progreso/historiales de consulta y borrados prohibidos. S7-A añade su evento como consulta. |
+| S2-A | [#27](https://github.com/Martret92/duckyarenas-team5/pull/27) | [Inicialización](contracts/ecomotor-initialization-v1.md) atómica e idempotente de perfil/stats para User existente, sin signals ni reparación legacy. |
+| S3 | [#28](https://github.com/Martret92/duckyarenas-team5/pull/28) | [Concesión XP](contracts/ecomotor-xp-v1.md): cálculo S1, puntos de niveles nuevos y todas las evoluciones en una transacción; replay histórico local. |
+| S4-A | [#29](https://github.com/Martret92/duckyarenas-team5/pull/29) | [Consultas](contracts/ecomotor-progress-queries-v1.md) de progreso e historial persistidos, solo lectura; sin snapshot único entre consultas concurrentes. |
+| S5-A | [#30](https://github.com/Martret92/duckyarenas-team5/pull/30) | [Web personal](contracts/ecomotor-progress-web-v1.md) GET/HEAD, login_required e identidad desde request.user; URL local ecomotor:progress, sin montaje en config/urls.py. |
+| S6-A | [#31](https://github.com/Martret92/duckyarenas-team5/pull/31) | [Configuración/diagnóstico](contracts/ecomotor-configuration-v1.md): JSON explícito y check_ecomotor_readiness; no activa el candidato ni configura el servidor. |
+| S7-A | [#32](https://github.com/Martret92/duckyarenas-team5/pull/32) | [Asignación](contracts/ecomotor-stat-allocation-v1.md) solo en Actual, coste 1:1, evento/snapshots idempotentes y migración 0005 aditiva protegida. |
+
+El esquema local de Parte A tiene **nueve entidades**: las ocho del V2 histórico
+más StatAllocationEvent. Sus modelos están en apps.ecomotor (ocho) y apps.users
+(UserProfileEcomotor); UserProfileBank no forma parte de ese recuento.
+No hay servicios integrados de especialización o XP de dominio, Rewards, economía,
+objetos o juegos. Las flechas de §5 representan arquitectura objetivo candidata.
+
+INITIAL_CONFIGURATION continúa en None. Existen carga JSON y diagnóstico técnico,
+pero faltan valores autorizados, instalación real y política histórica de cambios
+(P8/V2-A28). TECHNICALLY_READY no equivale a aprobación funcional. La consulta básica
+S4-A/S5-A no depende de configurar nuevas concesiones.
+
+S8-A está **aprobado internamente por Jaime y pausado, sin implementar**:
+adaptador web GET/POST para asignar puntos exclusivamente mediante S7-A,
+autenticación Django existente, CSRF, request.user e idempotencia. Véase
+[decisión S8-A](decisions.md#s8-a--interfaz-web-de-asignación--aprobada-y-pausada).
+No hay interfaz de escritura de puntos en la baseline actual.
+
+El repositorio contiene tests de modelos/migraciones, Admin, servicios, consultas,
+HTTP y concurrencia SQLite file-backed. Última regresión comunicada: **407 tests
+correctos**. DOC-1 revisa código, contratos y procedencia Git, sin volver a ejecutar
+la suite ni comprobar instalaciones o datos reales.
+
 ## 3. Requisitos funcionales y límites de V2
 
 La XP histórica es acumulativa y no decreciente. Resultado o XP provisional de
@@ -102,9 +131,10 @@ Sistemas, Data y Gamer**, dentro de Actual. Data / Data & IA y los códigos
 técnicos requieren normalización con los consumidores.
 
 Los stats son **ATK, DEF, LOG, SPE, VEL e INT**. Parte A distingue base persistente,
-puntos disponibles y valores efectivos. Su ERD acepta internamente ocho entidades,
+puntos disponibles y valores efectivos. El ERD V2 histórico aceptó ocho entidades,
 niveles independientes y transiciones múltiples; [erd/ecomotor.md](erd/ecomotor.md)
-conserva el detalle físico provisional. Ningún ejemplo del PDF aprueba iniciales,
+distingue ese antecedente del esquema vigente de nueve entidades tras S7-A.
+Ningún ejemplo del PDF aprueba iniciales,
 límites o tablas nuevas.
 
 DAR3 describe seis piezas principales por época obtenidas mediante progreso y
@@ -219,7 +249,7 @@ reservas, correcciones y devoluciones requieren contrato específico.
 
 ## 8. Pendientes y siguiente entrega
 
-### S4-A: consultas locales de progreso e historial en revisión
+### S4-A: consultas locales de progreso e historial integradas · PR #29
 
 [S4-A V1](contracts/ecomotor-progress-queries-v1.md), aprobado internamente por
 Jaime, consulta perfiles inicializados sin escrituras ni llamadas a S2-A/S3.
@@ -230,7 +260,7 @@ No utiliza atomic()/IMMEDIATE para lectura ni promete un snapshot único entre
 consultas concurrentes. No incorpora HTTP, autenticación de vistas ni CRUD PR07;
 Core, conservación, configuración oficial y contratos compartidos siguen pendientes.
 
-### S3 V1: concesión local de XP histórica en revisión
+### S3 V1: concesión local de XP histórica integrada · PR #28
 
 [S3 V1](contracts/ecomotor-xp-v1.md), aprobado internamente por Jaime bajo
 V2-A12/A22/A23 y D-19, concede XP solo sobre perfiles ya inicializados. Valida
@@ -244,17 +274,17 @@ esa limitación forma parte explícita del contrato. La configuración de códig
 autorizados sigue ausente, por lo que las concesiones nuevas reales permanecen
 bloqueadas hasta disponer de ella. Este incremento no cambia modelos/migraciones.
 
-### S2-A local: contrato aprobado para implementación
+### S2-A local: inicialización integrada · PR #27
 
-Parte A implementará [S2-A](contracts/ecomotor-initialization-v1.md), aprobado
+Parte A ya implementa [S2-A](contracts/ecomotor-initialization-v1.md), aprobado
 internamente por Jaime bajo V2-A13/D-19/R-12. Inicializa conjuntamente perfil y
 estadísticas de un User existente, con configuración confiable, catálogos validados
 y puntos del nivel 1. La configuración de atributos y códigos queda ausente hasta
 su autorización; los fixtures de tests no son configuración de producción.
 La idempotencia conserva progreso existente; estados parciales/legacy se rechazan.
 No sustituye el provisionamiento global Core ni implementa XP/Rewards/inventario.
-La baseline descrita en §2 es anterior a este incremento en revisión; no se alteran
-modelos ni migraciones. Conservación, contratos compartidos y parámetros oficiales
+S2-A se integró sin alterar modelos ni migraciones; la baseline vigente está en §2.1.
+Conservación, contratos compartidos y parámetros oficiales
 permanecen pendientes, sin aprobación global de Óscar.
 
 El contraste interno hasta el 16/10 distingue conformidad conceptual de integración:
@@ -282,16 +312,16 @@ Se mantiene el conflicto de XP externa, stats/cursos, compatibilidad REST,
 ownership realtime y alcance evaluable PR07. El controlador antiguo sencillo
 no bloquea el avance ni exige reutilización; el resto de la integración sigue abierta.
 
-El [ERD V2 provisional](erd/ecomotor.md) conserva sus ocho entidades físicas y
-V2-A1…V2-A29 internas condicionadas. Esta consolidación solo amplía su contexto
-conceptual y remite a Rewards v0; no concede aprobación global ni autoriza ORM.
+El [ERD de Parte A](erd/ecomotor.md) conserva el V2 histórico de ocho entidades
+y V2-A1…V2-A29 internas condicionadas; el esquema integrado añade StatAllocationEvent.
+DOC-1 no cambia ese ORM ni concede aprobación global a Rewards v0 o al ERD compartido.
 La demostración DAR3 de actividad, recompensa, compra, equipamiento e historial
 sigue como referencia, con alcance final por contrastar. Historiales/Museo,
 integraciones externas y pedidos físicos deben priorizarse sin eliminarlos
 silenciosamente. Techies y cotización variable quedan fuera de primera entrega
 según DAR3.
 
-## S5-A · Adaptador web personal local (en revisión)
+## S5-A · Adaptador web personal local integrado · PR #30
 
 El [contrato S5-A](contracts/ecomotor-progress-web-v1.md), aprobado internamente
 por Jaime/Parte A, adapta S4-A a una plantilla autónoma de lectura GET/HEAD.
@@ -304,7 +334,7 @@ no cambia. Montaje, login final, home y plantilla compartida dependen de Core.
 No sustituye CRUD PR07 ni resuelve configuración oficial o contratos globales.
 Conserva la ausencia de snapshot transaccional conjunto de S4-A.
 
-## S6-A · Candidato de configuración y diagnóstico local (en revisión)
+## S6-A · Carga de configuración y diagnóstico local integrados · PR #31
 
 El [contrato S6-A](contracts/ecomotor-configuration-v1.md) añade lectura explícita
 de JSON interno y diagnóstico SELECT de configuración/catálogos. El cargador
@@ -315,7 +345,7 @@ técnica y aprobación funcional son independientes. S2-A/S3 conservan contratos
 S4-A/S5-A sus consultas básicas. Sin esquema nuevo ni reparación/concurrencia
 transaccional añadida. Instalación autorizada, valores oficiales y V2-A28 pendientes.
 
-## S7-A · Asignación local de puntos (en revisión)
+## S7-A · Asignación local de puntos integrada · PR #32
 
 [S7-A](contracts/ecomotor-stat-allocation-v1.md) añade gasto transaccional 1:1 en
 un atributo base, solo en Actual validada por S1/catálogo/códigos confiables.
