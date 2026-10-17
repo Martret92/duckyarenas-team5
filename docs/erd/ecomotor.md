@@ -1,6 +1,7 @@
 # Ecomotor y evolución · ERD V2 provisional de Parte A
 
-> Incremento S7-A en revisión: [contrato](../contracts/ecomotor-stat-allocation-v1.md).
+> S7-A integrado en develop mediante [PR #32](https://github.com/Martret92/duckyarenas-team5/pull/32),
+> baseline `b42cb5f` verificada el 18/10/2026: [contrato](../contracts/ecomotor-stat-allocation-v1.md).
 > UserProfileEcomotor 1:N StatAllocationEvent, CASCADE provisional. Añade
 > operation_key, attribute, points_spent, increase_applied, available_points_before/after,
 > attribute_before/after (con signo), stage_code_at_allocation sin FK y created_at.
@@ -16,8 +17,9 @@ condiciones del [registro](../decisions.md). No es aprobación global de Óscar,
 Core ni Partes B/C, ni autorización del ORM definitivo. D-01…D-19 siguen intactas;
 D-20/D-21 registran acuerdos internos de reparto/apps del 08/10. D-13 queda
 como antecedente y D-14…D-16 conservan validación técnica pendiente.
-El estado de implementación estructural se detalla en §1.1; no implica aprobación
-global ni implementación de los servicios descritos en el diseño.
+El estado estructural integrado se detalla en §§1.1–1.2. S1–S7-A locales ya están
+implementados según [arquitectura](../architecture.md#21-estado-vigente-de-implementación--doc-1);
+esto no implica aprobación global ni integración con Core/B/C/Rewards.
 
 DAR3 es la referencia general. Las especificaciones posteriores de
 `DuckyEcomotor.pdf`, `DAR_formulas.pdf`, `DAR_DuckyClash.pdf`, `DuckyTraining.pdf`
@@ -31,12 +33,11 @@ Este documento sustituye la descripción operativa V1 por el diseño V2 provisio
 A-01…A-16 se conservan como antecedentes en §10; no se revocan retroactivamente.
 El ERD consolidado del Equipo 5, los contratos y el ORM definitivo siguen pendientes.
 
-### 1.1. Integración estructural de Día 4
+### 1.1. Integración estructural vigente · Día 4
 
 Los catálogos LevelThreshold, EvolutionStage y Specialization ya están en
-`develop` mediante `ecomotor.0001_initial` (PR #23). La rama
-`feature/part-a-progress-models-day4-integration`, basada en `e8cc573`, incorpora
-para revisión las otras cinco entidades del ERD V2:
+`develop` mediante `ecomotor.0001_initial` (PR #23). Las otras cinco entidades
+del ERD V2 se integraron mediante PR #24, basada en `e8cc573`:
 
 | Entidad | Migración |
 | --- | --- |
@@ -45,7 +46,7 @@ para revisión las otras cinco entidades del ERD V2:
 | XPEvent y EvolutionEvent | ecomotor.0003_xp_and_evolution_events |
 | UserSpecializationProgress | ecomotor.0004_user_specialization_progress |
 
-Las ocho entidades tienen representación física en esta rama; la arquitectura
+Las ocho entidades históricas tienen representación física en develop; la arquitectura
 V2 sigue siendo interna y provisional. M-01 aborta ante perfiles Ecomotor legacy
 antes de modificar el esquema; no asigna niveles ni etapas y permite usuarios
 sin ese perfil y perfiles Bank. Las cuatro migraciones bloquean su reversión
@@ -53,22 +54,52 @@ automática, incluso sin datos. No crean personajes, catálogos ni eventos.
 
 CASCADE al perfil y al XPEvent causal sigue siendo provisional; las etapas y
 especializaciones referenciadas usan PROTECT. La igualdad entre el perfil de
-EvolutionEvent y el de su XPEvent causal pertenece al futuro servicio, no a una
+EvolutionEvent y el de su XPEvent causal se valida en S3, no mediante una
 constraint entre tablas. Los historiales son conceptualmente inmutables, sin
 protección física completa. La clave de XPEvent es local al perfil y a XP
 histórica; no deduplica Rewards. La XP de dominio permanece independiente.
 
-No se integran Admin, inicialización S2, concesión de XP, evolución automática,
-asignación de puntos ni Rewards. S1/S1.1 permanece intacto. Continúan pendientes
-la conservación y el tratamiento legacy con Core, los contratos A/B/C/Rewards,
-los parámetros oficiales y las reglas funcionales de especialización. Esta
-preparación de PR no autoriza su merge ni atribuye aprobación global a Óscar.
+Admin y S2-A–S7-A también están integrados (PR #25 y #27–#32); véanse los
+[contratos locales](../architecture.md#21-estado-vigente-de-implementación--doc-1).
+Conservación/legacy global, parámetros autorizados, especializaciones/XP de dominio
+y contratos A/B/C/Rewards continúan abiertos.
 
-## 2. Entidades y cardinalidades
+### 1.2. Esquema físico vigente · StatAllocationEvent (S7-A)
 
-Ocho entidades principales: perfil en `apps.users`; las otras siete en
-`apps.ecomotor`. Se conservan las rutas y labels de D-18. Core conserva User y
-autenticación; las relaciones al usuario utilizarán `settings.AUTH_USER_MODEL`.
+La migración [0005_stat_allocation_event](../../apps/ecomotor/migrations/0005_stat_allocation_event.py),
+posterior a ecomotor.0004 y users.0002, añade únicamente la tabla y sus constraints,
+sin backfill, con reversión protegida incluso vacía. Su modelo está en
+[apps/ecomotor/models.py](../../apps/ecomotor/models.py).
+Parte A tiene ahora **nueve entidades físicas**: ocho en apps.ecomotor y el perfil
+en apps.users. El diagrama/diccionario de §§2–5 conservan el V2 histórico de ocho;
+no representan por sí solos todo el esquema vigente.
+
+**Relación añadida:** UserProfileEcomotor 1 → 0..N StatAllocationEvent; cada evento
+pertenece a un perfil mediante FK CASCADE provisional. No hay FK a EvolutionStage,
+XPEvent, User, Rewards, Bank ni inventario: se conserva el código histórico de etapa.
+
+| Campo persistido | Tipo / significado vigente |
+| --- | --- |
+| id | BigAutoField autogenerado |
+| profile | ForeignKey a users.UserProfileEcomotor; CASCADE provisional |
+| operation_key | CharField(255), no vacío; UNIQUE(profile, operation_key) |
+| attribute | CharField(16), uno de atk, def_stat, log_stat, spe, vel, int_stat |
+| points_spent / increase_applied | PositiveIntegerField; positivos e iguales (coste 1:1) |
+| available_points_before / after | PositiveIntegerField; before = after + points_spent |
+| attribute_before / after | IntegerField con signo; after = before + increase_applied |
+| stage_code_at_allocation | CharField(32), no vacío; snapshot sin FK al catálogo |
+| created_at | DateTimeField(auto_now_add=True) |
+
+El [servicio S7-A](../contracts/ecomotor-stat-allocation-v1.md) valida elegibilidad
+en Actual y persiste stats y evento atómicamente; esa elegibilidad no es un CHECK
+entre tablas. Replay devuelve snapshots originales; no reinterpreta catálogos.
+Admin solo lectura. Valores funcionales, conservación y V2-A28 siguen pendientes.
+
+## 2. Entidades y cardinalidades · V2 histórico de ocho entidades
+
+Antecedente de diseño previo a S7-A: perfil en apps.users y otras siete entidades
+en apps.ecomotor. Se conservan rutas/labels D-18 y referencias a
+settings.AUTH_USER_MODEL. La ampliación vigente está en §1.2.
 
 ```mermaid
 erDiagram
@@ -150,10 +181,12 @@ Cada catálogo puede tener cero o muchas referencias históricas/progresos.
 
 ## 3. Diccionario V2 provisional
 
-El diccionario conserva la especificación V2 provisional. Su representación física
-en la rama de integración se describe en §1.1; las reglas de servicio y parámetros
-pendientes no se consideran implementados por crear las tablas. D-12 se conserva
-como antecedente de los perfiles mínimos, ampliados estructuralmente en este PR.
+El diccionario conserva la especificación V2 provisional histórica de ocho entidades,
+con previsiones anteriores al ORM; no sustituye los modelos/migraciones integrados
+de §§1.1–1.2 ni sus contratos S2-A–S7-A. Los términos «previsto», «futuro» o «por
+confirmar» de sus tablas expresan ese corte histórico, sin revertir lo implementado.
+D-12 se conserva como antecedente de los perfiles mínimos ampliados por PR #24.
+La novena entidad vigente es StatAllocationEvent, no RewardEvent ni XP de dominio.
 
 | Entidad | Datos y significado | Integridad y trazabilidad |
 | --- | --- | --- |
@@ -326,9 +359,9 @@ se garantizan únicamente con constraints de fila.
 
 La inicialización explícita (V2-A13) crea/valida perfil y stats conjuntamente,
 con XP histórica 0, primer nivel configurado, Prehistoria y sin especialización
-activa. Los puntos iniciales y la aplicación de los puntos del primer nivel deben
-concretarse con la configuración revisada, sin doble concesión; atributos iniciales no
-están fijados. Un reintento devuelve el estado inicializado sin resetearlo.
+activa. S2-A ya toma los puntos iniciales de stat_points_awarded del nivel 1, sin doble
+concesión; los atributos iniciales requieren configuración confiable autorizada
+y no se han fijado valores oficiales. Un reintento devuelve el estado inicializado sin resetearlo.
 No utiliza signals ni crea XPEvent/EvolutionEvent ficticios. Un perfil legacy o
 parcial no se trata silenciosamente como nuevo: se aplica M-01.
 
@@ -444,19 +477,23 @@ Las 29 decisiones, sin añadir otras, se registran individualmente en
 están en [pending-decisions.md](../pending-decisions.md); las tareas y pruebas en el
 [plan](../team5-work-plan.md). No se da por aprobado ningún contrato de B/C o Core.
 
-## 11. Verificación previa a implementación
+## 11. Verificación · antecedente y estado vigente
 
-Revisar con Core conservación, M-01 y dependencias de migración; con B/C Rewards,
+El plan previo a implementación siguiente se conserva como antecedente V2:
+revisar con Core conservación, M-01 y dependencias de migración; con B/C Rewards,
 vestimenta y compras; con Óscar parámetros ambiguos, especialización y alcance V1.
 Después del diseño revisado, probar inicialización/reintentos/legacy, XP y dominio
 independientes, umbrales múltiples, puntos, eventos causales, invariantes y claves
 conflictivas, permisos, rollback y recuperación multidominio. D-19 exige
 TransactionTestCase y al menos una ejecución SQLite file-backed para concurrencia.
-Son pruebas futuras, no tests implementados por esta tarea documental.
+Inicialización, XP, consultas y asignación ya cuentan con tests locales integrados,
+incluidas concurrencia file-backed y migraciones protegidas. Especialización/dominio
+y recuperación multidominio siguen pendientes. Última regresión comunicada: 407
+correctos; DOC-1 no ejecuta de nuevo la suite ni añade tests.
 
-## 12. Contexto 08/10–09/10 y Rewards v0 candidato
+## 12. Antecedente fechado 08/10–09/10 y Rewards v0 candidato
 
-Actualización exclusivamente conceptual: el diagrama, las ocho entidades, campos,
+En aquel corte, la actualización fue exclusivamente conceptual: el diagrama, las ocho entidades, campos,
 cardinalidades, constraints y políticas provisionales de §§2–5 permanecen intactos.
 D-20/D-21 fijan reparto/apps objetivo, sin trasladar modelos o aprobar integración.
 

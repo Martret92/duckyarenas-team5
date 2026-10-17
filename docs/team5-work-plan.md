@@ -1,15 +1,16 @@
-# Plan de trabajo · Consolidación V2 y Rewards v0
+# Plan de trabajo · Estado hasta S7-A y pendientes del Equipo 5
 
 ## 1. Estado y referencias
 
 El reparto y apps objetivo del 08/10 son acuerdos internos D-20/D-21.
-Hitos, prioridad y autonomía de este plan son propuestas operativas;
-no aprueban ORM, contratos compartidos ni el alcance final V1.
+Corte DOC-1 del 18/10/2026: develop en `b42cb5f` (PR #32). Los estados siguientes
+distinguen implementación local, aprobación interna pausada, decisiones pendientes
+y dependencias externas; no aprueban contratos compartidos ni alcance final V1.
 
 [Arquitectura](architecture.md) concentra fuentes funcionales y notas de las dailys;
 [decisiones](decisions.md), acuerdos; [pendientes](pending-decisions.md), preguntas;
 [Rewards v0](contracts/rewards-v0.md), contrato candidato;
-[ERD Parte A](erd/ecomotor.md), ocho entidades físicas provisionales.
+[ERD Parte A](erd/ecomotor.md), ocho entidades históricas V2 más StatAllocationEvent integrado en S7-A.
 A-01…A-16 son antecedentes; V2-A1…V2-A29 siguen internas y condicionadas.
 
 DAR3 §§9–10 requiere una vertical integrada, recompensa única, compra consistente
@@ -26,7 +27,7 @@ formativos se distinguen del calendario de entrega del producto.
 
 | Responsable | Parte y apps | Trabajo inmediato propuesto |
 | --- | --- | --- |
-| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | Consolidar contrato candidato, reglas pendientes y consultas; revisar condiciones del ERD sin alterar las ocho entidades en este PR. |
+| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | S1–S7-A integrados; S8-A aprobado y pausado. Continuar con configuración autorizada, especializaciones/XP de dominio y Rewards según decisiones y contratos pendientes. |
 | Henry | B · `apps.duckies`: Duckies, avatar, objetos, inventario y equipamiento | Revisar catálogo/posesión, concesiones/consumos, compatibilidad y contrato de objetos con Rewards/Shop. |
 | Fernando | C · `apps.bank` y `apps.shop`: wallet, movimientos, catálogo comercial y compras | Revisar diseño B/C, créditos/débitos idempotentes, coordinación de compra y reservas solo si se incluyen apuestas. |
 | Equipo 5 con Óscar/Core | `apps.users` conservada; integración de identidad/JWT | Resolver autenticación, permisos, conservación y legacy antes de la parte afectada. |
@@ -55,10 +56,11 @@ Rewards v0 conserva su estado candidato.
 2. **Contrato compartido:** revisar Rewards v0 con Henry/Fernando, Óscar/Core y
    juegos: identidad, huella, reglas/resultados, claves locales y transacción
    compartida con misma BD/conexión.
-3. **Diseño físico afectado:** revisar conservación/FKs/on_delete y consolidar
-   A/B/C antes de ORM. RewardRule/RewardEvent no son tablas aprobadas.
-4. **Servicios y vertical:** implementar solo después del diseño y alcance
-   revisados. Priorizar actividad validada → premio → progreso/monedas/objetos
+3. **Diseño físico compartido:** revisar conservación/FKs/on_delete y consolidar
+   A/B/C antes del ORM afectado. El esquema local A ya está integrado;
+   RewardRule/RewardEvent no son tablas aprobadas.
+4. **Servicios y vertical:** S1–S7-A locales están implementados. La vertical
+   multidominio requiere diseño y alcance revisados: actividad validada → premio → progreso/monedas/objetos
    → compra → equipamiento → historial conforme a DAR3.
 5. **Evaluación/integración:** Admin, CRUD evaluable, permisos, tests y evidencias
    PR07; validar REST, realtime y RPG con Óscar/Core/juegos sin aplazarlos
@@ -69,7 +71,7 @@ Cambios de reglas, como elegibilidad de XP o condiciones de stats, sí requieren
 acuerdo antes del servicio afectado. D-16 sigue pendiente; datos de prueba
 identificados no son valores oficiales ni prueban la adopción de una regla.
 
-## 4. Hitos propuestos
+## 4. Hitos y estado vigente
 
 H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
 
@@ -77,10 +79,10 @@ H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
 | --- | --- |
 | H0 · Base | Bootstrap, apps actuales bajo apps/ y perfiles iniciales documentados. Día 1: check y cuatro tests correctos, sin nuevas migraciones y servidor con HTTP 200; evidencia histórica, no ejecución nueva ni validación del dominio V2. |
 | H1 · Diseño/documentación | Candidata V2 y ERD interno existentes; acuerdos 08/10 y notas de la daily 09/10 consolidados para revisión. Rewards v0 candidato. Pendientes condiciones funcionales/Core, B/C y contratos antes de ORM afectado; no completado globalmente. |
-| H2 · ORM y servicios | Futuro: modelos/migraciones y servicios tras H1 revisado, con propiedad por dominio y D-19. No crear apps ni servicios por esta consolidación. |
+| H2 · ORM y servicios | Implementado localmente en A: Día 4 (PR #23/#24), S1/S1.1 (#22), S2-A (#27), S3 (#28), S4-A (#29), S6-A (#31) y S7-A (#32). Pendientes especializaciones, XP de dominio y Rewards; B/C e integración global dependen de sus contratos y migraciones. |
 | H3 · Vertical mínima | Futuro: actividad, recompensa, compra y equipamiento con interfaz/permiso. Training distingue XP repetible/límite monetario; Escape distingue parcial/final. No imponer autoequipamiento. |
-| H4 · CRUD/historiales/Museo | Futuro: alcance evaluable acordado, historiales de A/B/Bank y composición Museo sin editar arbitrariamente estados derivados. |
-| H5 · Robustez | Futuro: integridad, duplicados, conflictos, límites, fallos, autorización y concurrencia. Las pruebas empiezan en H2. |
+| H4 · CRUD/historiales/Museo | Implementados Admin seguro (#25 y evento S7-A), consultas/historial XP S4-A y página personal GET/HEAD S5-A (#30). S8-A aprobado por Jaime, pausado sin implementación. CRUD evaluable PR07, historial web de asignaciones y Museo compartido siguen pendientes de alcance. |
+| H5 · Robustez | Tests locales implementados: integridad/migraciones, Admin, servicios, consultas, HTTP, replay/conflictos, rollback y concurrencia SQLite file-backed. Última regresión comunicada: 407 correctos, no reejecutada en DOC-1. Robustez multidominio y autorización global siguen pendientes. |
 | H6 · Integración/demo/evidencias | Futuro: Core y juegos, REST y cobertura realtime acordada, demo y aportaciones individuales. RPG completo, apuestas, externo y pedidos físicos según alcance confirmado. |
 
 Se conserva DAR3: demo inicial con Prehistoria, Grecia y Roma; no equivale al
@@ -95,13 +97,16 @@ a condiciones del ERD y pendientes, no se descartan por una propuesta de MVP.
 ### Jaime · Parte A
 
 - Obtener aclaraciones P1/P2/P3/P7/P8 y coordinar R1–R8 de pendientes.
-- Revisar servicio independiente de puntos y premios sin XP; XP histórica y de
-  dominio distintas, sin XPEvent ficticios. Mantener las condiciones físicas
-  provisionales de Parte A y M-01.
-- Acordar consultas de progreso/stats y encaje calculate-action/commit-rewards;
-  coordinar Escape actualizado y Training con sus emisores.
-- Después de H1, implementar y probar progreso, inicialización, transiciones,
-  puntos, Rewards y lecturas de historial/Admin del alcance validado.
+- S7-A ya gasta puntos disponibles con coste 1:1 en Actual e historial idempotente.
+  Sigue pendiente conceder puntos directos como premio sin XP; no es la asignación
+  de S7-A. XP histórica y de dominio siguen separadas, sin eventos ficticios; M-01 vigente.
+- S4-A/S5-A ya consultan progreso e historial; acordar integración con
+  calculate-action/commit-rewards, Escape actualizado y Training con sus emisores.
+- S1–S7-A están integrados y no esperan la integración global para su diseño local.
+  S8-A, interfaz GET/POST basada exclusivamente en S7-A, está aprobado y pausado por
+  prioridad documental; reanudar solo conforme a ese alcance, sin incluirlo en DOC-1.
+- Pendientes: configuración funcional e instalación real (S6-A no la activa),
+  especializaciones/XP de dominio, Rewards y contratos Core/A/B/C/juegos.
 
 ### Henry · Parte B
 
@@ -136,18 +141,18 @@ Las compras coordinan saldo e inventario. Si se implementan apuestas de Clash,
 se reservan ambas apuestas al aceptar el duelo; DAR3 permite una primera entrega
 sin apuestas. D-19 es una decisión técnica del Equipo 5, no una configuración de DAR3.
 
-## 6. Pruebas futuras y criterio de cierre
+## 6. Pruebas existentes, pendientes y criterio de cierre
 
 No se añaden ni ejecutan tests Django en este PR documental.
 
-| Área | Comprobaciones tras validar diseño |
+| Área | Comprobaciones existentes / pendientes |
 | --- | --- |
-| A | XP histórica no decreciente; niveles/etapas independientes y transiciones múltiples; stats/puntos, inicialización idempotente sin eventos ficticios; legacy fail-closed. |
+| A | Implementados tests de S1–S7-A, Admin, modelos y migraciones: progresión, inicialización, XP, consultas, HTTP y asignación idempotente. Legacy fail-closed local no cierra conservación global ni configuración autorizada. Especializaciones/XP de dominio y Rewards pendientes. |
 | B | Posesión/cantidades, concesiones/consumos idempotentes, compatibilidad y equipamiento; historiales y objetos por condiciones acordadas. |
 | C | `saldo >= 0` y fondos suficientes antes de débito; créditos/débitos sin duplicados, concurrencia, movimientos con origen/motivo y consistencia cargo-entrega; reserva de ambas apuestas al aceptar solo bajo alcance confirmado. |
 | Rewards | APPLIED/NO_REWARD repetidos, conflicto, premios sin XP, referencias a efectos, versiones, rollback de cada propietario y autorización. |
 | Training/Escape | Hechos distintos compitiendo por límite monetario diario; parcial/final sin doble premio; penalización provisional sin pérdida de XP consolidada. |
-| D-19 | TransactionTestCase y al menos una ejecución SQLite file-backed: escritores concurrentes, locks/timeout, misma clave, rollback y retry en nueva transacción. |
+| D-19 | Existen TransactionTestCase file-backed para S2-A/S3/S7-A: escritores, locks/timeout, replay/conflictos, rollback y retry. Se mantiene la exigencia para futuros servicios; no garantiza atomicidad multidominio. No reejecutados en DOC-1. |
 | PR07/integración | CRUD evaluable de al menos dos entidades apropiadas; validación de formularios, permisos/aislamiento entre usuarios y pruebas HTTP de respuestas/redirecciones 200/302/403/404 donde corresponda; contratos REST/realtime validados. |
 
 D-19 permanece íntegra; la transacción exterior compartida es propuesta
@@ -172,7 +177,7 @@ resolución; no se inventan bugs ni se crea ese documento en esta consolidación
 El tag Git `v1.0.0` es un hito previsto de release, junto con PR de release,
 instrucciones de despliegue local y presentación/demo, no una tarea inmediata.
 
-Este único cambio documental queda para revisión antes de commit/push/PR.
+DOC-1 sincroniza exclusivamente documentación; DOC-2/DOC-3 y S8-A quedan fuera.
 Actualizar plan/pendientes cuando llegue una respuesta y registrar acuerdos
 formales cuando corresponda. No inventar respuestas del profesor ni presentar
 esta propuesta como aprobación global del ERD V2.

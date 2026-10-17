@@ -10,8 +10,9 @@ D-17, D-18 y D-19 continúan vigentes; no se reabre la política SQLite.
 [Arquitectura](architecture.md) concentra requisitos documentales y conclusiones
 de las dailys del 06, 07, 08, 09 y 13/10/2026, con su categoría y estado.
 [Rewards v0](contracts/rewards-v0.md) es base técnica provisional, no contrato
-global aprobado. El [ERD de Parte A](erd/ecomotor.md) conserva ocho entidades y
-V2-A1…V2-A29 internas condicionadas; no hay aprobación global ni ORM definitivo.
+global aprobado. El [ERD de Parte A](erd/ecomotor.md) conserva el antecedente V2
+de ocho entidades y V2-A1…V2-A29 internas condicionadas; el esquema local integrado
+añade StatAllocationEvent (S7-A, PR #32). No hay aprobación global del ORM compartido.
 
 ### 1.1. Criterio de clasificación y procedencia
 
@@ -59,13 +60,13 @@ por sí solos toda la revisión conceptual.
 | ID | Evidencia / estado | Pregunta de cierre | Validadores e impacto |
 | --- | --- | --- | --- |
 | P1 · XP externa | Daily del 09/10/2026: rectificación funcional, en tensión con Ecomotor pp. 1–2 y 6 | ¿XP solo juegos afecta a histórica o también dominio? ¿Qué actividades externas conservan monedas, objetos o puntos? ¿Desde cuándo, qué ocurre con usuarios/recompensas existentes y cómo configurar nuevas actividades? Confirmación escrita sin borrados, recálculos ni conversión automática de todas las actividades externas a premios sin XP. | Óscar, Jaime/Core; bloquea elegibilidad definitiva y migración afectada, no el contrato conceptual. |
-| P2 · Stats | Daily del 09/10/2026: se habló de stats por rol antes de Actual y distribución/edición de puntos en Actual; aclaración parcial | Iniciales, tabla/presupuesto, límites, redistribución y efectos al especializarse. No adoptar todos a 5, tabla de Clash o suma de 45 como defaults oficiales. | Óscar, Jaime, Henry y juegos; inicialización, límites y servicios de asignación. |
+| P2 · Stats | Daily del 09/10/2026: stats por rol antes de Actual y distribución/edición en Actual, aclaración parcial. S7-A integrado (PR #32) resuelve internamente asignación solo en Actual, coste 1:1 e historial idempotente; no es aprobación global del profesor. | Siguen abiertos iniciales, tabla/presupuesto, límites, redistribución, efectos al especializarse y demás condiciones funcionales. No adoptar todos a 5, tabla de Clash o suma de 45 como defaults oficiales. | Óscar, Jaime, Henry y juegos; S2-A/S7-A locales existen, parámetros y límites funcionales siguen pendientes. |
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y tratamiento legacy. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
 | P6 · Vestimenta/Museo | DAR3 contempla progreso y misiones y conservación de progresos y conjuntos anteriores; arquitectura y ERD global consolidados por PR #21. | R-01 sigue mixto/pendiente: separar adquisición de piezas y posibles variantes comprables, concesión/posesión, equipamiento automático y selección de apariencia. Acordar condiciones al saltar etapas, compatibilidad, Museo y adaptación de nueve épocas a siete etapas V2 provisionales. La selección libre de apariencias completas desbloqueadas es propuesta a Óscar, no política adoptada; no se rebaja la conservación prevista en DAR3. | Óscar, Henry y Fernando, con Jaime para evolución; ERD consolidado y vertical. |
 | P7 · Especializaciones | Actual aclarado; selección/rangos parciales | Obligatoriedad, acceso, cambios/reinicio/nueva elección no aprobados, XP de dominio y rangos Junior/Middle/Senior/Maestro. Normalizar Sistemas/AdminSys, Data/Data & IA y códigos sin adoptar ejemplos. | Óscar, Jaime y juegos; catálogos y servicios. |
-| P8 · Umbrales/configuración | Invariantes internas V2-A20/A21 documentadas; política restante abierta | Valores oficiales y cambios prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
+| P8 · Umbrales/configuración | Invariantes V2-A20/A21 y carga JSON/diagnóstico S6-A ya implementados localmente; INITIAL_CONFIGURATION sigue ausente. | Valores autorizados, instalación real por proceso y cambios históricos prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. S6-A no activa el servidor ni aprueba producción. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
 ### Integración pendiente con Core y servicios económicos comunes
 
@@ -113,6 +114,11 @@ R-05/R-08 del ERD global no ratifica esos detalles con Fernando/Core/juegos.
 | R7 · Correcciones/incidentes | Hechos corregidos, NO_REWARD final, ajustes, devoluciones y reintentos tras fallo; política ante cambio de reglas. | A/B/C/Core/Óscar; no reescribir resultados previos ni convertir fallos en NO_REWARD. |
 | R8 · API documentada | Adaptación a calculate-action/commit-rewards: significado de cantidades/stats, validación y respuesta; atomicidad de batch y resultados por destinatario. | Jaime, Core y juegos; conservar referencias de DAR_formulas, no aprobar otra API incompatible. |
 
+La referencia de R5 al ERD mínimo corresponde al antecedente de ocho entidades:
+S7-A ya añade StatAllocationEvent, que registra gasto/asignación de puntos locales,
+no concesión de puntos como premio ni trazabilidad global Rewards. R1–R8 siguen
+abiertos; S2-A/S3/S7-A no aprueban por inferencia sus mecanismos compartidos.
+
 ## 4. Juegos, compras y alcance V1
 
 | ID | Evidencia / asunto pendiente | Validadores y siguiente paso |
@@ -135,26 +141,32 @@ organización no los confirma por extensión.
 
 - Revisar conjuntamente contrato Rewards y diseños B/C antes de integrar la rama
   de Fernando; esta consolidación no modifica ni valida esa rama.
-- Consolidar ERD/diccionarios A/B/C con referencias y borrado acordados antes
-  del ORM afectado. Mantener las ocho entidades provisionales de A y condiciones
-  M-01, V2-A20/A21 y conservación.
+- Consolidar ERD/diccionarios A/B/C y borrado acordado antes del ORM compartido
+  afectado. Conservar la trazabilidad V2 de ocho entidades y reconocer la novena
+  integrada por S7-A; M-01, V2-A20/A21 y conservación siguen vigentes.
 - S1/S1.1, modelos/migraciones de Día 4 y Admin de Día 5 ya están integrados
   (PR #22–#25). Las funciones puras y pruebas aisladas de Parte A pueden avanzar
   sin esperar la integración global; no se inventan parámetros ni seeds oficiales.
-- R-12 y S2-A1/S2-A2 permiten avanzar con inicialización local atómica e idempotente
-  de perfil y stats, sin signals ni creación de User, con seis stats y puntos desde
-  configuración confiable. No sustituye el alta global/orquestación Ducky/Wallet de
-  Core ni cierra conservación legacy, identidad/auth o contratos compartidos.
-- Parte A puede diseñar y probar elegibilidad/reglas de Rewards con funciones puras
-  o fakes. El servicio local de XP histórica requiere cerrar su interfaz y diseño
-  transaccional; ningún avance aislado aprueba concesiones externas en conflicto
-  P1, APIs, tablas compartidas o contratos económicos. La integración con Fernando
-  sigue condicionada a reconciliar migraciones y fuentes canónicas, sin saldo paralelo.
-- Verificar duplicados/conflictos, premios sin XP, límites diarios concurrentes,
-  rollback, permisos y compatibilidad de contratos. D-19 exige TransactionTestCase
-  y una ejecución SQLite file-backed; tests pendientes, no ejecutados en este PR.
-- Admin de Parte A ya está integrado; interfaz/CRUD restantes, historiales/Museo
-  y evidencias PR07 se completarán según alcance.
+- R-12 y S2-A1/S2-A2 ya se materializan en S2-A (PR #27): inicialización local
+  atómica e idempotente de perfil/stats para User existente, sin signals, con
+  configuración confiable. No sustituye alta global Ducky/Wallet, conservación
+  legacy, identidad/auth o contratos Core.
+- S3 (#28) ya concede XP histórica/puntos de nivel/evolución; S4-A (#29) consulta
+  progreso e historial; S5-A (#30) ofrece lectura personal local; S6-A (#31) carga
+  JSON y diagnostica sin instalar; S7-A (#32) gasta puntos 1:1 solo en Actual e
+  historiza con idempotencia. Configuración funcional e instalación real pendientes.
+- Parte A puede diseñar/probar elegibilidad y reglas de Rewards con funciones puras
+  o fakes. Estos servicios locales no resuelven XP externa P1, APIs, trazabilidad
+  global, concesión directa de puntos sin XP ni contratos económicos. Integrar
+  Fernando exige reconciliar migraciones y fuente canónica, sin saldo paralelo.
+- Hay tests locales de replay/conflictos, rollback, migraciones, permisos HTTP y
+  concurrencia SQLite file-backed S2-A/S3/S7-A. La última regresión comunicada es
+  de 407 tests correctos; DOC-1 no los ha reejecutado. Premios sin XP, límites diarios
+  multidominio y contratos siguen pendientes de implementación/integración.
+- Admin y consulta personal están integrados; S8-A GET/POST de asignación está
+  aprobado internamente por Jaime y pausado, sin implementar. CRUD evaluable,
+  especializaciones/XP de dominio, historiales/Museo global y evaluación PR07 siguen
+  abiertos. P1, P3–P7 y R1–R8 no se cierran por estos avances locales.
   [Plan de trabajo](team5-work-plan.md) concentra hitos y responsables.
 
 El cierre de una pregunta requiere evidencia y actualización del registro cuando
