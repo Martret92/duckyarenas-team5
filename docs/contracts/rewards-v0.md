@@ -13,6 +13,31 @@ Daily del 09/10/2026: se indicó centralización funcional, sin resolver el cont
 Las preguntas y condiciones de implementación están en
 [pending-decisions.md](../pending-decisions.md).
 
+### Contraste DOC-2 · 18/10/2026
+
+La [matriz canónica de integración](integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2)
+traza E5-01…E5-05, decisiones atribuidas al usuario en el catálogo y respuestas
+externas 15–16/10. Guía v0.1 y kit v0.3 siguen siendo propuestas; este contrato
+**conserva la versión v0 candidata**, sin aprobación de nuevas tablas o firmas.
+
+Training comunica importes/reglas locales distintos de T-01; Quiz mezcla baremos
+con liquidación por score; Escape prefiere C mixta sin aceptar E-01. No se fijan
+cantidades, límites o endpoints por estas respuestas. Cobro único de pistas y
+relectura gratuita no prueban integración Bank; la eliminación de penalizaciones
+sigue en conflicto E5/Escape. T-01/Q-01/E-01 y precios 3/5/8 o 2/4/6 sin ratificar;
+los 4/3/4 DC de tres productos solo se atribuyen a demo interna.
+
+E5-03 declara Bank como única Wallet global, pero CORE-05 no aporta confirmación
+de cierre: se conserva pendiente el encaje técnico y fuente física canónica, sin
+saldo duplicado. Los diseños de vestimenta/autoequipamiento, variantes y
+transformación no están ratificados globalmente. Conformidad conceptual previa
+de Henry con ItemGrant/RewardEvent no aprueba sus modelos o contratos físicos.
+
+S3 y S7-A ya están integrados localmente: conceder XP/puntos de nivel y gastar
+puntos disponibles son operaciones distintas de evaluar una recompensa global o
+conceder puntos directos. La novena entidad local es StatAllocationEvent; no
+implica RewardEvent, RewardRule o ItemGrant implementados. S8-A permanece pausado.
+
 ## 2. Entrada lógica y propietarios
 
 Rewards es el punto lógico de entrada para **hechos recompensables validados**,
@@ -126,7 +151,8 @@ Formato técnico y respuesta de batch quedan pendientes.
 
 No se fijan campos Django, longitudes, índices, FKs, CASCADE/PROTECT/SET_NULL o
 políticas de retención. Las referencias podrían tomar distintas representaciones
-tras el acuerdo compartido. No se incorpora una novena entidad al ERD mínimo.
+tras el acuerdo compartido. No se incorpora RewardEvent al esquema integrado
+de Parte A; StatAllocationEvent de S7-A es un historial local diferente.
 
 **APPLIED** significa que los efectos acordados quedaron confirmados junto con
 el registro final. **NO_REWARD** significa hecho válido evaluado sin efectos,
@@ -226,8 +252,9 @@ Acordar identidad/huella y permisos; versión de reglas; referencias y conservac
 con Óscar/Core; claves locales; límites temporales; servicio de puntos; XP de dominio;
 compatibilidad calculate-action/commit-rewards y Escape actualizado.
 Revisar capacidad real de compartir transacción con Henry y Fernando.
-Las ocho entidades de [Parte A](../erd/ecomotor.md) conservan su diseño provisional;
-las decisiones físicas adicionales requieren revisión separada.
+El antecedente V2 de ocho entidades de [Parte A](../erd/ecomotor.md) se conserva;
+el esquema integrado añade StatAllocationEvent por S7-A. No se añaden entidades
+de Rewards ni se aprueban decisiones físicas compartidas.
 
 Pruebas futuras de aceptación: duplicados APPLIED/NO_REWARD; conflictos sin
 efectos; premios sin XP; rollback ante fallo de cada propietario; misma identidad

@@ -367,7 +367,7 @@ El ERD global y H01–H08 son base documental interna aceptada para trabajar; no
 
 La aceptación conceptual no ratifica nuevas tablas, contratos físicos ni políticas de compra/reembolso. No se espera la integración global para desarrollar S1/S2-A locales, pero tampoco se afirman garantías globales de saldo o autorización sin Core.
 
-**Fuentes de contraste:** `ecomotor.md` (ERD V2 provisional Parte A); `parte-c-ecommerce-bank.md` (diseño Parte C); actualización `parte-c-ecommerce-bank.md.crdownload` (borrador 0.2, 13/10/2026); `rewards-v0.md`; `parte-b-duckies.md` y modelos Python compartidos en la conversación. Las decisiones de este informe que van más allá de esos documentos están señaladas como recomendaciones y utilizan las nuevas restricciones de alcance aportadas por el usuario.
+**Fuentes de contraste histórico (13/10/2026):** [Parte A](ecomotor.md), [Bank/Shop](bank-shop.md) (borrador 0.2), [Rewards v0](../contracts/rewards-v0.md), [Duckies](duckies.md) y modelos compartidos entonces. Los borradores de aquella revisión no acreditan implementación actual. Las decisiones de este informe que van más allá de esos documentos están señaladas como recomendaciones y utilizan las nuevas restricciones de alcance aportadas por el usuario.
 
 # Dudas y propuestas: contraste de estado hasta el 16/10/2026
 
