@@ -553,3 +553,23 @@ creará un User o autenticación paralela. Esta nota no añade endpoints, reglas
 valores ni un nuevo contrato global. No cambia decisiones S1–S7-A ni aprueba
 integración con Core, Rewards, Henry o Fernando. DOC-1 no implementa S8-A;
 DOC-2 y DOC-3 quedan fuera de este PR.
+
+## DOC-2 · Contraste de fuentes funcionales y contratos · 18/10/2026
+
+Base develop `33b4e87`, tras PR #33. La [matriz de acuerdos y conflictos](contracts/integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2)
+consolida E5-01…E5-05, respuestas de coordinación 15–16/10, catálogo y propuestas
+de balanceo/kit. Registra fuente, fecha, categoría y responsable sin copiar los
+originales ni convertir sus rótulos de cierre en aprobación externa.
+
+Las decisiones D-F/SHOP atribuidas al usuario en el catálogo son decisiones
+funcionales internas con validación técnica pendiente; no son nuevos D del
+repositorio ni acreditan aceptación de Henry/Fernando/juegos/Core. Bank como
+saldo global es posición E5 pendiente de encaje Core. R-01, nueve épocas/seis
+piezas frente a siete etapas/vestimentas completas y autoequipamiento siguen
+abiertos. Escape mantiene penalizaciones y E5 propone solo DC por comprar:
+conflicto sin resolver. Los baremos T-01/Q-01/E-01, 3/5/8 y 2/4/6 no se aprueban;
+4/3/4 DC solo corresponde a demo interna, no a precios públicos.
+
+D-17/D-19/D-20/D-21, V2-A1…V2-A29 y contratos locales S1–S7-A no cambian.
+Rewards v0 permanece candidato; S8-A aprobado y pausado. La normalización de
+nombres y el [índice ERD PR07](ERD.md) no autorizan modelos, migraciones o interfaces.

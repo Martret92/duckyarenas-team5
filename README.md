@@ -64,6 +64,8 @@ funcionales no definidas y contratos con otros equipos cuando corresponda.
 
 ## Documentación
 
+- [ERD común y diccionarios de datos PR07](docs/ERD.md).
+
 - [Arquitectura: alcance y límites](docs/architecture.md).
 - [Registro de decisiones](docs/decisions.md).
 - [Decisiones pendientes](docs/pending-decisions.md).

@@ -171,3 +171,30 @@ organización no los confirma por extensión.
 
 El cierre de una pregunta requiere evidencia y actualización del registro cuando
 corresponda. Publicar una propuesta no equivale a validación conjunta.
+
+## 6. Aclaraciones parciales DOC-2 · 18/10/2026
+
+Fuentes y categorías en la [matriz canónica de integración](contracts/integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2).
+Se conservan los identificadores y preguntas anteriores; esta sección precisa
+su cierre residual sin declarar integraciones globales por avances locales.
+
+| Referencia vigente | Información incorporada | Qué permanece abierto |
+| --- | --- | --- |
+| P1 / P3 | E5-04 no fija recompensas. Training comunica reglas locales y no confirma extras de inventario V1; explicación básica gratuita. | XP externa, cursos/LMS, premios directos sin XP y cobertura; S7-A asigna saldo disponible, no concede premios externos. |
+| P2 / P7 | S7-A resuelve asignación local en Actual, 1:1 e historial; el catálogo propone capacidades de maleta y reglas por rango. | Iniciales, presupuesto/límites, redistribución, especializaciones, XP de dominio y relación de rangos con Core; no adoptar rangos antiguos por una tabla de maleta. |
+| P4 / P5 | CORE-01–06 siguen pendientes; E5-03 plantea Bank único para toda la plataforma. | Identidad, permisos/autorización, membresías, fuente física de saldo, retención y legacy. No crear Wallet/saldo paralelo ni modificar User. |
+| P6 / I5 | E5-02 afirma vestimenta completa y autoequipamiento; catálogo D-F-07 trata transformación y variantes. | Conflicto DAR3/seis piezas/nueve épocas frente a V2/siete etapas; adquisición, entrega, equipamiento y apariencia sin cierre. Transformación/variantes requieren Henry/Jaime/Fernando. |
+| P8 | S6-A carga/diagnostica; catálogo tiene parámetros internos y precios candidatos. | Valores autorizados, activación real y política histórica; ninguna decisión de la hoja se instala como configuración oficial. |
+| R1 / R2 | E5-01/E5-05 y kit proponen hecho estable/origen/destinatario, adaptadores y recuperación del duplicado. | Firma, versión, transporte, autorización Core, huella canónica y conflictos; sin API aprobada. |
+| R3 / R4 | R-05/R-08 tienen conformidad conceptual previa; E5-03 condiciona rollback a conexión/BD compartidas. | RewardEvent/RewardRule/ItemGrant, estados y campos físicos, reglas, referencias y recuperación remota; D-19 no da atomicidad global. |
+| R5 / R6 / R7 / R8 | Respuestas externas distinguen intentos, parciales/final y límites; S3/S7-A cubren sus operaciones locales. | Premios directos/dominio, zona/ciclo y límites compartidos, correcciones, batch y compatibilidad REST; no ratificar ejemplos del kit. |
+| I1 | Escape elige funcionalmente C mixta: room en curso, XP al cierre, bonus solo al completar; inicio sin mínimo de DC. | Contrato parcial/final y acuses, sin doble pago; documentos y servicios consolidados por verificar. E-01 sigue sin aprobar importes. |
+| I2 | Training comunica 2 XP Free / 5 Plus-Pro, una DC primera finalización por juego/día y cinco intentos; son respuestas locales. | Reconciliar propuesta T-01, evento estable, topes adicionales, reglas globales y membresías; no confundir intento con recompensa duplicada. |
+| I9 | Quiz responde sobre ranking/cierre y viabilidad táctica, con casos límite y cifras contradictorias. | Score→XP/DC, pago en GET, uno/dos participantes, abandonos, podio, SHA, soporte real y consumo; Q-01 no ratificado. |
+| I4 / I5 / I8 | Catálogo atribuye objetivo seis tácticos Shop V1 al usuario, condicionado a Quiz; marcos V2+; demo interna 4/3/4 DC. | Acuerdo funcional con Equipo 1/Core, compra/cobro/entrega, reservas y producción; 4/3/4 no es tarifa de venta pública. |
+| I1 / I4 | Preferencia 3/5/8 DC y alternativa 2/4/6; Escape acepta cobro único/relectura gratuita pero mantiene penalizaciones. | Ninguna tarifa aprobada. Conflicto D-F-10/E-07: separar coste y penalizaciones con Escape/Óscar sin eliminar campos o efectos por inferencia. |
+| I3 / I6 / I7 | La nueva coordinación no resuelve Clash, integración REST/realtime ni evaluación. | Apuestas condicionales, ownership realtime, contratos globales y entregables PR07 continúan pendientes. |
+
+E5-01…E5-05 son IDs del documento de respuestas, no nuevas decisiones D.
+Las hojas atribuyen decisiones al usuario; no acreditan ratificación A/B/C o de
+los consumidores. S8-A sigue pausado. No se modifican servicios ni datos reales.

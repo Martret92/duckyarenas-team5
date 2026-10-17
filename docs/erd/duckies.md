@@ -12,8 +12,8 @@
 Este documento consolida el diseño de Parte B discutido hasta la fecha y el `models.py` de Duckies compartido por su responsable. Se contrasta con:
 
 - `ecomotor.md`: ERD V2 provisional de Parte A, aceptado internamente pero pendiente de integración global.
-- `parte-c-ecommerce-bank.md`: documento provisional de Parte C, con fronteras comerciales y económicas pendientes.
-- `rewards-v0.md`: contrato conceptual candidato de recompensas, sin firmas ni modelos definitivos aprobados.
+- [bank-shop.md](bank-shop.md): documento provisional de Parte C, con fronteras comerciales y económicas pendientes.
+- [Rewards v0](../contracts/rewards-v0.md): contrato conceptual candidato de recompensas, sin firmas ni modelos definitivos aprobados.
 - Conversaciones de coordinación del Equipo 5 y los modelos de Bank/Shop y Ecomotor compartidos anteriormente.
 
 **Precaución documental:** los nombres de servicios propuestos en este documento (`grant_item`, `consume_item`, etc.) son **interfaces candidatas**, no endpoints oficiales ni implementaciones verificadas. Las reglas funcionales procedentes de los PDF originales del proyecto solo se consideran confirmadas cuando están expresamente recogidas en la documentación disponible; las demás quedan pendientes de contraste.

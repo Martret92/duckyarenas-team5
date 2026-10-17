@@ -2,6 +2,16 @@
 
 ## 1. Estado y fuentes
 
+DOC-2 (18/10/2026), sobre develop `33b4e87` tras PR #33, añade la
+[matriz de procedencia y acuerdos](contracts/integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2)
+y el [índice común ERD/diccionarios PR07](ERD.md). El corte de implementación
+§2.1 sigue vigente: DOC-2 no integra funciones ni cambia los contratos S1–S7-A.
+Las fuentes adicionales aportan respuestas y decisiones atribuidas, no aprobación
+global: permanecen abiertos R-01, fuente física del saldo con Core, tarifas,
+penalizaciones Escape y contratos compartidos. Rewards v0 continúa candidato y
+S8-A aprobado y pausado. La matriz identifica diferencias de fecha/autoridad;
+los antecedentes de las dailys siguientes no se reinterpretan retrospectivamente.
+
 Consolidación documental de los acuerdos internos del 08/10/2026 y las aclaraciones
 del 09/10 y 13/10. Óscar expresó conformidad verbal general con el documento
 funcional leído, sin identificar su versión exacta ni aprobar diseños técnicos
