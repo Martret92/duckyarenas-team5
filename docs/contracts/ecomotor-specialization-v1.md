@@ -5,7 +5,10 @@
 Arquitectura general y precisiones S11-A-01/S11-A-02 aprobadas internamente por
 Jaime/Parte A en «02B · Arquitectura y repositorio · Continuación». Implementación
 sobre develop `37cbbd748dfb8bff75aa0bf0d264cefb51c8af95`, en rama para revisión.
-S11-A solo se considerará terminado después de revisar y fusionar su PR.
+S11-A se integró mediante PR #44. La adaptación S14-A-08 sobre develop
+`00d39570619ee47a054c8605068284f2a24da225` está implementada en rama para
+revisión, todavía sin integrar: admite varios progresos coherentes sin convertir
+la primera selección en un servicio de cambio.
 No constituye aprobación de Óscar/Core, nuevo requisito literal de DAR3 ni cierre
 de P7. V2-A19 contempla selección en Actual; V2-A24 define el catálogo estable y
 V2-A25 el progreso mínimo. Este servicio implementa únicamente la primera elección.
@@ -40,11 +43,14 @@ Dentro de transaction.atomic(using=alias), antes de lecturas mutables:
    propietario de stats, enteros estrictos (sin bool/conversión) y rangos de los
    campos/backend, XP no negativa, nivel positivo, seis atributos con signo,
    puntos no negativos y códigos estructurales. No recalcular progresión.
-2. Leer las filas UserSpecializationProgress del perfil. Si la selección activa
-   es NULL, debe no haber progreso. Si existe código activo, debe haber exactamente
-   una fila compatible: propietario correcto, identidad/referencia persistidas,
-   Specialization existente con código coincidente y domain_xp_total entero no
-   negativo representable. Progreso adicional/incompatible o ausente es inconsistencia.
+2. Leer todas las filas UserSpecializationProgress del perfil. Si la selección activa
+   es NULL, debe no haber progreso. Si existe código activo, pueden existir varios
+   progresos de especializaciones distintas: todos deben tener propietario correcto,
+   identidad/referencia persistidas, Specialization existente y válida y
+   domain_xp_total entero no negativo representable. Validar unicidad de identidades,
+   especializaciones y códigos y localizar el progreso de la activa. Su ausencia,
+   duplicados o cualquier progreso incompatible son inconsistencias; varias filas
+   coherentes no lo son. Ninguna XP se reinicia o transfiere.
 3. Selección coherente del mismo código: devolver IDs originales, conservando XP
    de dominio incluso positiva. Sin escrituras de negocio, configuración, catálogos
    de etapas/niveles ni comprobación de Actual actual.
@@ -100,12 +106,26 @@ estadísticos, puntos, web, REST, JWT, configuración oficial, inventario o econ
 S2-A/S3/S4-A/S7-A, Rewards y módulos de otros equipos permanecen intactos.
 
 P7 sigue abierto para códigos canónicos, obligatoriedad y acceso adicional,
-cambios/reinicios, fuentes e idempotencia de concesiones positivas de dominio,
+reinicios y residuales de cambio, fuentes e idempotencia de concesiones positivas de dominio,
 rangos Junior/Middle/Senior/Maestro e integración con juegos/Rewards. Core conserva
 identidad/autorización, conservación/legacy y contratos globales pendientes.
 Rewards v0 continúa candidato y F2-A bloqueada para persistencia.
 
-## Verificación ejecutada
+El [cambio S14-A](ecomotor-specialization-switch-v1.md) es una operación separada:
+su implementación está en PR para revisión, no integrada. S11-A conserva su API,
+primera selección y conflicto ante cualquier código distinto del activo, incluso
+cuando existan varios progresos coherentes. La recuperación de la activa valida
+todas las filas sin escrituras ni configuración/catálogos de etapas actuales.
+
+## Verificación de la adaptación S14-A-08 en PR
+
+- S11-A funcional/alias: 40 tests; concurrencia S11-A: 4 tests, preservados.
+- Ejecución conjunta S11-A/S14-A: 83 tests correctos; suite completa: 697 tests
+  correctos, sin fallos ni errores. check sin incidencias y sin migraciones nuevas.
+- Múltiples progresos coherentes, repetición sin escrituras/configuración y
+  validación de progreso inactivo cubiertos; SQLite y demo sin cambios.
+
+## Verificación ejecutada · antecedente S11-A integrado
 
 - test_specialization_service: 37 tests correctos (incluido alias SQLite temporal).
 - test_specialization_concurrency: 4 tests correctos, conexiones independientes

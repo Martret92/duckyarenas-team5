@@ -2,16 +2,20 @@
 
 ## 1. Estado, autoridad y fuentes
 
-**Arquitectura aprobada internamente; contrato técnico candidato, no implementado.**
+**Arquitectura aprobada internamente; servicio implementado en PR para revisión,
+todavía sin integrar.** API y resultados implementados en §12. Los cortes
+DOC-S14-A y S14-A-08/09 siguientes conservan la trazabilidad de su aprobación.
 DOC-S14-A parte de develop `e401c33045b4f1b4c8621c54c21757483769b56b`, con
 S13-A1 integrado por PR #47. Jaime/Parte A comunica la aprobación en
-«02B · Arquitectura y repositorio · Continuación». No es aprobación de Óscar/Core
-ni autorización para implementar el servicio mediante esta PR documental.
+«02B · Arquitectura y repositorio · Continuación». No es aprobación de Óscar/Core.
+El registro documental original no implementaba el servicio; el estado actual en
+PR se precisa en §12, sin ampliar las decisiones aprobadas.
 
 **Precisiones S14-A-08/09:** registradas sobre develop
 `f4c9ce4167f37dcf302b3b3093333a688068e801` (DOC-S14-A, PR #48).
 Aprobadas internamente por Jaime/Parte A en 02B; completan las reglas de
-compatibilidad y repetición, sin implementar todavía la adaptación de S11-A ni S14-A.
+compatibilidad y repetición. En ese corte eran documentales; la implementación
+para revisión parte de develop `00d39570619ee47a054c8605068284f2a24da225`.
 
 DAR3 sigue siendo la fuente principal. La [trazabilidad de fuentes](../architecture.md#1-estado-y-fuentes)
 registra sus requisitos generales de Ecomotor, progresión y recompensas y el apoyo
@@ -39,13 +43,14 @@ El cambio se realizará en **Actual**, sin retroceder de etapa ni consumir XP
 histórica. No se fijan baremos, códigos oficiales, costes ni premios nuevos.
 «Sin rango» expresa estado funcional; no afirma que exista un campo físico de rango.
 
-## 3. Interfaz candidata y confianza
+## 3. Interfaz local y confianza
 
 ```text
 switch_active_specialization(profile, target_code, expected_active_code) -> SpecializationSwitchResult
 ```
 
-Propuesta de interfaz, no API disponible ni contrato HTTP.
+Interfaz Python interna implementada en specialization_switch_service.py,
+pendiente de revisión/merge. No contrato HTTP ni autorización global.
 
 - `profile`: perfil persistido e inicializado del ámbito autorizado del consumidor.
   Recargar desde su alias de BD, sin confiar en atributos cacheados ni presumir la
@@ -83,28 +88,27 @@ reparan silenciosamente. La compatibilidad S11-A aprobada se precisa en §5.
 | Estado esperado distinto de la activa persistida, incluso si el objetivo ya está activo | Rechazar como solicitud obsoleta; no convertirla en repetición ni escribir. |
 | Estado esperado correcto y objetivo ya activo, con estado coherente | Recuperar el estado existente sin escrituras, duplicados, reevaluación de configuración de etapas ni nueva comprobación de elegibilidad en Actual; mantener validación estructural. |
 
-SpecializationSwitchResult deberá distinguir primera activación, reutilización y
-repetición, e identificar el perfil, especialización activa y progreso resultante.
-Nombres/tipos definitivos de campos quedan candidatos. No incluir concesiones,
+SpecializationSwitchResult distingue primera activación, reutilización y
+repetición e identifica perfil, especialización activa y progreso (§12).
+No incluye concesiones,
 rangos confirmados por esta llamada, evento de cambio inexistente ni un indicador
 que sugiera replay histórico completo.
 
 ## 5. Compatibilidad S11-A y orden aprobado · S14-A-08/09
 
-El [servicio S11-A integrado](../../apps/ecomotor/specialization_service.py) y su
-[contrato](ecomotor-specialization-v1.md) permiten primera selección y repetición
-con exactamente un progreso. `_existing_selection()` rechaza `len(rows) != 1`;
-el test `test_active_selection_with_incompatible_or_multiple_progress_rejected`
-en [sus pruebas](../../apps/ecomotor/test_specialization_service.py) lo verifica.
-S11-A también rechaza seleccionar otro código. Este es el estado del código
-integrado, no la adaptación ya implementada de S14-A-08. Esta PR no cambia Python
-ni reescribe retrospectivamente el contrato de primera selección.
+El antecedente S11-A integrado por PR #44 exigía exactamente un progreso en
+`_existing_selection()`. La adaptación S14-A-08 en esta PR valida todas las filas
+y admite varias coherentes, recuperando la activa. El
+[contrato S11-A actualizado](ecomotor-specialization-v1.md) y
+[sus pruebas](../../apps/ecomotor/test_specialization_service.py) distinguen ahora
+varios progresos válidos de referencias incompatibles o activa sin progreso.
+S11-A sigue rechazando seleccionar otro código y mantiene la primera elección.
 
 El [modelo integrado](../../apps/ecomotor/models.py) UserSpecializationProgress
 ya permite varias filas por perfil con unicidad `(profile, specialization)`;
 el [perfil](../../apps/users/models.py) conserva un único código activo. El esquema
 no exige una tabla nueva para acumular progreso de varias especializaciones.
-La futura adaptación S11-A deberá aplicar **S14-A-08**:
+La adaptación S11-A en esta PR aplica **S14-A-08**:
 
 1. Validar estructuralmente perfil, CharacterStats y todos los progresos: identidades
    y propietarios correctos, especializaciones existentes y distintas, unicidad por
@@ -118,7 +122,7 @@ La futura adaptación S11-A deberá aplicar **S14-A-08**:
    convertirá en servicio de cambio. Su primera selección mantiene el comportamiento
    integrado, incluidas precondiciones y rechazo de estados parciales.
 
-El futuro S14-A deberá aplicar **S14-A-09** dentro de la transacción D-19:
+S14-A aplica **S14-A-09** dentro de la transacción D-19:
 
 1. Recargar y validar el estado persistido, manteniendo las comprobaciones estructurales.
 2. Comprobar `expected_active_code` antes de tratar una solicitud como repetición.
@@ -137,13 +141,13 @@ reparaciones, cambios físicos, nuevos baremos ni replay histórico completo.
 
 Separar perfil inválido/inexistente, código inválido o inexistente, configuración
 o catálogo inválido, etapa no elegible, estado persistido incoherente, solicitud
-obsoleta por estado esperado incorrecto y fallo real de BD. No se fijan todavía
-clases Python ni códigos HTTP. No presentar un error de BD como éxito/repetición;
+obsoleta por estado esperado incorrecto y fallo real de BD. Las clases Python
+implementadas figuran en §12; no se definen códigos HTTP. No presentar un error de BD como éxito/repetición;
 preservar su causa y no capturar errores arbitrarios de programación.
 
 ## 7. Atomicidad y concurrencia D-19
 
-El futuro servicio abrirá `transaction.atomic(using=alias)` antes de leer el
+El servicio abre `transaction.atomic(using=alias)` antes de leer el
 estado mutable, recargará perfil/estadísticas/progresos y comprobará el estado
 activo esperado dentro de la misma frontera que crea/reutiliza el progreso y
 actualiza el código activo. SQLite actual utiliza BEGIN IMMEDIATE y timeout 5 s;
@@ -204,7 +208,7 @@ No adoptar automáticamente Gamer por estar activo al procesar, ni atribuir a
 Developer por una declaración no verificada. No reinterpretar silenciosamente
 S12-A, política temporal, identidad causal o autorización de la recompensa.
 
-## 11. Matriz de pruebas futuras, no implementadas ni ejecutadas
+## 11. Matriz de aceptación · plan original y verificación S14-A
 
 Usar exclusivamente códigos y configuración sintéticos, sin seeds oficiales.
 Developer/Gamer son etiquetas ilustrativas del escenario, no fixtures de producción.
@@ -221,5 +225,59 @@ Developer/Gamer son etiquetas ilustrativas del escenario, no fixtures de producc
 | Historia limitada | A → B → A evidencia el límite de detección de solicitudes antiguas; no simular replay histórico completo. |
 | Sin efectos ajenos | XP histórica, nivel, etapa, seis stats, puntos y recompensas intactos; sin transferencias, XP de dominio concedida, rangos nuevos ni efectos Rewards. |
 
-Esta PR solo registra arquitectura y pendientes. No ejecuta tests Django, cambia
-servicios, modelos/migraciones, endpoints, archivos de demo ni bases SQLite.
+La matriz fue registrada como plan documental. Los casos del servicio y concurrencia
+se verifican ahora mediante los módulos S14-A; la conservación física de rangos
+continúa fuera de alcance porque S13-A2 sigue pendiente.
+
+## 12. API implementada en PR, pendiente de integración
+
+`switch_active_specialization(profile, target_code, expected_active_code)` en
+[specialization_switch_service.py](../../apps/ecomotor/specialization_switch_service.py).
+Reutiliza validaciones internas de S11-A; no llama a select_initial_specialization
+para cambiar ni inicializa perfiles. No consulta LevelThreshold o User ni valida
+los seis valores iniciales S2-A para evaluar Actual; solo configuración de etapas.
+
+Resultado frozen `SpecializationSwitchResult`: `profile_id`, `specialization_id`,
+`specialization_code`, `progress_id` y `kind`, enum `SpecializationSwitchKind`:
+
+- `FIRST_ACTIVATION`: progreso nuevo en cero y código activo actualizado.
+- `REACTIVATION`: fila destino anterior reutilizada, conservando XP e identidad.
+- `UNCHANGED`: mismo objetivo activo y esperado correcto, sin escrituras.
+
+No existe evento ni campo de rango, `replayed` o garantía histórica completa.
+Con transacción exterior del consumidor, su rollback también puede revertir el
+resultado del bloque interno; no se afirma un commit independiente.
+
+Errores reutilizados y exportados desde el módulo S14-A:
+
+| Excepción | Semántica |
+| --- | --- |
+| InvalidSpecializationProfileError | Entrada no persistida/inválida o perfil desaparecido. |
+| InvalidSpecializationCodeError | Código objetivo/esperado estructuralmente inválido o destino inexistente. |
+| InvalidSpecializationConfigurationError | Configuración/catálogo de etapas ausente o inválido para cambio efectivo. |
+| IneligibleSpecializationStageError | Cambio efectivo antes de Actual. |
+| InconsistentSpecializationStateError | Sin selección previa, perfil/stats/progresos inválidos o etapa incompatible con XP en cambio efectivo. |
+| StaleSpecializationStateError | Nueva excepción: esperado distinto de la activa persistida, incluso con objetivo ya activo. |
+| SpecializationDatabaseError | Error real de BD, causa preservada y rollback; sin retry automático. |
+
+Se validan todos los progresos antes de comprobar el esperado y de resolver
+repetición. El cambio crea/reutiliza destino y actualiza solo active_specialization_code
+dentro de atomic usando el alias del perfil. Idempotencia por estado, sin recompensas,
+transferencias, XP nueva o llamada al evaluador de rangos. S12-A-02 y F2-A intactos.
+
+## 13. Verificación ejecutada en la rama de implementación
+
+- Ejecución conjunta test_specialization_service, test_specialization_concurrency,
+  test_specialization_switch_service y test_specialization_switch_concurrency:
+  **83 tests correctos**, cero fallos/errores (40 + 4 + 35 + 4).
+- Suite Django completa: **697 tests correctos**, cero fallos y cero errores.
+- Cuatro tests S14-A con SQLite temporal file-backed y conexiones independientes:
+  objetivos iguales/distintos con estado esperado inicial común, BEGIN IMMEDIATE
+  antes de lecturas, invisibilidad sin commit y rollback, timeout real de 5 s y
+  retry explícito en nueva transacción. La repetición posterior usa el esperado
+  actualizado; no se convierte una solicitud obsoleta en éxito.
+- Fallos de creación y actualización, incluidos fallos tras escritura, revierten
+  progreso nuevo y código activo; errores preservan causa original.
+- check sin incidencias; makemigrations --check --dry-run sin cambios;
+  git diff --check correcto. Sin modificaciones de modelos, migraciones, SQLite
+  locales o archivos de demo. Configuración y códigos exclusivamente sintéticos.

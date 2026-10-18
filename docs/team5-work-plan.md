@@ -2,6 +2,16 @@
 
 ## 1. Estado y referencias
 
+**Implementación S14-A en PR para revisión:** base develop
+`00d39570619ee47a054c8605068284f2a24da225`, con S14-A-01…09 documentadas.
+S11-A adaptado a varios progresos coherentes; servicio separado de cambio con
+estado esperado, primera activación en cero, reactivación sin reset y repetición
+sin escrituras. Implementado y probado en feature, todavía no integrado.
+Validación ejecutada: 83 tests S11-A/S14-A y 697 en suite completa, todos correctos;
+check y comprobación de migraciones sin incidencias. S12-A-02, recompensas tardías,
+S13-A2 y Rewards F2-A mantienen sus límites y pendientes; sin nuevas tablas.
+Los cortes documentales siguientes son antecedentes.
+
 **Actualización DOC-S14-A:** base develop
 `e401c33045b4f1b4c8621c54c21757483769b56b`, S13-A1 integrado por PR #47.
 Última suite comunicada: **655 tests correctos, no reejecutados en esta PR documental**.
