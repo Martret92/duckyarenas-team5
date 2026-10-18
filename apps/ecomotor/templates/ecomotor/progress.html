@@ -76,6 +76,7 @@
   <section class="section-block" aria-labelledby="history">
     <div class="section-heading"><h2 id="history">Historial reciente</h2><span class="section-tag">REGISTRO DE XP</span></div>
     <p class="section-description">Se muestran como máximo las diez concesiones más recientes.</p>
+    <p><a href="{% url 'ecomotor:xp-history' %}">Ver historial completo de XP</a></p>
     <div class="history-list">
     {% for entry in history.entries %}
       <article>

@@ -28,6 +28,9 @@
         <a class="nav-link {% block history_class %}{% endblock %}" {% block history_current %}{% endblock %} href="{% url 'ecomotor:allocation-history' %}">
           <span class="nav-icon" aria-hidden="true">≡</span> Historial de asignaciones
         </a>
+        <a class="nav-link {% block xp_history_class %}{% endblock %}" {% block xp_history_current %}{% endblock %} href="{% url 'ecomotor:xp-history' %}">
+          <span class="nav-icon" aria-hidden="true">✧</span> Historial de XP
+        </a>
       </nav>
       <div class="sidebar-note"><span class="status-dot" aria-hidden="true"></span> Tu próxima evolución empieza aquí.</div>
     </aside>
