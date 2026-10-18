@@ -23,11 +23,11 @@ class InvalidSpecializationCodeError(ValueError):
 
 
 class InvalidSpecializationConfigurationError(ValueError):
-    """Configuración o catálogo de etapas ausente/inválido para primera elección."""
+    """Configuración o catálogo de etapas ausente/inválido para una operación nueva."""
 
 
 class IneligibleSpecializationStageError(ValueError):
-    """Primera elección solicitada antes de Actual."""
+    """Operación nueva solicitada antes de Actual."""
 
 
 class SpecializationConflictError(ValueError):
@@ -106,21 +106,35 @@ def _existing_selection(profile, rows, using):
         if rows:
             raise ValidationError("Progreso sin selección activa.")
         return None
-    if len(rows) != 1:
-        raise ValidationError("Selección sin un único progreso compatible.")
-    progress = rows[0]
-    _identity(progress, using)
-    _numbers(progress, ("domain_xp_total",), using)
-    if (not _integer(progress.profile_id) or progress.profile_id != profile.pk
-            or not _integer(progress.specialization_id) or progress.specialization_id <= 0):
-        raise ValidationError("Propietario o referencia de progreso inválidos.")
-    specialization = Specialization.objects.using(using).filter(pk=progress.specialization_id).first()
-    if specialization is None:
-        raise ValidationError("Especialización activa inexistente.")
-    _specialization(specialization, using)
-    if specialization.code != profile.active_specialization_code:
-        raise ValidationError("Progreso incompatible con selección activa.")
-    return specialization, progress
+    selected = None
+    identities, specializations, codes = set(), set(), set()
+    for progress in rows:
+        _identity(progress, using)
+        _numbers(progress, ("domain_xp_total",), using)
+        for name in ("profile", "specialization"):
+            field = progress._meta.get_field(name)
+            value = getattr(progress, field.attname)
+            lower, upper = connections[using].ops.integer_field_range(field.target_field.get_internal_type())
+            if (not _integer(value) or value <= 0 or (lower is not None and value < lower)
+                    or (upper is not None and value > upper)):
+                raise ValidationError("Referencia de progreso no representable.")
+        if (progress.profile_id != profile.pk or progress.specialization_id <= 0
+                or progress.pk in identities or progress.specialization_id in specializations):
+            raise ValidationError("Propietario o referencia de progreso inválidos/duplicados.")
+        specialization = Specialization.objects.using(using).filter(pk=progress.specialization_id).first()
+        if specialization is None:
+            raise ValidationError("Especialización referenciada inexistente.")
+        _specialization(specialization, using)
+        if specialization.code in codes:
+            raise ValidationError("Códigos de especialización duplicados.")
+        identities.add(progress.pk)
+        specializations.add(progress.specialization_id)
+        codes.add(specialization.code)
+        if specialization.code == profile.active_specialization_code:
+            selected = specialization, progress
+    if selected is None:
+        raise ValidationError("Selección sin progreso activo compatible.")
+    return selected
 
 
 def _eligible(profile, using):
@@ -146,24 +160,29 @@ def _eligible(profile, using):
     if resolved != profile.current_stage_code:
         raise InconsistentSpecializationStateError("Etapa incompatible con XP persistida.")
     if resolved != codes[6]:
-        raise IneligibleSpecializationStageError("La primera selección requiere Actual.")
+        raise IneligibleSpecializationStageError("La operación requiere Actual.")
 
 
 def _result(profile, specialization, progress, created):
     return SpecializationSelectionResult(profile.pk, specialization.pk, specialization.code, progress.pk, created)
 
 
-def select_initial_specialization(profile, specialization_code):
-    """Selecciona una vez o recupera estado coherente; no concede XP de dominio."""
+def _profile_alias(profile):
     if (not isinstance(profile, UserProfileEcomotor) or not _integer(profile.pk)
             or profile.pk <= 0 or profile._state.adding or profile._state.db not in connections):
         raise InvalidSpecializationProfileError("Se requiere un perfil persistido.")
-    if not _code(specialization_code):
-        raise InvalidSpecializationCodeError("Código inválido.")
     using = profile._state.db
     maximum = connections[using].ops.integer_field_range(UserProfileEcomotor._meta.pk.get_internal_type())[1]
     if profile.pk > maximum:
         raise InvalidSpecializationProfileError("Identificador local no representable.")
+    return using
+
+
+def select_initial_specialization(profile, specialization_code):
+    """Selecciona una vez o recupera estado coherente; no concede XP de dominio."""
+    using = _profile_alias(profile)
+    if not _code(specialization_code):
+        raise InvalidSpecializationCodeError("Código inválido.")
     try:
         with transaction.atomic(using=using):
             # D-19: BEGIN IMMEDIATE antes de leer cualquier estado mutable.

@@ -235,11 +235,42 @@ class SpecializationServiceTests(TestCase):
         UserProfileEcomotor.objects.filter(pk=self.profile.pk).update(active_specialization_code=self.alpha.code)
         self.reject(InconsistentSpecializationStateError)
 
-    def test_active_selection_with_incompatible_or_multiple_progress_rejected(self):
+    def test_active_selection_with_incompatible_progress_rejected(self):
         self.select()
         UserSpecializationProgress.objects.filter(profile=self.profile).update(specialization=self.beta)
         self.reject(InconsistentSpecializationStateError)
         UserSpecializationProgress.objects.create(profile=self.profile, specialization=self.alpha)
+        self.assertFalse(self.select().created)
+
+    def test_multiple_coherent_progress_preserved_and_repeat_without_configuration(self):
+        first = self.select()
+        UserSpecializationProgress.objects.filter(pk=first.progress_id).update(domain_xp_total=123)
+        UserSpecializationProgress.objects.create(profile=self.profile, specialization=self.beta, domain_xp_total=456)
+        before = self.snapshot()
+        with patch.object(initialization_config, "INITIAL_CONFIGURATION", None), \
+                CaptureQueriesContext(connection) as queries:
+            repeated = self.select()
+            with self.assertRaises(SpecializationConflictError):
+                self.select(self.beta.code)
+        self.assertEqual(repeated.progress_id, first.progress_id)
+        self.assertFalse(repeated.created)
+        self.assertEqual(self.snapshot(), before)
+        sql = " ".join(row["sql"].lower() for row in queries)
+        self.assertNotIn("ecomotor_evolutionstage", sql)
+        self.assertFalse(any(row["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE")) for row in queries))
+
+    def test_inactive_progress_is_also_validated(self):
+        self.select()
+        inactive = UserSpecializationProgress.objects.create(profile=self.profile, specialization=self.beta)
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE ecomotor_userspecializationprogress SET domain_xp_total = 0.5 WHERE id = %s",
+                           [inactive.pk])
+        self.reject(InconsistentSpecializationStateError)
+
+    def test_multiple_rows_without_active_progress_still_rejected(self):
+        self.select()
+        UserSpecializationProgress.objects.create(profile=self.profile, specialization=self.beta)
+        UserProfileEcomotor.objects.filter(pk=self.profile.pk).update(active_specialization_code="s11-missing-active")
         self.reject(InconsistentSpecializationStateError)
 
     def test_progress_owned_by_another_profile_does_not_complete_selection(self):
