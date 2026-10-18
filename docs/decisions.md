@@ -634,3 +634,40 @@ No se aprueban conservación User/RewardEvent, contratos físicos Bank/Duckies,
 importes T-01/Q-01/E-01 o precios, configuración oficial, autorización/JWT Core,
 API/batch/WebSockets definitivos, recuperación distribuida ni políticas de hechos
 tardíos/correcciones/retirada. S1–S7-A permanecen intactos y S8-A aprobado y pausado.
+
+## DOC-5 · Criterio funcional propuesto de vestimentas históricas · 18/10/2026
+
+**Procedencia:** encargo DOC-5 de Jaime y consulta de las actualizaciones E5 del
+18/10 en CORE-07, E5-02 y B-06 del documento compartido «Coordinación entre equipos ·
+Respuestas de integración». Se consultó DAR3, pp. 3 y 48: nueve épocas incluida
+Era Espacial, apariencia y seis piezas principales, obtención por progreso/misiones,
+conservación del progreso y conjuntos anteriores, y evolución automática por umbral.
+
+**Estado:** criterio funcional interno **propuesto por E5**, no requisito confirmado
+por Óscar, contrato técnico ratificado o implementación. La consulta sobre reutilizar
+apariencias anteriores fue acordada por Jaime y Henry para trasladarla al profesor;
+no acredita aceptación técnica inequívoca de Henry de todo el autoequipamiento.
+
+E5 propone que cada época dispusiera de un conjunto completo. Al evolucionar,
+el Ducky adquiriría y equiparía automáticamente el de la nueva época. Duckies
+conservaría todos los conjuntos completos anteriores ya obtenidos, y el usuario
+podría volver a equipar cualquiera de ellos **también durante épocas intermedias**.
+Los conjuntos de épocas futuras todavía no alcanzadas no podrían equiparse.
+Ecomotor seguiría siendo propietario de la evolución; Duckies, del inventario,
+posesión, equipamiento y apariencias.
+
+Esta formulación es posterior al R-01 mixto y a la respuesta E5 anterior que
+limitaba la reutilización a fase final/especialización. Se conservan esos
+antecedentes; no se convierten retrospectivamente en acuerdos técnicos cerrados.
+Evolución, adquisición, posesión, equipamiento y elección de apariencia se distinguen.
+**Conjunto completo no implica un único objeto físico del inventario.**
+
+CORE-07, B-06, P6 y R-01 siguen abiertos: Óscar debe confirmar las seis piezas
+como posibles objetos diferenciados, entrega automática frente a progreso/misiones,
+adquisición/autoequipamiento y reutilización libre, y nueve épocas DAR3 frente a
+siete etapas provisionales DuckyEcomotor. La propuesta no sustituye DAR3.
+Antes de implementar, Jaime y Henry deberán acordar identidades, idempotencia,
+adquisición, equipamiento y recuperación de errores, sin fijar aquí modelos,
+transacciones o firmas definitivas. Véanse [arquitectura](architecture.md#31-vestimentas-históricas--propuesta-doc-5)
+y [pendientes DOC-5](pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
+D-20/D-21, Rewards R1–R8/T1–T8, S1–S7-A y el estado pausado de S8-A no cambian.
