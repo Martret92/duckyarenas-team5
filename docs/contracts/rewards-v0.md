@@ -15,6 +15,14 @@ Daily del 09/10/2026: se indicó centralización funcional, sin resolver el cont
 Las preguntas y condiciones de implementación están en
 [pending-decisions.md](../pending-decisions.md).
 
+### Estado técnico DOC-4 · 18/10/2026
+
+[T1–T8](../decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026) están
+aprobadas internamente por Jaime sobre R1–R8 (PR #35). El [diseño técnico §10](#10-diseño-técnico-interno--doc-4)
+conserva modelos e interfaz como candidatos; no aprueba migraciones, contratos
+propietarios o publicación HTTP. Rewards sigue sin implementar y este archivo
+mantiene su nombre, versión v0 y condición de contrato global candidato.
+
 ### Alcance de la aprobación interna DOC-3 · 18/10/2026
 
 El [registro R1–R8](../decisions.md#doc-3--arquitectura-rewards-v1--acuerdos-internos-de-parte-a--18102026)
@@ -116,8 +124,12 @@ de acción o recompensa propuesta que Ecomotor debe validar.
 
 R2 aprueba internamente guardar una **huella del contenido semántico validado**
 para detectar incompatibilidades; su concreción compartida sigue pendiente.
-Canonicalización, campos incluidos, algoritmo, formato de claves y alcance de
-unicidad quedan pendientes. No se decide qué cambios meramente de transporte
+T2 concreta internamente SHA-256 sobre JSON semántico canónico versionado,
+claves ordenadas, UTF-8 y fechas normalizadas en UTC. Excluye IDs HTTP, tiempos
+de reintento y configuración posterior. Campos semánticos de cada juego,
+detalles de serialización y formato exacto de claves requieren especificación
+y validación compartida. La unicidad lógica T1 no aprueba aún constraints físicas.
+No se decide qué cambios meramente de transporte
 generan conflicto ni se incluyen timestamps de reenvío por defecto.
 La huella no sustituye autenticación ni prueba la veracidad del hecho.
 
@@ -165,9 +177,11 @@ pieza/evolución/logro cuando proceda e indicación de ya procesado. Los premios
 sin XP y puntos adicionales deben expresarse sin inventar concesiones de XP.
 Formato técnico y respuesta de batch quedan pendientes.
 
-No se fijan campos Django, longitudes, índices, FKs, CASCADE/PROTECT/SET_NULL o
-políticas de retención. Las referencias podrían tomar distintas representaciones
-tras el acuerdo compartido. No se incorpora RewardEvent al esquema integrado
+T1–T3 y §10 concretan un diseño físico candidato, incluido fact_id hasta 255
+caracteres; no aprueban una migración, índices/FKs definitivos ni políticas
+CASCADE/PROTECT/SET_NULL o retención. Las referencias propietarias requieren
+acuerdo antes de adoptar una representación física.
+No se incorpora RewardEvent al esquema integrado
 de Parte A; StatAllocationEvent de S7-A es un historial local diferente.
 
 **APPLIED** significa que los efectos acordados quedaron confirmados junto con
@@ -291,3 +305,76 @@ concurrente; hechos distintos compitiendo por límite diario; correspondencia
 entre resultado y efectos; autorización y batch/parciales una vez acordados.
 D-19 exige TransactionTestCase y al menos una ejecución SQLite file-backed.
 Este PR documental no implementa ni ejecuta esos tests.
+
+## 10. Diseño técnico interno · DOC-4
+
+Aprobación de Jaime del 18/10/2026, no ratificación de Henry, Fernando, Core o
+juegos. El [registro T1–T8](../decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026)
+recoge autoridad y alcance; [validación residual](../pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4)
+conserva las condiciones previas a una implementación posterior. Esta sección
+no incorpora tablas, servicios o APIs implementados.
+
+### Identidad y registro candidatos · T1–T3
+
+Destinatario User global vía settings.AUTH_USER_MODEL, no perfil Ecomotor
+obligatorio. Identidad (origin_code, fact_id, recipient); origin_code estable,
+fact_id opaco no vacío de hasta 255 caracteres y destinatario validado. T2 elige
+SHA-256 y JSON semántico canónico versionado, claves ordenadas, UTF-8 y fechas UTC,
+sin metadatos HTTP/reintento/configuración posterior. El UTC de la huella no fija
+el día de negocio de Training. Campos por juego y detalles de canonicalización
+siguen pendientes; una huella equivalente no autentica emisor ni veracidad.
+
+RewardEvent es **modelo candidato en apps.ecomotor**. Agrupa identidad y tipo de
+actividad; fechas del hecho/registro; versión/valor de huella y versión de reglas;
+APPLIED/NO_REWARD y motivo; snapshot JSON del resultado histórico. Se propone
+unicidad compuesta e integridad persistente, sin fijar aún migración, índices,
+longitudes restantes u on_delete/conservación. La relación opcional OneToOne con
+XPEvent es candidata para XP histórica V1, no garantía para batch, dominio o
+extensiones. No crear FKs físicas Bank/Duckies sin sus contratos.
+
+### XP, evaluación y cupos · T4–T6
+
+Reutilizar [S3](ecomotor-xp-v1.md):
+`grant_historical_xp(profile, amount, operation_key)`. Rewards comprueba identidad/huella, duplicados y elegibilidad;
+S3 mantiene XP, niveles, evoluciones y puntos de ascenso. Solo invocarlo con XP
+positiva y perfil ya inicializado; no invocar S2-A automáticamente. Derivar la
+clave XP estable mediante SHA-256 de la identidad Rewards, con prefijo reservado
+`rewards:v1:`; codificación exacta de esa identidad por especificar.
+
+La transacción exterior del mismo alias cubre concesión y RewardEvent. Conservar
+snapshot suficiente para replay y verificar coherencia causal con XPEvent y su
+destinatario/perfil; no reconstruir historia con catálogos actuales. S3 no guarda
+todos los niveles/puntos históricos y su replay devuelve None en esos campos:
+el futuro registro Rewards debe conservar lo necesario del resultado original,
+sin inventar valores si falta evidencia. Campos exactos y relación causal se
+validarán antes de la fase persistente. No cambiar S3 salvo necesidad demostrada.
+
+RewardDecision conceptual separa evaluación/aplicación: versión, cantidades,
+elegibilidad y motivos. APPLIED exige efecto confirmado; NO_REWARD solo evaluación
+válida sin premio. Fallos de configuración, autorización o infraestructura son
+errores. Comenzar con configuración versionada sin tabla RewardRule, sin habilitar
+baremos no ratificados; reglas ficticias únicamente en tests de incrementos futuros.
+
+RewardLimitUsage es **modelo auxiliar candidato**, no tabla integrada: cupo por
+usuario, regla, ámbito y periodo; identidad única y comprobación/incremento bajo
+la misma transacción. Separar límites XP/monedas y replay/actividad nueva.
+SQLite IMMEDIATE de D-19, sin depender de select_for_update. No activar límites
+económicos sin contrato Bank. Día efectivo, hechos tardíos y cambios de reglas
+pendientes con Training/Core; no prometer atomicidad con bases independientes.
+
+### Entrada, salida y errores · T7
+
+ValidatedRewardFact conceptual contiene origen, hecho, destinatario, tipo,
+instante, resultado validado y contexto; requiere además un contexto de
+autorización confiable, no una declaración del navegador.
+RewardResult conceptual contiene identificador, estado, replayed, versión de
+reglas, premios, progresión, motivo y referencias propietarias.
+
+Operación **candidata**, no firma definitiva ni endpoint:
+`process_reward(validated_fact, authorized_context) -> RewardResult`.
+Distinguir categorías de excepción de entrada, autorización, conflicto,
+configuración, precondición, propietario y base de datos. No se fijan nombres de
+clases, payloads HTTP, códigos HTTP o semántica de batch.
+
+T8 se desarrolla en el [plan de cuatro fases](../team5-work-plan.md#31-fases-rewards--t8-aprobado-internamente-doc-4),
+con PR pequeños y revisión por fase. No modifica S1–S7-A ni reactiva S8-A.

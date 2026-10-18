@@ -2,6 +2,15 @@
 
 ## 1. Estado y fuentes
 
+DOC-4 (18/10/2026), sobre develop `be9e7aa` tras PR #35, registra
+[T1–T8 aprobadas internamente por Jaime](decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026)
+y el [diseño técnico candidato](contracts/rewards-v0.md#10-diseño-técnico-interno--doc-4).
+SHA-256/canonicalización, integración futura S3 y tipos de evaluación se distinguen
+de RewardEvent/RewardLimitUsage físicos candidatos. El contrato global sigue v0;
+[conservación, contratos y transporte](pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4)
+condicionan las fases posteriores. No se implementa Rewards ni se modifica S1–S7-A;
+S8-A continúa aprobado y pausado.
+
 DOC-3 (18/10/2026), sobre develop `9495bda` tras PR #34, registra los
 [principios R1–R8 aprobados internamente por Jaime](decisions.md#doc-3--arquitectura-rewards-v1--acuerdos-internos-de-parte-a--18102026).
 Orientan Parte A; el [contrato Rewards v0](contracts/rewards-v0.md) conserva su
