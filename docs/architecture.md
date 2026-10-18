@@ -2,6 +2,20 @@
 
 ## 1. Estado y fuentes
 
+**Actualización DOC-S13-A1 · 18/10/2026:** base develop
+`5d36778449e7c796e2770ddfdb97f25e8f8b280f`, con DOC-S12-A integrado (#45).
+La [arquitectura de rangos y contrato candidato del evaluador puro](contracts/ecomotor-ranks-evaluator-v1.md)
+registra S13-A-01…07 y precisiones S13-A1 aprobadas internamente por Jaime/02B,
+sin implementación. Evaluar el siguiente rango no confirma un ascenso; políticas
+versionadas y evidencias verificadas no equivalen a autorización global.
+Se conserva el progreso de las cinco especializaciones al alternar y se adoptan
+importes independientes de XP general/dominio (opción B), sin baremos oficiales
+ni servicio de cambio. Las referencias previas a S13-A sin diseño son antecedentes.
+S11-A sigue implementado; S12-A conceptual, persistencia de rangos/DomainXPEvent,
+autorización, cambio de especialización y recompensas tardías siguen pendientes.
+P5/P7 abiertos, Rewards F1-A implementado, F2-A bloqueado y Rewards v0 candidato.
+No se modifica el esquema físico ni se aprueban nuevas relaciones/on_delete.
+
 **Actualización DOC-S12-A · 18/10/2026:** develop
 `84f809df43c7db9b438a6541a298214ce8d97b50` incluye S8-A (#40), UI-A (#41),
 S9-A (#42), S10-A (#43) y S11-A (#44). S11-A implementa selección inicial, no
