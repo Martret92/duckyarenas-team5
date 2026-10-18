@@ -92,32 +92,30 @@ D-21 y Rewards v0 conservan su estado interno/candidato y validación conjunta p
 
 ## 3. Validación conjunta de Rewards v0
 
-Los principios están aceptados provisionalmente como propuesta, no como decisión
-D nueva ni ORM. Las preguntas siguientes concretan el contrato; no reabren
-por sí solas la autoridad funcional de Ecomotor, Bank o Duckies.
+**Estado DOC-3 · 18/10/2026:** Jaime aprobó internamente R1–R8 para orientar
+Parte A, conforme al [registro de acuerdos](decisions.md#doc-3--arquitectura-rewards-v1--acuerdos-internos-de-parte-a--18102026).
+No es ratificación A/B/C ni aceptación de Óscar/Core/juegos; el contrato compartido
+sigue en v0 candidato. Ninguna fila queda cerrada completamente.
 
-DAR3 pp. 49 y 52–53 ya describe un intercambio mínimo y protección funcional
-contra duplicados. Lo pendiente es el contrato técnico compartido completo:
-huella canónica (R2), estados APPLIED/NO_REWARD y ORM de trazabilidad (R3), y una
-transacción exterior compartida (R4) son mecanismos candidatos, no requisitos
-físicos impuestos por esos mínimos. La conformidad conceptual Jaime–Henry de
-R-05/R-08 del ERD global no ratifica esos detalles con Fernando/Core/juegos.
+DAR3 pp. 49 y 52–53 define el intercambio mínimo y la protección funcional contra
+duplicados. Los mecanismos internos elegidos no se atribuyen como nuevos requisitos
+físicos del profesor. La conformidad conceptual previa Jaime–Henry de R-05/R-08
+no aprueba los detalles restantes con Fernando/Core/juegos.
 
-| ID | Decisión técnica pendiente | Validadores / condición |
-| --- | --- | --- |
-| R1 · Identidad y autorización | Origen autorizado, hecho y destinatario; estabilidad, unicidad, clases de hechos y rechazo de emisor/identidad no verificados. | Jaime, Óscar/Core y juegos antes del contrato externo. Un header por sí solo no autoriza. |
-| R2 · Huella y conflictos | Canonicalización, contenido validado incluido, algoritmo y diferencias compatibles; relación entre claves globales y locales. | A/B/C/Core/juegos antes del ORM de trazabilidad y reintentos. |
-| R3 · Resultado y reglas | Representación persistente de resultado/motivo, versión reproducible, referencias a efectos, APPLIED/NO_REWARD y recuperación de duplicados. ¿Cómo se representan reglas configurables sin aprobar RewardRule como tabla? | Jaime, Henry y Fernando; FKs y estados físicos no aprobados. |
-| R4 · Transacción exterior | Validar misma BD y conexión/alias, ausencia de commits independientes y cobertura de evaluación/límites/efectos/registro. Si no se cumple, acordar recuperación antes del flujo afectado. | A/B/C y Core; propuesta de monolito modular, D-19 no implica atomicidad global. |
-| R5 · Premios sin XP | Servicio independiente de puntos, objetos y monedas; referencias causales; no duplicar puntos de nivel y premio directo; trazabilidad de dominio sin reutilizar XPEvent histórico. | Jaime, Henry y Fernando; no añadir novena entidad al ERD mínimo automáticamente. |
-| R6 · Límites temporales | Training: juego, día/zona horaria, instante de actividad o registro, hechos tardíos y competencia entre actividades distintas. | Jaime y Training/Óscar; una moneda por juego/día no equivale a deduplicar una partida ni a limitar intentos. |
-| R7 · Correcciones/incidentes | Hechos corregidos, NO_REWARD final, ajustes, devoluciones y reintentos tras fallo; política ante cambio de reglas. | A/B/C/Core/Óscar; no reescribir resultados previos ni convertir fallos en NO_REWARD. |
-| R8 · API documentada | Adaptación a calculate-action/commit-rewards: significado de cantidades/stats, validación y respuesta; atomicidad de batch y resultados por destinatario. | Jaime, Core y juegos; conservar referencias de DAR_formulas, no aprobar otra API incompatible. |
+| ID | Aprobado internamente por Jaime · DOC-3 | Pendiente técnico / externo | Validadores / condición |
+| --- | --- | --- | --- |
+| R1 · Identidad y autorización | Terna origen autorizado/hecho estable/destinatario; reintento conserva identidad y emisor/resultado se validan en servidor. | Clases y formato de IDs, unicidad efectiva, mapeo User y autorización del origen/transporte. | Jaime, Óscar/Core y juegos; un header declarado no autoriza. |
+| R2 · Huella y conflictos | Huella semántica validada; equivalencia recupera resultado previo e incompatibilidad genera conflicto sin nuevos efectos. | Algoritmo, formato, campos canónicos, equivalencias de transporte y relación entre claves globales/locales. | A/B/C/Core/juegos antes del esquema de trazabilidad y adaptadores. |
+| R3 · Resultado y reglas | RewardEvent conceptual persistente global, identidad/huella/versionado/resultado/motivo/efectos; finales APPLIED/NO_REWARD, errores técnicos excluidos. | ORM, campos, índices, FKs, retención, representación de reglas y recuperación; RewardRule como tabla no aprobado. | Jaime, Henry, Fernando y Core para conservación; sin migraciones aprobadas. |
+| R4 · Transacción exterior | Cubre evaluación, límites, efectos y registro si comparten BD, conexión/alias y frontera transaccional; respeta D-19. | Confirmar participación real y ausencia de commits independientes. Si Bank/Duckies son remotos, definir recuperación distribuida antes del flujo. | A/B/C y Core; D-19 no garantiza atomicidad global o entre destinatarios. |
+| R5 · Premios sin XP | Efectos independientes, sin XPEvent ficticios, servicios propietarios y separación de puntos de nivel/directos. | Servicio de concesión directa de puntos, dominio, referencias causales y contratos Bank/Duckies; no confundir con gasto S7-A. | Jaime/Henry/Fernando; ninguna nueva entidad física aprobada por esta decisión. |
+| R6 · Límites temporales | Repetición/límites configurables por regla, usuario, actividad y periodo; XP/monedas separados; protección concurrente. | Instante de actividad/registro, ciclo, hechos tardíos y topes/importes definitivos. Europe/Madrid y primera DC por juego/día son información funcional local comunicada por Training. | Jaime, Training y Óscar/Core según ámbito; validar contrato técnico de límites sin ratificar T-01. |
+| R7 · Correcciones/incidentes | Fallo técnico nunca NO_REWARD; recuperar confirmados con identidad original; corregir mediante operación nueva vinculada, sin sobrescritura silenciosa. | Políticas de ajuste/retirada de XP, niveles, monedas u objetos; representación de vínculos, incidentes y devoluciones. No se autoriza reducir XP histórica por inferencia. | Cada propietario y Core/Óscar para consecuencias compartidas y conservación. |
+| R8 · API documentada | Negocio en apps.ecomotor y adaptadores; calculate-action no concede premio definitivo; commit-rewards aplica R1–R7 y valida cantidades. | JWT/permisos, formatos, versión, batch, atomicidad entre destinatarios, WebSockets y publicación HTTP definitiva. | Jaime, Core y juegos; conservar ambas rutas DAR_formulas sin inventar endpoints oficiales. |
 
-La referencia de R5 al ERD mínimo corresponde al antecedente de ocho entidades:
-S7-A ya añade StatAllocationEvent, que registra gasto/asignación de puntos locales,
-no concesión de puntos como premio ni trazabilidad global Rewards. R1–R8 siguen
-abiertos; S2-A/S3/S7-A no aprueban por inferencia sus mecanismos compartidos.
+S7-A añade StatAllocationEvent al esquema local de nueve entidades: registra gasto
+de puntos, no premios directos ni evaluación global Rewards. R1–R8 siguen abiertos
+en su validación residual; S2-A/S3/S7-A no ratifican esos contratos por inferencia.
 
 ## 4. Juegos, compras y alcance V1
 
@@ -174,6 +172,8 @@ corresponda. Publicar una propuesta no equivale a validación conjunta.
 
 ## 6. Aclaraciones parciales DOC-2 · 18/10/2026
 
+Este apartado conserva el contraste DOC-2 anterior a la aprobación interna DOC-3;
+para el estado actualizado de R1–R8 prevalece §3, sin cerrar sus pendientes externos.
 Fuentes y categorías en la [matriz canónica de integración](contracts/integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2).
 Se conservan los identificadores y preguntas anteriores; esta sección precisa
 su cierre residual sin declarar integraciones globales por avances locales.

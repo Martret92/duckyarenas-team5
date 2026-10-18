@@ -2,6 +2,13 @@
 
 ## 1. Estado y fuentes
 
+DOC-3 (18/10/2026), sobre develop `9495bda` tras PR #34, registra los
+[principios R1–R8 aprobados internamente por Jaime](decisions.md#doc-3--arquitectura-rewards-v1--acuerdos-internos-de-parte-a--18102026).
+Orientan Parte A; el [contrato Rewards v0](contracts/rewards-v0.md) conserva su
+versión y estado global candidato, con [validaciones residuales](pending-decisions.md#3-validación-conjunta-de-rewards-v0).
+No hay ratificación conjunta A/B/C/Core/juegos ni implementación de Rewards;
+S1–S7-A no cambian y S8-A sigue aprobado y pausado.
+
 DOC-2 (18/10/2026), sobre develop `33b4e87` tras PR #33, añade la
 [matriz de procedencia y acuerdos](contracts/integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2)
 y el [índice común ERD/diccionarios PR07](ERD.md). El corte de implementación
