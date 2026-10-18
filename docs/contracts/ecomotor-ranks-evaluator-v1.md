@@ -71,12 +71,21 @@ la representación de la PK de User ni inventar un catálogo oficial.
 | RankProgress | Referencia de especialización, rango confirmado actual (ausente para «sin rango») y XP de dominio acumulada no negativa. El rango se aporta como hecho confirmado, nunca se deduce de XP. |
 | RankRequirement | Rango destino, XP mínima de dominio y colecciones explícitas de referencias de cursos y retos requeridos; colecciones vacías significan que no se exigen. |
 | RankPolicy | Identidad/versionado de política, ámbito de especialización y requisitos ordenados para Junior, Middle, Senior y Maestro. No hay política por defecto. |
-| RankEvidence | Evidencias verificadas aplicables al mismo ámbito y sujeto del progreso; permite distinguir requisito cumplido, no cumplido y evidencia no disponible. Ausencia de una referencia requerida no prueba cumplimiento ni incumplimiento verificado. |
-| RankAssessment | Versión de política evaluada, referencia de especialización, rango actual, siguiente rango (o ausente), estado y diagnósticos estructurados de requisitos. No contiene confirmación, premio aplicado, ID de evento ni replay persistente. |
+| RankEvidence | `completed_course_codes` y `completed_challenge_codes`: cada campo admite una colección de códigos de finalizaciones verificadas o `None`. `None` significa fuente no disponible/no verificable; una colección vacía significa fuente verificada sin finalizaciones; una colección con códigos significa finalizaciones verificadas. |
+| RankAssessment | Versión de política evaluada, referencia de especialización, rango actual, siguiente rango (o ausente), estado y diagnósticos candidatos `missing_domain_xp`, `missing_course_codes`, `missing_challenge_codes` y `unavailable_sources`. No contiene confirmación, premio aplicado, ID de evento ni replay persistente. |
 
-El adaptador futuro debe garantizar la vinculación confiable de evidencia,
-destinatario y especialización. Forma física, credenciales, tipos definitivos de
-identidad y protocolo de autorización siguen pendientes. El evaluador solo valida
+`missing_domain_xp` expresa la XP de dominio que falta para el siguiente rango;
+`missing_course_codes` y `missing_challenge_codes`, las finalizaciones requeridas
+conocidas como no cumplidas en fuentes verificadas; `unavailable_sources`, las
+fuentes requeridas no disponibles/no verificables. Una fuente `None` no se trata
+como una colección vacía ni permite afirmar incumplimientos verificados de sus
+códigos. Si falta información requerida, el estado sigue siendo
+`EVIDENCE_UNAVAILABLE`, incluso con otros incumplimientos conocidos, que se
+conservan en los diagnósticos. No se requieren fuentes que la política no exige.
+
+El futuro adaptador autorizado debe garantizar la asociación confiable de las
+evidencias con el usuario y la especialización. Forma física, credenciales, tipos
+definitivos de identidad y protocolo de autorización siguen pendientes. El evaluador solo valida
 coherencia estructural de lo recibido; no convierte declaraciones del navegador
 o un ValidatedRewardFact en evidencia autorizada.
 
