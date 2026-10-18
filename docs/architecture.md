@@ -2,6 +2,17 @@
 
 ## 1. Estado y fuentes
 
+**Corte DOC-6 · 18/10/2026:** develop `5a4e079` incluye Fase 1 Rewards por
+[PR #38](https://github.com/Martret92/duckyarenas-team5/pull/38):
+[tipos](../apps/ecomotor/reward_types.py),
+[identidad/huella](../apps/ecomotor/reward_identity.py) y
+[evaluación pura](../apps/ecomotor/reward_rules.py), sin ORM ni efectos reales.
+Jaime aprueba internamente la [arquitectura persistente local F2-A](decisions.md#doc-6--arquitectura-persistente-rewards-f2-a--18102026),
+**sin implementación** ni ratificación de Core/Henry/Fernando/juegos. Los cortes
+DOC-1…DOC-4 siguientes son antecedentes fechados; sus menciones a Rewards sin
+implementar no describen el núcleo puro ya integrado. El contrato global v0
+permanece candidato; F2-A y process_reward todavía no existen.
+
 DOC-4 (18/10/2026), sobre develop `be9e7aa` tras PR #35, registra
 [T1–T8 aprobadas internamente por Jaime](decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026)
 y el [diseño técnico candidato](contracts/rewards-v0.md#10-diseño-técnico-interno--doc-4).
@@ -121,8 +132,10 @@ Esto acredita implementación local, no aprobación externa ni integración glob
 El esquema local de Parte A tiene **nueve entidades**: las ocho del V2 histórico
 más StatAllocationEvent. Sus modelos están en apps.ecomotor (ocho) y apps.users
 (UserProfileEcomotor); UserProfileBank no forma parte de ese recuento.
-No hay servicios integrados de especialización o XP de dominio, Rewards, economía,
-objetos o juegos. Las flechas de §5 representan arquitectura objetivo candidata.
+No hay servicios integrados de especialización o XP de dominio, coordinación
+transaccional Rewards, economía, objetos o juegos. Fase 1 pura sí está integrada
+por PR #38, según el corte DOC-6 de §1. Las flechas de §5 representan arquitectura
+objetivo candidata.
 
 INITIAL_CONFIGURATION continúa en None. Existen carga JSON y diagnóstico técnico,
 pero faltan valores autorizados, instalación real y política histórica de cambios
@@ -265,6 +278,32 @@ Shop coordina compra, validación de fondos y entrega mediante los propietarios.
 Ecomotor pp. 4–5 también le atribuye comprobaciones de condiciones/saldo;
 el reparto exacto con Shop debe acordarse, consultando a Bank sin duplicar saldo.
 Rewards v0 no cierra automáticamente el contrato de compras o reservas.
+
+### 5.1. Persistencia y XP histórica local · F2-A (DOC-6)
+
+La [sección técnica F2-A](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6)
+desarrolla Fase 1 y [S3](contracts/ecomotor-xp-v1.md), sin cambiarlos.
+Fase 1 produce RewardDecision; el futuro coordinador validaría autorización,
+identidad/huella y efectos soportados, aplicaría S3 con XP positiva y perfil
+persistido, y guardaría RewardEvent y el resultado histórico confirmado.
+NO_REWARD solo representa evaluación válida sin efectos, incluso para User sin
+perfil si no requiere XP. Efectos no soportados se rechazan por completo.
+
+RewardEvent es **modelo físico candidato bloqueado hasta Core**, con identidad
+única origen/hecho/User, huella/versiones, snapshot reward-result-v1 y vínculo
+XPEvent opcional. La clave S3 rewards:v1: deriva de la identidad, no de la huella
+semántica del contenido. Replay recupera el resultado original, sin reevaluar
+reglas/catálogos; incoherencias causales u XPEvent huérfano son errores sin reparación.
+D-19 rige la transacción exterior local del mismo alias, con rollback completo,
+retry explícito y sin I/O externo. No implica atomicidad entre conexiones/BD.
+
+Core debe confirmar User/PK canónico, conservación/anonimización/eliminación,
+on_delete y relaciones con XPEvent/perfiles, y autorización **antes de la tabla
+y migración**. Configuración válida de evolución y reglas autorizadas condicionan
+los premios reales. Bank, Duckies y juegos no bloquean este diseño local, pero
+siguen fuera, junto con monedas, inventario/vestimenta, dominio, puntos directos,
+cupos, REST/WebSockets y batch. [Bloqueos F2-A](pending-decisions.md#9-bloqueos-de-persistencia-rewards-f2-a--doc-6).
+No se implementa Rewards global, ni se modifica el ERD ni se reactiva S8-A.
 
 ## 6. REST, cálculo de acciones y tiempo real
 

@@ -3,7 +3,9 @@
 ## 1. Estado y referencias
 
 El reparto y apps objetivo del 08/10 son acuerdos internos D-20/D-21.
-Corte DOC-1 del 18/10/2026: develop en `b42cb5f` (PR #32). Los estados siguientes
+Corte DOC-1 del 18/10/2026: develop en `b42cb5f` (PR #32), conservado como antecedente.
+Actualización DOC-6: develop `5a4e079` incorpora Fase 1 por PR #38; §3.1 distingue
+ese núcleo integrado de F2-A aprobado internamente y bloqueado hasta Core. Los estados siguientes
 distinguen implementación local, aprobación interna pausada, decisiones pendientes
 y dependencias externas; no aprueban contratos compartidos ni alcance final V1.
 
@@ -80,12 +82,20 @@ pequeño, testeable y revisado mediante PR separado; DOC-4 no inicia ninguna.
 
 | Orden | Incremento posterior | Condición y límite |
 | --- | --- | --- |
-| 1 | Núcleo puro: tipos, validaciones, canonicalización, huella y evaluador con reglas ficticias de tests. | Sin efectos reales ni migraciones; no activar baremos sin ratificar. |
-| 2 | Persistencia y XP local: RewardEvent, S3, transacciones y replay. | Esquema/conservación con Core previamente revisados; mismo alias, snapshots/causalidad suficientes. Sin inicialización automática ni cambios S3 salvo necesidad demostrada. |
+| 1 | **Integrada: F1-A, PR #38.** Tipos, validaciones, canonicalización, huella y evaluador puro con reglas ficticias de tests. | Sin ORM, efectos reales ni migraciones; no activa baremos ni el servicio transaccional. |
+| 2 | **F2-A: arquitectura aprobada internamente por Jaime (DOC-6); sin implementar.** RewardEvent candidato, XP histórica positiva mediante S3, NO_REWARD, snapshot histórico y replay. | Tabla/migración bloqueadas hasta Core: User/PK, conservación/anonimización/eliminación, on_delete/relaciones y autorización. Misma BD/conexión/alias, D-19 y causalidad; sin inicialización automática ni cambios S3/Fase 1. |
 | 3 | Cupos: RewardLimitUsage y pruebas concurrentes. | Modelo aún candidato, D-19; día efectivo/hechos tardíos/reglas por acordar. No activar economía sin contrato Bank. |
 | 4 | Bank, Duckies, juegos y REST. | Solo con contratos propietarios y autenticación acordados; sin atomicidad remota supuesta ni API/batch/WebSockets definitivos. |
 
-Bloqueos detallados en [pendientes DOC-4](pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4).
+[Detalle F2-A](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6)
+y [bloqueos DOC-6](pending-decisions.md#9-bloqueos-de-persistencia-rewards-f2-a--doc-6)
+precisan la fase 2; [pendientes DOC-4](pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4)
+conserva las validaciones posteriores. No se completa Fase 2 por aprobar el diseño.
+Premios reales exigen configuración de evolución válida y reglas autorizadas.
+Bank/Duckies/juegos no bloquean el diseño local F2-A, pero siguen fuera junto con
+monedas, dominio, puntos directos, cupos, REST/WebSockets/batch y compensaciones.
+Un efecto no soportado rechaza toda la operación, sin descartarlo ni convertirlo
+en NO_REWARD.
 Los servicios locales S1–S7-A siguen integrados; S8-A permanece aprobado y pausado.
 La regresión histórica comunicada de 407 tests no se vuelve a ejecutar aquí:
 DOC-4 solo modifica Markdown, sin modelos, servicios, migraciones ni tests nuevos.
@@ -98,7 +108,7 @@ H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
 | --- | --- |
 | H0 · Base | Bootstrap, apps actuales bajo apps/ y perfiles iniciales documentados. Día 1: check y cuatro tests correctos, sin nuevas migraciones y servidor con HTTP 200; evidencia histórica, no ejecución nueva ni validación del dominio V2. |
 | H1 · Diseño/documentación | Candidata V2 y ERD interno existentes; acuerdos 08/10 y notas de la daily 09/10 consolidados para revisión. Rewards v0 candidato. Pendientes condiciones funcionales/Core, B/C y contratos antes de ORM afectado; no completado globalmente. |
-| H2 · ORM y servicios | Implementado localmente en A: Día 4 (PR #23/#24), S1/S1.1 (#22), S2-A (#27), S3 (#28), S4-A (#29), S6-A (#31) y S7-A (#32). Pendientes especializaciones, XP de dominio y Rewards; B/C e integración global dependen de sus contratos y migraciones. |
+| H2 · ORM y servicios | Implementado localmente en A: Día 4 (PR #23/#24), S1/S1.1 (#22), S2-A (#27), S3 (#28), S4-A (#29), S6-A (#31) y S7-A (#32). F1-A integrada por PR #38 (núcleo puro); pendientes especializaciones, XP de dominio y persistencia/coordinación Rewards F2-A; B/C e integración global dependen de sus contratos y migraciones. |
 | H3 · Vertical mínima | Futuro: actividad, recompensa, compra y equipamiento con interfaz/permiso. Training distingue XP repetible/límite monetario; Escape distingue parcial/final. No imponer autoequipamiento. |
 | H4 · CRUD/historiales/Museo | Implementados Admin seguro (#25 y evento S7-A), consultas/historial XP S4-A y página personal GET/HEAD S5-A (#30). S8-A aprobado por Jaime, pausado sin implementación. CRUD evaluable PR07, historial web de asignaciones y Museo compartido siguen pendientes de alcance. |
 | H5 · Robustez | Tests locales implementados: integridad/migraciones, Admin, servicios, consultas, HTTP, replay/conflictos, rollback y concurrencia SQLite file-backed. Última regresión comunicada: 407 correctos, no reejecutada en DOC-1. Robustez multidominio y autorización global siguen pendientes. |
@@ -125,7 +135,7 @@ a condiciones del ERD y pendientes, no se descartan por una propuesta de MVP.
   S8-A, interfaz GET/POST basada exclusivamente en S7-A, está aprobado y pausado por
   prioridad documental; reanudar solo conforme a ese alcance, sin incluirlo en DOC-1.
 - Pendientes: configuración funcional e instalación real (S6-A no la activa),
-  especializaciones/XP de dominio, Rewards y contratos Core/A/B/C/juegos.
+  especializaciones/XP de dominio, persistencia/coordinación Rewards F2-A y contratos Core/A/B/C/juegos. Fase 1 ya está integrada, sin efectos reales.
 
 ### Henry · Parte B
 
@@ -166,7 +176,7 @@ No se añaden ni ejecutan tests Django en este PR documental.
 
 | Área | Comprobaciones existentes / pendientes |
 | --- | --- |
-| A | Implementados tests de S1–S7-A, Admin, modelos y migraciones: progresión, inicialización, XP, consultas, HTTP y asignación idempotente. Legacy fail-closed local no cierra conservación global ni configuración autorizada. Especializaciones/XP de dominio y Rewards pendientes. |
+| A | Implementados tests de S1–S7-A, Admin, modelos y migraciones: progresión, inicialización, XP, consultas, HTTP y asignación idempotente. Legacy fail-closed local no cierra conservación global ni configuración autorizada. Especializaciones/XP de dominio y persistencia/coordinación Rewards pendientes; núcleo puro F1-A integrado por PR #38. |
 | B | Posesión/cantidades, concesiones/consumos idempotentes, compatibilidad y equipamiento; historiales y objetos por condiciones acordadas. |
 | C | `saldo >= 0` y fondos suficientes antes de débito; créditos/débitos sin duplicados, concurrencia, movimientos con origen/motivo y consistencia cargo-entrega; reserva de ambas apuestas al aceptar solo bajo alcance confirmado. |
 | Rewards | APPLIED/NO_REWARD repetidos, conflicto, premios sin XP, referencias a efectos, versiones, rollback de cada propietario y autorización. |

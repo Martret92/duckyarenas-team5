@@ -5,8 +5,8 @@
 **Contrato global v0 candidato, pendiente de validación conjunta por A/B/C,
 Óscar/Core y equipos emisores.** DOC-3 (18/10/2026) aprueba R1–R8 internamente
 por Jaime para orientar Parte A; no ratifica el contrato compartido ni cambia
-su versión. Rewards no está implementado. No es un
-endpoint oficial ni un ORM aprobado. Fuentes funcionales y notas de las dailys en [architecture.md](../architecture.md); acuerdos internos D-20/D-21 y
+su versión. Fase 1 pura está integrada (PR #38); Fase 2 y process_reward
+todavía no existen. No es un endpoint oficial ni un ORM aprobado. Fuentes funcionales y notas de las dailys en [architecture.md](../architecture.md); acuerdos internos D-20/D-21 y
 D-19 vigente en [decisions.md](../decisions.md).
 
 DAR3 §§9–10 exige identidad/origen, actividad no premiada dos veces, registro
@@ -20,8 +20,9 @@ Las preguntas y condiciones de implementación están en
 [T1–T8](../decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026) están
 aprobadas internamente por Jaime sobre R1–R8 (PR #35). El [diseño técnico §10](#10-diseño-técnico-interno--doc-4)
 conserva modelos e interfaz como candidatos; no aprueba migraciones, contratos
-propietarios o publicación HTTP. Rewards sigue sin implementar y este archivo
-mantiene su nombre, versión v0 y condición de contrato global candidato.
+propietarios o publicación HTTP. En el corte DOC-4 no había implementación;
+Fase 1 se integró después por PR #38. Este archivo mantiene su nombre, versión v0
+y condición de contrato global candidato; F2-A sigue sin implementar (véase §12).
 
 ### Alcance de la aprobación interna DOC-3 · 18/10/2026
 
@@ -452,3 +453,164 @@ concesiones S3, economía, inventario ni activación de baremos. S1–S7-A intac
 S8-A pausado; sin Fase 2 automática. UTC de huella no fija el día de Training.
 T-01/Q-01/E-01, adaptación por juego, autorización Core, persistencia/retención,
 límites temporales y contratos Bank/Duckies/REST siguen pendientes.
+
+## 12. F2-A · Persistencia y XP histórica local · DOC-6
+
+### Estado y alcance
+
+[DOC-6](../decisions.md#doc-6--arquitectura-persistente-rewards-f2-a--18102026),
+18/10/2026: arquitectura aprobada internamente por Jaime/Parte A sobre develop
+`5a4e079`, no ratificación de Core, Henry, Fernando o juegos. Desarrolla R1–R8 y
+T1–T8; **el contrato global sigue v0 candidato**. Fase 1 está integrada por
+[PR #38](https://github.com/Martret92/duckyarenas-team5/pull/38), con
+[tipos](../../apps/ecomotor/reward_types.py),
+[identidad/huella](../../apps/ecomotor/reward_identity.py) y
+[evaluador puro](../../apps/ecomotor/reward_rules.py), conforme a §11.
+Fase 2, RewardEvent y el servicio transaccional **no están implementados**.
+
+F2-A persistiría evaluaciones válidas, concedería solo XP histórica positiva
+mediante S3 y registraría NO_REWARD cuando la evaluación válida no otorgue efectos.
+Conservaría identidad, huella, versión de reglas y resultado histórico, recuperable
+sin reevaluación ni doble concesión. Los puntos de ascenso derivados por S3 forman
+parte de su progresión; no son premios directos de puntos.
+
+Quedan fuera Bank/monedas/Shop, Duckies/inventario/vestimentas/equipamiento,
+XP de dominio, puntos directos, cupos/RewardLimitUsage, RewardRule como tabla,
+integraciones reales de juegos, REST/WebSockets/batch, nueva autenticación y
+compensaciones distribuidas. **Si la regla propone cualquier efecto no soportado,
+se rechaza la operación completa**: no se ignora ni se transforma en NO_REWARD.
+ProposedEffect de Fase 1 admite tipos opacos; su validación estructural no implica
+que F2-A sepa aplicarlos. No se introducen aquí códigos funcionales oficiales.
+
+### RewardEvent físico candidato, bloqueado hasta Core
+
+| Campo o grupo candidato | Significado y condición |
+| --- | --- |
+| recipient | FK al User global mediante settings.AUTH_USER_MODEL, no al perfil como destinatario obligatorio. on_delete sin decidir. |
+| origin_code, fact_id, activity_type | Origen estable, hecho opaco no vacío de hasta 255 caracteres y tipo de actividad; identidad independiente del contenido y sus reintentos. |
+| occurred_at, created_at | Instante del hecho y del registro, diferenciados. |
+| fingerprint_version, huella SHA-256 | Versión semántica y huella del hecho validado conforme a Fase 1; no acreditan autenticidad. |
+| rule_set_version, matched_rule_id opcional | Versión evaluada y regla coincidente cuando exista; sin FK ni tabla RewardRule aprobadas. |
+| Estado y motivo | APPLIED o NO_REWARD; motivo original de ausencia de premio. Errores técnicos no son estados de negocio sin premio. |
+| xp_awarded, xp_event opcional | Importe XP y relación OneToOne candidata con XPEvent para XP histórica F2-A. No extiende ese diseño a lotes, dominio o efectos futuros. |
+| result_snapshot | JSON histórico versionado; esquema lógico candidato reward-result-v1, descrito a continuación. |
+
+Constraints **candidatos**, no migraciones autorizadas: unicidad compuesta
+(origin_code, fact_id, recipient); unicidad causal de xp_event cuando exista;
+estados finales permitidos; identidad y huella técnicamente válidas.
+**En F2-A**, APPLIED exige XP positiva y XPEvent; NO_REWARD exige XP cero y ausencia
+de XPEvent. En el diseño global R5 pueden existir APPLIED sin XP con otros efectos:
+no se sustituye esa regla global por la restricción de esta fase local.
+La correspondencia entre destinatario, perfil y causa XP también debe validarse
+por el servicio; no se supone resuelta por constraints entre tablas.
+
+No elegir on_delete ni copiar automáticamente CASCADE provisional de los modelos
+actuales. Esquema físico, conservación y relación con XPEvent/perfiles requieren
+la validación previa de Core. No se aprueban FKs a Bank o Duckies.
+
+### Integración causal con S3
+
+Reutilizar sin modificar [S3](ecomotor-xp-v1.md) y su
+[implementación](../../apps/ecomotor/xp_service.py):
+`grant_historical_xp(profile, amount, operation_key)`.
+
+- Validar User existente en el modelo configurado y su correspondencia con
+  RewardIdentity.recipient_id. Fase 1 solo exige una cadena opaca no vacía;
+  la representación canónica del PK debe acordarse con Core, sin asumir su tipo
+  físico o conversiones que creen identidades equivalentes distintas.
+- Reutilizar el UserProfileEcomotor persistido de ese User, con estadísticas y
+  precondiciones S3 válidas, en el mismo alias. XP positiva sin perfil inicializado
+  es error; no invocar S2-A ni crear/reparar perfiles automáticamente.
+- Reservar `rewards:v1:` y derivar el resto de operation_key mediante SHA-256 de
+  una codificación **versionada e inequívoca de (origin_code, fact_id, recipient_id)**.
+  No usar semantic_fingerprint(): incluye contenido que puede cambiar cuando se
+  reutiliza indebidamente una identidad. La clave XP debe seguir identificando
+  el mismo hecho/destinatario; la codificación concreta se especificará antes del código.
+- Con XP cero no llamar a S3 ni crear XPEvent. Un User sin perfil puede registrar
+  NO_REWARD si la evaluación válida no requiere XP ni ningún otro efecto.
+- Comprobar correspondencia causal de User, perfil, RewardEvent y XPEvent,
+  clave reservada e importe. Un XPEvent con clave Rewards sin RewardEvent
+  correspondiente es inconsistencia histórica; no reconstruirlo silenciosamente
+  ni aceptar el replay local S3 como prueba de una recompensa global confirmada.
+
+S3 conserva XP, niveles, evoluciones y puntos por ascenso. Su replay no devuelve
+todos los snapshots de nivel/etapas/puntos: algunos son None según el contrato.
+RewardEvent debe guardar el resultado de la concesión original, no reconstruir
+esos valores consultando catálogos actuales o el saldo de puntos posterior.
+La concesión y el registro Rewards deben confirmarse en la misma transacción.
+
+### Snapshot histórico y recuperación
+
+`reward-result-v1` es un **esquema lógico candidato**, no un payload HTTP ni una
+estructura JSON física ya ratificada. Debe conservar:
+
+| Información histórica | Propósito |
+| --- | --- |
+| Estado y motivos originales; versión de reglas y regla coincidente | Explicar la evaluación original, también NO_REWARD. |
+| Importe XP, clave de operación S3 e IDs causales | Vincular destinatario/perfil, RewardEvent, XPEvent y evoluciones producidas cuando existan. |
+| XP anterior/posterior; niveles y etapas anteriores/posteriores | Guardar el resultado original, sin recalcular historia. |
+| Niveles y etapas cruzados | Registrar todas las transiciones de esa concesión, no solo el estado final. |
+| Puntos de ascenso concedidos y disponibles inmediatamente después | Distinguir concesión histórica de gasto o concesiones posteriores. |
+| Referencias a RewardEvent y XPEvent | Recuperar la misma operación confirmada y verificar causalidad. |
+
+La ausencia de perfil/efecto en un NO_REWARD se representa explícitamente sin
+inventar XP, progresión o eventos inexistentes; detalle de serialización pendiente.
+`replayed` describe la **respuesta actual**, separado del snapshot original
+persistido. RewardResult solo representa resultados confirmados.
+
+| Caso para una identidad existente | Comportamiento F2-A |
+| --- | --- |
+| Misma huella | Recuperar resultado histórico confirmado, sin nuevo premio. |
+| Huella incompatible | Conflicto sin efectos ni sobrescritura. |
+| Reglas o catálogos cambiados después | No reevaluar ni reconstruir el resultado original. |
+| NO_REWARD anterior | Recuperar NO_REWARD y motivos originales. |
+| Registro/snapshot o relación causal incoherentes | Error de integridad histórica, sin reparación automática. |
+| XPEvent de clave Rewards sin RewardEvent | Inconsistencia histórica; no reconstrucción silenciosa ni concesión adicional. |
+
+### Transacción exterior y concurrencia
+
+D-19 sigue vigente: `transaction.atomic()`, SQLite `BEGIN IMMEDIATE`, timeout de
+cinco segundos, consulta de duplicados **dentro** de la transacción y unicidad en
+base de datos. S3 y RewardEvent deben compartir BD, conexión/alias y frontera
+transaccional. Validación de duplicados/conflictos, evaluación aplicable, efecto
+XP y registro final se confirman juntos; cualquier fallo revierte todo.
+
+Se recomienda que Rewards sea dueño de la confirmación exterior local y rechace
+transacciones envolventes incompatibles; el mecanismo concreto no se implementa
+ni modifica S3 aquí. No prometer una respuesta confirmada antes del commit exterior.
+Un retry es explícito, en una **nueva transacción** y con identidad idéntica.
+No introducir reintentos automáticos, I/O externo ni depender de
+select_for_update() como bloqueo efectivo en SQLite. No se promete atomicidad
+entre conexiones o bases de datos independientes.
+
+### Servicio conceptual, errores y autorización
+
+Se mantiene la operación conceptual, sin firma externa definitiva:
+`process_reward(validated_fact, authorized_context) -> RewardResult`.
+Separar evaluación pura (RewardDecision de Fase 1), coordinación/aplicación
+transaccional, resultado final persistido (RewardResult) y recuperación idempotente.
+Una decisión pura con efectos propuestos no confirma una concesión; las cantidades
+recibidas de un cliente no autorizan premios arbitrarios.
+
+Distinguir errores de validación, autorización, conflicto, efecto no soportado,
+configuración, perfil, integridad histórica, S3 y base de datos. No convertirlos
+en NO_REWARD ni fijar nombres de excepción o códigos HTTP definitivos.
+origin_code no autentica al emisor; ValidatedRewardFact garantiza estructura,
+**no autorización**. Core posee identidad, autenticación y permisos; F2-A no
+implementa JWT ni autenticación paralela, ni habilita concesiones reales desde
+entradas no autorizadas. Las reglas ficticias de tests no son configuración oficial.
+
+### Condiciones previas a persistencia y activación
+
+La aprobación interna de F2-A **no autoriza crear RewardEvent ni su migración**.
+Antes de persistir físicamente, Óscar/Core debe confirmar User canónico y
+representación de identidad; conservación/anonimización/eliminación; on_delete de
+RewardEvent y relaciones con XPEvent/perfiles; frontera de autorización de Rewards.
+CORE-01, CORE-02 y CORE-05 no se cierran, ni las políticas de conservación.
+
+Activar premios reales exige además configuración válida de evolución y reglas
+funcionales autorizadas. Bank, Duckies y juegos no bloquean el diseño local;
+sus contratos siguen pendientes para fases posteriores. No se activan cupos,
+baremos económicos, puntos directos o integraciones externas por esta aprobación.
+[Bloqueos y responsables](../pending-decisions.md#9-bloqueos-de-persistencia-rewards-f2-a--doc-6).
+S1–S7-A, Fase 1, S3 y DOC-5 no cambian; S8-A sigue aprobado y pausado.
