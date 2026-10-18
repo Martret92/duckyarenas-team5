@@ -445,3 +445,15 @@ configuración actual. D-19 serializa S3/S7-A; solo atributo elegido y saldo cam
 junto al evento. Admin de consulta y 0005 aditiva con reversión protegida.
 S1–S6-A y otros equipos intactos; conservación CASCADE provisional, configuración
 funcional y contratos globales pendientes. Sin interfaz web de asignaciones.
+
+## S8-A · Interfaz de asignación local reactivada (en revisión)
+
+Jaime reactiva [S8-A](contracts/ecomotor-stat-allocation-web-v1.md) después de
+DOC-6; las referencias anteriores a su pausa describen sus cortes históricos.
+Adaptador GET/POST con login/CSRF Django y perfil exclusivo de request.user.
+S4-A muestra datos; S7-A recibe el formulario válido sin prevalidación de
+elegibilidad, preservando replay. Clave segura por GET, conservación en POST y
+PRG con mensajes distintos. Sin transacciones propias ni escrituras de negocio.
+Ruta namespaced local, sin config/urls.py ni integración global Core. Rewards F1
+y arquitectura F2-A intactas; F2-A sigue bloqueada para persistencia. No activa
+configuración funcional ni resuelve contratos compartidos.
