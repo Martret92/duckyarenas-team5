@@ -722,3 +722,14 @@ conexiones independientes. [Bloqueos DOC-6](pending-decisions.md#9-bloqueos-de-p
 y [plan](team5-work-plan.md#31-fases-rewards--t8-aprobado-internamente-doc-4)
 separan aprobación, implementación y activación. D-17/D-19/D-20/D-21, V2-A1…V2-A29,
 S1–S7-A, Fase 1 y DOC-5 no cambian; S8-A permanece aprobado y pausado.
+
+## S8-A · Reactivación e interfaz web local V1
+
+Jaime reactiva S8-A tras coordinación de octubre y DOC-6. El [contrato web](contracts/ecomotor-stat-allocation-web-v1.md)
+añade GET/POST autenticados, identidad exclusiva de request.user, forms.Form,
+CSRF y clave impredecible conservada en POST/errores. S7-A es el único propietario
+de elegibilidad/gasto/replay; no prevalidación web de saldo/Actual/configuración.
+Nuevo/replay aplican PRG con mensajes distintos. HTTP 400/404/409/503 genéricos,
+overflow 409, CSRF estándar 403. Ruta local sin montaje Core. Decisiones internas,
+no atribuidas a DAR3/Core/Rewards. Los estados pausados anteriores son históricos;
+F2-A continúa bloqueada para persistencia. S1–S7-A y DOC-6 intactos.
