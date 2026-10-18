@@ -65,7 +65,7 @@ por sí solos toda la revisión conceptual.
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado. S12-A solo acepta DomainXPEvent conceptual. | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y legacy. DomainXPEvent físico y sus relaciones requieren acuerdo previo de conservación, anonimización/eliminación y on_delete; sin copiar CASCADE provisional. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
 | P6 · Vestimenta/Museo | DAR3 conserva seis piezas por época obtenidas por progreso/misiones y conjuntos anteriores. DOC-5 (18/10) concreta la propuesta E5: conjunto completo por época, adquisición/autoequipamiento al evolucionar y reutilización de anteriores obtenidos también en épocas intermedias; futuras no alcanzadas excluidas. | CORE-07, B-06 y R-01 abiertos: Óscar debe aclarar piezas diferenciadas/composición de conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/autoequipamiento y reutilización, y nueve épocas (Era Espacial incluida) frente a siete etapas provisionales. Mantener compatibilidad, saltos y Museo pendientes; no asumir un único Item por conjunto. | Óscar para aclaración funcional; Henry/Jaime para identidades, idempotencia, adquisición/equipamiento y recuperación; Fernando si afecta a comercio. |
-| P7 · Especializaciones | S11-A integrado (#44), S12-A conceptual (#45) y S13-A-01…07/S13-A1 aprobados internamente: rangos por especialización y evaluador puro candidato. | Abiertos códigos canónicos, obligatoriedad/acceso adicional, cambios/reinicios, reglas/fuentes/importes de dominio, autorización de evidencias, persistencia y confirmación de ascensos, valores oficiales, recompensas tardías y contratos juegos/Rewards. No cerrar P7 ni activar baremos. | Óscar, Jaime y juegos; [S11-A](contracts/ecomotor-specialization-v1.md), [S12-A](contracts/ecomotor-domain-xp-v1.md) y [S13-A1](contracts/ecomotor-ranks-evaluator-v1.md), sin ratificación global Core. |
+| P7 · Especializaciones | S11-A integrado (#44), S12-A conceptual (#45), S13-A1 puro integrado (#47) y S14-A-01…07 aprobados internamente, sin servicio de cambio implementado. | Abiertos códigos canónicos, obligatoriedad/acceso adicional, concreciones de cambio y compatibilidad S11-A, reinicios, fuentes/importes de dominio, autorización de evidencias, persistencia/confirmación de rangos y recompensas tardías. No cerrar P7 ni activar baremos. | Óscar, Jaime y juegos; [S11-A](contracts/ecomotor-specialization-v1.md), [S12-A](contracts/ecomotor-domain-xp-v1.md), [S13-A1](contracts/ecomotor-ranks-evaluator-v1.md) y [S14-A](contracts/ecomotor-specialization-switch-v1.md), sin ratificación global Core. |
 | P8 · Umbrales/configuración | Invariantes V2-A20/A21 y carga JSON/diagnóstico S6-A ya implementados localmente; INITIAL_CONFIGURATION sigue ausente. | Valores autorizados, instalación real por proceso y cambios históricos prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. S6-A no activa el servidor ni aprueba producción. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
 ### Integración pendiente con Core y servicios económicos comunes
@@ -325,3 +325,22 @@ La opción B separa importes de XP general y dominio, sin cantidades ni conversi
 
 P5/P7 no se cierran. V2-A25/A26 y el ERD mínimo sin rango siguen siendo el estado
 físico integrado. S13-A1 no confirma ascensos ni implementa concesiones de dominio.
+
+## 12. S14-A · cambio aprobado internamente, precisiones y bloqueos
+
+[DOC-S14-A](contracts/ecomotor-specialization-switch-v1.md) registra siete decisiones
+internas de 02B. S13-A1 ya está integrado (#47); el evaluador no confirma ascensos.
+Los estados previos de §11 describen el corte documental anterior a su implementación.
+
+| Pendiente antes de avanzar | Alcance / responsable |
+| --- | --- |
+| Compatibilidad S11-A con varias filas | Jaime/02B: el ORM admite varios progresos, pero el servicio actual exige exactamente uno. Precisar repetición de la activa y rechazo de otra selección con varias filas coherentes, preservando primera selección y detección de inconsistencias. No cambiar silenciosamente el contrato. |
+| Repetición y precondición esperada | Jaime/02B: concretar respuesta si el objetivo ya está activo pero expected_active_code está obsoleto, y validación de Actual/configuración en repeticiones. No inventar excepción al control de concurrencia. |
+| Recompensa tardía | Actividad en Developer, cambio a Gamer y recepción posterior. Preferencia funcional: atribuir a la rama original; no excepción operativa aprobada. Revisar S12-A-02, limitado a la activa, y evidencias confiables del estado al realizar la actividad con Rewards/Core. No elegir automáticamente la activa al procesar. |
+| Rangos y conservación | S13-A2 pendiente; conservar rangos es decisión funcional, no campo existente. Core/P5 mantiene conservación, anonimización/eliminación y on_delete; no nuevos eventos/tablas. |
+| Residual P7 | Códigos/valores oficiales, acceso adicional, reinicios, XP de dominio/fuentes/autorización y contratos externos permanecen abiertos. La aprobación S14-A no implementa estos aspectos. |
+
+S14-A sin evento físico solo ofrece idempotencia por estado; A → B → A no permite
+distinguir una solicitud histórica de una nueva si vuelve a coincidir la precondición.
+No se añade una política de identidad histórica para resolverlo. S12-A/DomainXPEvent
+y DOC-6/F2-A mantienen sus bloqueos; Rewards v0 candidato, sin premios reales.

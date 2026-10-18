@@ -1,6 +1,15 @@
-# Plan de trabajo · S11-A integrado y arquitectura S12-A / S13-A1
+# Plan de trabajo · S13-A1 integrado y arquitectura S14-A
 
 ## 1. Estado y referencias
+
+**Actualización DOC-S14-A:** base develop
+`e401c33045b4f1b4c8621c54c21757483769b56b`, S13-A1 integrado por PR #47.
+Última suite comunicada: **655 tests correctos, no reejecutados en esta PR documental**.
+[S14-A](contracts/ecomotor-specialization-switch-v1.md) registra arquitectura interna
+aprobada del cambio en Actual, sin implementar. Próximo paso: revisar en 02B la
+compatibilidad S11-A con múltiples progresos y las precisiones de repetición/estado
+esperado antes de autorizar código. Recompensas tardías y S13-A2 siguen pendientes;
+S12-A y Rewards F2-A no se desbloquean. Los cortes siguientes son antecedentes.
 
 **Actualización DOC-S13-A1:** base develop
 `5d36778449e7c796e2770ddfdb97f25e8f8b280f`, DOC-S12-A integrado (#45).
@@ -28,7 +37,7 @@ Las referencias anteriores a revisión/pausa se conservan como antecedentes.
 | S11-A | Implementado e integrado (#44): primera selección en Actual y progreso inicial cero; no concede XP positiva de dominio. |
 | S12-A | Alternativa C/S12-A-01…06 aprobadas internamente en 02B. [Contrato conceptual](contracts/ecomotor-domain-xp-v1.md), sin implementación; persistencia bloqueada hasta acuerdo Core de conservación/anonimización/eliminación y on_delete, premios reales hasta origen/destinatario/reglas confiables. |
 | Rewards F1-A / F2-A | F1-A pura implementada (#38). F2-A sigue bloqueada por DOC-6; S12-A no la desbloquea ni ratifica el contrato global v0. |
-| P7 / S13-A | P7 parcialmente abierto. Arquitectura S13-A-01…07 y precisiones S13-A1 aprobadas internamente; evaluador puro candidato del siguiente rango, sin implementación ni valores oficiales. Persistencia y confirmación pendientes. |
+| P7 / S13-A / S14-A | P7 parcialmente abierto. S13-A1 puro integrado (#47), sin confirmación persistente S13-A2. S14-A documentado, sin implementar; precisar compatibilidad S11-A y repetición/estado esperado. Valores oficiales, autorización y recompensas tardías pendientes. |
 
 **Antecedente S10-A:** baseline `a309e6324a54b25f84abd8bd66f2f26441ca7c4e`,
 con S8-A (#40), UI-A (#41) y S9-A (#42) integradas. S10-A está implementado y
@@ -63,7 +72,7 @@ formativos se distinguen del calendario de entrega del producto.
 
 | Responsable | Parte y apps | Trabajo inmediato propuesto |
 | --- | --- | --- |
-| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | S1–S11-A y UI-A integrados; S12-A conceptual registrado (#45). S13-A/S13-A1 documentados, sin evaluador implementado. Resolver conservación, autorización y pendientes de confirmación; P7 y Rewards F2-A siguen abiertos. |
+| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | S1–S11-A, UI-A y S13-A1 integrados. S12-A conceptual; S14-A documentado, sin implementar. Precisar compatibilidad S11-A y repetición/estado esperado; conservación, autorización, S13-A2, recompensas tardías, P7 y Rewards F2-A pendientes. |
 | Henry | B · `apps.duckies`: Duckies, avatar, objetos, inventario y equipamiento | Revisar catálogo/posesión, concesiones/consumos, compatibilidad y contrato de objetos con Rewards/Shop. |
 | Fernando | C · `apps.bank` y `apps.shop`: wallet, movimientos, catálogo comercial y compras | Revisar diseño B/C, créditos/débitos idempotentes, coordinación de compra y reservas solo si se incluyen apuestas. |
 | Equipo 5 con Óscar/Core | `apps.users` conservada; integración de identidad/JWT | Resolver autenticación, permisos, conservación y legacy antes de la parte afectada. |

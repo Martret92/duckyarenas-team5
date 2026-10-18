@@ -2,6 +2,21 @@
 
 ## 1. Estado y fuentes
 
+**Actualización DOC-S14-A:** develop
+`e401c33045b4f1b4c8621c54c21757483769b56b` integra S13-A1 puro (#47).
+El [cambio de especialización S14-A](contracts/ecomotor-specialization-switch-v1.md)
+está aprobado internamente en 02B, sin implementar: una activa, progresos de las
+cinco conservados, primera activación en cero, retorno sin reset y cambio en Actual
+sin alterar XP histórica, nivel, etapa, stats o recompensas. Servicio candidato
+transaccional separado de S11-A, estado esperado y D-19; sin evento físico ni
+replay histórico completo. Antes de implementar debe precisarse la compatibilidad
+de S11-A con múltiples progresos coherentes y la repetición frente al estado esperado.
+S13-A2/persistencia de rangos pendientes; no evaluación para conceder ascensos.
+La recompensa tardía de una especialización ya inactiva requiere revisar S12-A-02
+y evidencias con Rewards/Core, sin excepción aprobada. P5/P7 y conservación
+siguen abiertos; DomainXPEvent conceptual y Rewards F2-A bloqueado.
+Los cortes anteriores sin implementación de S13-A1 son antecedentes documentales.
+
 **Actualización DOC-S13-A1 · 18/10/2026:** base develop
 `5d36778449e7c796e2770ddfdb97f25e8f8b280f`, con DOC-S12-A integrado (#45).
 La [arquitectura de rangos y contrato candidato del evaluador puro](contracts/ecomotor-ranks-evaluator-v1.md)
