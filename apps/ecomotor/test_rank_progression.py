@@ -1,6 +1,6 @@
 """Pruebas S13-A1 con políticas y evidencias exclusivamente sintéticas."""
 
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from itertools import permutations
 from unittest import TestCase
 from unittest.mock import patch
@@ -293,6 +293,33 @@ class RankInvalidProgressEvidenceTests(TestCase):
 
 
 class RankPureDeterminismTests(TestCase):
+    def test_assessment_rejects_invalid_diagnostic_collections(self):
+        valid = evaluate_rank_eligibility(progress(), evidence(), policy())
+        for field in ("missing_course_codes", "missing_challenge_codes", "unavailable_sources"):
+            for value in ("course", b"course", bytearray(b"course"),
+                          {"course": True}, None, 1, True):
+                with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                    replace(valid, **{field: value})
+
+    def test_assessment_rejects_invalid_or_nested_diagnostic_elements(self):
+        valid = evaluate_rank_eligibility(progress(), evidence(), policy())
+        for field in ("missing_course_codes", "missing_challenge_codes", "unavailable_sources"):
+            for element in (None, 1, True, 1.5, b"course", "", "  ",
+                            ["course"], {"course": True}, {"course"}, ("course",)):
+                with self.subTest(field=field, element=element), self.assertRaises(ValueError):
+                    replace(valid, **{field: [element]})
+
+    def test_assessment_preserves_diagnostic_order_and_text(self):
+        valid = evaluate_rank_eligibility(progress(), evidence(), policy())
+        result = replace(
+            valid, missing_course_codes=["synthetic-z", " synthetic-a "],
+            missing_challenge_codes=["synthetic-r2", "synthetic-r1"],
+            unavailable_sources=["courses", "challenges"],
+        )
+        self.assertEqual(result.missing_course_codes, ("synthetic-z", " synthetic-a "))
+        self.assertEqual(result.missing_challenge_codes, ("synthetic-r2", "synthetic-r1"))
+        self.assertEqual(result.unavailable_sources, ("courses", "challenges"))
+
     def test_assessment_defensively_copies_diagnostic_collections(self):
         courses = ["synthetic-course"]
         challenges = ["synthetic-challenge"]

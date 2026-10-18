@@ -154,7 +154,14 @@ class RankAssessment:
 
     def __post_init__(self):
         for name in ("missing_course_codes", "missing_challenge_codes", "unavailable_sources"):
-            object.__setattr__(self, name, tuple(getattr(self, name)))
+            values = getattr(self, name)
+            if (not isinstance(values, Collection)
+                    or isinstance(values, (str, bytes, bytearray, Mapping))):
+                raise ValueError(f"{name}: se exige una colección explícita de códigos.")
+            codes = tuple(values)
+            if any(type(code) is not str or not code.strip() for code in codes):
+                raise ValueError(f"{name}: se exigen códigos de texto no vacíos.")
+            object.__setattr__(self, name, codes)
 
 
 def evaluate_rank_eligibility(
