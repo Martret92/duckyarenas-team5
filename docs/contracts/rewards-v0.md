@@ -378,3 +378,77 @@ clases, payloads HTTP, códigos HTTP o semántica de batch.
 
 T8 se desarrolla en el [plan de cuatro fases](../team5-work-plan.md#31-fases-rewards--t8-aprobado-internamente-doc-4),
 con PR pequeños y revisión por fase. No modifica S1–S7-A ni reactiva S8-A.
+
+## 11. F1-A · Núcleo puro — concreciones técnicas aprobadas internamente
+
+Jaime aprueba las cinco concreciones F1-A para T8/Fase 1. DOC-3/DOC-4 ya
+aprobaron internamente R1–R8/T1–T8; aquí se cierran los detalles locales de
+T2/T5/T7 sobre serialización, tipos y evaluación. No es aprobación de DAR3,
+Core, Henry, Fernando o juegos. Rewards v0 sigue siendo contrato global candidato;
+campos semánticos por juego, emisor, conservación y contratos compartidos abiertos.
+
+### Tipos y errores
+
+`reward_types.py` define dataclasses frozen: RewardIdentity(origin_code, fact_id,
+recipient_id); ValidatedRewardFact(identity, activity_type, occurred_at, result,
+context); ProposedEffect(effect_type, quantity); RewardRule(rule_id, activity_type,
+result_equals, proposed_effects); RewardRuleSet(version, rules); RewardDecision(
+rule_set_version, matched_rule_id, eligible, proposed_effects, reason_codes).
+
+Identificadores/códigos/versiones son strings UTF-8 no vacíos, sin recorte ni
+normalización. fact_id opaco de hasta 255 caracteres; no catálogo oficial de
+orígenes. Validación estructural no autoriza emisor ni verifica User: el futuro
+adaptador confiable valida destinatario/resultado antes de construir el hecho.
+Solo objeto semántico result/context, no datos HTTP completos como hecho validado.
+
+JSON: str, int, bool, None, mappings de claves str y arrays list/tuple. Copia
+defensiva recursiva: objetos MappingProxyType sobre dict propio y arrays tuple,
+conservando su distinción. Rechaza float/Decimal/NaN/infinito, fechas anidadas,
+sets, objetos arbitrarios, ciclos y Unicode no UTF-8. Bool sigue siendo booleano,
+no entero. Sin máximos funcionales de enteros; errores de representación de Python
+se controlan. Profundidad máxima técnica 64 contenedores para proteger la pila,
+sin cambiar límites del intérprete. Datetime consciente se normaliza a UTC,
+sin reloj, zona implícita, settings ni reinterpretación de fechas naive.
+
+Errores públicos ValueError: InvalidRewardIdentityError, InvalidRewardFactError,
+RewardCanonicalizationError, InvalidRewardRuleSetError, AmbiguousRewardRulesError.
+Mensajes controlados sin payloads completos; no captura indiscriminada de Exception.
+
+### Representación semántica y huella
+
+`canonical_reward_bytes(fact) -> bytes` construye exactamente schema,
+identity (origin_code/fact_id/recipient_id), activity_type, occurred_at, result y
+context. schema = rewards-semantic-v1; fecha YYYY-MM-DDTHH:MM:SS.ffffffZ con
+seis microsegundos. Orden lexicográfico de claves, arrays conservan orden,
+JSON compacto con ensure_ascii=False, allow_nan=False, UTF-8, sin normalización
+Unicode. No incorpora metadatos HTTP/reintento, premios, versión de reglas o
+configuración posterior. `semantic_fingerprint(fact) -> str` es SHA-256 de esos
+bytes, hexadecimal minúsculo de 64 caracteres; incluye identidad y versión.
+No es firma ni autorización; comparación/deduplicación persistente quedan fuera.
+
+### Evaluación declarativa
+
+`evaluate_reward(fact, rule_set) -> RewardDecision`: conjunto versionado explícito,
+inmutable y ordenado, IDs únicos, sin reglas por defecto ni carga externa. Puede
+estar vacío; None o estructura inválida es error. Condiciones solo sobre claves
+directas de result y valores JSON escalares, igualdad estricta de tipo/valor:
+True no es 1 y ausencia no es null. Strings no son rutas; sin código, expresiones,
+operadores adicionales, límites, cuotas o periodos. Efecto conceptual propuesto:
+effect_type no vacío y quantity entero positivo sin bool, sin códigos oficiales.
+
+Sin coincidencia: eligible=False, matched_rule_id=None, effects=(), motivo
+NO_MATCHING_RULE. Una coincidencia: eligible=True, ID/efectos de esa regla,
+reason_codes=() si propone efectos o (MATCHED_NO_EFFECT,) si no. Varias:
+AmbiguousRewardRulesError, sin prioridad por orden ni suma automática.
+RewardDecision es evaluación, nunca aplicación: sin APPLIED/NO_REWARD, replayed,
+referencias de movimientos, saldos ni confirmación transaccional. Errores no se
+convierten en decisiones sin premio. Reglas ficticias exclusivamente en tests.
+
+### Compatibilidad y límites
+
+Tres módulos de biblioteca estándar, sin Django/ORM, BD, red, disco, reloj o
+efectos. Sin process_reward, tablas RewardEvent/RewardLimitUsage/RewardRule,
+concesiones S3, economía, inventario ni activación de baremos. S1–S7-A intactos,
+S8-A pausado; sin Fase 2 automática. UTC de huella no fija el día de Training.
+T-01/Q-01/E-01, adaptación por juego, autorización Core, persistencia/retención,
+límites temporales y contratos Bank/Duckies/REST siguen pendientes.

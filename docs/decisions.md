@@ -671,3 +671,15 @@ adquisición, equipamiento y recuperación de errores, sin fijar aquí modelos,
 transacciones o firmas definitivas. Véanse [arquitectura](architecture.md#31-vestimentas-históricas--propuesta-doc-5)
 y [pendientes DOC-5](pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
 D-20/D-21, Rewards R1–R8/T1–T8, S1–S7-A y el estado pausado de S8-A no cambian.
+
+## F1-A · Núcleo puro Rewards — Concreciones internas aprobadas por Jaime
+
+El encargo de F1-A aprueba cinco detalles de T8/Fase 1 sobre T2/T5/T7 de DOC-4:
+JSON semántico determinista versionado, datetimes conscientes normalizados UTC,
+JSON exacto sin float/Decimal, RewardDecision inmutable sin efectos aplicados y
+evaluación declarativa mínima sin cuotas/concesiones. El [contrato v0 §11](contracts/rewards-v0.md#11-f1-a--núcleo-puro--concreciones-técnicas-aprobadas-internamente)
+fija tipos, errores, copia defensiva, formato UTC de seis microsegundos, SHA-256
+y matching estricto/ambiguo. Identidad lógica no autoriza origen ni valida User.
+Solo biblioteca estándar, reglas ficticias en tests, sin ORM ni servicios propietarios.
+No atribuye aprobación a DAR3, Core, Henry, Fernando o juegos; v0 global candidato,
+T-01/Q-01/E-01 y contratos compartidos abiertos. S1–S7-A intactos y S8-A pausado.
