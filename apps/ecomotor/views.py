@@ -1,10 +1,11 @@
 """Adaptadores HTTP locales; la identidad siempre procede de Django."""
 
+import re
 import secrets
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import DatabaseError
+from django.db import DatabaseError, connections
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
@@ -22,7 +23,40 @@ from .stat_allocation import (
 from .progress_queries import (
     InconsistentQueryStateError, InvalidQueryProfileError, ProgressQueryDatabaseError,
     get_progress_overview, list_progress_history,
+    InvalidHistoryParametersError,
 )
+from .stat_allocation_queries import list_stat_allocation_history
+
+
+@login_required
+@require_safe
+def allocation_history_view(request):
+    try:
+        profile = UserProfileEcomotor.objects.get(user=request.user)
+        cursors = request.GET.getlist("before_id")
+        before_id = None
+        if cursors:
+            maximum = connections[profile._state.db].ops.integer_field_range("BigAutoField")[1]
+            value = cursors[0]
+            if (len(cursors) != 1 or not 1 <= len(value) <= len(str(maximum))
+                    or re.fullmatch(r"[0-9]+", value) is None):
+                raise InvalidHistoryParametersError("Cursor inválido.")
+            before_id = int(value)
+            if not 1 <= before_id <= maximum:
+                raise InvalidHistoryParametersError("Cursor fuera de rango.")
+        history = list_stat_allocation_history(profile, limit=10, before_id=before_id)
+    except (UserProfileEcomotor.DoesNotExist, InvalidQueryProfileError):
+        return HttpResponse("Progreso no encontrado.", status=404, content_type="text/plain; charset=utf-8")
+    except InvalidHistoryParametersError:
+        return HttpResponse("El cursor del historial no es válido.", status=400,
+                            content_type="text/plain; charset=utf-8")
+    except InconsistentQueryStateError:
+        return HttpResponse("El historial no puede consultarse en su estado actual.", status=409,
+                            content_type="text/plain; charset=utf-8")
+    except (DatabaseError, ProgressQueryDatabaseError):
+        return HttpResponse("La consulta del historial no está disponible temporalmente.", status=503,
+                            content_type="text/plain; charset=utf-8")
+    return render(request, "ecomotor/allocation_history.html", {"history": history})
 
 
 @login_required

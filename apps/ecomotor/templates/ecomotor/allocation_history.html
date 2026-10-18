@@ -1,0 +1,44 @@
+{% extends 'ecomotor/base.html' %}
+{% block title %}Historial de asignaciones · Ecomotor{% endblock %}
+{% block history_class %}is-active{% endblock %}
+{% block history_current %}aria-current="page"{% endblock %}
+{% block content %}
+  <header class="page-heading">
+    <div><p class="eyebrow">TU PERSONAJE / HISTORIAL</p>
+      <h1>Historial de asignaciones<span class="heading-dot">.</span></h1>
+      <p class="intro">Consulta los valores registrados en cada asignación de puntos.</p></div>
+    <a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos</a>
+  </header>
+  <section class="section-block" aria-labelledby="allocations">
+    <div class="section-heading"><h2 id="allocations">Tus asignaciones</h2><span class="section-tag">REGISTROS HISTÓRICOS</span></div>
+    {% if history.entries %}
+      <ol class="history-list allocation-history-list" role="list">
+        {% for entry in history.entries %}
+          <li><article aria-labelledby="allocation-{{ entry.id }}">
+            <div class="section-heading">
+              <h3 id="allocation-{{ entry.id }}">Asignación a {{ entry.attribute_label }}</h3>
+              <span class="badge">+{{ entry.increase_applied }}</span>
+            </div>
+            <p class="allocation-reference">Evento #{{ entry.id }} · <time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:'d/m/Y H:i:s' }}</time></p>
+            <dl class="allocation-snapshots">
+              <div><dt>Puntos gastados</dt><dd>{{ entry.points_spent }}</dd></div>
+              <div><dt>Incremento aplicado</dt><dd>+{{ entry.increase_applied }}</dd></div>
+              <div><dt>{{ entry.attribute_label }}: antes → después</dt><dd>{{ entry.attribute_before }} → {{ entry.attribute_after }}</dd></div>
+              <div><dt>Puntos disponibles: antes → después</dt><dd>{{ entry.available_points_before }} → {{ entry.available_points_after }}</dd></div>
+              <div><dt>Código histórico de etapa persistido</dt><dd><code>{{ entry.stage_code_at_allocation }}</code></dd></div>
+            </dl>
+          </article></li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <div class="panel"><p>Todavía no has realizado asignaciones de puntos.</p>
+        <a href="{% url 'ecomotor:allocate-points' %}">Ir a asignar puntos</a></div>
+    {% endif %}
+    <nav class="history-pagination" aria-label="Páginas del historial de asignaciones">
+      <a href="{% url 'ecomotor:allocation-history' %}">Volver al inicio del historial</a>
+      {% if history.has_more %}
+        <a class="button button-primary" href="{% url 'ecomotor:allocation-history' %}?before_id={{ history.next_before_id }}">Ver asignaciones anteriores</a>
+      {% endif %}
+    </nav>
+  </section>
+{% endblock %}
