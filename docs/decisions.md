@@ -854,3 +854,34 @@ No se modifica ORM, ERD físico, migraciones, servicios ni configuración. Persi
 autorización de evidencias, valores oficiales, políticas de cambio y recompensas
 tardías siguen pendientes. P5/P7 abiertos; DomainXPEvent solo conceptual;
 Rewards v0 candidato y F2-A bloqueado, sin premios reales.
+
+## S14-A · Arquitectura del cambio de especialización — aprobación interna 02B
+
+DOC-S14-A parte de develop `e401c33045b4f1b4c8621c54c21757483769b56b`, con
+S13-A1 puro integrado (#47). Jaime/Parte A aprueba internamente en 02B las reglas
+siguientes; no se atribuyen literalmente a DAR3 ni a Óscar/Core.
+
+| ID | Decisión interna aprobada |
+| --- | --- |
+| S14-A-01 | Una sola especialización activa por perfil; progreso independiente conservado en las cinco especializaciones. |
+| S14-A-02 | Primera activación de una especialización nunca utilizada: domain_xp_total = 0 y estado funcional sin rango. |
+| S14-A-03 | Volver a una anterior reutiliza su progreso sin reiniciar XP de dominio ni rangos confirmados. |
+| S14-A-04 | Sin modificar XP histórica, nivel, etapa, estadísticas ni recompensas; sin transferencias de XP entre ramas. |
+| S14-A-05 | Servicio local transaccional separado de primera selección, con estado activo esperado y concurrencia D-19. |
+| S14-A-06 | V1 sin evento físico de cambio; idempotencia por estado, sin promesa de idempotencia histórica completa. |
+| S14-A-07 | Recompensas tardías pendientes de revisión con S12-A, Rewards y Core. |
+
+Cambio solo en Actual, sin retroceso ni consumo de XP histórica.
+El [contrato candidato](contracts/ecomotor-specialization-switch-v1.md) describe
+`switch_active_specialization(profile, target_code, expected_active_code) -> SpecializationSwitchResult`,
+no API disponible. El esquema ya admite varios progresos por pareja única, pero
+S11-A exige exactamente uno: adaptar su validación en el futuro requiere precisar
+su comportamiento con varias filas coherentes. También queda por concretar la
+precedencia entre repetición y estado esperado obsoleto, sin elegirla aquí.
+
+S11-A/S12-A/S13-A conservan sus decisiones históricas. S13-A2 no está implementado;
+sin rango es estado funcional, no campo físico. La propuesta preferida de atribuir
+una recompensa tardía a la especialización de la actividad entra en conflicto con
+S12-A-02 si ya no está activa: requiere revisión explícita y evidencias confiables,
+no excepción operativa aprobada. P5/P7 abiertos; DomainXPEvent conceptual,
+Rewards v0 candidato y F2-A bloqueado. Sin código, migraciones ni premios reales.
