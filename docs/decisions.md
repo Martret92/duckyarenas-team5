@@ -683,3 +683,42 @@ y matching estricto/ambiguo. Identidad lógica no autoriza origen ni valida User
 Solo biblioteca estándar, reglas ficticias en tests, sin ORM ni servicios propietarios.
 No atribuye aprobación a DAR3, Core, Henry, Fernando o juegos; v0 global candidato,
 T-01/Q-01/E-01 y contratos compartidos abiertos. S1–S7-A intactos y S8-A pausado.
+
+## DOC-6 · Arquitectura persistente Rewards F2-A · 18/10/2026
+
+**Autoridad y base:** aprobación interna de Jaime/Parte A comunicada en el encargo
+DOC-6, sobre develop `5a4e079` tras PR #38. Desarrolla R1–R8 (DOC-3, PR #35)
+y T1–T8 (DOC-4, PR #36); no es ratificación de Core, Henry, Fernando ni juegos.
+DAR3 conserva su autoridad funcional; las elecciones físicas siguientes son
+candidatas, no requisitos atribuidos al profesor ni autorización de migraciones.
+
+Fase 1 está integrada mediante [PR #38](https://github.com/Martret92/duckyarenas-team5/pull/38):
+tipos, identidad/huella y evaluación pura. No incluye persistencia, concesiones
+ni process_reward. Las menciones anteriores a Rewards sin implementar describen
+sus respectivos cortes; el núcleo puro integrado no equivale al servicio global.
+
+| Aspecto | Arquitectura F2-A aprobada internamente / condición |
+| --- | --- |
+| Alcance local | Persistir evaluaciones válidas y conceder exclusivamente XP histórica positiva mediante S3; evaluación válida sin efectos como NO_REWARD. Rechazar toda la operación si propone un efecto no soportado, sin descartarlo ni convertirlo en NO_REWARD. |
+| Registro candidato | RewardEvent con destinatario User vía AUTH_USER_MODEL, identidad única origen/hecho/destinatario, huella y versiones, resultado histórico y OneToOne XPEvent opcional. APPLIED exige XP positiva y XPEvent solo en F2-A; NO_REWARD exige XP cero sin XPEvent. Constraints y modelo físico bloqueados hasta Core. |
+| S3 sin cambios | Reutilizar grant_historical_xp con perfil persistido e inicializado para XP positiva. Clave rewards:v1: más SHA-256 de codificación versionada inequívoca de la identidad, nunca de semantic_fingerprint. Validar User, PK canónico y causalidad; no inicializar perfiles ni crear XPEvent con XP cero. |
+| Historia y replay | Snapshot candidato reward-result-v1 conserva el resultado original, incluidas progresión y puntos de ascenso. Misma identidad/huella recupera historia sin reevaluar reglas/catálogos; huella incompatible es conflicto. Incoherencia u XPEvent Rewards huérfano es error, sin reconstrucción o reparación silenciosa. |
+| Confirmación local | D-19: atomic, BEGIN IMMEDIATE, timeout 5 segundos, duplicados dentro de transacción y unicidad persistente. S3 y RewardEvent comparten alias y frontera; rollback completo y retry explícito en nueva transacción con identidad idéntica. Se recomienda que Rewards controle la confirmación exterior y rechace envolventes incompatibles; sin I/O externo o retry automático. |
+| Contrato y autorización | Separar RewardDecision puro, aplicación transaccional, RewardResult confirmado y replay. process_reward sigue conceptual; origin_code y ValidatedRewardFact no autentican. Sin JWT paralelo, API definitiva ni concesiones desde entradas no autorizadas. |
+
+El [detalle técnico F2-A](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6)
+concentra campos, snapshot, errores y fronteras. El contrato global continúa **v0
+candidato**; no se crean RewardEvent/RewardLimitUsage, migraciones ni servicios.
+Core debe confirmar User/representación de identidad, conservación/anonimización/
+eliminación, on_delete y relaciones con XPEvent/perfiles, y frontera de autorización
+**antes de persistir físicamente**. Para premios reales se requieren además
+configuración válida de evolución y reglas funcionales autorizadas.
+
+Bank, Duckies y juegos no bloquean el diseño local F2-A; quedan fuera junto con
+monedas, inventario/vestimenta, XP de dominio, puntos directos, cupos, RewardRule
+como tabla, REST/WebSockets/batch y compensaciones distribuidas. Sus contratos
+siguen pendientes para fases posteriores. No se promete atomicidad entre BD o
+conexiones independientes. [Bloqueos DOC-6](pending-decisions.md#9-bloqueos-de-persistencia-rewards-f2-a--doc-6)
+y [plan](team5-work-plan.md#31-fases-rewards--t8-aprobado-internamente-doc-4)
+separan aprobación, implementación y activación. D-17/D-19/D-20/D-21, V2-A1…V2-A29,
+S1–S7-A, Fase 1 y DOC-5 no cambian; S8-A permanece aprobado y pausado.
