@@ -573,3 +573,34 @@ conflicto sin resolver. Los baremos T-01/Q-01/E-01, 3/5/8 y 2/4/6 no se aprueban
 D-17/D-19/D-20/D-21, V2-A1…V2-A29 y contratos locales S1–S7-A no cambian.
 Rewards v0 permanece candidato; S8-A aprobado y pausado. La normalización de
 nombres y el [índice ERD PR07](ERD.md) no autorizan modelos, migraciones o interfaces.
+
+## DOC-3 · Arquitectura Rewards V1 — Acuerdos internos de Parte A · 18/10/2026
+
+**Autoridad y procedencia:** aprobación interna de Jaime comunicada en el encargo
+DOC-3 del 18/10/2026, sobre develop `9495bda` tras PR #34. Orienta Parte A;
+**no es ratificación conjunta de Jaime, Henry y Fernando ni aceptación de Core o
+los juegos**. DAR3 sigue como fuente funcional principal; DuckyEcomotor y
+DAR_formulas conservan sus reglas y referencias para contraste. D-20/D-21 y D-19
+permanecen vigentes. No se añaden identificadores D ni se implementa Rewards.
+
+| ID | Decisión arquitectónica aprobada internamente por Jaime |
+| --- | --- |
+| R1 · Identidad | Identidad lógica (origen autorizado, identificador estable del hecho, usuario destinatario). Reintento conserva identidad; actividad válida distinta tiene otra. Emisor y resultado requieren validación del servidor. |
+| R2 · Huella y conflictos | Persistir huella del contenido semántico validado. Misma identidad y contenido equivalente recuperan el resultado previo; contenido incompatible genera conflicto sin efectos nuevos. Algoritmo, formato y campos canónicos sin especificar. |
+| R3 · RewardEvent | Aceptar el concepto de registro persistente global de evaluación: identidad, huella, regla/versionado, resultado, motivo y referencias a efectos. Estados finales de negocio APPLIED y NO_REWARD; errores técnicos nunca NO_REWARD. Sin representación ORM aprobada. |
+| R4 · Atomicidad | Rewards coordina transacción exterior para evaluación, límites, efectos y registro final únicamente si los servicios comparten BD, conexión/alias y frontera transaccional. D-19 vigente; no afirmar atomicidad con Bank/Duckies remotos. Recuperación distribuida pendiente. |
+| R5 · Efectos independientes | Admitir XP, DuckyCoins, objetos y puntos, también sin XP y sin XPEvent ficticios. Ecomotor controla XP/evolución, Bank monedas y Duckies inventario. Separar puntos de ascenso y concesión directa; su servicio sigue pendiente. |
+| R6 · Límites temporales | Repetición y límites configurables por regla, usuario, actividad y periodo, independientes para XP y monedas. Distinguir reintentos de actividades nuevas y proteger límites frente a concurrencia. Europe/Madrid y una DC por primera finalización válida de juego/día son información local de Training, no contrato global de importes/hechos tardíos. |
+| R7 · Errores y correcciones | Error técnico no es evaluación válida sin premio. Recuperar operaciones confirmadas con identidad original. Correcciones posteriores como operaciones nuevas trazables vinculadas al premio original, sin sobrescribir historia. Ajustes o retiradas de XP, monedas, niveles y objetos requieren política aprobada por su propietario. |
+| R8 · REST y servicios Python | Núcleo de negocio Rewards en apps.ecomotor, con adaptadores cuando proceda. Conservar POST /api/v1/ecomotor/calculate-action/ y POST /api/v1/ecomotor/commit-rewards/ como referencias DAR_formulas. Calcular acción no concede premio definitivo; confirmar aplica R1–R7 y valida importes del juego. JWT, permisos, formatos, lotes, atomicidad entre destinatarios, WebSockets y publicación HTTP pendientes. |
+
+Estos R1–R8 conservan los IDs del registro de Rewards; no son R-01…R-14 del ERD
+global. [Pendientes §3](pending-decisions.md#3-validación-conjunta-de-rewards-v0)
+separa para cada uno la aceptación interna y la validación residual. El
+[contrato compartido Rewards v0](contracts/rewards-v0.md) sigue **candidato y sin
+cambio de versión**: «V1» aquí identifica la dirección arquitectónica interna,
+no un contrato definitivo, API publicada o implementación.
+
+No se aprueban RewardRule como tabla, campos/índices/FKs de RewardEvent o ItemGrant,
+conservación, importes T-01/Q-01/E-01, precios, penalizaciones Escape, transformación
+de inventario ni vestimenta. S1–S7-A no cambian y S8-A continúa aprobado y pausado.

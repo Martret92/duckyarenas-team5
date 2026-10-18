@@ -2,8 +2,10 @@
 
 ## 1. Estado, fuentes y límite
 
-**Propuesta técnica aceptada provisionalmente como base de trabajo, pendiente
-de validación conjunta por A/B/C, Óscar/Core y equipos emisores.** No es un
+**Contrato global v0 candidato, pendiente de validación conjunta por A/B/C,
+Óscar/Core y equipos emisores.** DOC-3 (18/10/2026) aprueba R1–R8 internamente
+por Jaime para orientar Parte A; no ratifica el contrato compartido ni cambia
+su versión. Rewards no está implementado. No es un
 endpoint oficial ni un ORM aprobado. Fuentes funcionales y notas de las dailys en [architecture.md](../architecture.md); acuerdos internos D-20/D-21 y
 D-19 vigente en [decisions.md](../decisions.md).
 
@@ -13,7 +15,17 @@ Daily del 09/10/2026: se indicó centralización funcional, sin resolver el cont
 Las preguntas y condiciones de implementación están en
 [pending-decisions.md](../pending-decisions.md).
 
-### Contraste DOC-2 · 18/10/2026
+### Alcance de la aprobación interna DOC-3 · 18/10/2026
+
+El [registro R1–R8](../decisions.md#doc-3--arquitectura-rewards-v1--acuerdos-internos-de-parte-a--18102026)
+contiene la decisión de Jaime; [pendientes §3](../pending-decisions.md#3-validación-conjunta-de-rewards-v0)
+conserva la especificación técnica y aceptación externa residual de cada una.
+Los principios de §§3–8 se adoptan internamente en ese alcance, sin aprobación
+conjunta de Henry/Fernando/Core/juegos, nuevas tablas o interfaces vinculantes.
+«Arquitectura V1» no convierte este documento en rewards-v1 ni habilita servicios.
+D-19/D-20/D-21 siguen vigentes; S1–S7-A no cambian y S8-A permanece pausado.
+
+### Contraste histórico DOC-2 · 18/10/2026
 
 La [matriz canónica de integración](integracion-equipo5-v0.md#0-matriz-de-procedencia-y-acuerdos--doc-2)
 traza E5-01…E5-05, decisiones atribuidas al usuario en el catálogo y respuestas
@@ -79,7 +91,7 @@ funcional general no aprueba su semántica técnica ni las interfaces de Henry.
 
 ## 3. Identidad y contenido validado
 
-La identidad candidata de una recompensa distingue la terna:
+R1 aprueba internamente la identidad lógica de una recompensa como terna:
 
 `(origen autorizado, identificador del hecho, destinatario)`
 
@@ -102,7 +114,8 @@ resultado y atributos recibidos requieren validación; el juego no puede imponer
 un premio arbitrario. Hay que acordar qué campos son resultado bruto, cálculo
 de acción o recompensa propuesta que Ecomotor debe validar.
 
-Se propone una **huella del contenido validado** para detectar incompatibilidades.
+R2 aprueba internamente guardar una **huella del contenido semántico validado**
+para detectar incompatibilidades; su concreción compartida sigue pendiente.
 Canonicalización, campos incluidos, algoritmo, formato de claves y alcance de
 unicidad quedan pendientes. No se decide qué cambios meramente de transporte
 generan conflicto ni se incluyen timestamps de reenvío por defecto.
@@ -110,10 +123,12 @@ La huella no sustituye autenticación ni prueba la veracidad del hecho.
 
 ## 4. Reglas y efectos independientes
 
-Las reglas son configurables en elegibilidad, cantidades, vigencia, repetibilidad,
-límites y compatibilidad. `RewardRule` es concepto de diseño: su representación
-como tabla no está aprobada. Se propone conservar la versión o referencia
-reproducible de las reglas usadas en la evaluación.
+R5/R6 aprueban internamente efectos independientes y reglas configurables en
+elegibilidad, cantidades, vigencia, repetibilidad, límites y compatibilidad,
+por regla, usuario, actividad y periodo, separando límites de XP y monedas.
+`RewardRule` es concepto de diseño: su representación como tabla no está aprobada.
+R3 acepta internamente conservar la versión o referencia reproducible de las
+reglas usadas en la evaluación; su representación técnica sigue pendiente.
 
 Cada premio puede contener efectos distintos e independientes: XP, monedas,
 objetos/desbloqueos y puntos estadísticos. **Puede existir recompensa sin XP**.
@@ -132,8 +147,9 @@ cursos fueron propuestas discutidas, sin regla confirmada.
 
 ## 5. RewardEvent candidato y resultado
 
-`RewardEvent` sería la evidencia persistente de evaluación y de los efectos
-de **toda la recompensa**, no un alias de XPEvent. Se propone conservar:
+R3 acepta internamente `RewardEvent` como concepto de evidencia persistente de
+evaluación y de los efectos de **toda la recompensa**, no un alias de XPEvent.
+La información conceptual aceptada es la siguiente; su ORM sigue pendiente:
 
 | Información conceptual | Finalidad |
 | --- | --- |
@@ -180,17 +196,24 @@ La deduplicación del hecho y los límites de reglas son garantías diferentes.
 Dos partidas válidas distintas de Training pueden conceder XP; solo la primera
 elegible por juego/día concede una moneda. Revisar ambas bajo concurrencia,
 incluida la competencia entre hechos diferentes por el mismo límite.
-Identidad del juego, zona horaria, día de actividad/registro, llegada tardía y
-contabilización temporal están pendientes.
+Training comunica Europe/Madrid y una moneda por primera finalización válida
+de cada juego/día como información funcional local. La confirmación técnica de
+ciclo/zona, día de actividad o registro, importes, hechos tardíos y contabilización
+compartida siguen pendientes; no se ratifica un baremo global por esta información.
 
-Una repetición de NO_REWARD recupera la evaluación anterior. Correcciones,
-nuevas versiones de un hecho y cambios de reglas no se tratan como reintentos
-ordinarios; su política requiere acuerdo, no reutilizar una clave con otro contenido.
+Una repetición de NO_REWARD recupera la evaluación anterior. R7 aprueba
+internamente recuperar confirmados con su identidad original y registrar
+correcciones posteriores como operaciones nuevas trazables vinculadas al premio
+original, sin sobrescribir historia ni reutilizar una identidad con otro contenido.
+Las políticas concretas de ajuste o retirada de XP, niveles, monedas y objetos
+requieren aprobación de cada propietario; no se autoriza reducir XP histórica
+por esta decisión. Representación de vínculos, cambios de reglas e incidentes
+siguen por especificar; un error técnico nunca es una evaluación sin premio.
 
-## 7. Transacción exterior compartida propuesta para V1
+## 7. Transacción exterior compartida · R4, aprobación interna condicionada
 
-Se propone un **monolito modular Django** donde Rewards abra la transacción
-exterior que abarque evaluación con estado mutable, registro final y efectos
+R4 aprueba internamente que, en el **monolito modular Django**, Rewards coordine
+la transacción exterior que abarque evaluación con estado mutable, registro final y efectos
 propietarios. Condición necesaria: **misma base de datos y misma conexión/alias
 transaccional**, sin commits independientes de los servicios. Transacciones
 anidadas solo participan en esa frontera si cumplen esas condiciones.
@@ -223,6 +246,9 @@ distribuida ni se atribuye esa garantía a D-19.
 
 ## 8. Encaje documental con REST y juegos
 
+R8 sitúa el núcleo de negocio en `apps.ecomotor`, mediante servicios Python
+y adaptadores cuando corresponda; no aprueba firmas, JWT, permisos, formatos,
+lotes, atomicidad entre destinatarios ni publicación HTTP/WebSockets definitiva.
 DAR_formulas pp. 7–12 documenta POST
 `/api/v1/ecomotor/calculate-action/`, POST
 `/api/v1/ecomotor/commit-rewards/` y `ws/arenas/{room_id}/`.
@@ -230,7 +256,9 @@ Se conservan como referencias de arquitectura objetivo a contrastar, no se
 descartan ni se reemplazan por rutas nuevas en este contrato.
 
 `calculate-action` calcula una acción/resultado provisional; no equivale por sí
-solo a confirmar una recompensa. `commit-rewards` es referencia para consolidar,
+solo a confirmar una recompensa. R8 exige que la confirmación aplique R1–R7, sin
+confiar automáticamente en importes enviados por un juego.
+`commit-rewards` es referencia para consolidar,
 con resultados por sesión/destinatario que deben mapearse a identidad,
 trazabilidad y respuesta candidatas. Atomicidad de un batch, validación de
 cantidades y stats recibidos y compatibilidad de payloads siguen pendientes.
@@ -248,7 +276,8 @@ deciden unilateralmente. No se aplaza globalmente RPG por DukiStats 2.0.
 
 ## 9. Validación conjunta antes de implementar
 
-Acordar identidad/huella y permisos; versión de reglas; referencias y conservación
+Concretar y validar conjuntamente formatos de identidad/huella y permisos;
+versión de reglas; referencias y conservación
 con Óscar/Core; claves locales; límites temporales; servicio de puntos; XP de dominio;
 compatibilidad calculate-action/commit-rewards y Escape actualizado.
 Revisar capacidad real de compartir transacción con Henry y Fernando.
