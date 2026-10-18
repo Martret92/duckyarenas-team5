@@ -818,3 +818,39 @@ por Codex. Se recupera esa trazabilidad sin alterar las seis decisiones anterior
 A/B no fueron decisiones aprobadas; no se atribuyen motivos adicionales de descarte.
 No se crean código, tablas, migraciones ni tests. P5/P7 y DOC-6 siguen abiertos;
 S13-A solo es prioridad funcional provisional futura, sin arquitectura de rangos.
+
+## S13-A / DOC-S13-A1 · Rangos y evaluador puro — aprobación interna 02B
+
+Sobre develop `5d36778449e7c796e2770ddfdb97f25e8f8b280f` (DOC-S12-A, PR #45),
+Jaime/Parte A comunica la aprobación interna en «02B · Arquitectura y repositorio
+· Continuación». Este corte supera la mención a S13-A sin diseño del antecedente
+DOC-S12-A; no reescribe S12-A-01…06, V2-A25/A26 ni DOC-6. DAR3 mantiene su
+autoridad funcional y no se atribuyen estas decisiones técnicas a Óscar/Core.
+
+| ID | Decisión interna aprobada |
+| --- | --- |
+| S13-A-01 | Rangos independientes por especialización: sin rango → Junior → Middle → Senior → Maestro. |
+| S13-A-02 | Ascensos secuenciales y requisitos configurables. |
+| S13-A-03 | XP histórica y nivel general independientes de los rangos. |
+| S13-A-04 | Evaluación pura separada de la confirmación persistente. |
+| S13-A-05 | Requisitos de XP de dominio, cursos y retos mediante evidencias verificadas. |
+| S13-A-06 | Ascensos confirmados trazables, idempotentes y conservados al cambiar de especialización. |
+| S13-A-07 | Políticas versionadas, sin recalcular ni retirar silenciosamente rangos históricos. |
+
+S13-A1 precisa XP mínima de dominio positiva para Junior, umbrales estrictamente
+crecientes, AND de todos los requisitos configurados, cursos/retos opcionales si
+la política no los exige y evidencia no disponible distinta de cumplimiento.
+Se evalúa únicamente el siguiente rango y el resultado nunca confirma un ascenso.
+
+Se registran también, como acuerdos internos, la conservación del progreso de
+las cinco especializaciones al alternar y la **opción B de importes independientes
+de XP general y XP de dominio**, sin conversión ni baremos oficiales. Esta opción
+no es la alternativa B estudiada de S12-A. No implementa cambios/reinicios de rama.
+
+El [contrato candidato del evaluador](contracts/ecomotor-ranks-evaluator-v1.md)
+describe `evaluate_rank_eligibility(progress, evidence, policy) -> RankAssessment`,
+estructuras, estados, validaciones y pruebas futuras; no es API disponible.
+No se modifica ORM, ERD físico, migraciones, servicios ni configuración. Persistencia,
+autorización de evidencias, valores oficiales, políticas de cambio y recompensas
+tardías siguen pendientes. P5/P7 abiertos; DomainXPEvent solo conceptual;
+Rewards v0 candidato y F2-A bloqueado, sin premios reales.
