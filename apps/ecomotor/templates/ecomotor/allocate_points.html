@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asignar puntos · Ecomotor</title>
+</head>
+<body>
+<main>
+  <h1>Asignar puntos estadísticos</h1>
+  {% if messages %}
+    <ul aria-label="Mensajes">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  {% if overview %}
+    <section aria-labelledby="stats">
+      <h2 id="stats">Estadísticas base actuales</h2>
+      <table>
+        <caption>Atributos y puntos disponibles</caption>
+        <thead><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">ATK</th><td>{{ overview.atk }}</td></tr>
+          <tr><th scope="row">DEF</th><td>{{ overview.def_stat }}</td></tr>
+          <tr><th scope="row">LOG</th><td>{{ overview.log_stat }}</td></tr>
+          <tr><th scope="row">SPE</th><td>{{ overview.spe }}</td></tr>
+          <tr><th scope="row">VEL</th><td>{{ overview.vel }}</td></tr>
+          <tr><th scope="row">INT</th><td>{{ overview.int_stat }}</td></tr>
+          <tr><th scope="row">Puntos disponibles</th><td>{{ overview.available_points }}</td></tr>
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+  <p>Los datos mostrados son informativos. La operación comprueba el estado real al confirmarse.</p>
+  {% if form %}
+    <form method="post" action="{% url 'ecomotor:allocate-points' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Confirmar asignación</button>
+    </form>
+  {% else %}
+    <p>Vuelve a consultar la página para cargar el formulario.</p>
+  {% endif %}
+  <p><a href="{% url 'ecomotor:progress' %}">Mi progreso</a></p>
+</main>
+</body>
+</html>
