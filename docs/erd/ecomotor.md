@@ -1,5 +1,10 @@
 # Ecomotor y evolución · ERD V2 provisional de Parte A
 
+> Actualización DOC-S12-A: develop `84f809d` integra selección S11-A por PR #44.
+> UserSpecializationProgress y domain_xp_total ya son físicos; no hay servicio
+> integrado de concesión positiva. DomainXPEvent es **solo conceptual**, separado
+> en §13 y sin autorización de ORM/migración; el inventario permanece en nueve entidades.
+
 > S7-A integrado en develop mediante [PR #32](https://github.com/Martret92/duckyarenas-team5/pull/32),
 > baseline `b42cb5f` verificada el 18/10/2026: [contrato](../contracts/ecomotor-stat-allocation-v1.md).
 > UserProfileEcomotor 1:N StatAllocationEvent, CASCADE provisional. Añade
@@ -523,3 +528,29 @@ si se implementan; no se añaden al ERD de A ni se imponen en V1.
 D-17 y M-01 continúan; los CASCADE provisionales no adquieren aprobación por esta
 reunión. D-19 sigue vigente y no garantiza atomicidad multidominio por sí sola.
 [Pendientes](../pending-decisions.md) concentra las preguntas de cierre.
+
+## 13. DomainXPEvent · concepto S12-A separado del esquema físico
+
+El [contrato conceptual S12-A](../contracts/ecomotor-domain-xp-v1.md) registra la
+alternativa C aprobada internamente por Jaime/Parte A en 02B. DomainXPEvent sirve
+como concepto de trazabilidad de concesiones positivas de dominio: causa,
+prevención de duplicados, repetición histórica y conflictos de identidad, importe
+o especialización. El principio de identidad es origen–hecho–perfil, no una
+UniqueConstraint física ya decidida.
+
+Este apartado **no añade una tabla al ORM, un diccionario de campos físicos ni
+una migración**. No se fijan tipos, índices, ForeignKeys, cardinalidades físicas
+o políticas on_delete. Sus vínculos con perfil, especialización/progreso y causa
+son necesidades conceptuales cuya representación y conservación deben concretarse.
+No se copia el CASCADE provisional de XPEvent u otros historiales.
+
+UserSpecializationProgress continúa como tabla integrada con domain_xp_total;
+S11-A selecciona y crea en cero, sin conceder XP positiva. Evento conceptual y
+acumulado deben confirmarse/revertirse juntos en el futuro servicio conforme a
+D-19. XPEvent y XP histórica permanecen separados e intactos.
+
+Antes de persistir DomainXPEvent, Core debe acordar conservación, anonimización,
+eliminación y on_delete de sus relaciones. Antes de premios reales hacen falta
+orígenes autorizados, vínculo confiable hecho–destinatario y reglas validadas;
+ValidatedRewardFact por sí solo no autoriza. P5/P7 y Rewards F2-A siguen bloqueados
+en sus aspectos pendientes; no se modifica el diagrama físico ni DOC-6.
