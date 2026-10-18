@@ -1,4 +1,4 @@
-# Plan de trabajo · Estado hasta S9-A y pendientes del Equipo 5
+# Plan de trabajo · Estado hasta S10-A y pendientes del Equipo 5
 
 ## 1. Estado y referencias
 
@@ -9,9 +9,18 @@ ese núcleo integrado de F2-A aprobado internamente y bloqueado hasta Core. Los 
 distinguen implementación local, aprobación interna pausada, decisiones pendientes
 y dependencias externas; no aprueban contratos compartidos ni alcance final V1.
 
-Actualización S9-A: baseline `b1b25cd8d67f45ede8de6b6642cb2eae29b6c1e8`,
-S8-A integrada por PR #40 y UI-A por PR #41. S9-A implementado y probado en su
-rama para revisión, todavía sin merge. Los cortes DOC-1/DOC-6 son antecedentes.
+Actualización S10-A: baseline `a309e6324a54b25f84abd8bd66f2f26441ca7c4e`,
+con S8-A (#40), UI-A (#41) y S9-A (#42) integradas. S10-A está implementado y
+probado en su rama para revisión, todavía sin merge. Los cortes DOC-1/DOC-6 y
+las menciones anteriores a S9-A pendiente de revisión son antecedentes históricos.
+
+S10-A añade el [historial web de XP y evoluciones](contracts/ecomotor-xp-history-web-v1.md):
+GET/HEAD personal sobre list_progress_history de S4-A sin modificarlo, diez
+concesiones por página, cursor exclusivo y snapshots persistidos. Conserva el
+historial reciente de S5-A y UI-A sin CSS nuevo. Validación ejecutada: 29 tests
+S10-A, 128 relacionados y 570 en la suite completa, todos correctos; check sin
+incidencias y sin migraciones pendientes. Sin cambios de arquitectura, servicios,
+modelos, bases locales, montaje global o estado de Rewards v0/F2-A.
 
 [Arquitectura](architecture.md) concentra fuentes funcionales y notas de las dailys;
 [decisiones](decisions.md), acuerdos; [pendientes](pending-decisions.md), preguntas;
