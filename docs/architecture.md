@@ -9,8 +9,15 @@ está aprobado internamente en 02B, sin implementar: una activa, progresos de la
 cinco conservados, primera activación en cero, retorno sin reset y cambio en Actual
 sin alterar XP histórica, nivel, etapa, stats o recompensas. Servicio candidato
 transaccional separado de S11-A, estado esperado y D-19; sin evento físico ni
-replay histórico completo. Antes de implementar debe precisarse la compatibilidad
-de S11-A con múltiples progresos coherentes y la repetición frente al estado esperado.
+replay histórico completo. **Precisiones S14-A-08/09**, aprobadas internamente en
+02B sobre develop `f4c9ce4167f37dcf302b3b3093333a688068e801` (PR #48), resuelven
+la compatibilidad: S11-A deberá admitir múltiples progresos coherentes y recuperar
+la activa sin escrituras/configuración de etapas, conservando validación estructural,
+primera selección y conflicto ante otro código. S14-A comprobará primero el estado
+esperado: si no coincide, rechazará incluso un objetivo ya activo; si coincide,
+la repetición coherente no escribe ni reevalúa etapas/elegibilidad. El cambio
+efectivo exige Actual y D-19. Son reglas por implementar, no cambios de código;
+el límite A → B → A se conserva.
 S13-A2/persistencia de rangos pendientes; no evaluación para conceder ascensos.
 La recompensa tardía de una especialización ya inactiva requiere revisar S12-A-02
 y evidencias con Rewards/Core, sin excepción aprobada. P5/P7 y conservación
