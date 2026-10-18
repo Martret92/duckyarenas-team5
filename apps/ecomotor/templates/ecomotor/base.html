@@ -1,0 +1,38 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{% block title %}Ecomotor · DuckyArenas{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'ecomotor/ecomotor.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Saltar al contenido</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="{% url 'ecomotor:progress' %}" aria-label="DuckyArenas · Ecomotor">
+        <span class="brand-mark" aria-hidden="true">D<span>★</span></span>
+        <span>DUCKY<span class="brand-subtitle">ARENAS</span></span>
+      </a>
+      <div class="module-label">ECOMOTOR <span> / </span> EVOLUCIÓN</div>
+      <nav aria-label="Navegación de Ecomotor">
+        <p class="nav-caption">TU PERSONAJE</p>
+        <a class="nav-link {% block progress_class %}{% endblock %}" {% block progress_current %}{% endblock %} href="{% url 'ecomotor:progress' %}">
+          <span class="nav-icon" aria-hidden="true">◈</span> Mi progreso
+        </a>
+        <a class="nav-link {% block allocation_class %}{% endblock %}" {% block allocation_current %}{% endblock %} href="{% url 'ecomotor:allocate-points' %}">
+          <span class="nav-icon" aria-hidden="true">＋</span> Asignar puntos
+        </a>
+      </nav>
+      <div class="sidebar-note"><span class="status-dot" aria-hidden="true"></span> Tu próxima evolución empieza aquí.</div>
+    </aside>
+    <main id="main-content" class="main-content" tabindex="-1">
+      <div class="topline"><span>ECOMOTOR</span><span>PROGRESO &amp; EVOLUCIÓN</span></div>
+      {% block content %}{% endblock %}
+      <footer class="page-footer"><span>DUCKYARENAS</span> Tu progreso, a tu ritmo.</footer>
+    </main>
+  </div>
+</body>
+</html>

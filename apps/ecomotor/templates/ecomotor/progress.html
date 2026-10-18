@@ -1,27 +1,32 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi progreso · Ecomotor</title>
-</head>
-<body>
-<main>
-  <h1>Mi progreso</h1>
-  <p><a href="{% url 'ecomotor:allocate-points' %}">Asignar puntos estadísticos</a></p>
+{% extends 'ecomotor/base.html' %}
+{% block title %}Mi progreso · Ecomotor{% endblock %}
+{% block progress_class %}is-active{% endblock %}
+{% block progress_current %}aria-current="page"{% endblock %}
+{% block content %}
+  <header class="page-heading">
+    <div><p class="eyebrow">TU PERSONAJE / VISIÓN GENERAL</p><h1>Mi progreso<span class="heading-dot">.</span></h1>
+      <p class="intro">Cada avance cuenta. Descubre dónde estás y cuál es tu próximo objetivo.</p></div>
+    <a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos estadísticos <span aria-hidden="true">↗</span></a>
+  </header>
   <section aria-labelledby="summary">
-    <h2 id="summary">Progreso actual</h2>
-    <dl>
-      <dt>XP histórica acumulada</dt><dd>{{ overview.historical_xp_total }}</dd>
-      <dt>Nivel actual</dt><dd>{{ overview.current_level }}</dd>
-      <dt>Etapa actual</dt><dd>{{ overview.current_stage_code }}</dd>
+    <h2 id="summary" class="sr-only">Progreso actual</h2>
+    <dl class="summary-grid">
+      <div class="metric metric-xp">
+        <dt>XP histórica acumulada</dt><dd>{{ overview.historical_xp_total }}</dd>
+        <dd class="metric-note">Cada experiencia suma</dd></div>
+      <div class="metric metric-level">
+        <dt>Nivel actual</dt><dd>{{ overview.current_level }}</dd>
+        <dd class="metric-note">Tu camino de progresión</dd></div>
+      <div class="metric metric-stage">
+        <dt>Etapa actual</dt><dd>{{ overview.current_stage_code }}</dd>
+        <dd class="metric-note">Tu evolución actual</dd></div>
     </dl>
   </section>
-  <section aria-labelledby="stats">
-    <h2 id="stats">Estadísticas base</h2>
-    <table>
-      <caption>Atributos base y puntos disponibles</caption>
-      <thead><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
+  <section class="section-block" aria-labelledby="stats">
+    <div class="section-heading"><h2 id="stats">Estadísticas base</h2><span class="section-tag">06 ATRIBUTOS</span></div>
+    <table class="stat-grid">
+      <caption class="sr-only">Atributos base y puntos disponibles</caption>
+      <thead class="sr-only"><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
       <tbody>
         <tr><th scope="row">ATK</th><td>{{ overview.atk }}</td></tr>
         <tr><th scope="row">DEF</th><td>{{ overview.def_stat }}</td></tr>
@@ -33,50 +38,64 @@
       </tbody>
     </table>
   </section>
-  <section aria-labelledby="goals">
-    <h2 id="goals">Próximos objetivos</h2>
+  <section class="section-block" aria-labelledby="goals">
+    <div class="section-heading"><h2 id="goals">Próximos objetivos</h2><span class="section-tag">MIRA HACIA DELANTE</span></div>
+    <div class="goals-grid">
+    <div class="panel goal-card">
+    <div class="goal-top"><span class="eyebrow">01 / NIVEL</span><span class="goal-symbol" aria-hidden="true">↗</span></div>
     <h3>Próximo nivel</h3>
     {% if overview.next_level.state == "CALCULABLE" %}
+      <span class="badge">Objetivo disponible</span>
       <p>Nivel {{ overview.next_level.level }}. Umbral XP: {{ overview.next_level.minimum_xp }}.
         XP restante: {{ overview.next_level.remaining_xp }}.</p>
     {% elif overview.next_level.state == "COMPLETED" %}
+      <span class="badge badge-gold">Catálogo completado</span>
       <p>Has alcanzado el último nivel del catálogo actualmente configurado.</p>
     {% else %}
+      <span class="badge badge-muted">No disponible</span>
       <p>El próximo nivel no está disponible para consulta.</p>
     {% endif %}
+    </div>
+    <div class="panel goal-card">
+    <div class="goal-top"><span class="eyebrow">02 / EVOLUCIÓN</span><span class="goal-symbol" aria-hidden="true">✧</span></div>
     <h3>Próxima etapa</h3>
     {% if overview.next_stage.state == "CALCULABLE" %}
+      <span class="badge">Objetivo disponible</span>
       <p>Etapa {{ overview.next_stage.stage_code }}. Umbral XP: {{ overview.next_stage.minimum_xp }}.
         XP restante: {{ overview.next_stage.remaining_xp }}.</p>
     {% elif overview.next_stage.state == "COMPLETED" %}
+      <span class="badge badge-gold">Catálogo completado</span>
       <p>Has alcanzado la última etapa del catálogo actualmente configurado.</p>
     {% else %}
+      <span class="badge badge-muted">No disponible</span>
       <p>La próxima etapa no está disponible para consulta.</p>
     {% endif %}
+    </div>
+    </div>
   </section>
-  <section aria-labelledby="history">
-    <h2 id="history">Historial reciente</h2>
-    <p>Se muestran como máximo las diez concesiones más recientes.</p>
+  <section class="section-block" aria-labelledby="history">
+    <div class="section-heading"><h2 id="history">Historial reciente</h2><span class="section-tag">REGISTRO DE XP</span></div>
+    <p class="section-description">Se muestran como máximo las diez concesiones más recientes.</p>
+    <div class="history-list">
     {% for entry in history.entries %}
       <article>
-        <h3>Concesión {{ entry.id }}</h3>
-        <dl>
-          <dt>Fecha</dt><dd><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at }}</time></dd>
-          <dt>XP concedida</dt><dd>{{ entry.amount }}</dd>
-          <dt>XP anterior</dt><dd>{{ entry.xp_before }}</dd>
-          <dt>XP posterior</dt><dd>{{ entry.xp_after }}</dd>
+        <h3><span class="history-marker" aria-hidden="true">＋</span> Concesión {{ entry.id }}</h3>
+        <dl class="history-details">
+          <div><dt>Fecha</dt><dd><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at }}</time></dd></div>
+          <div class="xp-gain"><dt>XP concedida</dt><dd>{{ entry.amount }}</dd></div>
+          <div><dt>XP anterior</dt><dd>{{ entry.xp_before }}</dd></div>
+          <div><dt>XP posterior</dt><dd>{{ entry.xp_after }}</dd></div>
         </dl>
         {% if entry.evolutions %}
-          <h4>Evoluciones registradas</h4>
+          <div class="evolution-note"><h4>Evoluciones registradas</h4>
           <ul>{% for evolution in entry.evolutions %}
             <li>Referencia de etapa {{ evolution.stage_id }}; evento XP causal {{ evolution.xp_event_id }}.</li>
-          {% endfor %}</ul>
+          {% endfor %}</ul></div>
         {% endif %}
       </article>
     {% empty %}
-      <p>Aún no hay concesiones de XP registradas.</p>
+      <div class="panel empty-state"><span aria-hidden="true">✧</span><p>Aún no hay concesiones de XP registradas.</p></div>
     {% endfor %}
+    </div>
   </section>
-</main>
-</body>
-</html>
+{% endblock %}

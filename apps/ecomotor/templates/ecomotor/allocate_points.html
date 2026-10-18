@@ -1,23 +1,24 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Asignar puntos · Ecomotor</title>
-</head>
-<body>
-<main>
-  <h1>Asignar puntos estadísticos</h1>
+{% extends 'ecomotor/base.html' %}
+{% block title %}Asignar puntos · Ecomotor{% endblock %}
+{% block allocation_class %}is-active{% endblock %}
+{% block allocation_current %}aria-current="page"{% endblock %}
+{% block content %}
+  <header class="page-heading">
+    <div><p class="eyebrow">TU PERSONAJE / ATRIBUTOS</p><h1>Asignar puntos<span class="heading-dot">.</span></h1>
+      <p class="intro">Dale forma a tu progreso. Elige el atributo que quieres mejorar.</p></div>
+    <a class="button button-secondary" href="{% url 'ecomotor:progress' %}"><span aria-hidden="true">←</span> Mi progreso</a>
+  </header>
   {% if messages %}
-    <ul aria-label="Mensajes">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    <ul class="messages" aria-label="Mensajes" aria-live="polite">{% for message in messages %}<li class="notice notice--{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>
   {% endif %}
-  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  {% if error %}<p class="notice notice--error" role="alert">{{ error }}</p>{% endif %}
+  <div class="allocation-layout">
+  <section class="allocation-stats" aria-labelledby="stats">
+    <div class="section-heading"><h2 id="stats">Estadísticas base actuales</h2></div>
   {% if overview %}
-    <section aria-labelledby="stats">
-      <h2 id="stats">Estadísticas base actuales</h2>
-      <table>
-        <caption>Atributos y puntos disponibles</caption>
-        <thead><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
+      <table class="stat-grid stat-grid-compact">
+        <caption class="sr-only">Atributos y puntos disponibles</caption>
+        <thead class="sr-only"><tr><th scope="col">Atributo</th><th scope="col">Valor</th></tr></thead>
         <tbody>
           <tr><th scope="row">ATK</th><td>{{ overview.atk }}</td></tr>
           <tr><th scope="row">DEF</th><td>{{ overview.def_stat }}</td></tr>
@@ -28,19 +29,24 @@
           <tr><th scope="row">Puntos disponibles</th><td>{{ overview.available_points }}</td></tr>
         </tbody>
       </table>
-    </section>
   {% endif %}
-  <p>Los datos mostrados son informativos. La operación comprueba el estado real al confirmarse.</p>
+  <p class="info-note">Los datos mostrados son informativos. La operación comprueba el estado real al confirmarse.</p>
+  </section>
+  <section class="panel allocation-panel" aria-labelledby="allocation-form-title">
+  <div class="form-emblem" aria-hidden="true">＋</div>
+  <p class="eyebrow">TU SIGUIENTE MEJORA</p>
+  <h2 id="allocation-form-title">Asignar puntos estadísticos</h2>
+  <p class="section-description">Cada punto gastado aumenta una unidad del atributo elegido.</p>
   {% if form %}
-    <form method="post" action="{% url 'ecomotor:allocate-points' %}">
+    <form class="allocation-form" method="post" action="{% url 'ecomotor:allocate-points' %}">
       {% csrf_token %}
       {{ form.as_p }}
-      <button type="submit">Confirmar asignación</button>
+      <button class="button button-primary" type="submit">Confirmar asignación <span aria-hidden="true">↗</span></button>
     </form>
   {% else %}
     <p>Vuelve a consultar la página para cargar el formulario.</p>
   {% endif %}
-  <p><a href="{% url 'ecomotor:progress' %}">Mi progreso</a></p>
-</main>
-</body>
-</html>
+  <p class="form-footnote">Una mejora, un paso más en tu evolución.</p>
+  </section>
+  </div>
+{% endblock %}
