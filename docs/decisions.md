@@ -885,3 +885,22 @@ una recompensa tardía a la especialización de la actividad entra en conflicto 
 S12-A-02 si ya no está activa: requiere revisión explícita y evidencias confiables,
 no excepción operativa aprobada. P5/P7 abiertos; DomainXPEvent conceptual,
 Rewards v0 candidato y F2-A bloqueado. Sin código, migraciones ni premios reales.
+
+### S14-A-08/09 · Precisiones técnicas aprobadas internamente en 02B
+
+Registro sobre develop `f4c9ce4167f37dcf302b3b3093333a688068e801` (PR #48).
+Jaime/Parte A aprueba las siguientes precisiones; resuelven las dos cuestiones
+del corte DOC-S14-A anterior, sin modificar retrospectivamente S14-A-01…07.
+
+| ID | Decisión interna aprobada |
+| --- | --- |
+| S14-A-08 · Compatibilidad S11-A | Admitir varios progresos coherentes de especializaciones distintas, validando su integridad. Repetir el código activo recupera su progreso sin escrituras ni reevaluación de configuración de etapas, con validación estructural y sin reset de XP de dominio. S11-A conserva el conflicto ante otro código y su comportamiento de primera selección. |
+| S14-A-09 · Precondición y repetición S14-A | Comprobar expected_active_code antes de tratar la solicitud como repetición. Una discrepancia con la activa persistida rechaza la solicitud aunque target_code ya sea la activa. Con esperado correcto y objetivo activo, devolver estado coherente sin escrituras ni reevaluación de configuración de etapas o elegibilidad; el cambio efectivo exige Actual y transacción D-19. |
+
+El [contrato actualizado](contracts/ecomotor-specialization-switch-v1.md) distingue
+estas reglas futuras del código S11-A todavía integrado, que exige un único
+progreso. Su adaptación y el servicio de cambio no se implementan aquí.
+Se mantiene la limitación A → B → A: comparar el código esperado no detecta toda
+solicitud histórica. Sin evento físico, tokens persistentes ni garantía de replay
+histórico completo. S12-A-02, P5/P7 y Rewards F2-A conservan sus límites/bloqueos;
+recompensas tardías siguen pendientes. No aprobación externa ni premios reales.

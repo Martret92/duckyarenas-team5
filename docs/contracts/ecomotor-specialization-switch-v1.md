@@ -8,6 +8,11 @@ S13-A1 integrado por PR #47. Jaime/Parte A comunica la aprobación en
 «02B · Arquitectura y repositorio · Continuación». No es aprobación de Óscar/Core
 ni autorización para implementar el servicio mediante esta PR documental.
 
+**Precisiones S14-A-08/09:** registradas sobre develop
+`f4c9ce4167f37dcf302b3b3093333a688068e801` (DOC-S14-A, PR #48).
+Aprobadas internamente por Jaime/Parte A en 02B; completan las reglas de
+compatibilidad y repetición, sin implementar todavía la adaptación de S11-A ni S14-A.
+
 DAR3 sigue siendo la fuente principal. La [trazabilidad de fuentes](../architecture.md#1-estado-y-fuentes)
 registra sus requisitos generales de Ecomotor, progresión y recompensas y el apoyo
 de DuckyEcomotor para especializaciones en Actual. Las reglas técnicas siguientes
@@ -27,6 +32,8 @@ y aprobaciones externas pendientes se conservan en [pendientes](../pending-decis
 | S14-A-05 | Servicio local transaccional separado de la primera selección, con comprobación del estado activo esperado y concurrencia segura conforme a D-19. |
 | S14-A-06 | V1 sin evento físico de cambio. Idempotencia por estado, sin promesa de idempotencia histórica completa. |
 | S14-A-07 | Atribución de recompensas tardías pendiente con S12-A, Rewards y Core. |
+| S14-A-08 | S11-A admitirá varios progresos coherentes de especializaciones distintas y validará su integridad. Repetir el código activo recuperará su progreso sin escrituras ni reevaluación de configuración de etapas, manteniendo validación estructural; otra selección seguirá siendo conflicto y la primera selección conservará su comportamiento. |
+| S14-A-09 | S14-A comprobará expected_active_code antes de resolver una repetición. Si no coincide con la activa persistida, rechazará la solicitud aunque el objetivo ya esté activo. Si coincide y el objetivo está activo, devolverá el estado coherente sin escrituras ni reevaluación de configuración de etapas. Un cambio efectivo requiere Actual y transacción D-19. |
 
 El cambio se realizará en **Actual**, sin retroceder de etapa ni consumir XP
 histórica. No se fijan baremos, códigos oficiales, costes ni premios nuevos.
@@ -67,13 +74,14 @@ Validar las referencias de especialización y los progresos existentes: propieta
 unicidad por pareja, XP de dominio no negativa representable y coherencia con la
 selección activa. Varias filas coherentes son el estado que S14-A debe admitir;
 referencias ausentes, selección activa sin progreso o datos incompatibles no se
-reparan silenciosamente. La política exacta de compatibilidad S11-A queda en §5.
+reparan silenciosamente. La compatibilidad S11-A aprobada se precisa en §5.
 
 | Situación coherente | Resultado conceptual |
 | --- | --- |
 | Objetivo distinto, nunca utilizado y estado esperado correcto | Crear su progreso en cero y cambiar solo el código activo; ambos efectos atómicos. Estado funcional sin rango, sin crear un campo de rango. |
 | Objetivo distinto con progreso anterior y estado esperado correcto | Reutilizar la fila original y sus valores; cambiar solo el código activo. No transferir ni reinicializar XP o rangos. |
-| Objetivo ya activo, repetición coherente | Recuperar el estado existente sin crear duplicados ni escribir progreso. La relación exacta con la precondición esperada debe concretarse antes de implementar (§5). |
+| Estado esperado distinto de la activa persistida, incluso si el objetivo ya está activo | Rechazar como solicitud obsoleta; no convertirla en repetición ni escribir. |
+| Estado esperado correcto y objetivo ya activo, con estado coherente | Recuperar el estado existente sin escrituras, duplicados, reevaluación de configuración de etapas ni nueva comprobación de elegibilidad en Actual; mantener validación estructural. |
 
 SpecializationSwitchResult deberá distinguir primera activación, reutilización y
 repetición, e identificar el perfil, especialización activa y progreso resultante.
@@ -81,37 +89,49 @@ Nombres/tipos definitivos de campos quedan candidatos. No incluir concesiones,
 rangos confirmados por esta llamada, evento de cambio inexistente ni un indicador
 que sugiera replay histórico completo.
 
-## 5. Compatibilidad S11-A y precisiones previas a implementación
+## 5. Compatibilidad S11-A y orden aprobado · S14-A-08/09
 
 El [servicio S11-A integrado](../../apps/ecomotor/specialization_service.py) y su
 [contrato](ecomotor-specialization-v1.md) permiten primera selección y repetición
 con exactamente un progreso. `_existing_selection()` rechaza `len(rows) != 1`;
 el test `test_active_selection_with_incompatible_or_multiple_progress_rejected`
 en [sus pruebas](../../apps/ecomotor/test_specialization_service.py) lo verifica.
-S11-A también rechaza seleccionar otro código. Estas garantías actuales no se
-reinterpretan ni se cambia código en DOC-S14-A.
+S11-A también rechaza seleccionar otro código. Este es el estado del código
+integrado, no la adaptación ya implementada de S14-A-08. Esta PR no cambia Python
+ni reescribe retrospectivamente el contrato de primera selección.
 
 El [modelo integrado](../../apps/ecomotor/models.py) UserSpecializationProgress
 ya permite varias filas por perfil con unicidad `(profile, specialization)`;
 el [perfil](../../apps/users/models.py) conserva un único código activo. El esquema
 no exige una tabla nueva para acumular progreso de varias especializaciones.
-La futura implementación deberá adaptar cuidadosamente la validación S11-A,
-preservando primera selección, repetición sin reset y detección de inconsistencias.
+La futura adaptación S11-A deberá aplicar **S14-A-08**:
 
-**Cuestiones explícitas para 02B antes de implementar:**
+1. Validar estructuralmente perfil, CharacterStats y todos los progresos: identidades
+   y propietarios correctos, especializaciones existentes y distintas, unicidad por
+   pareja y XP de dominio válida. Varias filas coherentes no serán una inconsistencia
+   por su cantidad; referencias incompatibles o progreso activo ausente seguirán
+   rechazándose sin reparación.
+2. Repetir el código activo recuperará su fila de progreso, conservando XP de
+   dominio y sin escrituras ni reevaluación de configuración/catálogos de etapas
+   o elegibilidad actual. Se mantiene la validación estructural del estado persistido.
+3. Solicitar otro código mediante S11-A seguirá siendo conflicto; S11-A no se
+   convertirá en servicio de cambio. Su primera selección mantiene el comportamiento
+   integrado, incluidas precondiciones y rechazo de estados parciales.
 
-1. Contrato de S11-A tras varios progresos coherentes: concretar cómo recuperará
-   una selección activa al repetirse y cómo rechazará una selección diferente;
-   no decidir aquí qué nuevas combinaciones de filas aceptará su validación.
-2. Precedencia entre objetivo ya activo y `expected_active_code` obsoleto:
-   concretar si esa solicitud se rechaza como obsoleta o se recupera como
-   repetición. El control esperado es obligatorio; no se adopta una excepción
-   por inferencia. También precisar si una repetición requiere volver a validar
-   configuración y Actual o sigue otra política de recuperación.
+El futuro S14-A deberá aplicar **S14-A-09** dentro de la transacción D-19:
 
-No se copia automáticamente la política de replay histórico de S11-A/S12-A.
-Estos puntos requieren precisión de implementación, no autorizan ampliar el
-alcance, reparar estados ni modificar ahora las decisiones aprobadas.
+1. Recargar y validar el estado persistido, manteniendo las comprobaciones estructurales.
+2. Comprobar `expected_active_code` antes de tratar una solicitud como repetición.
+   Si no coincide con la activa persistida, rechazarla aunque `target_code` coincida.
+3. Si el valor esperado coincide y el objetivo ya está activo, devolver su estado
+   coherente sin escrituras, sin reevaluar configuración/catálogos de etapas ni
+   exigir de nuevo Actual. No reinicializar progreso.
+4. Solo para un cambio efectivo a otra rama, comprobar las precondiciones de
+   Actual, configuración y catálogo de etapas y crear/reutilizar el progreso,
+   actualizando la activa conjuntamente conforme a D-19.
+
+Estas precisiones resuelven las preguntas del corte DOC-S14-A; no autorizan
+reparaciones, cambios físicos, nuevos baremos ni replay histórico completo.
 
 ## 6. Errores previstos
 
@@ -140,7 +160,7 @@ Sin I/O remoto dentro de la transacción ni atomicidad prometida entre sistemas.
 ## 8. Idempotencia por estado y A → B → A
 
 Repetir un objetivo coherente ya activo no debe duplicar progreso ni reiniciarlo,
-con la precisión de precondición pendiente en §5. V1 no crea evento de cambio ni
+siempre que el estado esperado coincida, según S14-A-09 (§5). V1 no crea evento de cambio ni
 almacena identidad histórica de cada solicitud.
 
 Si el perfil pasa A → B → A, una solicitud antigua que esperaba A vuelve a
@@ -193,11 +213,11 @@ Developer/Gamer son etiquetas ilustrativas del escenario, no fixtures de producc
 | --- | --- |
 | Primera activación | Developer → Gamer con nuevo progreso Gamer, XP cero y estado funcional sin rango; selección/progreso atómicos. |
 | Reutilización | Gamer → Developer conserva fila y XP originales; alternar las cinco conserva progresos independientes y rangos confirmados cuando exista su persistencia. |
-| Repetición | Mismo objetivo activo sin duplicados ni reset; precondición y configuración según precisión pendiente de §5. |
+| Repetición | Esperado correcto y objetivo activo: sin escrituras ni reevaluación de configuración/etapas, conservando validación estructural; esperado incorrecto: rechazo incluso con objetivo activo. |
 | Validación | Código inexistente; perfil/stats/progreso/catálogo incoherentes; referencias/propietarios inválidos; etapa anterior o incoherente; estado activo esperado incorrecto. |
 | Concurrencia | Dos conexiones SQLite file-backed, objetivos distintos, BEGIN IMMEDIATE antes de lectura, estado esperado serializado; sin sobrescrituras, huérfanos o duplicados; timeout y retry. |
 | Rollback | Fallo al crear progreso o actualizar perfil revierte ambos cambios; errores de BD con causa preservada. |
-| Regresión S11-A | Primera selección, repetición, rechazo de inconsistencias y comportamiento expresamente acordado para múltiples progresos coherentes. |
+| Regresión S11-A | Múltiples progresos coherentes admitidos con integridad validada; repetición de activa sin escrituras/configuración, XP conservada; otro código en conflicto y primera selección intacta; estados inconsistentes rechazados. |
 | Historia limitada | A → B → A evidencia el límite de detección de solicitudes antiguas; no simular replay histórico completo. |
 | Sin efectos ajenos | XP histórica, nivel, etapa, seis stats, puntos y recompensas intactos; sin transferencias, XP de dominio concedida, rangos nuevos ni efectos Rewards. |
 

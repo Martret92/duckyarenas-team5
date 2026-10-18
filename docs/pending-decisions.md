@@ -328,14 +328,18 @@ físico integrado. S13-A1 no confirma ascensos ni implementa concesiones de domi
 
 ## 12. S14-A · cambio aprobado internamente, precisiones y bloqueos
 
-[DOC-S14-A](contracts/ecomotor-specialization-switch-v1.md) registra siete decisiones
-internas de 02B. S13-A1 ya está integrado (#47); el evaluador no confirma ascensos.
+[DOC-S14-A](contracts/ecomotor-specialization-switch-v1.md) registra S14-A-01…07
+y las precisiones S14-A-08/09 aprobadas internamente en 02B sobre develop
+`f4c9ce4` (PR #48). S13-A1 ya está integrado (#47); el evaluador no confirma ascensos.
 Los estados previos de §11 describen el corte documental anterior a su implementación.
+
+Las preguntas de compatibilidad y precedencia ya están resueltas internamente;
+su implementación sigue pendiente y el servicio S11-A actual no se modifica aquí.
 
 | Pendiente antes de avanzar | Alcance / responsable |
 | --- | --- |
-| Compatibilidad S11-A con varias filas | Jaime/02B: el ORM admite varios progresos, pero el servicio actual exige exactamente uno. Precisar repetición de la activa y rechazo de otra selección con varias filas coherentes, preservando primera selección y detección de inconsistencias. No cambiar silenciosamente el contrato. |
-| Repetición y precondición esperada | Jaime/02B: concretar respuesta si el objetivo ya está activo pero expected_active_code está obsoleto, y validación de Actual/configuración en repeticiones. No inventar excepción al control de concurrencia. |
+| Implementar compatibilidad S11-A · S14-A-08 | Decisión interna cerrada: admitir varios progresos coherentes con integridad validada; repetir activa recupera su progreso sin escrituras/configuración de etapas; otro código sigue en conflicto y primera selección intacta. Pendiente adaptar cuidadosamente servicio/tests, sin reparación ni reset. |
+| Implementar precondición S14-A · S14-A-09 | Decisión interna cerrada: comprobar esperado antes de repetición; discrepancia rechazada incluso con objetivo activo. Coincidencia y objetivo activo: recuperación coherente sin escrituras ni reevaluación de etapas/elegibilidad. Cambio efectivo: Actual y D-19. Servicio y tests aún pendientes. |
 | Recompensa tardía | Actividad en Developer, cambio a Gamer y recepción posterior. Preferencia funcional: atribuir a la rama original; no excepción operativa aprobada. Revisar S12-A-02, limitado a la activa, y evidencias confiables del estado al realizar la actividad con Rewards/Core. No elegir automáticamente la activa al procesar. |
 | Rangos y conservación | S13-A2 pendiente; conservar rangos es decisión funcional, no campo existente. Core/P5 mantiene conservación, anonimización/eliminación y on_delete; no nuevos eventos/tablas. |
 | Residual P7 | Códigos/valores oficiales, acceso adicional, reinicios, XP de dominio/fuentes/autorización y contratos externos permanecen abiertos. La aprobación S14-A no implementa estos aspectos. |
