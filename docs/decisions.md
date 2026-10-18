@@ -753,3 +753,30 @@ automático. Sin snapshot transaccional conjunto entre consultas, reparación,
 configuración oficial ni integración global de URLs. Conservación, User/auth y
 contratos externos siguen pendientes. Rewards v0 continúa candidato global y
 F2-A bloqueada para persistencia; S9-A no amplía esos acuerdos.
+
+## S11-A · Selección inicial de especialización — aprobación interna 02B
+
+Jaime/Parte A aprueba la arquitectura general y S11-A-01/S11-A-02 en «02B ·
+Arquitectura y repositorio · Continuación». El [contrato S11-A](contracts/ecomotor-specialization-v1.md)
+implementa una primera selección local con los modelos actuales, sin nuevas
+entidades ni migraciones. V2-A19 contempla Actual; V2-A24 define el catálogo
+estable y V2-A25 el progreso de dominio mínimo. Estas precisiones técnicas no
+reescriben esos antecedentes ni se atribuyen a DAR3, Óscar/Core o Rewards.
+
+> S11-A-01: En una primera elección, la elegibilidad depende de la configuración confiable de etapas, EvolutionStage y coherencia XP histórica–etapa, siguiendo S7-A. El nivel persistido se valida estructuralmente, pero no se exige LevelThreshold ni coherencia calculada XP–nivel. Esta elección es una decisión técnica local, no una regla atribuida a DAR3.
+
+> S11-A-02: Una repetición del mismo código con perfil, CharacterStats, especialización y progreso persistidos coherentes devuelve la selección existente sin escrituras y sin reevaluar catálogos, configuración o elegibilidad actuales. Los estados inconsistentes se rechazan sin reparación. Es idempotencia basada en estado, no un historial de selección.
+
+select_initial_specialization recarga perfil, CharacterStats y progreso dentro de
+atomic usando el alias persistido, conforme a D-19/SQLite IMMEDIATE y timeout 5 s.
+Primera elección: solo active_specialization_code y un progreso con domain_xp_total=0
+cambian juntos. Repetición: mismos IDs y XP de dominio intacta; otra selección
+coherente es conflicto. Estados parciales se rechazan antes de elegir/repetir,
+sin reparación ni retries automáticos. Resultado frozen y errores diferenciados;
+fallos de BD conservan causa y rollback. No presupone el tipo de PK de User.
+
+Implementación en feature para revisión; S11-A no se considera terminado hasta
+revisar y fusionar su PR. P7 permanece abierto para códigos canónicos, obligatoriedad,
+condiciones adicionales de acceso, cambios/reinicios, XP de dominio positiva y sus
+fuentes/idempotencia, rangos e integración con juegos/Rewards. Conservación y
+autoridad Core siguen pendientes; Rewards v0 candidato y F2-A bloqueada sin cambios.
