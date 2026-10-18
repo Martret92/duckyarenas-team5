@@ -604,3 +604,33 @@ no un contrato definitivo, API publicada o implementación.
 No se aprueban RewardRule como tabla, campos/índices/FKs de RewardEvent o ItemGrant,
 conservación, importes T-01/Q-01/E-01, precios, penalizaciones Escape, transformación
 de inventario ni vestimenta. S1–S7-A no cambian y S8-A continúa aprobado y pausado.
+
+## DOC-4 · Diseño técnico Rewards V1 — T1–T8 · 18/10/2026
+
+**Autoridad:** aprobación interna de Jaime, responsable de Parte A, comunicada
+en el encargo DOC-4, sobre develop `be9e7aa` tras PR #35. Desarrolla R1–R8 de
+DOC-3 sin cambiar su autoridad: no ratificación conjunta A/B/C ni aceptación de
+Core/juegos. DAR3 es fuente funcional principal; los documentos del profesor no
+se convierten en aprobación de estas elecciones técnicas. D-19/D-20/D-21 siguen
+vigentes. Los identificadores T no son nuevas decisiones D ni tablas integradas.
+
+| ID | Diseño aprobado internamente y alcance condicionado |
+| --- | --- |
+| T1 · Destinatario e identidad | RewardEvent refiere al User global de Core mediante settings.AUTH_USER_MODEL, sin exigir UserProfileEcomotor como destinatario. Unicidad lógica (origin_code, fact_id, recipient). on_delete, conservación y autorización pendientes con Core. |
+| T2 · Identificadores y huella | origin_code estable; fact_id opaco, no vacío y hasta 255 caracteres; destinatario validado. SHA-256 sobre JSON semántico canónico versionado, claves ordenadas, UTF-8 y fechas UTC. Excluir IDs HTTP, instantes de reintento y configuración posterior. Campos semánticos por juego pendientes; igualdad de huella no demuestra autenticidad. |
+| T3 · RewardEvent candidato | Modelo candidato en apps.ecomotor: destinatario/origen/hecho/tipo, fecha del hecho/registro, versión y valor de huella, versión de reglas, APPLIED/NO_REWARD y motivo, snapshot JSON histórico y relación opcional candidata con XPEvent. Proponer unicidad compuesta e integridad persistente, sin migración o políticas físicas definitivas. OneToOne opcional solo candidato para XP histórica V1; revisar batch/dominio/extensiones. Sin FKs Bank/Duckies sin contratos. |
+| T4 · Integración S3 | Reutilizar grant_historical_xp(profile, amount, operation_key). Rewards valida identidad, huella, duplicados y elegibilidad; S3 controla XP/niveles/evoluciones/puntos de ascenso. Clave XP estable con prefijo reservado rewards:v1: y SHA-256 de la identidad Rewards. No S3 con XP cero ni inicialización automática. XP y RewardEvent en transacción exterior del mismo alias, con snapshots suficientes para replay y detección de incoherencia causal. No cambiar S3 sin necesidad posterior demostrada. |
+| T5 · Evaluador | Separar evaluación/aplicación. RewardDecision conceptual: versión, cantidades, elegibilidad y motivos. APPLIED requiere al menos un efecto confirmado; NO_REWARD es evaluación válida sin premio. Configuración/autorización/infraestructura fallidas son errores. Configuración versionada sin tabla RewardRule; no activar baremos sin ratificar, reglas ficticias solo para tests futuros. |
+| T6 · Límites concurrentes | RewardLimitUsage auxiliar candidato para cupos por usuario, regla, ámbito y periodo, identidad protegida por unicidad y comprobación/incremento en la misma transacción. XP y monedas separados; reintento no es actividad nueva. D-19/IMMEDIATE sin depender de select_for_update. No activar límites económicos sin contrato Bank; día efectivo, hechos tardíos y cambios de regla pendientes con Training/Core. |
+| T7 · Contrato interno candidato | ValidatedRewardFact conceptual: origen, hecho, destinatario, tipo, instante, resultado validado y contexto, junto a contexto de autorización confiable. RewardResult conceptual: ID, estado, replayed, versión de reglas, premios, progresión, motivo y referencias propietarias. Operación candidata process_reward(validated_fact, authorized_context) -> RewardResult. Distinguir errores de entrada, autorización, conflicto, configuración, precondición, propietario y BD; sin firmas definitivas, payloads/códigos HTTP o batch aprobados. |
+| T8 · Incrementos | Orden interno aprobado: núcleo puro; persistencia/XP local condicionada; límites; Bank/Duckies/juegos/REST con contratos y autenticación. Cada fase será pequeña, testeable y revisada mediante PR separado. DOC-4 solo documenta, no inicia ninguna fase. |
+
+[Contrato v0, diseño técnico](contracts/rewards-v0.md#10-diseño-técnico-interno--doc-4)
+concreta candidatos y límites; [pendientes §7](pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4)
+identifica bloqueos; [plan por fases](team5-work-plan.md#31-fases-rewards--t8-aprobado-internamente-doc-4)
+separa el trabajo posterior. La versión global sigue v0 candidata, sin rewards-v1.md.
+
+No se aprueban conservación User/RewardEvent, contratos físicos Bank/Duckies,
+importes T-01/Q-01/E-01 o precios, configuración oficial, autorización/JWT Core,
+API/batch/WebSockets definitivos, recuperación distribuida ni políticas de hechos
+tardíos/correcciones/retirada. S1–S7-A permanecen intactos y S8-A aprobado y pausado.

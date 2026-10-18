@@ -71,6 +71,25 @@ Cambios de reglas, como elegibilidad de XP o condiciones de stats, sí requieren
 acuerdo antes del servicio afectado. D-16 sigue pendiente; datos de prueba
 identificados no son valores oficiales ni prueban la adopción de una regla.
 
+### 3.1. Fases Rewards · T8 aprobado internamente (DOC-4)
+
+Orden aprobado por Jaime el 18/10/2026, después de R1–R8 integradas por PR #35.
+[T1–T8](decisions.md#doc-4--diseño-técnico-rewards-v1--t1t8--18102026) son diseño
+interno, no contrato global ni implementación. Cada fase exige un incremento
+pequeño, testeable y revisado mediante PR separado; DOC-4 no inicia ninguna.
+
+| Orden | Incremento posterior | Condición y límite |
+| --- | --- | --- |
+| 1 | Núcleo puro: tipos, validaciones, canonicalización, huella y evaluador con reglas ficticias de tests. | Sin efectos reales ni migraciones; no activar baremos sin ratificar. |
+| 2 | Persistencia y XP local: RewardEvent, S3, transacciones y replay. | Esquema/conservación con Core previamente revisados; mismo alias, snapshots/causalidad suficientes. Sin inicialización automática ni cambios S3 salvo necesidad demostrada. |
+| 3 | Cupos: RewardLimitUsage y pruebas concurrentes. | Modelo aún candidato, D-19; día efectivo/hechos tardíos/reglas por acordar. No activar economía sin contrato Bank. |
+| 4 | Bank, Duckies, juegos y REST. | Solo con contratos propietarios y autenticación acordados; sin atomicidad remota supuesta ni API/batch/WebSockets definitivos. |
+
+Bloqueos detallados en [pendientes DOC-4](pending-decisions.md#7-validación-residual-del-diseño-técnico--doc-4).
+Los servicios locales S1–S7-A siguen integrados; S8-A permanece aprobado y pausado.
+La regresión histórica comunicada de 407 tests no se vuelve a ejecutar aquí:
+DOC-4 solo modifica Markdown, sin modelos, servicios, migraciones ni tests nuevos.
+
 ## 4. Hitos y estado vigente
 
 H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
