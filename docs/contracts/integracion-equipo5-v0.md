@@ -33,7 +33,8 @@ de coordinación; no se confunden con sus preguntas de repositorio/rama.
 | D-20/D-21 | Decisión interna ratificada: A/Jaime Ecomotor-Rewards, B/Henry Duckies, C/Fernando Bank-Shop; cuatro apps objetivo más users. | Registro de decisiones y contraste 14–16/10; aceptación de los tres. | No se reabre el reparto ni se declara integrada su estructura física completa. |
 | E5-01 | Propuesta técnica E5: entrada Rewards en Ecomotor, hechos validados e idempotencia de toda la recompensa; servicio interno o adaptador API según entorno. | Respuestas E5; Jaime, revisión Henry/Fernando. Conformidad conceptual R-08 previa. | RewardEvent candidato; firma, versión, transporte, origen y autenticación Core/juegos sin ratificar. |
 | E5-02 · catálogo/consumo | Respuesta E5: Duckies posee objetos/cantidades; Shop ofertas/precios; Ecomotor etapa. Permanentes únicos, consumibles acumulables; preparar no gasta, activación válida sí. | Respuestas E5 y catálogo v0.4; Henry/Jaime/Fernando según dominio. | Identificadores, reservas, consumo, transformación y variantes requieren contrato; no se crean FK ni servicios. |
-| E5-02 · vestimenta | Conflicto: la respuesta E5 declara conjunto completo único por etapa, concesión/autoequipamiento, conservación y reutilización tras fase final y especialización, sin venta. | Respuestas E5 frente a DAR3 seis piezas/progreso/misiones y R-01 mixto del registro; Jaime/Henry, Óscar. | No cerrar R-01/P6 ni adoptar autoequipamiento, conjunto como un único Item, prohibición comercial global o adaptación nueve/siete por inferencia. |
+| E5-02 · vestimenta (antecedente DOC-2) | La respuesta E5 del 15/10 planteaba conjunto único por etapa, autoequipamiento y reutilización tras fase final/especialización, sin venta. | Antecedente de Respuestas E5 conservado; no aceptación global. La propuesta posterior se registra en DOC-5. | No adoptar representación como un único Item, prohibición comercial global o política de reutilización anterior por inferencia. |
+| E5-02 · vestimenta (propuesta DOC-5, 18/10) | Conjunto completo por época; adquisición y equipamiento automáticos al evolucionar; conservar anteriores obtenidos y permitir reequiparlos también en épocas intermedias; futuras no alcanzadas bloqueadas. | Actualización E5 del 18/10 en coordinación, CORE-07/E5-02/B-06; Jaime y Henry acordaron consultar reutilización, no todo el diseño técnico. | CORE-07, B-06, P6 y R-01 abiertos: Óscar valida compatibilidad DAR3. Henry/Jaime deben acordar identidades, idempotencia, adquisición/equipamiento y recuperación. Conjunto no implica un único objeto. |
 | E5-03 · Bank | Posición funcional de E5: una Wallet y Bank como único saldo de toda la plataforma; sin saldos independientes. La fuente lo declara resuelto funcionalmente. | Respuestas E5; Fernando con Óscar/Core y consumidores. | No acredita confirmación técnica de Core ni aceptación conjunta de todas las partes. Fuente física canónica, acceso autorizado y conciliación con perfiles globales pendientes. |
 | E5-03 · compras | Propuesta de integración: Shop coordina débito, entrega y registro idempotentes; rollback común solo en misma conexión/BD. | Respuestas E5 y Rewards v0; Fernando/Henry/Jaime. | Si Bank es remoto, confirmación/recuperación por acordar. No se aprueba una arquitectura transaccional global. |
 | E5-04 | Pendiente explícito: reglas de Training, Quiz y Escape; score no equivale automáticamente a XP/DC y límites XP/monedas separados. | Respuestas E5, guía y kit; Jaime/Fernando/equipos de juegos. | T-01/Q-01/E-01 no son baremos aprobados; faltan elegibilidad, importes, límites y anulaciones. |
@@ -109,11 +110,13 @@ frontera transaccional y recuperación antes del ORM o adaptador afectado.
 
 ## Contrato 1. Ecomotor → Duckies
 
-Propuesta lista para aprobar
+Propuesta funcional pendiente de Óscar y de contrato técnico con Henry
 
-Responsables: Jaime define las etapas y confirma la evolución; Henry implementa la entrega de piezas.
+Responsables: Jaime/Ecomotor determina la evolución; Henry/Duckies conserva inventario, posesión, concesiones, equipamiento y apariencias. La interfaz sigue candidata, sin implementación acreditada por este documento.
 
-Solución candidata: Ecomotor notifica la transición confirmada; Duckies controla la entrega y el equipamiento. El ejemplo `unlock_stage_items()` no presupone concesión automática aprobada: desbloquear, conceder/poseer, equipar y elegir apariencia son operaciones distintas.
+**Criterio funcional propuesto DOC-5 (18/10):** cada época dispondría de un conjunto completo. Al evolucionar, el Ducky adquiriría y equiparía automáticamente el nuevo; Duckies conservaría los conjuntos anteriores obtenidos y permitiría volver a equiparlos incluso en épocas intermedias. No se podrían equipar conjuntos de épocas futuras no alcanzadas. Ecomotor determina la transición; Duckies posee inventario, posesión, equipamiento y apariencias.
+
+La propuesta no está confirmada por Óscar ni ratificada técnicamente con Henry. Desbloquear, adquirir, poseer, equipar y elegir apariencia son conceptos distintos. Conjunto completo no significa necesariamente un único objeto. El ejemplo `unlock_stage_items()`, `grant_item()` y las demás firmas siguen siendo ilustrativos, sin modelos, transacciones o automatismos ejecutables fijados.
 
 ```python
 unlock_stage_items(
@@ -127,14 +130,16 @@ unlock_stage_items(
 | ------------------ | ---------------------------------------------------------------------------------- |
 | **Entrada**        | Usuario, código de etapa, clave de operación                                       |
 | **Validación**     | Etapa confirmada por Ecomotor, piezas configuradas y ausencia de entrega duplicada |
-| **Acción**         | Se propone conceder piezas mediante grant_item(); condición y automatismo pendientes en R-01 |
+| **Acción**         | Adquisición y equipamiento automáticos al evolucionar como propuesta DOC-5; mecanismos y firmas pendientes, sin automatismo implementado |
 | **Respuesta**      | Piezas entregadas, piezas ya poseídas y estado de operación                        |
 | **Errores**        | Etapa inválida, operación no autorizada, conflicto de clave                        |
-| **Regla especial** | DAR3 exige conservar piezas anteriores; equipamiento manual propuesto, sin cierre de R-01 |
+| **Regla especial** | DAR3 conserva conjuntos anteriores; DOC-5 propone reequipar los obtenidos también en épocas intermedias y excluir futuras no alcanzadas, pendiente de Óscar |
 
 Por qué: Ecomotor sigue siendo responsable de la evolución y Duckies de la propiedad de los objetos. Se evita almacenar inventarios paralelos.
 
-Para cerrarlo: Jaime y Henry deben acordar códigos y contratos, adquisición, entrega y equipamiento. DAR3 contempla nueve épocas, seis piezas principales por época mediante progreso y misiones y conservación de progresos y conjuntos anteriores; la Parte A V2 utiliza siete etapas provisionales. El 15–16/10 ambos acordaron proponer a Óscar seleccionar libremente apariencias completas de cualquier época desbloqueada; no es una política aprobada. La entrega automática sin equipamiento sigue siendo una propuesta ERD, no un cierre aceptado.
+Para cerrarlo: Óscar debe aclarar CORE-07/B-06/P6/R-01: seis piezas diferenciadas o su relación con conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/equipamiento automáticos y reutilización, y nueve épocas DAR3 (incluida Era Espacial) frente a siete etapas provisionales. Después, Jaime y Henry deben acordar identidades, idempotencia, adquisición, equipamiento y recuperación de errores; sin fijar composición física, transacción o firma definitiva.
+
+**Antecedente R-01:** el ERD global planteaba entrega automática sin equipamiento; Jaime había recordado entrega y equipamiento automáticos, sin aceptación técnica inequívoca de Henry. El 15–16/10 acordaron consultar la reutilización de apariencias a Óscar. DOC-5 formula el comportamiento actual propuesto, sin convertir esos antecedentes en acuerdos aprobados. Véanse [arquitectura](../architecture.md#31-vestimentas-históricas--propuesta-doc-5) y [pendientes](../pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
 
 ## Contrato 2. Shop → Duckies
 

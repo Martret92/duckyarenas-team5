@@ -64,7 +64,7 @@ por sí solos toda la revisión conceptual.
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y tratamiento legacy. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
-| P6 · Vestimenta/Museo | DAR3 contempla progreso y misiones y conservación de progresos y conjuntos anteriores; arquitectura y ERD global consolidados por PR #21. | R-01 sigue mixto/pendiente: separar adquisición de piezas y posibles variantes comprables, concesión/posesión, equipamiento automático y selección de apariencia. Acordar condiciones al saltar etapas, compatibilidad, Museo y adaptación de nueve épocas a siete etapas V2 provisionales. La selección libre de apariencias completas desbloqueadas es propuesta a Óscar, no política adoptada; no se rebaja la conservación prevista en DAR3. | Óscar, Henry y Fernando, con Jaime para evolución; ERD consolidado y vertical. |
+| P6 · Vestimenta/Museo | DAR3 conserva seis piezas por época obtenidas por progreso/misiones y conjuntos anteriores. DOC-5 (18/10) concreta la propuesta E5: conjunto completo por época, adquisición/autoequipamiento al evolucionar y reutilización de anteriores obtenidos también en épocas intermedias; futuras no alcanzadas excluidas. | CORE-07, B-06 y R-01 abiertos: Óscar debe aclarar piezas diferenciadas/composición de conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/autoequipamiento y reutilización, y nueve épocas (Era Espacial incluida) frente a siete etapas provisionales. Mantener compatibilidad, saltos y Museo pendientes; no asumir un único Item por conjunto. | Óscar para aclaración funcional; Henry/Jaime para identidades, idempotencia, adquisición/equipamiento y recuperación; Fernando si afecta a comercio. |
 | P7 · Especializaciones | Actual aclarado; selección/rangos parciales | Obligatoriedad, acceso, cambios/reinicio/nueva elección no aprobados, XP de dominio y rangos Junior/Middle/Senior/Maestro. Normalizar Sistemas/AdminSys, Data/Data & IA y códigos sin adoptar ejemplos. | Óscar, Jaime y juegos; catálogos y servicios. |
 | P8 · Umbrales/configuración | Invariantes V2-A20/A21 y carga JSON/diagnóstico S6-A ya implementados localmente; INITIAL_CONFIGURATION sigue ausente. | Valores autorizados, instalación real por proceso y cambios históricos prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. S6-A no activa el servidor ni aprueba producción. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
@@ -219,3 +219,35 @@ No se ratifican T-01/Q-01/E-01, precios Shop, configuración oficial de juegos,
 penalizaciones Escape, vestimenta o transformación de inventario. Los modelos
 RewardEvent/RewardLimitUsage son candidatos; RewardRule no se adopta como tabla.
 S8-A sigue aprobado y pausado; ninguna fase se implementa en este PR.
+
+## 8. Vestimentas históricas · Propuesta DOC-5
+
+Consulta del 18/10/2026 de CORE-07, E5-02 y B-06 en el documento compartido de
+coordinación, contrastada con DAR3 pp. 3 y 48. [DOC-5](decisions.md#doc-5--criterio-funcional-propuesto-de-vestimentas-históricas--18102026)
+registra procedencia y autoridad; la [arquitectura](architecture.md#31-vestimentas-históricas--propuesta-doc-5)
+precisa adquisición, posesión, equipamiento y apariencia. El criterio E5 ya está
+formulado: conjunto completo por época, adquisición/autoequipamiento al evolucionar,
+conservación y libre reequipamiento de anteriores obtenidos también durante épocas
+intermedias, sin permitir futuras no alcanzadas. **No es aprobación del profesor
+ni contrato técnico ratificado con Henry.**
+
+**CORE-07, B-06, P6 y R-01 permanecen abiertos.** La duda residual es la validación
+de esa propuesta frente a DAR3, no su mera formulación. Óscar debe confirmar:
+
+1. Si las seis piezas principales por época siguen siendo objetos diferenciados
+   y cómo se relacionan con una apariencia de conjunto completo.
+2. Cómo encaja adquirir automáticamente el conjunto al evolucionar con los
+   desbloqueos por progreso y misiones de DAR3.
+3. Si aprueba adquisición y equipamiento automáticos y reutilización libre de
+   conjuntos anteriores ya obtenidos, también durante épocas intermedias.
+4. Cómo se relacionan las nueve épocas DAR3, incluida Era Espacial, con las
+   siete etapas provisionales de DuckyEcomotor.
+
+Jaime y Henry acordaron plantear reutilización al profesor; no se atribuye a Henry
+aceptación técnica inequívoca de todos los detalles del autoequipamiento. Tras la
+aclaración funcional, la futura implementación requerirá acordar con Henry las
+identidades de época/conjunto/piezas, idempotencia, adquisición, equipamiento y
+recuperación de errores. Nada fija aquí modelos, composición, transacciones o firmas.
+Se conserva el R-01 histórico mixto; no se modifica DAR3 ni se cierran compatibilidad,
+saltos de etapa, Museo o condiciones comerciales por esta propuesta.
+Rewards R1–R8/T1–T8, S1–S7-A y el estado aprobado/pausado de S8-A no cambian.

@@ -169,17 +169,43 @@ anteriores tras evolucionar. Mantiene inventario, compatibilidad, historiales y
 Museo Ducky. Su adaptación de nueve épocas a las siete etapas V2 provisionales
 requiere contraste; no impone seis campos físicos por etapa.
 
-**Desbloquear**, **conceder/poseer**, **equipar** y **elegir apariencia** son operaciones
-distintas. R-01 sigue en estado mixto: Jaime recordó entrega y equipamiento
+**Antecedente R-01 · 15–16/10/2026.** Desbloquear, conceder/poseer, equipar
+y elegir apariencia son operaciones distintas. R-01 sigue en estado mixto:
+Jaime recordó entrega y equipamiento
 automáticos; no consta aceptación inequívoca de Henry del autoequipamiento.
 La entrega automática sin equipamiento del ERD global es una propuesta, no un
 cierre aceptado. El 15–16/10 Jaime y Henry acordaron proponer a Óscar seleccionar
 libremente apariencias completas de cualquier época desbloqueada; no adoptaron
 esa política. Obtención, variantes comprables y comportamiento al saltar etapas
 siguen pendientes en [pendientes](pending-decisions.md).
-Las nueve épocas y INITIAL del V1 no son reglas actuales. El mínimo interno
-UserSpecializationProgress sin rank conserva XP de dominio independiente;
-fuentes, rangos y obligatoriedad no tienen validación global.
+La lista de nueve épocas de DAR3 no se sustituye por una propuesta interna;
+el mínimo local V2 conserva siete etapas provisionalmente. INITIAL del V1 no
+se convierte en invariante actual. UserSpecializationProgress sin rank conserva
+XP de dominio independiente; fuentes, rangos y obligatoriedad sin validación global.
+
+### 3.1. Vestimentas históricas · Propuesta DOC-5
+
+Criterio propuesto por E5 el 18/10/2026, recogido en CORE-07, E5-02 y B-06 del
+documento compartido y en el [registro DOC-5](decisions.md#doc-5--criterio-funcional-propuesto-de-vestimentas-históricas--18102026).
+Es posterior a R-01: lo precisa como propuesta, sin cerrar su aceptación técnica
+ni convertirlo en aprobación del profesor.
+
+| Concepto | Comportamiento funcional propuesto / autoridad |
+| --- | --- |
+| Evolución | Ecomotor determina la transición; evolución automática por umbral no implica por sí sola adquisición o equipamiento. |
+| Adquisición | E5 propone obtener el conjunto completo de la nueva época al evolucionar, pendiente de compatibilidad con progreso/misiones DAR3. |
+| Posesión | Duckies conservaría todos los conjuntos completos anteriores ya obtenidos. No se decide si conjunto equivale a uno o varios objetos. |
+| Equipamiento | E5 propone equipar automáticamente el conjunto nuevo; no consta aprobación de Óscar ni aceptación técnica inequívoca de Henry de todos sus detalles. |
+| Selección de apariencia | El usuario podría volver a equipar cualquier conjunto anterior obtenido, incluso en épocas intermedias; no conjuntos de épocas futuras todavía no alcanzadas. Duckies controla equipamiento/apariencias. |
+
+DAR3, pp. 3 y 48, conserva las seis piezas principales por época, obtención por
+progreso y misiones, conservación del progreso/conjuntos y nueve épocas incluida
+Era Espacial. Debe aclararse cómo encajan esos requisitos con las siete etapas
+provisionales y la propuesta de conjuntos completos; no se eliminan piezas ni
+se adopta una lista oficial nueva. CORE-07, B-06, P6 y R-01 siguen pendientes con
+Óscar; identidades, idempotencia, adquisición, equipamiento y recuperación deben
+acordarse con Henry antes de implementar. [Preguntas y bloqueos](pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
+No hay implementación, modelos nuevos o contratos definitivos en DOC-5.
 
 ## 4. Notas y conclusiones de las dailys
 
