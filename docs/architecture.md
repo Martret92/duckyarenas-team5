@@ -2,10 +2,14 @@
 
 ## 1. Estado y fuentes
 
-**Actualización S9-A:** la baseline `b1b25cd` incluye S8-A (PR #40) y UI-A
-(PR #41). El historial de asignaciones S9-A está implementado y probado en su
-rama para revisión. Las menciones a S8-A pausado en los cortes DOC siguientes
-son antecedentes históricos, no su estado actual; véanse §2.1 y el contrato S9-A.
+**Actualización DOC-S12-A · 18/10/2026:** develop
+`84f809df43c7db9b438a6541a298214ce8d97b50` incluye S8-A (#40), UI-A (#41),
+S9-A (#42), S10-A (#43) y S11-A (#44). S11-A implementa selección inicial, no
+concesión positiva de dominio. [S12-A](contracts/ecomotor-domain-xp-v1.md) está
+aprobado conceptualmente por 02B, sin implementación ni persistencia autorizada.
+Rewards F1-A está implementado (#38); F2-A sigue bloqueado por DOC-6 y Rewards v0
+continúa candidato global. Las pausas/revisiones de los cortes anteriores son
+antecedentes históricos, no estados vigentes. Esta PR solo actualiza documentación.
 
 **Corte DOC-6 · 18/10/2026:** develop `5a4e079` incluye Fase 1 Rewards por
 [PR #38](https://github.com/Martret92/duckyarenas-team5/pull/38):
@@ -140,8 +144,9 @@ PR #40 y UI-A mediante PR #41; el historial S9-A se incorpora en su rama para re
 El esquema local de Parte A tiene **nueve entidades**: las ocho del V2 histórico
 más StatAllocationEvent. Sus modelos están en apps.ecomotor (ocho) y apps.users
 (UserProfileEcomotor); UserProfileBank no forma parte de ese recuento.
-No hay servicios integrados de especialización o XP de dominio, coordinación
-transaccional Rewards, economía, objetos o juegos. Fase 1 pura sí está integrada
+La primera selección de especialización S11-A está integrada (#44). No hay servicio
+de XP de dominio positiva, coordinación transaccional Rewards, economía, objetos
+o juegos integrado en este corte de Parte A. Fase 1 pura sí está integrada
 por PR #38, según el corte DOC-6 de §1. Las flechas de §5 representan arquitectura
 objetivo candidata.
 
@@ -476,3 +481,24 @@ Reutiliza UI-A (#41) con navegación compartida; no modifica S4-A/S7-A, modelos,
 migraciones, servicios de escritura ni montaje global. Solo SELECT, sin promesa
 de snapshot concurrente único. Implementado y probado en rama feature, pendiente
 de revisión/merge; no aprobación externa de Core. F2-A mantiene su bloqueo.
+
+## S11-A y S12-A · estado vigente tras PR #44
+
+[S11-A](contracts/ecomotor-specialization-v1.md) está integrado: selección inicial
+en Actual, perfil/progreso atómicos, dominio inicial cero y repetición coherente
+sin escrituras ni catálogos actuales. No supone autorización global ni cierre P7.
+Las expresiones de revisión anteriores conservan su contexto histórico.
+
+[S12-A](contracts/ecomotor-domain-xp-v1.md) registra alternativa C y S12-A-01…06:
+Ecomotor propietario del efecto positivo de dominio; Rewards coordinador global;
+perfil inicializado, especialización/progreso coherentes y Actual para concesión
+nueva; identidad origen–hecho–perfil, repetición/conflictos y atomicidad conceptual.
+DomainXPEvent es un concepto separado de las nueve entidades físicas integradas.
+No se aprueban ORM, campos/FKs, migración u on_delete. Core debe resolver
+conservación/anonimización/eliminación antes de persistir; emisores, vínculo confiable
+hecho–destinatario y reglas requieren acuerdos antes de premios reales.
+ValidatedRewardFact no autoriza por sí solo. No se desbloquea F2-A.
+
+La firma grant_domain_xp y DomainXPGrantResult son candidatos, no servicios
+disponibles. Detalles técnicos, reglas y rangos siguen pendientes. No se modifica
+V2-A25/A26 ni DOC-6 retrospectivamente; S13-A no tiene arquitectura aprobada.

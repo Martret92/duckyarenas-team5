@@ -780,3 +780,30 @@ revisar y fusionar su PR. P7 permanece abierto para códigos canónicos, obligat
 condiciones adicionales de acceso, cambios/reinicios, XP de dominio positiva y sus
 fuentes/idempotencia, rangos e integración con juegos/Rewards. Conservación y
 autoridad Core siguen pendientes; Rewards v0 candidato y F2-A bloqueada sin cambios.
+
+## S12-A · Arquitectura conceptual de XP de dominio — aprobación interna 02B
+
+DOC-S12-A, sobre develop `84f809df43c7db9b438a6541a298214ce8d97b50`, registra
+la alternativa C aprobada internamente por Jaime/Parte A en «02B · Arquitectura
+y repositorio · Continuación»: servicio propietario local de concesión positiva
+de XP de dominio, preparado para integración posterior mediante Rewards.
+S11-A está integrado por PR #44. V2-A25/V2-A26 y DOC-6 conservan sus decisiones
+históricas; no se atribuye aprobación externa ni se implementa este diseño.
+
+| Decisión interna | Aprobación y límite |
+| --- | --- |
+| S12-A-01 · Propiedad y coordinación | Ecomotor es propietario del efecto de XP de dominio; Rewards coordina la recompensa global. El servicio local no sustituye esa responsabilidad ni legitima emisores. |
+| S12-A-02 · Elegibilidad | Concesión nueva con perfil válido e inicializado, especialización activa coherente, progreso válido y elegibilidad coherente en Actual. Sin nuevos baremos ni condiciones de acceso no concretadas. |
+| S12-A-03 · Trazabilidad conceptual | DomainXPEvent aceptado solo como modelo conceptual. No aprobación de ORM, campos/tipos, relaciones físicas, migración ni on_delete. Persistencia bloqueada hasta acuerdo de conservación/anonimización/eliminación con Core. |
+| S12-A-04 · Identidad e idempotencia | Principio de identidad única origen–hecho–perfil, repetición histórica sin XP adicional y conflictos de identidad, importe o especialización rechazados. Identificadores, huellas, constraints y contratos de entrada definitivos por concretar; sin esquema físico aprobado. |
+| S12-A-05 · Atomicidad | Evento y acumulado de dominio confirman o revierten juntos. D-19: transacciones, concurrencia segura, SQLite IMMEDIATE, duplicados/estados parciales rechazados, fallos operativos diferenciados y rollback. Sin atomicidad prometida entre BD/sistemas independientes. |
+| S12-A-06 · Bloqueos | DomainXPEvent físico/migración sin autorizar hasta acuerdo Core de conservación, anonimización/eliminación y on_delete. Premios reales exigen origen autorizado, vínculo confiable hecho–destinatario y reglas validadas. ValidatedRewardFact por sí solo no autoriza. No desbloquea Rewards F2-A. |
+
+El [contrato conceptual candidato](contracts/ecomotor-domain-xp-v1.md) conserva
+`grant_domain_xp(profile, validated_fact, amount, authorized_context) -> DomainXPGrantResult`
+como propuesta, no API disponible. Firma/tipos, authorized_context, autorización,
+esquema físico, integración Rewards, fuentes/cantidades/límites y rangos no quedan
+aprobados. La formulación literal de alternativas A/B no se ha aportado; se deja
+pendiente de recuperar desde 02B, sin inventar decisiones descartadas.
+No se crean código, tablas, migraciones ni tests. P5/P7 y DOC-6 siguen abiertos;
+S13-A solo es prioridad funcional provisional futura, sin arquitectura de rangos.

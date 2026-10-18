@@ -63,9 +63,9 @@ por sí solos toda la revisión conceptual.
 | P2 · Stats | Daily del 09/10/2026: stats por rol antes de Actual y distribución/edición en Actual, aclaración parcial. S7-A integrado (PR #32) resuelve internamente asignación solo en Actual, coste 1:1 e historial idempotente; no es aprobación global del profesor. | Siguen abiertos iniciales, tabla/presupuesto, límites, redistribución, efectos al especializarse y demás condiciones funcionales. No adoptar todos a 5, tabla de Clash o suma de 45 como defaults oficiales. | Óscar, Jaime, Henry y juegos; S2-A/S7-A locales existen, parámetros y límites funcionales siguen pendientes. |
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
-| P5 · Conservación | Pendiente; M-01 fail-closed interno preservado | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y tratamiento legacy. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
+| P5 · Conservación | Pendiente; M-01 fail-closed interno preservado. S12-A solo acepta DomainXPEvent conceptual. | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y legacy. DomainXPEvent físico y sus relaciones requieren acuerdo previo de conservación, anonimización/eliminación y on_delete; sin copiar CASCADE provisional. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
 | P6 · Vestimenta/Museo | DAR3 conserva seis piezas por época obtenidas por progreso/misiones y conjuntos anteriores. DOC-5 (18/10) concreta la propuesta E5: conjunto completo por época, adquisición/autoequipamiento al evolucionar y reutilización de anteriores obtenidos también en épocas intermedias; futuras no alcanzadas excluidas. | CORE-07, B-06 y R-01 abiertos: Óscar debe aclarar piezas diferenciadas/composición de conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/autoequipamiento y reutilización, y nueve épocas (Era Espacial incluida) frente a siete etapas provisionales. Mantener compatibilidad, saltos y Museo pendientes; no asumir un único Item por conjunto. | Óscar para aclaración funcional; Henry/Jaime para identidades, idempotencia, adquisición/equipamiento y recuperación; Fernando si afecta a comercio. |
-| P7 · Especializaciones | S11-A-01/02 aprobadas internamente por Jaime/Parte A en 02B; primera selección local en Actual implementada en rama para revisión, pendiente de merge. | Siguen abiertos códigos canónicos definitivos (Sistemas/AdminSys, Data/Data & IA), obligatoriedad y condiciones funcionales adicionales de acceso, cambios/reinicios, XP de dominio positiva, fuentes e idempotencia de futuras concesiones, rangos Junior/Middle/Senior/Maestro e integración Rewards/juegos. No adoptar ejemplos ni dar P7 por cerrado. | Óscar, Jaime y juegos; [contrato local S11-A](contracts/ecomotor-specialization-v1.md), sin ratificación global de Core. |
+| P7 · Especializaciones | S11-A integrado por PR #44. S12-A-01…06/alternativa C aprobadas internamente en 02B: concesión de dominio propietaria local, solo conceptual y con persistencia bloqueada. | Abiertos códigos canónicos, obligatoriedad/acceso adicional, cambios/reinicios, reglas/fuentes/cantidades/límites de XP de dominio y autorización, concreción de identidad/replay/conflictos, rangos Junior/Middle/Senior/Maestro y contratos juegos/Rewards. No adoptar ejemplos ni cerrar P7 por la aprobación conceptual. | Óscar, Jaime y juegos; [S11-A](contracts/ecomotor-specialization-v1.md) y [S12-A candidato](contracts/ecomotor-domain-xp-v1.md), sin ratificación global Core. |
 | P8 · Umbrales/configuración | Invariantes V2-A20/A21 y carga JSON/diagnóstico S6-A ya implementados localmente; INITIAL_CONFIGURATION sigue ausente. | Valores autorizados, instalación real por proceso y cambios históricos prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. S6-A no activa el servidor ni aprueba producción. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
 
 ### Integración pendiente con Core y servicios económicos comunes
@@ -284,3 +284,23 @@ No se cierran P1–P8, R1–R8, I1–I9, CORE-01/CORE-02/CORE-05 ni conservació
 inferencia. Bank/Duckies/juegos, dominio, puntos directos, RewardLimitUsage,
 RewardRule como tabla, REST/WebSockets/batch y recuperación distribuida siguen
 pendientes. DOC-5/CORE-07/B-06/P6/R-01 no cambian; S8-A permanece pausado.
+
+## 10. XP de dominio S12-A · arquitectura aprobada, implementación bloqueada
+
+Baseline `84f809d`: S11-A integrado (PR #44) selecciona y crea progreso en cero,
+sin servicio de concesión positiva. [S12-A](contracts/ecomotor-domain-xp-v1.md)
+registra alternativa C y seis decisiones internas de 02B, sin tablas ni migraciones.
+
+| Puerta pendiente | Responsabilidad / condición |
+| --- | --- |
+| DomainXPEvent físico | Core con Jaime: conservación, anonimización/eliminación y on_delete del evento y sus relaciones. P5 y legacy siguen abiertos; no copiar CASCADE provisional. |
+| Contrato técnico implementable | Jaime/02B con los interlocutores correspondientes: firma/tipos, identidad origen–hecho–perfil, huellas, snapshots, resultado, errores y frontera transaccional. No convertir la firma candidata en API vigente. |
+| Premios reales | Origen autorizado, asociación confiable del hecho al destinatario y reglas validadas. ValidatedRewardFact aislado no es autorización. Fuentes, cantidades y límites pendientes. |
+| Coordinación Rewards/juegos | Contratos y confianza todavía abiertos; S12-A no desbloquea F2-A ni modifica DOC-6. |
+| P7 restante | Códigos canónicos, obligatoriedad/acceso adicional, cambio/reinicio, concesión positiva de dominio y sus fuentes/reglas, rangos e integración. S13-A solo prioridad funcional provisional futura, sin diseño aprobado. |
+| Trazabilidad de alternativas | La formulación literal A/B no está aportada; recuperar desde 02B sin reconstruirla por inferencia. Sí consta la aprobación de C. |
+
+La repetición histórica sin duplicar y los conflictos están aprobados como
+principios, no como constraints o payloads concretos. P5/P7 permanecen abiertos;
+el bloqueo independiente de Rewards F2-A descrito en §9 sigue íntegro.
+Las referencias anteriores a pausas/implementación describen sus cortes históricos.
