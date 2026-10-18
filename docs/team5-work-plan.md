@@ -1,4 +1,4 @@
-# Plan de trabajo · Estado hasta S7-A y pendientes del Equipo 5
+# Plan de trabajo · Estado hasta S9-A y pendientes del Equipo 5
 
 ## 1. Estado y referencias
 
@@ -8,6 +8,10 @@ Actualización DOC-6: develop `5a4e079` incorpora Fase 1 por PR #38; §3.1 disti
 ese núcleo integrado de F2-A aprobado internamente y bloqueado hasta Core. Los estados siguientes
 distinguen implementación local, aprobación interna pausada, decisiones pendientes
 y dependencias externas; no aprueban contratos compartidos ni alcance final V1.
+
+Actualización S9-A: baseline `b1b25cd8d67f45ede8de6b6642cb2eae29b6c1e8`,
+S8-A integrada por PR #40 y UI-A por PR #41. S9-A implementado y probado en su
+rama para revisión, todavía sin merge. Los cortes DOC-1/DOC-6 son antecedentes.
 
 [Arquitectura](architecture.md) concentra fuentes funcionales y notas de las dailys;
 [decisiones](decisions.md), acuerdos; [pendientes](pending-decisions.md), preguntas;
@@ -29,7 +33,7 @@ formativos se distinguen del calendario de entrega del producto.
 
 | Responsable | Parte y apps | Trabajo inmediato propuesto |
 | --- | --- | --- |
-| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | S1–S7-A integrados; S8-A aprobado y pausado. Continuar con configuración autorizada, especializaciones/XP de dominio y Rewards según decisiones y contratos pendientes. |
+| Jaime | A · `apps.ecomotor`: Ecomotor, Rewards, XP, evolución, especializaciones y stats | S1–S8-A integrados y UI-A (#41); S9-A implementado para revisión. Continuar con configuración autorizada, especializaciones/XP de dominio y Rewards según decisiones y contratos pendientes. |
 | Henry | B · `apps.duckies`: Duckies, avatar, objetos, inventario y equipamiento | Revisar catálogo/posesión, concesiones/consumos, compatibilidad y contrato de objetos con Rewards/Shop. |
 | Fernando | C · `apps.bank` y `apps.shop`: wallet, movimientos, catálogo comercial y compras | Revisar diseño B/C, créditos/débitos idempotentes, coordinación de compra y reservas solo si se incluyen apuestas. |
 | Equipo 5 con Óscar/Core | `apps.users` conservada; integración de identidad/JWT | Resolver autenticación, permisos, conservación y legacy antes de la parte afectada. |
@@ -96,7 +100,8 @@ Bank/Duckies/juegos no bloquean el diseño local F2-A, pero siguen fuera junto c
 monedas, dominio, puntos directos, cupos, REST/WebSockets/batch y compensaciones.
 Un efecto no soportado rechaza toda la operación, sin descartarlo ni convertirlo
 en NO_REWARD.
-Los servicios locales S1–S7-A siguen integrados; S8-A permanece aprobado y pausado.
+Los servicios locales S1–S7-A siguen integrados; S8-A se integró por PR #40
+y UI-A por PR #41. La pausa anterior corresponde al corte histórico DOC-6.
 La regresión histórica comunicada en DOC-1/DOC-4 es de 407 tests correctos.
 La última regresión comunicada tras Fase 1 es de 463 tests correctos, según el
 informe de Codex. En DOC-6 no se han ejecutado tests Django: la PR es
@@ -112,7 +117,7 @@ H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
 | H1 · Diseño/documentación | Candidata V2 y ERD interno existentes; acuerdos 08/10 y notas de la daily 09/10 consolidados para revisión. Rewards v0 candidato. Pendientes condiciones funcionales/Core, B/C y contratos antes de ORM afectado; no completado globalmente. |
 | H2 · ORM y servicios | Implementado localmente en A: Día 4 (PR #23/#24), S1/S1.1 (#22), S2-A (#27), S3 (#28), S4-A (#29), S6-A (#31) y S7-A (#32). F1-A integrada por PR #38 (núcleo puro); pendientes especializaciones, XP de dominio y persistencia/coordinación Rewards F2-A; B/C e integración global dependen de sus contratos y migraciones. |
 | H3 · Vertical mínima | Futuro: actividad, recompensa, compra y equipamiento con interfaz/permiso. Training distingue XP repetible/límite monetario; Escape distingue parcial/final. No imponer autoequipamiento. |
-| H4 · CRUD/historiales/Museo | Implementados Admin seguro (#25 y evento S7-A), consultas/historial XP S4-A y página personal GET/HEAD S5-A (#30). S8-A aprobado por Jaime, pausado sin implementación. CRUD evaluable PR07, historial web de asignaciones y Museo compartido siguen pendientes de alcance. |
+| H4 · CRUD/historiales/Museo | Implementados Admin seguro (#25 y evento S7-A), consultas/historial XP S4-A, página personal GET/HEAD S5-A (#30) y asignación web S8-A (#40), con UI-A (#41). Historial personal de asignaciones S9-A implementado y probado para revisión. CRUD evaluable PR07 y Museo compartido siguen pendientes de alcance. |
 | H5 · Robustez | Tests locales implementados: integridad/migraciones, Admin, servicios, consultas, HTTP, replay/conflictos, rollback y concurrencia SQLite file-backed. Regresión histórica DOC-1/DOC-4: 407 tests correctos. Última regresión comunicada tras Fase 1: 463 tests correctos, según el informe de Codex. En DOC-6 no se han ejecutado tests Django por ser una PR exclusivamente documental. Robustez multidominio y autorización global siguen pendientes. |
 | H6 · Integración/demo/evidencias | Futuro: Core y juegos, REST y cobertura realtime acordada, demo y aportaciones individuales. RPG completo, apuestas, externo y pedidos físicos según alcance confirmado. |
 
@@ -133,9 +138,10 @@ a condiciones del ERD y pendientes, no se descartan por una propuesta de MVP.
   de S7-A. XP histórica y de dominio siguen separadas, sin eventos ficticios; M-01 vigente.
 - S4-A/S5-A ya consultan progreso e historial; acordar integración con
   calculate-action/commit-rewards, Escape actualizado y Training con sus emisores.
-- S1–S7-A están integrados y no esperan la integración global para su diseño local.
-  S8-A, interfaz GET/POST basada exclusivamente en S7-A, está aprobado y pausado por
-  prioridad documental; reanudar solo conforme a ese alcance, sin incluirlo en DOC-1.
+- S1–S8-A están integrados y no esperan la integración global para su diseño local.
+  UI-A (#41) comparte presentación; S9-A añade lectura personal de snapshots de
+  asignaciones, con cursor por PK y diez entradas web, implementado para revisión.
+  Véase el [contrato S9-A](contracts/ecomotor-stat-allocation-history-web-v1.md).
 - Pendientes: configuración funcional e instalación real (S6-A no la activa),
   especializaciones/XP de dominio, persistencia/coordinación Rewards F2-A y contratos Core/A/B/C/juegos. Fase 1 ya está integrada, sin efectos reales.
 
@@ -174,11 +180,12 @@ sin apuestas. D-19 es una decisión técnica del Equipo 5, no una configuración
 
 ## 6. Pruebas existentes, pendientes y criterio de cierre
 
-No se añaden ni ejecutan tests Django en este PR documental.
+DOC-6 no añadió ni ejecutó tests Django. S9-A añade pruebas de consulta y HTTP
+y ejecuta la regresión completa; sus resultados quedan registrados en su PR.
 
 | Área | Comprobaciones existentes / pendientes |
 | --- | --- |
-| A | Implementados tests de S1–S7-A, Admin, modelos y migraciones: progresión, inicialización, XP, consultas, HTTP y asignación idempotente. Legacy fail-closed local no cierra conservación global ni configuración autorizada. Especializaciones/XP de dominio y persistencia/coordinación Rewards pendientes; núcleo puro F1-A integrado por PR #38. |
+| A | Implementados tests de S1–S8-A, Admin, modelos y migraciones; S9-A añade consulta/HTTP de snapshots, privacidad, cursor, alias y solo SELECT. Legacy fail-closed local no cierra conservación global ni configuración autorizada. Especializaciones/XP de dominio y persistencia/coordinación Rewards pendientes; núcleo puro F1-A integrado por PR #38. |
 | B | Posesión/cantidades, concesiones/consumos idempotentes, compatibilidad y equipamiento; historiales y objetos por condiciones acordadas. |
 | C | `saldo >= 0` y fondos suficientes antes de débito; créditos/débitos sin duplicados, concurrencia, movimientos con origen/motivo y consistencia cargo-entrega; reserva de ambas apuestas al aceptar solo bajo alcance confirmado. |
 | Rewards | APPLIED/NO_REWARD repetidos, conflicto, premios sin XP, referencias a efectos, versiones, rollback de cada propietario y autorización. |

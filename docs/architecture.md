@@ -2,6 +2,11 @@
 
 ## 1. Estado y fuentes
 
+**Actualización S9-A:** la baseline `b1b25cd` incluye S8-A (PR #40) y UI-A
+(PR #41). El historial de asignaciones S9-A está implementado y probado en su
+rama para revisión. Las menciones a S8-A pausado en los cortes DOC siguientes
+son antecedentes históricos, no su estado actual; véanse §2.1 y el contrato S9-A.
+
 **Corte DOC-6 · 18/10/2026:** develop `5a4e079` incluye Fase 1 Rewards por
 [PR #38](https://github.com/Martret92/duckyarenas-team5/pull/38):
 [tipos](../apps/ecomotor/reward_types.py),
@@ -116,6 +121,9 @@ Corte verificado el 18/10/2026: `origin/develop` en
 `b42cb5fdd5c4509670a337c1c79e260714c78c9f`. PR #32 es la última integrada;
 las PR de la tabla están fusionadas y sus commits pertenecen a esta baseline.
 Esto acredita implementación local, no aprobación externa ni integración global.
+El corte DOC-1 se conserva como antecedente. La baseline actual de S9-A es
+`b1b25cd8d67f45ede8de6b6642cb2eae29b6c1e8`: S8-A está integrada mediante
+PR #40 y UI-A mediante PR #41; el historial S9-A se incorpora en su rama para revisión.
 
 | Incremento | PR integrada | Implementación y contrato local |
 | --- | --- | --- |
@@ -142,15 +150,14 @@ pero faltan valores autorizados, instalación real y política histórica de cam
 (P8/V2-A28). TECHNICALLY_READY no equivale a aprobación funcional. La consulta básica
 S4-A/S5-A no depende de configurar nuevas concesiones.
 
-S8-A está **aprobado internamente por Jaime y pausado, sin implementar**:
-adaptador web GET/POST para asignar puntos exclusivamente mediante S7-A,
-autenticación Django existente, CSRF, request.user e idempotencia. Véase
-[decisión S8-A](decisions.md#s8-a--interfaz-web-de-asignación--aprobada-y-pausada).
-No hay interfaz de escritura de puntos en la baseline actual.
+S8-A está **integrada mediante PR #40**: adaptador web GET/POST para asignar
+puntos exclusivamente mediante S7-A, autenticación Django, CSRF, request.user
+e idempotencia. UI-A (PR #41) comparte plantilla base y CSS local entre páginas.
+Véase el [contrato S8-A](contracts/ecomotor-stat-allocation-web-v1.md).
 
 El repositorio contiene tests de modelos/migraciones, Admin, servicios, consultas,
-HTTP y concurrencia SQLite file-backed. Última regresión comunicada: **407 tests
-correctos**. DOC-1 revisa código, contratos y procedencia Git, sin volver a ejecutar
+HTTP y concurrencia SQLite file-backed. Regresión histórica comunicada en DOC-1:
+**407 tests correctos**. DOC-1 revisa código, contratos y procedencia Git, sin volver a ejecutar
 la suite ni comprobar instalaciones o datos reales.
 
 ## 3. Requisitos funcionales y límites de V2
@@ -444,9 +451,9 @@ StatAllocationEvent registra snapshots independientes de XPEvent y replay sin
 configuración actual. D-19 serializa S3/S7-A; solo atributo elegido y saldo cambian
 junto al evento. Admin de consulta y 0005 aditiva con reversión protegida.
 S1–S6-A y otros equipos intactos; conservación CASCADE provisional, configuración
-funcional y contratos globales pendientes. Sin interfaz web de asignaciones.
+funcional y contratos globales pendientes. La interfaz posterior es S8-A (PR #40).
 
-## S8-A · Interfaz de asignación local reactivada (en revisión)
+## S8-A · Interfaz de asignación local integrada · PR #40
 
 Jaime reactiva [S8-A](contracts/ecomotor-stat-allocation-web-v1.md) después de
 DOC-6; las referencias anteriores a su pausa describen sus cortes históricos.
@@ -457,3 +464,15 @@ PRG con mensajes distintos. Sin transacciones propias ni escrituras de negocio.
 Ruta namespaced local, sin config/urls.py ni integración global Core. Rewards F1
 y arquitectura F2-A intactas; F2-A sigue bloqueada para persistencia. No activa
 configuración funcional ni resuelve contratos compartidos.
+
+## S9-A · Historial web de asignaciones V1 · implementado para revisión
+
+El [contrato S9-A](contracts/ecomotor-stat-allocation-history-web-v1.md) añade
+consulta específica de StatAllocationEvent y página GET/HEAD personal de lectura.
+Perfil desde request.user, alias de BD persistido y snapshots validados sin
+catálogos actuales ni claves idempotentes en el resultado público. Paginación por
+PK descendente exclusiva, diez entradas web, resultados frozen y errores seguros.
+Reutiliza UI-A (#41) con navegación compartida; no modifica S4-A/S7-A, modelos,
+migraciones, servicios de escritura ni montaje global. Solo SELECT, sin promesa
+de snapshot concurrente único. Implementado y probado en rama feature, pendiente
+de revisión/merge; no aprobación externa de Core. F2-A mantiene su bloqueo.

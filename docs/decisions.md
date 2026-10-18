@@ -733,3 +733,23 @@ Nuevo/replay aplican PRG con mensajes distintos. HTTP 400/404/409/503 genéricos
 overflow 409, CSRF estándar 403. Ruta local sin montaje Core. Decisiones internas,
 no atribuidas a DAR3/Core/Rewards. Los estados pausados anteriores son históricos;
 F2-A continúa bloqueada para persistencia. S1–S7-A y DOC-6 intactos.
+
+## S9-A · Historial web personal de asignaciones — aprobación interna
+
+S8-A ya está integrada por PR #40 y UI-A por PR #41; las pausas documentadas
+anteriormente describen sus cortes históricos. Jaime aprueba S9-A como incremento
+local de Parte A, no como requisito literal nuevo de DAR3 ni aprobación de Core.
+
+El [contrato S9-A](contracts/ecomotor-stat-allocation-history-web-v1.md) registra
+list_stat_allocation_history y allocation_history_view: solo lectura, propiedad
+exclusiva de request.user, snapshots persistidos de S7-A, resultados inmutables,
+sin operation_key pública ni reconstrucción con catálogos actuales. Cursor por PK
+descendente, límites técnicos 50/100 en servicio y diez en web; validación estricta
+de cursores HTTP y errores 400/404/409/503 genéricos. UI-A conserva su identidad
+visual y añade navegación accesible. No se modifican S1–S8-A ni el esquema.
+
+Implementación y tests completados en feature para revisión; no se autoriza merge
+automático. Sin snapshot transaccional conjunto entre consultas, reparación,
+configuración oficial ni integración global de URLs. Conservación, User/auth y
+contratos externos siguen pendientes. Rewards v0 continúa candidato global y
+F2-A bloqueada para persistencia; S9-A no amplía esos acuerdos.
