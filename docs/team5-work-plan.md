@@ -97,8 +97,10 @@ monedas, dominio, puntos directos, cupos, REST/WebSockets/batch y compensaciones
 Un efecto no soportado rechaza toda la operación, sin descartarlo ni convertirlo
 en NO_REWARD.
 Los servicios locales S1–S7-A siguen integrados; S8-A permanece aprobado y pausado.
-La regresión histórica comunicada de 407 tests no se vuelve a ejecutar aquí:
-DOC-4 solo modifica Markdown, sin modelos, servicios, migraciones ni tests nuevos.
+La regresión histórica comunicada en DOC-1/DOC-4 es de 407 tests correctos.
+La última regresión comunicada tras Fase 1 es de 463 tests correctos, según el
+informe de Codex. En DOC-6 no se han ejecutado tests Django: la PR es
+exclusivamente documental, sin cambios de modelos, servicios, migraciones ni tests.
 
 ## 4. Hitos y estado vigente
 
@@ -111,7 +113,7 @@ H0–H6 no equivalen a días literales de PR07 ni comprometen fechas nuevas.
 | H2 · ORM y servicios | Implementado localmente en A: Día 4 (PR #23/#24), S1/S1.1 (#22), S2-A (#27), S3 (#28), S4-A (#29), S6-A (#31) y S7-A (#32). F1-A integrada por PR #38 (núcleo puro); pendientes especializaciones, XP de dominio y persistencia/coordinación Rewards F2-A; B/C e integración global dependen de sus contratos y migraciones. |
 | H3 · Vertical mínima | Futuro: actividad, recompensa, compra y equipamiento con interfaz/permiso. Training distingue XP repetible/límite monetario; Escape distingue parcial/final. No imponer autoequipamiento. |
 | H4 · CRUD/historiales/Museo | Implementados Admin seguro (#25 y evento S7-A), consultas/historial XP S4-A y página personal GET/HEAD S5-A (#30). S8-A aprobado por Jaime, pausado sin implementación. CRUD evaluable PR07, historial web de asignaciones y Museo compartido siguen pendientes de alcance. |
-| H5 · Robustez | Tests locales implementados: integridad/migraciones, Admin, servicios, consultas, HTTP, replay/conflictos, rollback y concurrencia SQLite file-backed. Última regresión comunicada: 407 correctos, no reejecutada en DOC-1. Robustez multidominio y autorización global siguen pendientes. |
+| H5 · Robustez | Tests locales implementados: integridad/migraciones, Admin, servicios, consultas, HTTP, replay/conflictos, rollback y concurrencia SQLite file-backed. Regresión histórica DOC-1/DOC-4: 407 tests correctos. Última regresión comunicada tras Fase 1: 463 tests correctos, según el informe de Codex. En DOC-6 no se han ejecutado tests Django por ser una PR exclusivamente documental. Robustez multidominio y autorización global siguen pendientes. |
 | H6 · Integración/demo/evidencias | Futuro: Core y juegos, REST y cobertura realtime acordada, demo y aportaciones individuales. RPG completo, apuestas, externo y pedidos físicos según alcance confirmado. |
 
 Se conserva DAR3: demo inicial con Prehistoria, Grecia y Roma; no equivale al
