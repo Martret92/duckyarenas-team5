@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase as IsolatedTestCase
 from unittest.mock import patch
+from uuid import UUID
 
 from django.contrib.auth import get_user_model
 from django.db import OperationalError, connection, connections
@@ -205,6 +206,21 @@ class StatAllocationQueryTests(TestCase):
         self.profile.historical_xp_total = -1
         self.profile.current_stage_code = ""
         self.assertEqual(list_stat_allocation_history(self.profile).entries, ())
+
+    def test_user_identity_representation_does_not_affect_local_history(self):
+        result = self.allocate()
+        for user_id in (UUID("12345678-1234-5678-1234-567812345678"), "opaque-core-user"):
+            with self.subTest(user_id=user_id):
+                current = UserProfileEcomotor.objects.get(pk=self.profile.pk)
+                # Simula una fila recargada con identidad opaca, sin cambiar el esquema User.
+                current.user_id = user_id
+                with patch("apps.ecomotor.stat_allocation_queries.UserProfileEcomotor.objects.using") as manager:
+                    manager.return_value.filter.return_value.first.return_value = current
+                    page = list_stat_allocation_history(self.profile)
+                manager.assert_called_once_with(self.profile._state.db)
+                manager.return_value.filter.assert_called_once_with(pk=self.profile.pk)
+                self.assertEqual([entry.id for entry in page.entries], [result.allocation_event_id])
+                self.assertEqual(list_stat_allocation_history(self.other).entries, ())
 
     def test_database_error_preserves_cause(self):
         error = OperationalError("s9-test-private-error")

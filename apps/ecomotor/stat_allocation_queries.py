@@ -69,7 +69,7 @@ def _read_profile(profile, using):
         raise InconsistentQueryStateError("Perfil sin estadísticas.")
     _numbers(current, ("id", "historical_xp_total", "current_level"), using)
     _numbers(stats, (*STAT_ATTRIBUTES, "available_points"), using)
-    if not _integer(current.user_id) or current.user_id <= 0 or not _code(current.current_stage_code) or (
+    if not _code(current.current_stage_code) or (
         current.active_specialization_code is not None and not _code(current.active_specialization_code)
     ):
         raise ValidationError("Código persistido inválido.")
