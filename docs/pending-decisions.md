@@ -298,7 +298,7 @@ registra alternativa C y seis decisiones internas de 02B, sin tablas ni migracio
 | Premios reales | Origen autorizado, asociación confiable del hecho al destinatario y reglas validadas. ValidatedRewardFact aislado no es autorización. Fuentes, cantidades y límites pendientes. |
 | Coordinación Rewards/juegos | Contratos y confianza todavía abiertos; S12-A no desbloquea F2-A ni modifica DOC-6. |
 | P7 restante | Códigos canónicos, obligatoriedad/acceso adicional, cambio/reinicio, concesión positiva de dominio y sus fuentes/reglas, rangos e integración. S13-A solo prioridad funcional provisional futura, sin diseño aprobado. |
-| Trazabilidad de alternativas | La formulación literal A/B no está aportada; recuperar desde 02B sin reconstruirla por inferencia. Sí consta la aprobación de C. |
+| Trazabilidad de alternativas | A/B sí constan en 02B, aunque no estaban incorporadas al repositorio ni al contexto documental recibido por Codex. A: servicio local de actualización de XP de dominio, con identidad e idempotencia suficientes y sin depender de F2-A. B: concesión exclusivamente coordinada por Rewards global tras aprobar sus contratos. C: núcleo local seguro e integración posterior Rewards, evitando concesiones inseguras o incompatibles. Solo C fue aprobada internamente; A/B fueron estudiadas, sin añadir motivos de descarte. |
 
 La repetición histórica sin duplicar y los conflictos están aprobados como
 principios, no como constraints o payloads concretos. P5/P7 permanecen abiertos;

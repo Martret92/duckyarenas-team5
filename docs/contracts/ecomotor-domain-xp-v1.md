@@ -11,10 +11,20 @@ Este registro DOC-S12-A parte de develop
 `84f809df43c7db9b438a6541a298214ce8d97b50`, con S11-A integrado por PR #44.
 No atribuye aprobación a Óscar/Core ni cierra P5/P7 o los contratos globales.
 
-Se registra la alternativa C comunicada y sus límites. Las formulaciones literales
-de las alternativas A/B no se han aportado ni constan en los documentos revisados;
-su recuperación desde 02B queda pendiente. No se inventa su contenido ni se
-presentan exclusiones de alcance como una reconstrucción de aquella deliberación.
+Las tres alternativas se plantearon explícitamente en la deliberación de 02B.
+A/B no estaban incorporadas a los documentos del repositorio ni al contexto
+documental recibido por Codex; esa ausencia documental no implica que faltaran en 02B:
+
+- **A, estudiada:** servicio local de actualización de XP de dominio, con identidad
+  e idempotencia suficientes y sin depender de F2-A.
+- **B, estudiada:** concesión de XP de dominio exclusivamente coordinada por Rewards
+  global, una vez aprobados sus contratos.
+- **C, aprobada internamente:** separar el desarrollo en un núcleo local seguro y
+  una integración posterior con Rewards, evitando mecanismos de concesión inseguros
+  o incompatibles.
+
+A/B fueron alternativas estudiadas, no decisiones aprobadas. No se añaden ventajas,
+riesgos ni razones de descarte que no consten en la aclaración de 02B.
 
 ## 2. Fuentes funcionales y precedencia
 

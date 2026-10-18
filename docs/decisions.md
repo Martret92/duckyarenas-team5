@@ -803,7 +803,18 @@ El [contrato conceptual candidato](contracts/ecomotor-domain-xp-v1.md) conserva
 `grant_domain_xp(profile, validated_fact, amount, authorized_context) -> DomainXPGrantResult`
 como propuesta, no API disponible. Firma/tipos, authorized_context, autorización,
 esquema físico, integración Rewards, fuentes/cantidades/límites y rangos no quedan
-aprobados. La formulación literal de alternativas A/B no se ha aportado; se deja
-pendiente de recuperar desde 02B, sin inventar decisiones descartadas.
+aprobados. Las alternativas A/B sí constan en la deliberación de 02B; no estaban
+incorporadas a los documentos del repositorio ni al contexto documental recibido
+por Codex. Se recupera esa trazabilidad sin alterar las seis decisiones anteriores:
+
+- **A, estudiada:** servicio local de actualización de XP de dominio, con identidad
+  e idempotencia suficientes y sin depender de F2-A.
+- **B, estudiada:** concesión de XP de dominio exclusivamente coordinada por Rewards
+  global, una vez aprobados sus contratos.
+- **C, aprobada internamente:** separar el desarrollo en un núcleo local seguro y
+  una integración posterior con Rewards, evitando mecanismos de concesión inseguros
+  o incompatibles.
+
+A/B no fueron decisiones aprobadas; no se atribuyen motivos adicionales de descarte.
 No se crean código, tablas, migraciones ni tests. P5/P7 y DOC-6 siguen abiertos;
 S13-A solo es prioridad funcional provisional futura, sin arquitectura de rangos.
