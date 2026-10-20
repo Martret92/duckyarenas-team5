@@ -716,3 +716,25 @@ fuentes aprobadas, formatos físicos ni suficiencia final V1_VERIFIED.
 Rechazo conserva clasificación/revisión/historial sin nuevo evento confirmado;
 BLOCKED requiere operación propia autorizada. A3.3, D-19 y A3.2 separado intactos;
 S3 V1 sigue único escritor. P1–P8, R1–R8 e I1–I9 mantienen residuales.
+
+## 25. A4.1 · Parámetros y dependencias del validador objetivo
+
+[Cuatro acuerdos internos](decisions.md#a41--validación-pura-de-estadísticas-objetivo--21102026)
+y [contrato conceptual](contracts/ecomotor-target-stats-validation-v1.md), sobre
+`0e960de`. Resuelto como diseño: seis atributos ATR-OBJ-01, bases explícitas,
+reparto validado por configuración con puntos pendientes y cálculo puro determinista.
+No implementado, no autorización de configuración oficial o de persistencia.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| Bases por opción | Equipo 5: valores oficiales/autorizados, dominio numérico y posibles límites base/efectivos. Sin defaults, mínimos o máximos inventados ni efectos especiales implícitos. |
+| Presupuesto | Cantidad numérica autorizada; 45 ilustrativo no es oficial. Cada Ducky/configuración independiente, sin consumir presupuesto ajeno. |
+| Configuración/reglas | Fuentes, versionado y reglas adicionales solo si se aprueban. Validador no autentica ni acredita autorización de datos aportados. |
+| Representación pura | Firma/entradas/resultados/errores definitivos y tratamiento de duplicados antes de colapsar claves; sin clases o formatos físicos aprobados por esta documentación. |
+| Consumo e integración | Contratos de estadísticas con otros equipos; modelos, conservación/migración con Óscar/Core y activación coordinada del objetivo. No cambiar V1 o dependencias por inferencia. |
+| Pruebas futuras 01B | Reparto válido, gasto total/parcial/cero, exceso, claves ausentes/sobrantes/duplicadas, tipos/bool/negativos inválidos, no mutación, independencia de dos opciones y compatibilidad V1. No implementadas ni ejecutadas aquí. |
+
+E-01/E-02, ATR-OBJ-01 y OP-RED-01 conservan autoridad/alcance. V1 mantiene log_stat
+Logística y spe Especial / Especialización sin transformación histórica. S3 V1
+no cambia; sin modelos, migraciones, servicios o activación. P1–P8, R1–R8 e I1–I9
+y los pendientes Core/Henry/integración mantienen sus residuales.

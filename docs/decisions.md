@@ -1365,3 +1365,24 @@ Core/Henry. PR #61 no resuelve esas dependencias técnicas; consulta Core intact
 A3.3/replay y D-19 conservados, sin I/O externo transaccional o A3.2 anidado.
 Sin código, modelos, servicios, clasificación real, migraciones o tests nuevos/
 ejecutados. S3 V1 continúa único escritor; antecedentes conservados.
+
+## A4.1 · Validación pura de estadísticas objetivo · 21/10/2026
+
+**Aprobación interna Equipo 5 en 02C**, sobre develop
+`0e960de432cc08d62933d8218586ae114dad9949`. DAR3 sigue principal; ATR-OBJ-01 es
+decisión interna. No atribuir al profesor aprobación de tipos/esquemas Django,
+configuración oficial o valores numéricos. Se conservan E-01/E-02 y OP-RED-01.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A4.1-ATTR-01 | Exactamente ATK Ataque, DEF Defensa, VEL Velocidad, INT Inteligencia, LOG Lógica y CUACK Especial / Especialización. Sin SPE adicional objetivo; V1 permanece intacto. |
+| A4.1-BASE-01 | Bases explícitas autorizadas por opción y seis claves exactas, sin defaults. Tipos apropiados sin booleanos; valores oficiales, dominio base y límites/reglas adicionales pendientes. Comprobar estructura no acredita autorización funcional de una fuente. |
+| A4.1-BUDGET-01 | Seis incrementos enteros no negativos y presupuesto entero no negativo, sin bool. Suma dentro del presupuesto, puntos sin gastar permitidos; efectivas=bases+incrementos, utilizados/restantes y entradas validadas sin mutación. Presupuesto independiente por configuración, no saldo consumido de otros Duckies. |
+| A4.1-PURE-01 | Validación/cálculo puro determinista separado de BD, permisos y selección; sin perfiles/estados/eventos, transacciones o concesiones XP/puntos/monedas. Servicios persistentes futuros sujetos a 02C/Core. No reinterpreta V1 ni activa objetivo. |
+
+[Contrato canónico](contracts/ecomotor-target-stats-validation-v1.md) centraliza
+entradas/resultados, errores, límites y tests futuros; [pendientes](pending-decisions.md#25-a41--parámetros-y-dependencias-del-validador-objetivo).
+No bases, presupuesto o límites oficiales inventados; ejemplo 45 no autorizado.
+V1 conserva log_stat Logística y spe Especial / Especialización, servicios e historia.
+Sin código, modelos, migraciones, servicios o tests nuevos/ejecutados; posterior
+implementación pura en 01B. No se activa A2 ni se modifica S3 V1.
