@@ -548,12 +548,19 @@ No se permiten otras transiciones nuevas ni BLOCKED → BLOCKED; replay de bloqu
 confirmado conserva idempotencia. TARGET_CONFIRMED no activa XP y BLOCKED no
 sustituye controles globales. No son reglas ya implementadas o permisos externos.
 
+**Protocolo conceptual resuelto tras PR #64:** [A3.3-CONTENT-01, REV-PROTOCOL-01 y REPLAY-PROTOCOL-01](decisions.md#a33--contenido-revisión-y-replay--20102026).
+Contenido original comparable estricto, None distinto de 0, evento histórico primero
+y revisión actual solo para operación nueva. Replay autorizado conserva resultado
+histórico sin mutación, sin exigir elegibilidad actual ni volver a bloquear tras
+recuperación. Falta de evidencia de igualdad no permite inferir compatibilidad.
+La resolución no aprueba el formato persistente ni la vigencia de evidencia legacy.
+
 | Pendiente | Responsable / límite |
 | --- | --- |
-| Reglas puras 01B | Parte A: implementar y probar la matriz interna aprobada, primeras clasificaciones por procedencia, recuperación válida/inválida, procedencia inmutable, revisiones, replay compatible y conflicto de clave. Sin defaults ni clasificaciones reales; autorización externa sigue pendiente. |
-| Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación física de ausencia previa y evidencia inequívoca de estado anterior al bloqueo; comparación idempotente pendientes. Primera clasificación sin estado previo y revision=1 ya acordadas conceptualmente. |
-| Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera transaccional segura y protocolo técnico de creación/comparación de contenido/revisión esperada/replay, sin rebajar acuerdos de revisiones o idempotencia. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
-| Core/P5 | Conservación histórica, eliminación/anonimización, on_delete, identidad canónica del operador y autorización confiable del proceso. No resueltos unilateralmente. |
+| Reglas puras 01B | Parte A: implementar y probar la matriz interna aprobada, primeras clasificaciones por procedencia, recuperación válida/inválida, procedencia inmutable, revisiones y protocolo aprobado: igualdad estricta/contenidos distintos, None frente a 0, revisión correcta/obsoleta, replay con revisión posterior y bloqueo recuperado, historia insuficiente/incoherente y preservación del estado/revisión. Sin defaults ni clasificaciones reales; autorización externa sigue pendiente. |
+| Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación persistente definitiva de solicitudes/eventos/relaciones, ausencia previa y vínculo inequívoco al bloqueo; mecanismo físico de conservación/comparación pendientes. Primera clasificación sin estado previo y revision=1 ya acordadas conceptualmente. |
+| Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera técnica segura para validar esa evidencia. Contenido/revisión/replay ya resueltos conceptualmente; falta representación física, no una nueva elección de orden. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
+| Core/P5 | Conservación histórica, eliminación/anonimización, on_delete, identidad canónica del operador, tratamiento canónico de su participación en comparación y autorización confiable del proceso. No resueltos unilateralmente. |
 | Henry/Duckies y consumidores | Transición de catálogo y referencias, causalidad de nuevas evoluciones y consumidores compatibles; no se cambia esquema Duckies. |
 | Pruebas futuras | Validadores puros 01B según fila anterior. Concurrencia, rollback e idempotencia persistente del futuro servicio Django tras dependencias Core/P5; evidencia obsoleta/insuficiente, clasificación sin permiso XP, regresión S3 y aislamiento de perfiles/alias/autorizaciones siguen por verificar. Sin tests nuevos o ejecutados aquí. |
 | Fases posteriores | Tras reglas puras y acuerdos Core/P5: modelos/migraciones sin backfill automático, servicios/tests, catálogo/causalidad/Duckies, migración autorizada/ensayos/activación global. No permiso por diagnóstico o clasificación. |
