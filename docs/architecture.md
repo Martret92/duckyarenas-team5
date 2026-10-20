@@ -2,6 +2,11 @@
 
 ## 1. Estado y fuentes
 
+**Precisión objetivo · 20/10/2026:** [ATR-OBJ-01](decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026),
+posterior a la conciliación de la PR #61, fija internamente LOG = Lógica y
+CUACK = Especial / Especialización en el diseño 02C. No cambia V1, sus datos ni
+activa el objetivo. Las notas fechadas siguientes conservan sus cortes históricos.
+
 **Conciliación funcional · 20/10/2026:** base `f034d2f`, aclaraciones de Óscar
 consultadas en coordinación y confirmadas directamente por Jaime en 02C.
 [§13](#13-aclaraciones-funcionales-confirmadas-y-contraste-con-02c) separa confirmación
@@ -583,11 +588,11 @@ V2-A25/A26 ni DOC-6 retrospectivamente; S13-A no tiene arquitectura aprobada.
 
 ## 9. Arquitectura objetivo 02C · no implementada
 
-**Contraste posterior:** §13 precisa los atributos y la apariencia según Óscar.
-LOG Logística/SPE Especial de este diseño se conservan como decisiones internas
-previas, pendientes de conciliación técnica con Lógica/Cuak; no se presentan como
-atributos confirmados por el profesor ni autorizan renombrar datos. Históricos
-jugables, nivel 8 y restantes decisiones 02C no se reabren automáticamente.
+**Precisión vigente:** ATR-OBJ-01 resuelve, tras el contraste de §13, los códigos y
+significados objetivo LOG = Lógica y CUACK = Especial / Especialización.
+LOG Logística/SPE Especial se conservan como antecedentes de la aprobación interna
+inicial y de V1, sin renombrar datos ni atribuir al profesor códigos técnicos.
+Históricos jugables, nivel 8 y restantes decisiones 02C no se reabren.
 
 Acuerdos internos del Equipo 5 del 20/10/2026 registrados en
 [decisiones 02C](decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026).
@@ -622,8 +627,10 @@ independientes. S13-A2 aún no persiste rangos.
 Cada opción conserva snapshot de seis bases y reparto independiente; efectivas =
 bases + incrementos. Presupuesto inicial fijo del jugador utilizable en cada
 opción sin consumo global, puntos pendientes permitidos. ATK Ataque, DEF Defensa,
-**LOG Logística**, **SPE Especial / Especialización**, VEL Velocidad, INT Inteligencia.
-SPE numérico no identifica tecnología. Cuack pendiente de Óscar, sin séptimo atributo.
+VEL Velocidad, INT Inteligencia, **LOG Lógica**, **CUACK Especial / Especialización**.
+CUACK es numérico, no identidad tecnológica ni un séptimo atributo. No convertir
+SPE histórico a CUACK ni reinterpretar log_stat V1 como Lógica: V1 conserva
+log_stat = Logística y spe = Especial / Especialización.
 Training no modifica estos seis atributos ni concede puntos adicionales para ellos
 en esta V1 objetivo; mejoras futuras requieren confirmación y coordinación.
 
@@ -667,7 +674,7 @@ autoridades entre active_specialization_code y selección nueva; activar servici
 consumidores coordinadamente. Core/P5 debe acordar relaciones, conservación,
 anonimización/eliminación y on_delete. Se conservan eventos y progresos.
 
-Pendientes: códigos, XP/bases/presupuesto autorizados, firmas, replay/revisión,
+Pendientes: códigos de épocas/tecnológicas, XP/bases/presupuesto autorizados, fórmulas, firmas, replay/revisión,
 reparto idéntico y esquema físico; juegos, dominio/rangos y apariencia/inventario.
 [Registro residual](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
 La secuencia V1 terminada en Actual sigue operativa; Siglo XX describe el objetivo
@@ -795,6 +802,10 @@ no se crean ni se ejecutan tests Django en este PR. S13-A2, dominio persistente,
 Rewards F2-A e integración económica siguen bloqueados en sus respectivos alcances.
 
 ## 13. Aclaraciones funcionales confirmadas y contraste con 02C
+
+**Antecedente de la PR #61:** la matriz conserva el contraste registrado entonces.
+ATR-OBJ-01 resuelve posteriormente la nomenclatura objetivo en §9; las bases,
+presupuesto, fórmulas y adaptación legacy no quedan resueltos por esta precisión.
 
 Fuente consultada el 20/10/2026: documento compartido de coordinación, CORE-03,
 CORE-07, PROF-04 y Training. Jaime confirmó directamente en 02C que Henry recogió

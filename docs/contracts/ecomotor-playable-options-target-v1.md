@@ -4,9 +4,10 @@
 
 **Precisión funcional posterior:** [§8](#8-conciliación-funcional-posterior-con-óscar)
 contrasta las aclaraciones confirmadas de Óscar con el diseño 02C conservado.
-La composición/correspondencia técnica de atributos y la adaptación de apariencia
-siguen pendientes donde entran en conflicto; no se ratifican códigos ni se activa
-el sistema. Las decisiones internas no afectadas conservan su estado.
+La precisión interna [ATR-OBJ-01](../decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026) resuelve la nomenclatura objetivo:
+LOG = Lógica y CUACK = Especial / Especialización. Bases, presupuesto, fórmulas,
+transición legacy y adaptación de apariencia siguen pendientes; no se activa el
+sistema ni se cambian campos o datos V1.
 
 **Arquitectura objetivo aprobada internamente por el Equipo 5 el 20/10/2026;
 no implementada ni activada.** target-v1 es la versión del diseño, no una API
@@ -69,22 +70,26 @@ no guarda selección parcial. Alternar histórico/tecnológico conserva estadís
 XP histórica, nivel, etapa, otras configuraciones y progreso tecnológico/rangos
 confirmados independientes. S13-A2 no persiste todavía esos rangos.
 
-E-01/E-02 registraron internamente seis atributos; la tabla conserva ese antecedente
-y no es la correspondencia técnica confirmada por Óscar (véase §8):
+E-01/E-02 se precisan mediante [ATR-OBJ-01](../decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026), aprobada internamente
+tras la confirmación de Jaime: LOG cambia de Logística a Lógica y SPE se denomina
+CUACK, conservando Especial / Especialización. La nomenclatura vigente del
+**diseño objetivo, no implementado**, es:
 
-| Código interno 02C | Significado interno; contraste pendiente con §8 |
+| Código objetivo | Significado |
 | --- | --- |
 | ATK | Ataque |
 | DEF | Defensa |
-| LOG | Logística |
-| SPE | Especial / Especialización |
 | VEL | Velocidad |
 | INT | Inteligencia |
+| LOG | Lógica |
+| CUACK | Especial / Especialización |
 
-SPE es numérico en el diseño interno, distinto de la identidad tecnológica.
-Óscar nombró Cuak (Cuack en notas anteriores) entre seis atributos; su papel y
-correspondencia técnica siguen pendientes. No asignarlo automáticamente a SPE,
-renombrar LOG o añadir séptimo atributo. Cada Ducky conserva al
+CUACK es un atributo numérico, no la identidad de una especialización tecnológica;
+no añade un séptimo atributo ni implica efectos especiales nuevos.
+Los antecedentes de E-01/E-02 y la conciliación de §8 se conservan como historia.
+V1 mantiene log_stat = Logística y spe = Especial / Especialización: no convertir
+valores históricos SPE a CUACK ni reinterpretar log_stat como Lógica.
+Cada Ducky conserva al
 configurarse un snapshot de sus seis bases y seis incrementos independientes.
 Efectivas = bases conservadas + incrementos. Se permite dejar puntos pendientes.
 El presupuesto inicial fijo autorizado del jugador se utiliza independientemente
@@ -208,10 +213,11 @@ firmas, replay/revisión, reparto idéntico y detalles físicos de eventos/const
 Parámetros provisionales internos pueden versionarse/coordinarse sin ser oficiales.
 Coordinación: inventario/migración legacy, conservación/Core/P5, consumo de stats
 por juegos, dominio autorizado, S13-A2, activación conjunta y apariencia/vestimenta/
-inventario con Henry. Cuak necesita concreción técnica/funcional según §8.
-Elegir históricos, nivel 8 y redistribución gratuita/ilimitada conservan aprobación
-interna. El significado interno SPE se conserva como antecedente, pendiente de
-conciliar con la lista del profesor; no se presenta como terminología suya.
+inventario con Henry. LOG = Lógica y CUACK = Especial / Especialización están
+resueltos internamente por ATR-OBJ-01; bases, presupuesto, fórmulas y migración
+legacy siguen abiertos. Elegir históricos, nivel 8 y redistribución gratuita/ilimitada
+conservan aprobación interna. La nomenclatura previa SPE/LOG Logística es antecedente,
+no la nomenclatura objetivo vigente ni una modificación de V1.
 Rewards F2-A sigue bloqueado según sus dependencias. ARQ-OP-02 sí aprueba el diseño provisional de campos y restricciones de
 PlayableOption, UserPlayableState y UserPlayableStats; no migraciones, relaciones
 físicas definitivas ni on_delete. No se aprueban baremos de juegos.
@@ -225,10 +231,12 @@ no es aprobación de la solución Django ni del contrato técnico compartido.
 
 Óscar confirmó **Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak**,
 específicos por época y distribución de puntos al alcanzar especialización.
-Frente a LOG (Logística) y SPE (Especial / Especialización) internos de §3 hay
-una discrepancia expresa: definición/papel de Cuak, códigos canónicos, bases,
-presupuesto y correspondencia deben concretarse. No traducir Lógica a LOG ni Cuak
-a SPE por inferencia, reinterpretar snapshots o sustituir campos/códigos existentes.
+En el corte de conciliación de la PR #61 se registró una discrepancia con
+LOG (Logística) y SPE (Especial / Especialización) del diseño interno inicial:
+códigos, significados, bases y presupuesto estaban pendientes de concreción.
+ATR-OBJ-01 resuelve posteriormente solo la nomenclatura objetivo según §3;
+no es una reinterpretación de snapshots ni una sustitución de campos V1.
+Bases, presupuesto, fórmulas y transición legacy continúan pendientes.
 45 puntos es ilustrativo, no presupuesto autorizado. Se conserva el resto de 02C
 sin convertir este contraste en nuevas reglas de reparto o mejoras de Training.
 

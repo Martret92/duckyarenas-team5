@@ -1088,3 +1088,41 @@ no se añade como séptimo atributo ni se implementa por esta conciliación.
 y [pendientes residuales](pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
 Sin nuevas decisiones D, precios o cantidades oficiales, cambios S3/A3.1/A3.2,
 activación A2 ni modificaciones de contratos Rewards/Bank/Duckies.
+
+## ATR-OBJ-01 · Nomenclatura de atributos objetivo · 20/10/2026
+
+**Autoridad y procedencia:** precisión funcional confirmada por Jaime tras las
+aclaraciones de Óscar conciliadas en la PR #61. Aprobación interna del Equipo 5
+para el diseño objetivo 02C; DAR3 sigue siendo la fuente funcional principal.
+No se atribuye al profesor la aprobación de códigos o mecanismos Django.
+
+Se realizan solo dos sustituciones: LOG pasa de Logística a **Lógica**; SPE se
+denomina **CUACK**, manteniendo **Especial / Especialización**. Los seis atributos
+objetivo vigentes son:
+
+| Código | Significado |
+| --- | --- |
+| ATK | Ataque |
+| DEF | Defensa |
+| VEL | Velocidad |
+| INT | Inteligencia |
+| LOG | Lógica |
+| CUACK | Especial / Especialización |
+
+CUACK es un atributo numérico, no la identidad de una especialización tecnológica.
+No se añade un atributo ni se inventan efectos especiales. Quedan resueltos estos
+códigos y significados; siguen pendientes bases, presupuesto, fórmulas y migración
+legacy. Los registros fechados E-01/E-02 de 02C y de conciliación de la PR #61
+se conservan como antecedentes, sustituidos solo en esta nomenclatura objetivo.
+
+**Compatibilidad:** S3 V1, CharacterStats, StatAllocationEvent, sus registros y
+contratos conservan log_stat = Logística y spe = Especial / Especialización.
+No convertir automáticamente valores históricos SPE a CUACK ni reinterpretar
+log_stat como Lógica. No se cambian servicios, eventos, modelos o migraciones V1.
+El diseño objetivo sigue sin implementar ni activar; no se activa A2 ni se reabren
+épocas, nivel 8, opciones jugables, redistribución u otras decisiones no afectadas.
+
+[Contrato objetivo](contracts/ecomotor-playable-options-target-v1.md#3-opciones-y-estadísticas),
+[arquitectura](architecture.md#9-arquitectura-objetivo-02c--no-implementada),
+[ERD conceptual](erd/ecomotor.md#14-opciones-jugables--modelos-conceptuales-02c) y
+[pendientes](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
