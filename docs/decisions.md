@@ -1184,3 +1184,33 @@ Concurrencia/rollback/idempotencia persistente se probarán en servicio Django f
 tras dependencias Core/P5. Sin código/tests nuevos ni ejecución de tests Django.
 [Pendientes](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).
 ATR-OBJ-01, S3 V1 y los demás acuerdos no afectados permanecen intactos.
+
+## A3.3 · Contenido, revisión y replay · 20/10/2026
+
+**Aprobación técnica interna del Equipo 5 en 02C**, posterior a la integración de
+PR #64, sobre develop `e362cbf5b15ac56bbc33eb6f4ec4d621d26b1f0c`. No son requisitos
+literales nuevos de DAR3 ni aprobaciones de Core/P5. Se conservan los registros
+fechados anteriores: su pendiente de orden conceptual se resuelve solo por esta
+precisión, sin alterar matriz, altas o recuperación ya aprobadas.
+
+| Identificador | Acuerdo interno y límites |
+| --- | --- |
+| A3.3-CONTENT-01 | Identidad (profile_id, operation_key), propia de clasificación. Comparar contenido original: perfil/clave exactos, acción, procedencia pertinente, destino, expected_revision original y motivo/referencia cuando corresponda; recuperación vinculada inequívocamente al bloqueo. Tipos distintos no equivalen ni None=0; sin normalización silenciosa. Contenido igual confirmado permite replay, diferente produce conflicto; evidencia insuficiente no acredita igualdad. Conservación/comparación física y participación canónica del operador siguen pendientes con Core/P5. |
+| A3.3-REV-PROTOCOL-01 | Primera clasificación con expected_revision=None y ausencia real de política confirma revision=1, sin estado/revisión anterior fabricados. Transición nueva requiere revisión exacta actual y confirma +1/evento; obsoleta rechaza. Replay compatible no exige que revisión original coincida con la actual ni modifica estado, revisión o eventos. |
+| A3.3-REPLAY-PROTOCOL-01 | Validación estructural/identidad/clave/autorización → transacción D-19 mismo alias → buscar evento primero. Existente: integridad/contenido original y resultado histórico sin efectos, o rechazo por diferencia/comparación injustificable. Solo sin evento: ausencia/revisión actual, procedencia, matriz, estado, autorizaciones y evidencia suficiente/vigente; confirmar política/evento juntos o rollback. No revalidar elegibilidad actual del evento histórico ni presentar replay como estado actual. |
+
+[Contrato canónico y casos A–D](contracts/ecomotor-profile-classification-v1.md#41-contenido-original-comparable--a33-content-01)
+y [orden conceptual](contracts/ecomotor-profile-classification-v1.md#72-orden-de-procesamiento--a33-replay-protocol-01).
+Repetir bloqueo confirmado tras recuperar no vuelve a bloquear; la matriz y la
+recuperación al estado anterior permanecen intactas. Replay conserva autorización
+inicial y no permite consultar perfiles ajenos.
+
+Siguen pendientes evidencia suficientemente actual mientras escribe S3 y frontera
+segura sin anidar incorrectamente A3.2, representación persistente, identidad y
+autorización del operador, conservación/eliminación/anonimización/on_delete Core/P5.
+TARGET_CONFIRMED no activa XP; S3 V1 sigue como único escritor hasta corte global.
+Sin código, modelos, migraciones, clasificación real, backfill, activación o tests
+nuevos. Tests puros futuros 01B cubren contenido/tipos, None frente a 0, revisiones,
+replay posterior, bloqueo recuperado e historia insuficiente/incoherente;
+concurrencia/rollback/idempotencia persistente quedan para servicio Django futuro.
+[Pendientes](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).

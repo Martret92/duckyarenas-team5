@@ -867,7 +867,15 @@ BLOCKED; recuperación explícita al estado previo con nueva validación e histo
 conservado. Resto de transiciones nuevas prohibidas, incluido retroceso de
 TARGET_CONFIRMED a V1_VERIFIED y BLOCKED a BLOCKED (distinto de replay).
 Primera revisión 1; cada transición confirmada suma 1 y crea evento; replay no muta.
-Orden técnico contenido/revisión/replay y vigencia de evidencia siguen pendientes.
+[Protocolo conceptual aprobado después de PR #64](decisions.md#a33--contenido-revisión-y-replay--20102026):
+contenido original estricto, primera expected_revision=None y búsqueda del evento
+antes de exigir revisión/elegibilidad de transición nueva. Replay compatible devuelve
+historia sin mutar ni presentarla como estado actual, incluso tras otras transiciones;
+repetir bloqueo después de recuperar no vuelve a bloquear. Comparación injustificable
+o contenido distinto se rechazan. Autorización inicial sigue obligatoria.
+[Detalle del contrato](contracts/ecomotor-profile-classification-v1.md#72-orden-de-procesamiento--a33-replay-protocol-01).
+Siguen pendientes representación física, participación canónica del operador y
+protocolo/frontera de evidencia vigente; no se anida A3.2 por inferencia.
 
 A3.2 extrae evidencia y A3.1 evalúa un subconjunto; COMPATIBLE no clasifica,
 repara, migra o autoriza XP. S3 puede volver obsoleta una fotografía. Acordar cómo

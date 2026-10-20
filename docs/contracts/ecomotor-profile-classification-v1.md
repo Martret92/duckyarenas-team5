@@ -122,8 +122,9 @@ validación transaccional siguen pendientes (§6).
 - Replay compatible: ninguna mutación, evento adicional o nueva revisión.
 - Identidad conceptual UNIQUE(profile, operation_key), exclusiva de clasificación.
 
-El orden preciso de comparación de contenido, revisión esperada y replay se
-concretará antes de servicios. No rebaja idempotencia, conflicto de clave ni D-19.
+El protocolo conceptual de contenido, revisión esperada y replay queda precisado
+por A3.3-CONTENT-01, A3.3-REV-PROTOCOL-01 y A3.3-REPLAY-PROTOCOL-01 en §4.1 y §7.
+Se conserva la matriz anterior, idempotencia, conflicto de clave y D-19.
 La representación física de ausencia previa, revisiones y evidencia de recuperación
 continúa pendiente; no se crea esquema en esta PR.
 
@@ -144,9 +145,35 @@ Unicidad **conceptual** `(profile, operation_key)` dentro del dominio clasificac
 - Misma clave y contenido incompatible: conflicto explícito, sin mutación.
 
 No reutilizar estos eventos como historial de XP o asignación de puntos ni
-fabricar procedencia de eventos V1. Campos canónicos de comparación y detalle
-entre replay y revisión esperada deberán especificarse sin alterar estas garantías.
+fabricar procedencia de eventos V1. El contenido comparable y el orden conceptual
+se precisan a continuación; su representación física sigue pendiente.
 No se publica una firma definitiva ni un formato HTTP.
+
+### 4.1. Contenido original comparable · A3.3-CONTENT-01
+
+Precisión aprobada internamente por Equipo 5 en 02C tras la PR #64, documentada
+el 20/10/2026 sobre develop `e362cbf`. No es requisito literal nuevo de DAR3 ni
+aprobación de Core/P5. [Registro de las tres decisiones](../decisions.md#a33--contenido-revisión-y-replay--20102026).
+
+Identidad conceptual: `(profile_id, operation_key)`, independiente de eventos XP.
+Conservar un contenido semántico original comparable que contemple:
+
+- Perfil y operation_key exactos, sin normalizar silenciosamente las claves.
+- Acción solicitada y procedencia pertinente a la operación.
+- Destino solicitado o determinado por la acción.
+- expected_revision original.
+- Motivo o referencia de incidencia, cuando corresponda.
+- Para recuperación, información que la vincule inequívocamente al bloqueo original.
+
+El contenido solicitado no es el resultado confirmado ni el estado actual del
+perfil. La comparación es estricta: valores de tipos distintos no son iguales;
+None no equivale a 0. Misma identidad y mismo contenido original confirmado es
+replay compatible; contenido diferente es conflicto sin mutación.
+Si falta evidencia histórica suficiente para justificar igualdad, rechazar sin
+inferirla. La representación persistente de solicitudes, eventos y relaciones,
+y el mecanismo físico de conservación/comparación siguen pendientes de diseño.
+La identidad técnica del operador y el tratamiento canónico de su participación
+en la comparación requieren acuerdo Core/P5, sin política definitiva aquí.
 
 ## 5. Clasificación y autorización de XP · A3.3-AUTH-01
 
@@ -184,12 +211,49 @@ Entradas conceptuales necesarias: perfil, acción, procedencia/estado pertinente
 clave de operación, revisión esperada, evidencia requerida y contexto autorizado
 con alias confiable. No constituyen firma Python o servicio disponible.
 
-Validar identidad/propiedad, autorización, reglas de transición, inmutabilidad de
-procedencia, evidencia vigente y revisión esperada. Confirmar **política y evento
-juntos**, o ninguno. Repetición compatible no vuelve a mutar; una revisión obsoleta
-rechaza cambios. Primera creación y transiciones respetan la matriz y revisiones
-de §3.1–§3.4. Su protocolo técnico y el orden de comparación de contenido,
-revisión esperada y replay requieren concreción antes de servicios.
+Primera creación y transiciones conservan íntegramente §3.1–§3.4. El protocolo
+conceptual siguiente diferencia solicitudes nuevas y operaciones ya confirmadas;
+no exige elegibilidad o revisión actuales a un replay histórico compatible.
+
+### 7.1. Revisión esperada · A3.3-REV-PROTOCOL-01
+
+| Operación | Comprobación y efecto conceptual |
+| --- | --- |
+| Primera clasificación | expected_revision=None y ausencia real de política. Al confirmar, revision=1 y ausencia de estado anterior en historial, sin fabricar revisión previa persistida. 0 no sustituye a None. |
+| Transición nueva | Revisión esperada exacta, coincidente con la persistida actual. Confirmación suma exactamente 1 y registra evento nuevo; revisión obsoleta rechaza sin efectos. |
+| Replay compatible | No comparar expected_revision original con la revisión actual para rechazar la operación ya confirmada. Sin mutación del estado actual, eventos adicionales o incremento de revisión. |
+
+### 7.2. Orden de procesamiento · A3.3-REPLAY-PROTOCOL-01
+
+1. Validar datos estructurales, identidad del perfil, clave y autorización confiable
+   del solicitante. La autorización inicial también es obligatoria para replay.
+2. Iniciar frontera transaccional D-19 bajo el mismo alias de BD.
+3. Buscar primero evento de clasificación por (profile_id, operation_key).
+4. Si existe, comprobar integridad histórica y contenido original conforme a §4.1.
+   Si coincide, devolver el resultado histórico sin efectos. Si difiere o no puede
+   justificarse la comparación, rechazar sin mutación.
+5. Solo sin evento para esa clave, comprobar ausencia de política o revisión actual,
+   según corresponda; procedencia, matriz, estado, autorizaciones y evidencia necesaria.
+   Una operación nueva no se confirma con evidencia insuficiente u obsoleta.
+6. Confirmar conjuntamente política y nuevo evento o revertir toda la operación.
+
+No revalidar elegibilidad actual de una transición histórica como si fuera nueva.
+No presentar resultado histórico como estado actual del perfil. Replay no permite
+consultar perfiles ajenos ni sustituye autorización, integridad histórica o D-19.
+El protocolo de evidencia vigente y su frontera técnica siguen pendientes (§6);
+no se presupone extracción A3.2 anidada ni se habilitan servicios reales.
+
+### 7.3. Ejemplos conceptuales
+
+| Caso | Solicitud y resultado esperado |
+| --- | --- |
+| A · Primera clasificación | LEGACY_V1 sin registro, expected_revision=None: confirma PENDING_REVIEW, revisión 1 y evento propio. Solicitud exactamente repetida recupera ese resultado histórico incluso si la política actual ya está en revisión 3; no la retrocede. |
+| B · Conflicto de clave | Misma clave cambiando procedencia, acción, destino o revisión esperada: conflicto, sin escritura. |
+| C · Revisión obsoleta | Transición nueva con expected_revision=1 y política en revisión 2: rechazo sin evento nuevo. |
+| D · Recuperación | Bloquear TARGET_PREPARED confirma BLOCKED y conserva su estado anterior. Recuperación con nueva validación vuelve exclusivamente a TARGET_PREPARED y registra otra transición. Repetir después el bloqueo original es replay histórico: no vuelve a bloquear el perfil. |
+
+Los ejemplos no eligen esquema físico, identidad del operador o autorizaciones
+externas. Las referencias históricas insuficientes o incoherentes no se reparan.
 
 Aplicar D-19: mismo alias y frontera atómica, lecturas de estado mutable dentro
 de transacción, SQLite `BEGIN IMMEDIATE`, timeout de 5 segundos, protección frente
@@ -242,3 +306,11 @@ recuperación válida/inválida, procedencia inmutable, revisiones, replay compa
 y conflicto de clave. Los tests transaccionales de concurrencia, rollback e
 idempotencia persistente corresponden al futuro servicio Django, después de
 resolver las dependencias Core/P5; no se implementan ni ejecutan aquí.
+
+Tests adicionales previstos para 01B del protocolo aprobado: igualdad estricta de
+contenido original y conflictos de clave; primera clasificación con None y rechazo
+de 0 como equivalente; revisión correcta/obsoleta; replay con revisión actual
+posterior; replay de bloqueo tras recuperación; historia insuficiente/incoherente;
+preservación de estado y revisión actuales durante replay. Las pruebas
+transaccionales de concurrencia, rollback e idempotencia persistente siguen
+reservadas al futuro servicio Django, sujeto a dependencias Core/P5.
