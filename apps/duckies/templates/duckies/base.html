@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <title>{% block title %}Duckies{% endblock %} · DuckyArena</title>
+  <link rel="stylesheet" href="{% static 'duckies/css/duckies.css' %}">
+</head>
+<body>
+  <div class="site-shell">
+    <aside class="sidebar" aria-label="Navegación Duckies">
+      <a class="brand" href="{% url 'duckies:dashboard' %}"><span class="brand-symbol">D</span><span><strong>DUCKY<span class="accent">ARENA</span></strong><small>CHARACTER STUDIO</small></span></a>
+      <div class="nav-caption">PERSONAJE</div>
+      <nav class="nav-list">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'duckies:dashboard' %}"><span class="nav-icon">◈</span> Mi Ducky</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'museum' %}is-active{% endif %}" href="{% url 'duckies:museum' %}"><span class="nav-icon">◇</span> Museo</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'inventory' %}is-active{% endif %}" href="{% url 'duckies:inventory' %}"><span class="nav-icon">▦</span> Inventario</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'equipment' %}is-active{% endif %}" href="{% url 'duckies:equipment' %}"><span class="nav-icon">⬡</span> Equipamiento</a>
+      </nav>
+      <div class="nav-caption">DESARROLLO</div>
+      <nav class="nav-list"><a class="nav-link {% if request.resolver_match.url_name == 'setup' %}is-active{% endif %}" href="{% url 'duckies:setup' %}"><span class="nav-icon">⚙</span> Preparación</a></nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> Modo de prueba local <small>Sin operaciones de Bank ni XP</small></div>
+    </aside>
+    <div class="main-column">
+      <header class="topbar"><span class="breadcrumb">DUCKYARENA <span>/</span> DUCKIES</span><div class="userbox">{% if request.user.is_authenticated %}<span class="user-avatar">{{ request.user.username|slice:':1'|upper }}</span><span class="username">{{ request.user.username }}</span><form method="post" action="{% url 'duckies:logout' %}">{% csrf_token %}<button class="text-button" type="submit">Salir ↗</button></form>{% else %}<a class="button button-small" href="{% url 'duckies:login' %}">Acceder</a>{% endif %}</div></header>
+      <main class="page-content">
+        {% for message in messages %}<div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="status">{{ message }}</div>{% endfor %}
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="footer">DuckyArena · Duckies <span>Entorno aislado de demostración</span></footer>
+    </div>
+  </div>
+</body>
+</html>

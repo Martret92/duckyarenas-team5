@@ -1,0 +1,6 @@
+{% extends 'duckies/base.html' %}{% load static %}
+{% block title %}Equipamiento{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">CONFIGURACIÓN TÁCTICA</span><h1>Equipamiento<span class="heading-dot">.</span></h1><p class="lead">Visualiza los objetos tácticos que tu Ducky tiene equipados.</p></div><a class="button button-secondary" href="{% url 'duckies:inventory' %}">Ir al inventario ↗</a></div>
+<div class="item-grid">{% for row in entries %}<article class="item-card"><div class="item-art"><img src="{% static row.image %}" alt="{{ row.entry.inventory_item.item.name }}" loading="lazy"><span class="item-category">{{ row.entry.slot.name }}</span></div><div class="item-copy"><h2>{{ row.entry.inventory_item.item.name }}</h2><p>{{ row.entry.inventory_item.item.description|default:'Objeto táctico equipado.' }}</p><div class="item-meta"><span>UNIDADES <strong>{{ row.entry.inventory_item.quantity }}</strong></span>{% if row.entry.inventory_item.item_level %}<span>NIVEL <strong>{{ row.entry.inventory_item.item_level.level }}</strong></span>{% endif %}</div><span class="button button-disabled">✓ Actualmente equipado</span></div></article>{% empty %}<div class="empty-state">No hay objetos equipados. Selecciona uno desde el inventario.</div>{% endfor %}</div>
+{% endblock %}

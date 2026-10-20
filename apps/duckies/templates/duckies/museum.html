@@ -1,0 +1,23 @@
+{% extends 'duckies/base.html' %}{% load static %}
+{% block title %}Museo de vestimentas{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">COLECCIÓN DE APARIENCIAS</span><h1>Museo de vestimentas<span class="heading-dot">.</span></h1><p class="lead">Descubre cada época histórica y las identidades exclusivas de especialización.</p></div><div class="heading-tag">ESPECIALIZACIÓN: <strong>{{ active_specialization_code|default:'PENDIENTE' }}</strong></div></div>
+<div class="section-heading"><div><span class="eyebrow">CAPÍTULO 01</span><h2>Evolución histórica</h2><p>Antes de especializarte, puedes seleccionar la vestimenta de tu etapa actual. Después, cualquiera de las etapas desbloqueadas.</p></div><span class="section-counter">07 ETAPAS</span></div>
+<div class="collection-grid">
+{% for row in entries %}
+<article class="outfit-card {% if row.selected %}is-selected{% elif not row.unlocked %}is-locked{% endif %}">
+ <div class="outfit-visual"><span class="outfit-index">ETAPA {{ row.outfit.stage.ordinal|stringformat:'02d' }}</span><img src="{% static row.image %}" alt="{{ row.outfit.item.name }}" loading="lazy"><span class="outfit-state {% if row.selected %}state-selected{% elif row.unlocked %}state-ready{% else %}state-locked{% endif %}">{% if row.selected %}● EQUIPADA{% elif row.unlocked %}✓ DESBLOQUEADA{% else %}⌁ BLOQUEADA{% endif %}</span></div>
+ <div class="outfit-body"><h3>{{ row.outfit.stage.name }}</h3><p>{{ row.outfit.item.name }}</p>{% if row.selected %}<span class="button button-disabled">Vestimenta actual ✓</span>{% elif row.selectable %}<form method="post" action="{% url 'duckies:action' %}">{% csrf_token %}<input type="hidden" name="kind" value="outfit"><input type="hidden" name="item_id" value="{{ row.outfit.item.pk }}"><button class="button button-full" type="submit">Equipar vestimenta →</button></form>{% elif row.unlocked %}<span class="button button-disabled">No disponible en esta etapa</span>{% else %}<span class="button button-disabled">Bloqueada</span>{% endif %}</div>
+</article>
+{% empty %}<div class="empty-state">Todavía no hay vestimentas históricas vinculadas. Ejecuta <code>seed_duckies</code>.</div>{% endfor %}
+</div>
+<div class="section-heading section-space"><div><span class="eyebrow">CAPÍTULO 02</span><h2>Especializaciones</h2><p>Solo puedes equipar la vestimenta de tu especialización activa. Las demás permanecerán bloqueadas.</p></div><span class="section-counter">05 IDENTIDADES</span></div>
+<div class="collection-grid">
+{% for row in specialization_entries %}
+<article class="outfit-card specialization-card {% if row.selected %}is-selected{% elif not row.unlocked %}is-locked{% endif %}">
+ <div class="outfit-visual specialization-visual"><span class="outfit-index">ESPECIALIZACIÓN</span><img src="{% static row.image %}" alt="{{ row.item.name }}" loading="lazy"><span class="outfit-state {% if row.selected %}state-selected{% elif row.unlocked %}state-ready{% else %}state-locked{% endif %}">{% if row.selected %}● EQUIPADA{% elif row.unlocked %}✓ DISPONIBLE{% else %}⌁ NO ACTIVA{% endif %}</span></div>
+ <div class="outfit-body"><h3>{{ row.specialization.name }}</h3><p>{{ row.item.name }}</p>{% if row.selected %}<span class="button button-disabled">Vestimenta actual ✓</span>{% elif row.selectable %}<form method="post" action="{% url 'duckies:action' %}">{% csrf_token %}<input type="hidden" name="kind" value="outfit"><input type="hidden" name="item_id" value="{{ row.item.pk }}"><button class="button button-full" type="submit">Equipar vestimenta →</button></form>{% else %}<span class="button button-disabled">Especialización no activa</span>{% endif %}</div>
+</article>
+{% empty %}<div class="empty-state">No hay vestimentas de especialización vinculadas. En la demo, ejecuta <code>prepare_duckies_demo_specializations</code> y después <code>seed_duckies</code>.</div>{% endfor %}
+</div>
+{% endblock %}

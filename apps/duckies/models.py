@@ -10,8 +10,8 @@ class EquipmentSlot(models.Model):
     def __str__(self): return self.name
 
 class Item(models.Model):
-    HISTORICAL='HISTORICAL'; COSMETIC='COSMETIC'; ATTACK='ATTACK'; DEFENSE='DEFENSE'; HINT='HINT'
-    CATEGORIES=[(x,x) for x in (HISTORICAL,COSMETIC,ATTACK,DEFENSE,HINT)]
+    HISTORICAL='HISTORICAL'; SPECIALIZATION = "SPECIALIZATION"; COSMETIC='COSMETIC'; ATTACK='ATTACK'; DEFENSE='DEFENSE'; HINT='HINT'
+    CATEGORIES=[(x,x) for x in (HISTORICAL,SPECIALIZATION,COSMETIC,ATTACK,DEFENSE,HINT)]
     code=models.CharField(max_length=80,unique=True)
     name=models.CharField(max_length=160)
     description=models.TextField(blank=True)
@@ -35,7 +35,7 @@ class Ducky(models.Model):
     SEX=[('male','Masculino'),('female','Femenino')]
     user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='ducky')
     sex=models.CharField(max_length=6,choices=SEX)
-    selected_historical_item=models.ForeignKey(Item,null=True,blank=True,on_delete=models.PROTECT,related_name='selected_by')
+    selected_outfit=models.ForeignKey(Item,null=True,blank=True,on_delete=models.PROTECT,related_name='selected_by')
     created_at=models.DateTimeField(auto_now_add=True)
 
 class InventoryItem(models.Model):
@@ -63,6 +63,25 @@ class EquipmentHistory(models.Model):
 class EvolutionItem(models.Model):
     stage=models.OneToOneField('ecomotor.EvolutionStage',on_delete=models.PROTECT,related_name='historical_outfit')
     item=models.ForeignKey(Item,on_delete=models.PROTECT)
+
+class SpecializationItem(models.Model):
+    specialization = models.OneToOneField(
+        "ecomotor.Specialization",
+        on_delete=models.PROTECT,
+        related_name="ducky_outfit",
+    )
+
+    item = models.OneToOneField(
+        Item,
+        on_delete=models.PROTECT,
+        related_name="specialization_outfit",
+    )
+
+    def __str__(self):
+        return (
+            f"{self.specialization.name} - "
+            f"{self.item.name}"
+        )
 
 class ItemGrant(models.Model):
     ducky=models.ForeignKey(Ducky,on_delete=models.CASCADE)

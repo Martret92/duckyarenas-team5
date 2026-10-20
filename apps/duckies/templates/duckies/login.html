@@ -1,0 +1,5 @@
+{% extends 'duckies/base.html' %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<div class="auth-layout"><section class="panel auth-card"><span class="eyebrow">ACCESO AL PERSONAJE</span><h1>Bienvenido de nuevo<span class="heading-dot">.</span></h1><p class="lead">Inicia sesión para consultar tu Ducky.</p>{% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}<form method="post" class="auth-form">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</div>{% endfor %}<button class="button button-full" type="submit">Iniciar sesión →</button></form></section></div>
+{% endblock %}
