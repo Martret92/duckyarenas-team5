@@ -729,8 +729,9 @@ Efectivas=bases+incrementos y suma de incrementos <= presupuesto. Gasto total,
 parcial o cero; cada configuración independiente.
 
 API pura concretada: secuencias explícitas de pares para detectar duplicados y
-resultado frozen/slots canónico. Implementación para revisión en 01B, sin
-autorización de configuración oficial ni persistencia. La incertidumbre previa
+resultado frozen/slots canónico. Implementación integrada mediante PR #74; su
+referencia anterior a revisión en 01B es antecedente. Sin autorización de
+configuración oficial ni persistencia. La incertidumbre previa
 del dominio básico no se mantiene abierta; permanecen los siguientes pendientes.
 
 | Pendiente | Responsable / alcance |
@@ -745,3 +746,27 @@ E-01/E-02, ATR-OBJ-01 y OP-RED-01 conservan autoridad/alcance. V1 mantiene log_s
 Logística y spe Especial / Especialización sin transformación histórica. S3 V1
 no cambia; sin modelos, migraciones, servicios persistentes o activación. P1–P8, R1–R8 e I1–I9
 y los pendientes Core/Henry/integración mantienen sus residuales.
+
+## 26. A4.2 · Configuración, confianza y consumidores pendientes
+
+[Cinco decisiones internas](decisions.md#a42--configuración-autorizada-de-estadísticas-objetivo--21102026)
+y [contrato conceptual](contracts/ecomotor-target-stats-config-v1.md), sobre
+`13f0c5a`. Resuelto como arquitectura: definición por opción separada de presupuesto
+del jugador, identidad/versiones diferenciadas, estructura frente a autorización,
+conservación conceptual de bases y consumo propietario Ecomotor.
+A4.1/NUM-01 integrada #74; A4.2.1 todavía no implementada.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| Parámetros | Bases oficiales por opción, presupuesto oficial y posibles límites/reglas adicionales; sin 45 oficial o fórmulas inventadas. Presupuesto fijo independiente por configuración, no gasto global ni presupuestos por época aprobados. |
+| Identidad y catálogo | Códigos canónicos definitivos, relación física con catálogo objetivo separado A3-CAT-01, versiones de catálogo/estadísticas distintas. No reutilizar identidades V1 o nombres visibles como códigos impuestos. |
+| Fuente y ciclo de definiciones | Fuente real autorizada, publicación/versionado/sustitución/vigencia y resolución confiable por servidor. Validación estructural, TargetStatsResult o versión textual no autorizan. |
+| Configuraciones confirmadas | Formato físico, reglas de actualización/conservación/eliminación y persistencia de UserPlayableState/UserPlayableStats/eventos. Conservar bases/procedencia sin recálculo silencioso por catálogo nuevo, sin aprobar campos o tablas. |
+| Core/Henry/consumidores | Contexto/permisos, contratos de consumo de estadísticas y coordinación catálogo/selección/apariencia/inventario. Ducky físico OneToOne no equivale a crear múltiples Duckies por opciones Ecomotor. |
+| A4.2.1 posterior 01B | Firma/clases de error/representación concreta del validador puro de identidad/versiones/bases, duplicados y datos incompatibles, sin imponer el presupuesto como parte de cada definición. Sin BD, membresías/permisos o certificación de fuente/publicación/vigencia. |
+| Pruebas futuras | Identidad/versiones, cobertura/duplicados, tipos/negativos/conversiones, opciones independientes, inmutabilidad/determinismo/no mutación, separación bases-presupuesto, incompatibilidad de catálogos con contexto explícito y aislamiento Django/V1. Integración/autorización/conservación/consumo posteriores. No implementadas ni ejecutadas aquí. |
+| Activación y legacy | Modelos y migración/conservación con Core, compatibilidad histórica y activación coordinada siguen pendientes. S3 V1 único escritor; no activar objetivo. |
+
+ATR-OBJ-01, E-01/E-02 y OP-RED-01 y demás decisiones no afectadas conservan alcance.
+P1–P8, R1–R8 e I1–I9 mantienen residuales; no se cierran contratos compartidos por
+esta arquitectura ni se modifican reglas A4.1, datos o módulos externos.

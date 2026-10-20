@@ -12,7 +12,8 @@ aprueban por sí solas esquemas Django o configuración numérica.
 [opciones objetivo](ecomotor-playable-options-target-v1.md#3-opciones-y-estadísticas)
 y [pendientes](../pending-decisions.md#25-a41--parámetros-y-dependencias-del-validador-objetivo).
 Se desarrolla E-01/E-02 de 02C con ATR-OBJ-01 y se conserva OP-RED-01.
-**Actualización del 21/10/2026 para implementación pura en revisión en 01B:**
+**Estado vigente del 21/10/2026:** implementación pura integrada mediante PR #74;
+la referencia previa a revisión en 01B conserva su corte histórico.
 A4.1-NUM-01 resuelve el dominio numérico básico que el corte documental de PR #73
 mantenía pendiente. Firma y representación concretadas internamente en 01B;
 no son reglas numéricas oficiales del profesor ni autorización adicional de Core.
@@ -140,3 +141,13 @@ gasto total/parcial/cero, tipos estrictos, claves/duplicados, inmutabilidad,
 construcción directa, independencia, enteros grandes y aislamiento de Django/V1.
 Los resultados reales de ejecución se registran en la PR de implementación;
 no se presentan cantidades sintéticas como parámetros oficiales.
+
+## 8. Relación con A4.2 · Definiciones y autorización
+
+[A4.2](ecomotor-target-stats-config-v1.md) separa definición de bases por opción
+(con identidad y versiones de catálogo/estadísticas) del presupuesto autorizado
+del jugador, utilizable independientemente en cada configuración. No modifica
+validate_target_stats, TargetStatsResult, A4.1-NUM-01 o su comportamiento integrado.
+TargetStatsResult valida números y reparto, no demuestra fuente/publicación/vigencia
+o autorización funcional. A4.2.1 será otro validador puro, todavía no implementado;
+resolución confiable, conservación y consumo quedan para componentes posteriores.
