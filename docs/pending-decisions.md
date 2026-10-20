@@ -457,3 +457,30 @@ P1–P8 y R1–R8 conservan sus residuales. No se desbloquean Rewards F2-A, domi
 persistente, S13-A2 o economía/inventario por registrar A3. S3 V1 sigue vigente;
 las nuevas concesiones objetivo prevén 0/None en campos de puntos compatibles,
 sin borrar puntos disponibles ni reinterpretar resultados antiguos.
+
+## 16. A3.2 · Alcance y validaciones pendientes
+
+[Decisiones A3.2](decisions.md#a32--inventario-legacy-de-solo-lectura--20102026)
+y [contrato](contracts/ecomotor-legacy-inventory-v1.md), aprobación técnica interna.
+Base `8024fa7`: A3.1 integrado por #58, extract_legacy_audit_snapshot todavía
+conceptual; S3 V1 sigue activo y no hay migración/activación objetivo. El apartado
+A3.1 futuro de §15 conserva la previsión anterior a esa integración.
+
+Cerrado internamente: un perfil por extracción, alias confiable, clases A3.1 sin
+modelos/diagnósticos, cobertura íntegra o fallo, causalidad bidireccional y privacidad;
+transacción corta IMMEDIATE con materialización y costes de bloqueo explícitos.
+Propuesto rechazo de transacción exterior, sin auditoría/migración automática.
+
+| Pendiente / límite | Propietario y alcance |
+| --- | --- |
+| Implementación A3.2 | Parte A/01B: revisar firma/nombres y detalle técnico de legacy_inventory_reader.py y tests; no crearlos en esta tarea. Errores conceptuales diferenciados, sin excepciones/códigos HTTP definitivos. |
+| Autorización y privacidad | Core/operadores/consumidores: autorización de inspección y alias confiable; comprobación causal mínima no amplía permisos ajenos. Claves exactas solo en snapshot, no logs/trazas/exportaciones; sin datos personales Core o endpoint público. |
+| Consistencia/cobertura | Verificar todas las lecturas/materialización bajo misma transacción/alias, rechazo propuesto de exterior, timeout/fallo/truncado sin falsa cobertura y causalidad en ambos sentidos. Pruebas futuras TransactionTestCase SQLite con conexiones independientes y cero escrituras. |
+| Auditoría integral | StatAllocationEvent, especializaciones/UserSpecializationProgress/dominio/rangos, relaciones completas Duckies y umbrales/puntos históricos quedan fuera. Cobertura completa del extractor no certifica esos dominios o migración. |
+| Esquema/transición | Modelo físico de clasificación, catálogo objetivo, relaciones causales, datos reales, migración/activación y contratos Duckies siguen condicionados por A3; una fotografía o COMPATIBLE limitado no los autoriza. |
+| Core/P5 | Conservación, anonimización/eliminación y on_delete, además de autorización de operadores/consumidores, permanecen pendientes sin inferencias. |
+| Regresión y pruebas | Futura implementación debe cubrir perfiles/alias, vacíos/stats ausentes, cobertura, causas extranjeras y ausentes, consultas fallidas, privacidad, concurrencia, cero escrituras y S3 V1 intacto. No añadidas ni ejecutadas en esta PR documental. |
+
+No se resuelven los residuales P1–P8/R1–R8 ni se desbloquean S13-A2, dominio
+persistente, Rewards F2-A o economía/inventario. A3.2 obtiene evidencia; A3.1 evalúa;
+clasificación, migración y concesión requieren decisiones y permisos propios.
