@@ -668,3 +668,28 @@ con cobertura explícita y distinción fallo/diagnóstico. No implementado ni AP
 Evento primero/replay autorizado A3.3 intactos; lector no participa en elegibilidad
 actual de replay válido ni decide transiciones. S3 V1 sigue único escritor. P1–P8,
 R1–R8 e I1–I9 y puertas físicas/externas conservan sus residuales.
+
+## 23. A3.6.3 · Suficiencia, lagunas y procedencia pendientes
+
+[Cuatro acuerdos internos](decisions.md#a363--criterios-de-suficiencia-v1--20102026)
+y [contrato central](contracts/ecomotor-classification-evidence-v1.md#9-a363--criterios-locales-necesarios-para-v1_verified).
+Resueltos como dirección: controles locales necesarios según aplicabilidad,
+tratamiento sin avance de prueba obligatoria ausente/incoherencia, diferenciación
+legacy/nativo y alcance transaccional de verificación. No suficiencia final,
+certificación automática o reclasificación por COMPATIBLE/XP/historial vacío.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| Cobertura final V1_VERIFIED | Parte A/propietarios: criterios suficientes, además de controles locales necesarios; ausencia legítima de eventos/selección no es incoherencia por defecto. |
+| Lagunas admisibles | Política exacta de qué lagunas históricas podrían admitirse bajo garantías alternativas válidas, si existiese. Sin excepción general para historia incompleta; falta de prueba obligatoria impide transición sin mutar o crear evento, no fuerza BLOCKED. |
+| Historia y catálogos | Completitud XP, origen/gasto de puntos con historia ausente, aplicabilidad histórica de catálogos/atributos de etapas e historial de especializaciones/dominio/rangos. No inventar eventos/snapshots o cronología PK. |
+| Procedencia | Proceso confiable que acredite LEGACY_V1/NATIVE_V1 y creación verificada; S2-A no es certificado retrospectivo universal. No inferir por cero XP, fecha, nivel inicial o historial vacío; procedencia confirmada inmutable. |
+| Lector y contexto | API/consultas y acreditación de frontera controlada por servicio siguen pendientes A3.6.2. Nueva operación exige evidencia actual y suficiente en la misma transacción; replay histórico no revalida elegibilidad actual. |
+| A3.5 · Óscar/Core | Identidad/autorización, ciclo de vida, retención, privacidad/on_delete pendientes. Consulta intacta sin respuestas o cierres inferidos. |
+| Henry e integración | Duckies/inventario y referencias siguen pendientes; lector local no certifica consumidores. |
+| Pruebas futuras | Controles coherentes con prueba suficiente, XP antigua ausente frente a contradicción, stats, catálogo aplicable, gastos/historia, selección legítima/incoherente, procedencia acreditada, XP posterior, nueva evidencia obsoleta, replay, rechazo íntegro sin reparación y regresión S3. No implementadas/ejecutadas aquí. |
+
+XP posterior no revoca automáticamente verificación confirmada ni muta estado/revisión/
+eventos. No se garantiza coherencia indefinida: nuevas transiciones validan sus
+condiciones y BLOCKED sigue siendo operación autorizada independiente. S3 V1 sigue
+único escritor. P1–P8, R1–R8 e I1–I9 conservan residuales; sin migración/activación.

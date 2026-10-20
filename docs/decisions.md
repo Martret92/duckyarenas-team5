@@ -1321,3 +1321,24 @@ intacto; Henry conserva coordinación de referencias/consumidores.
 Sin API Python definitiva, lector, modelos, servicios, tests nuevos o activación.
 S3 V1 sigue único escritor. Pruebas documentadas como futuras, no ejecutadas.
 [Pendientes](pending-decisions.md#22-a362--detalle-del-lector-y-dependencias).
+
+## A3.6.3 · Criterios de suficiencia V1 · 20/10/2026
+
+**Aprobación arquitectónica interna Equipo 5 en 02C**, sobre develop
+`080849ee207c05f844d5ccfd1624ab270d1d5a3a`. DAR3 sigue principal; no son requisitos
+literales nuevos ni acuerdos ratificados por Óscar/Core o Henry. Precisa condiciones
+necesarias para estudiar PENDING_REVIEW → V1_VERIFIED, sin cerrar suficiencia final.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A3.6.3-MIN-01 | Controles locales necesarios según procedencia/aplicabilidad: perfil, stats, XP observable, causalidad de evoluciones, progreso frente a catálogo V1 validado/aplicable, gastos disponibles y selección/progresos. No son suficiencia automática ni exigen eventos o especialización cuando su ausencia sea legítima; no demostrar historia con catálogo actual sin aplicabilidad acreditada. |
+| A3.6.3-GAPS-01 | Evidencia suficiente de condición examinada, insuficiencia de prueba obligatoria o incoherencia observable son situaciones distintas. Insuficiencia/incoherencia impiden avance nuevo sin mutar clasificación previa o crear evento de transición. No BLOCKED automático, historia ficticia o cronología PK. Política exacta de lagunas admisibles bajo garantías alternativas sigue pendiente, sin excepción general; COMPATIBLE no basta. |
+| A3.6.3-NATIVE-01 | Legacy requiere procedencia acreditada e historia observable con lagunas explícitas; nativo V1 exige alta confiable/verificada, sin exigir historia antigua inexistente. No inferir origen por XP/fecha/nivel/historial vacío, reclasificar existentes o cambiar procedencia confirmada. S2-A no certifica retrospectivamente todos los perfiles; acreditación exacta del proceso creador pendiente. |
+| A3.6.3-TIME-01 | Verificación confirmada acredita condiciones en su transacción. XP S3 posterior no revoca/actualiza clasificación, revisión o eventos automáticamente, sin prometer coherencia perpetua. Transiciones futuras requieren evidencia/permisos propios; diagnóstico no deduce BLOCKED. S3 V1 continúa único escritor. |
+
+[Contrato canónico](contracts/ecomotor-classification-evidence-v1.md#9-a363--criterios-locales-necesarios-para-v1_verified)
+centraliza matriz, lagunas, procedencia, temporalidad y pruebas futuras;
+[pendientes](pending-decisions.md#23-a363--suficiencia-lagunas-y-procedencia-pendientes).
+A3.3/A3.6.2, D-19, evento primero/replay y A3.2 separado permanecen intactos.
+A3.5/Core/Henry y cobertura final siguen abiertos. Sin API definitiva, modelos,
+lector, servicios, migraciones o tests nuevos/ejecutados. Antecedentes conservados.
