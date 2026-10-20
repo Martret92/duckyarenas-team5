@@ -16,8 +16,11 @@ No se inventan bases, presupuestos, límites, catálogos publicados o reglas de 
 y [pendientes](../pending-decisions.md#26-a42--configuración-confianza-y-consumidores-pendientes).
 Se utiliza trazabilidad existente, sin afirmar nueva consulta directa de PDFs.
 
-A4.1 está implementada e integrada por PR #74 como módulo puro. A4.2 es arquitectura
-y **A4.2.1 no está implementado**. No existen por este contrato catálogos objetivo
+A4.1 está implementada e integrada por PR #74 como módulo puro. A4.2 es arquitectura;
+**A4.2.1 está implementada como componente puro para revisión en 01B**, desde
+base `f5acadfd1fed8234106fa6152e1e4aef8638ea05` (PR #75 integrada).
+[§9](#9-a421--api-pura-concretada-en-01b) registra su API técnica aprobada en 01B,
+sin nuevas decisiones funcionales DAR3 o autorización externa. No existen por ello catálogos objetivo
 publicados, fuentes de configuración autorizadas, snapshots persistentes o servicios
 de resolución. No modelos, migraciones, endpoints o activación objetivo.
 
@@ -67,7 +70,7 @@ sigue pendiente con A3 y propietarios.
 Texto de identidad/versión aportado por cliente o booleano declarativo no acredita
 autorización. Tampoco lo hacen TargetStatsResult o TargetCatalogSnapshot A1.1.
 No permitir que consumidor elija arbitrariamente bases, incrementos o versiones
-para sustituir al propietario Ecomotor. El futuro validador puro A4.2.1 valida
+para sustituir al propietario Ecomotor. El validador puro A4.2.1 valida
 estructura, no membresías, permisos, publicación, vigencia funcional o fuente.
 
 ## 5. Conservación de configuración confirmada · A4.2-SNAPSHOT-01
@@ -108,6 +111,10 @@ con datos arbitrarios de bases/reparto/versiones.
 
 ## 7. A4.1 integrada y futuro A4.2.1
 
+**Corte histórico DOC-A4.2:** la previsión de implementación siguiente se conserva;
+A4.2.1 ahora está implementada para revisión según §9, sin persistencia o resolución
+confiable de configuración. A4.1 mantiene su firma y comportamiento.
+
 API existente en [target_stats_validation.py](../../apps/ecomotor/target_stats_validation.py):
 
 `validate_target_stats(bases, increments, *, budget) -> TargetStatsResult`
@@ -139,11 +146,86 @@ configuraciones, autorización y contratos Core/Henry/consumidores, persistencia
 estado/configuraciones/eventos, activación y compatibilidad legacy. Validación
 estructural no cierra ninguno por inferencia.
 
-Tests futuros A4.2.1: identidad válida/inválida, versiones explícitas/ausentes,
+Pruebas previstas en DOC-A4.2, ahora incluidas en el incremento puro A4.2.1:
+identidad válida/inválida, versiones explícitas/ausentes,
 seis atributos canónicos completos, duplicados, bases negativas/tipos incompatibles,
 conversiones rechazadas, independencia de opciones, inmutabilidad/determinismo,
 entradas intactas, separación bases/presupuesto, identidades de catálogo incompatibles
 cuando exista contexto explícito de comparación, no usar datos V1 ni consultas
-Django/efectos secundarios. No se implementan ni ejecutan tests Django aquí.
+Django/efectos secundarios. [Tests sintéticos A4.2.1](../../apps/ecomotor/test_target_stats_config_validation.py)
+añadidos; los resultados reales de ejecución y regresión se informan en la PR de
+implementación, sin atribuir esas ejecuciones al corte documental DOC-A4.2.
 Pruebas de autorización, integración, conservación, actualización de catálogo y
-consumidores pertenecen a incrementos posteriores.
+consumidores siguen perteneciendo a incrementos posteriores.
+
+## 9. A4.2.1 · API pura concretada en 01B
+
+Concreciones técnicas de API aprobadas en 01B, no nuevos requisitos de DAR3 ni
+autorización de Core. Implementación en
+[target_stats_config_validation.py](../../apps/ecomotor/target_stats_config_validation.py),
+con datos exclusivamente sintéticos en los tests. Sin catálogos oficiales o valores
+funcionales nuevos. No modifica A4.1, A1/A2/A3, modelos o servicios V1.
+
+```python
+validate_target_stats_definition(
+    *, option_code: str, catalog_id: str, catalog_version: str,
+    definition_version: str, bases,
+    expected_catalog: TargetStatsCatalogContext | None = None,
+) -> TargetStatsDefinitionSnapshot
+```
+
+Todos los argumentos son keyword-only. Sin presupuesto, jugador, selección,
+publicación o flags de autorización.
+
+| Tipo público frozen=True, slots=True | Campos exactos y garantías |
+| --- | --- |
+| TargetStatsCatalogContext | catalog_id, catalog_version. Construcción directa valida ambos textos; contexto proporcionado por llamador, no certificado de catálogo. |
+| TargetStatsDefinitionSnapshot | option_code, catalog_id, catalog_version, definition_version, bases. Construcción directa valida identidades/versiones y bases, copia defensivamente y conserva tuplas de pares inmutables/canónicos. |
+
+Las cuatro identidades/versiones son str exacto, no vacío o solo espacios;
+rechazar None, números/bool, subclases y otros objetos. Usar strip solo para
+comprobar contenido, nunca para alterar el valor conservado: espacios exteriores,
+capitalización y texto opaco no se normalizan. Sin códigos oficiales ni restricciones
+de formato/longitud inventadas. Versión de catálogo y de definición independientes.
+
+bases acepta exclusivamente listas/tuplas explícitas de pares, cada par lista/tupla
+de dos elementos. Exactamente ATK/DEF/VEL/INT/LOG/CUACK, con código str exacto,
+una vez cada uno; salida en ese orden canónico. Rechazar faltantes, extras, SPE,
+capitalización/espacios alternativos, pares mal formados, mappings/sets/generadores/
+iteradores u otros contenedores. Duplicados detectados antes de colapsar claves;
+no recupera duplicados descartados por componentes anteriores.
+
+Cada base es int Python exacto >=0: admite cero/enteros grandes, sin máximo
+funcional o Django inventado. Rechaza bool, negativos, float, Decimal, Fraction,
+cadenas, None, subclases int y objetos convertibles; sin convertir/truncar/redondear
+ni defaults. Entradas nunca mutadas, tampoco ante error. Snapshot sin referencias
+a listas originales, incluso al construirlo directamente.
+
+expected_catalog=None omite comparación contextual. En otro caso requiere tipo
+exacto TargetStatsCatalogContext válido (también revalida sus campos al recibirlo).
+Compara catalog_id y catalog_version exactos; incompatibilidad produce error
+específico. No compara definition_version con catalog_version ni infiere pertenencia
+de opción o confianza. No acepta TargetCatalogSnapshot A1.1 como ese contexto;
+validar/comparar datos del llamador no prueba publicación, vigencia o autorización.
+
+Jerarquía pública mínima derivada de ValueError:
+
+- InvalidTargetStatsDefinitionError: base.
+- InvalidTargetStatsDefinitionIdentityError: opción/catálogo/versiones inválidos.
+- InvalidTargetStatsDefinitionStructureError: pares/códigos/cobertura/duplicados o
+  representación contextual incompatible.
+- InvalidTargetStatsDefinitionNumericError: bases numéricamente inválidas.
+- TargetStatsDefinitionCatalogMismatchError: catálogo o versión distintos del contexto.
+
+Mensajes sin valores opacos innecesarios; no errores HTTP, ORM o autorización.
+Resultado determinista y canónico, sin estado global compartido ni presupuesto,
+incrementos, efectivas, saldo o datos de jugador/operador. Sus bases son directamente
+compatibles con validate_target_stats(snapshot.bases, increments, budget=...):
+A4.1 calcula reparto/efectivas con presupuesto separado explícito, sin autorizar
+cifras. No llamadas a helpers privados A4.1, BD, ORM, red, reloj, archivos, S3,
+Core, Duckies o Rewards. Importación/ejecución posible sin configuración Django.
+
+Pendientes funcionales y externos de §8 intactos: códigos/bases/presupuesto oficiales,
+fuente confiable, publicación/versionado/vigencia reales, Core/Henry/consumidores,
+persistencia/conservación/migración y activación coordinada. S3 V1 sigue único
+escritor XP; no se activa el objetivo ni se crea un servicio persistente.
