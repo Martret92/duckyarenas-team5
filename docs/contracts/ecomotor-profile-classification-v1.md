@@ -2,6 +2,14 @@
 
 ## 1. Autoridad, alcance y estado vigente
 
+**Actualización A3.4 · 20/10/2026, base 8b6b0f7:** reglas puras A3.3 integradas por
+PR #66 en [profile_classification_rules.py](../../apps/ecomotor/profile_classification_rules.py),
+con ClassificationRequest, PolicySnapshot y ConfirmedClassificationEvent.
+Las previsiones siguientes de reglas futuras conservan su corte anterior.
+[Dirección persistente A3.4](ecomotor-classification-persistence-v1.md) y
+[consulta Core/P5](ecomotor-classification-core-boundary-v1.md) no aprueban modelos
+Django definitivos o migraciones. No existe persistencia/servicio de clasificación.
+
 **A3.3-ARQ-01: arquitectura aprobada internamente por el Equipo 5**, comunicada
 por Jaime en 02C y documentada el 20/10/2026 sobre develop `75177a2`.
 Desarrolla A3-CLAS-01; no es una especificación literal de DAR3 ni una ratificación
@@ -21,7 +29,7 @@ y [transición A3](ecomotor-transition-target-v1.md).
 | A3.2 · PR #60 | [Extractor](../../apps/ecomotor/legacy_inventory_reader.py) integrado: materializa evidencia limitada de un perfil y alias, no clasifica ni invoca automáticamente A3.1. |
 | S3 V1 | [Escritor vigente](../../apps/ecomotor/xp_service.py), con su contrato actual y puntos por nivel. Sigue funcionando incluso sin registro A3.3 mientras no haya corte global autorizado. |
 | A2.1 | Planificación pura integrada; no concede XP ni activa el objetivo. |
-| A3.3 | Solo arquitectura: sin modelos, tabla, migración, backfill, servicio o clasificación real. |
+| A3.3 · PR #66 | Reglas puras y tests integrados; sin modelos, tabla, migración, backfill, servicio transaccional o clasificación real. |
 
 Las anotaciones anteriores que presentan A3.1/A3.2 como futuros conservan su fecha
 y valor histórico. No describen la baseline actual. Esta fase no cambia S3,
@@ -39,7 +47,7 @@ un selector de escritor XP.
 | profile | Perfil Ecomotor cuya clasificación se registra. |
 | origin | Procedencia explícita, distinta del estado de transición. |
 | transition_state | Estado de transición, no una versión de catálogo ni autorización XP. |
-| revision | Contador monotónico no negativo para control de concurrencia. |
+| revision | Revisión positiva: primera confirmación 1 y transición nueva +1, para control de concurrencia. |
 | created_at / updated_at | Fechas de creación y actualización del registro. |
 
 No condensar procedencia y transición en un campo de versión. La asociación y
@@ -56,9 +64,10 @@ transiciones permitidas; no se eligen representaciones físicas Django.
 
 **A3.3-STATE-01:** `PENDING_REVIEW`, `V1_VERIFIED`, `TARGET_PREPARED`,
 `TARGET_CONFIRMED`, `BLOCKED` son el vocabulario de la matriz interna aprobada
-tras la PR #63, no constantes implementadas. El corte anterior dejaba la matriz
-pendiente; la precisión siguiente resuelve esa decisión, sin aprobar permisos
-externos o mecanismos físicos. Validadores puros y servicios siguen sin implementar.
+tras la PR #63; PR #66 implementa sus tipos y reglas puros, sin registro en BD.
+El corte anterior dejaba la matriz pendiente; la precisión siguiente conserva
+su resolución interna, sin aprobar permisos externos o mecanismos físicos.
+El servicio persistente sigue sin implementar.
 
 **Ausencia de registro = perfil no clasificado**, no `PENDING_REVIEW`.
 No inferir clasificación por fecha de creación, nivel, XP, época, especialización,
@@ -314,3 +323,21 @@ posterior; replay de bloqueo tras recuperación; historia insuficiente/incoheren
 preservación de estado y revisión actuales durante replay. Las pruebas
 transaccionales de concurrencia, rollback e idempotencia persistente siguen
 reservadas al futuro servicio Django, sujeto a dependencias Core/P5.
+
+## 10. A3.4 · Persistencia candidata y acuerdos externos
+
+[A3.4-ARQ-01](../decisions.md#a34--dirección-de-persistencia-de-clasificación--20102026)
+aprueba internamente una dirección mínima, no esquema Django definitivo:
+política/evento en apps.ecomotor, campos candidatos para reconstruir exactamente
+la API pura, identidad por operación y confirmación conjunta D-19.
+[Contrato de persistencia](ecomotor-classification-persistence-v1.md) centraliza
+campos y alternativas, replay, propuesta UNIQUE(profile, after_revision), límites
+físicos, lector interno transaccional y pruebas futuras. No se modifica matriz,
+contenido, revisión o replay aprobados por describir su futura persistencia.
+
+[Propuesta Core/P5](ecomotor-classification-core-boundary-v1.md) no ratificada:
+identidad/operador, autorización, ciclo de vida, retención y privacidad. No elegir
+on_delete, FK al bloqueo o participación canónica del operador en comparación.
+Cobertura suficiente por transición sigue pendiente; no anidar A3.2 ni ampliar
+COMPATIBLE a certificación de toda V1. No modelos/migraciones, clasificación real,
+backfill o activación. Las reglas puras ya integradas no sustituyen esas garantías.

@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Actualización A3.4 · 20/10/2026:** baseline `8b6b0f7`, reglas puras A3.3 integradas
+por PR #66. Persistencia y servicio de clasificación todavía no existen. La
+[dirección A3.4](#15-a34--dirección-de-persistencia-local) está aprobada internamente,
+no sus modelos/migraciones definitivos o acuerdos Core/P5. Las notas anteriores
+que describen reglas como futuras conservan su corte histórico; S3 V1 sigue activo.
+
 **Actualización A3.3 · 20/10/2026:** baseline `75177a2`, con PR #61/#62 integradas.
 A3.1 (#58) y A3.2 (#60) están implementados; las notas siguientes que los presentan
 como futuros conservan su corte histórico. [A3.3](#14-a33--clasificación-persistente-de-perfiles)
@@ -891,5 +897,41 @@ Core/P5 para conservación, anonimización/eliminación, relaciones/on_delete,
 operador y autorización; Henry/Duckies para consumidores y catálogo. Primero
 reglas puras/validadores 01B y acuerdos necesarios; después modelos sin backfill
 automático, servicios/tests, catálogo/causalidad, migración y activación autorizadas.
-Ninguna de esas fases se ejecuta aquí. No cambia ATR-OBJ-01 ni se desbloquean
+En el corte de este apartado las reglas aún eran futuras; PR #66 las integra
+como API pura, sin persistencia. §15 actualiza esa situación. No cambia ATR-OBJ-01 ni se desbloquean
 Rewards F2-A, dominio persistente, S13-A2 o integraciones económicas.
+
+## 15. A3.4 · Dirección de persistencia local
+
+[A3.4-ARQ-01](decisions.md#a34--dirección-de-persistencia-de-clasificación--20102026)
+aprueba internamente dirección física mínima, no modelos/migraciones finales.
+[Reglas puras A3.3](../apps/ecomotor/profile_classification_rules.py) integradas
+por #66: ClassificationRequest, PolicySnapshot, ConfirmedClassificationEvent y
+evaluate_classification_rules no consultan BD, autorizan ni confirman operaciones.
+El futuro adaptador persistente debe reconstruir originales exactos, no completar
+historia desde estado actual o considerar NEW_CANDIDATE una confirmación.
+
+Política y eventos candidatos en apps.ecomotor, propiedad E5, asociados al perfil
+Ecomotor sin redefinir User/Core. Una política por perfil, procedencia inmutable,
+transición separada, revisión positiva y ausencia sin clasificar. Evento inmutable
+con solicitud, before/after, fecha y operador pendiente de Core/P5. Identidad de
+operación (profile, operation_key) conservada; UNIQUE(profile, after_revision) es
+solo propuesta adicional, insuficiente para validar cadena/causalidad/atomicidad.
+[Persistencia candidata](contracts/ecomotor-classification-persistence-v1.md) detalla
+campos, reconstrucción exacta y recomendación provisional frente a alternativas.
+
+Autorización previa y transacción D-19 mismo alias: evento primero, validación
+histórica/contenido por API pura y replay sin mutación; solo sin evento validar
+revisión/procedencia/matriz y evidencia vigente, y confirmar política/evento juntos.
+Lector interno específico como dirección para comprobaciones en transacción;
+no invocar A3.2 anidado ni quitar sus protecciones. Actualidad no es suficiencia:
+cobertura por transición y dependencias fuera de A3.1/A3.2 aún por especificar.
+
+[Consulta Core/P5](contracts/ecomotor-classification-core-boundary-v1.md) no ratificada:
+identidad/operador, autorización, ciclo de vida, retención y privacidad. Tipos,
+longitudes, nulidad, colaciones, FKs, constraints y on_delete quedan abiertos;
+no trasladar límites inexistentes de la API pura al esquema sin análisis.
+[Puertas y fases](pending-decisions.md#19-a34--puertas-de-persistencia-y-servicio)
+distinguen acuerdos previos a modelos/migraciones de condiciones del servicio.
+No backfill, clasificación real, escritor objetivo, cambios S3 o integración de
+otros dominios. Tests persistentes futuros, no ejecutados en esta PR documental.

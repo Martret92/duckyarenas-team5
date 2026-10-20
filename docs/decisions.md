@@ -1214,3 +1214,34 @@ nuevos. Tests puros futuros 01B cubren contenido/tipos, None frente a 0, revisio
 replay posterior, bloqueo recuperado e historia insuficiente/incoherente;
 concurrencia/rollback/idempotencia persistente quedan para servicio Django futuro.
 [Pendientes](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).
+
+## A3.4 · Dirección de persistencia de clasificación · 20/10/2026
+
+**A3.4-ARQ-01, aprobada internamente por el Equipo 5 en 02C**, sobre develop
+`8b6b0f783b0042e66c53d9b46dfb930edae94f73`, tras integrar reglas puras A3.3
+por PR #66. DAR3 conserva autoridad funcional; esta dirección técnica no se
+atribuye al profesor, Core/P5 o Henry. No aprueba modelos Django definitivos,
+migraciones, contratos externos o activación. Los registros anteriores conservan
+su fecha/autoridad; sus previsiones de reglas futuras son antecedentes, no estado actual.
+
+| Estado | Dirección o decisión pendiente |
+| --- | --- |
+| Arquitectura aprobada | Propiedad Equipo 5/apps.ecomotor, referencia conceptual a users.UserProfileEcomotor sin redefinir User. Política máxima una por perfil, procedencia explícita inmutable, transición separada y revisión positiva; ausencia no clasifica ni defaults automáticos. |
+| Arquitectura aprobada | Evento inmutable separado, identidad UNIQUE(profile, operation_key) propia de clasificación, con evidencia suficiente para reconstruir ClassificationRequest, before=None o PolicySnapshot, after y ConfirmedClassificationEvent. Primera clasificación sin estado/revisión previa inventados. Bloqueo con estado anterior inequívoco; no elegir FK al bloqueo. |
+| Arquitectura aprobada | Autorización previa, alias común, D-19/BEGIN IMMEDIATE/timeout 5 s, evento primero y validación por API pura; replay compatible sin mutación, conflicto/historia insuficiente rechazados. Nuevas operaciones requieren revisión/procedencia/matriz/evidencia; política/evento confirman juntos o rollback. Sin I/O externo, row locking supuesto o atomicidad entre conexiones. |
+| Dirección de evidencia aprobada | Lector interno específico para comprobaciones dentro de la futura transacción; A3.2 queda intacto como inventario previo y no se invoca anidado. Cobertura suficiente y controles concretos de V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED siguen pendientes; COMPATIBLE A3.1 no certifica toda V1. |
+| Recomendación provisional | Campos explícitos para request y snapshots, comparados con JSON, hash y reconstrucción solo por eventos. No tipos/longitudes/nulidad/colaciones/FKs/constraints SQL/on_delete definitivos; analizar representabilidad frente a API pura sin máximos especulativos. |
+| Propuesta física no definitiva | Evaluar UNIQUE(profile, after_revision): evita revisiones duplicadas, pero no garantiza secuencia, causalidad o atomicidad. No sustituye reglas puras ni autoriza constraints/migración. |
+| Dependencias externas | Core/P5: identidad/participación canónica del operador, autorización, ciclo de vida, retención, privacidad y on_delete. CASCADE, PROTECT e identidad histórica separada son alternativas para consulta, ninguna elegida. Henry/consumidores conservan dependencias. |
+
+[Contrato de persistencia](contracts/ecomotor-classification-persistence-v1.md)
+concentra campos candidatos, reconstrucción, alternativas, flujo, evidencia y tests.
+[Propuesta Core/P5](contracts/ecomotor-classification-core-boundary-v1.md) identifica
+CORE-A3.3-IDENTITY/AUTH/LIFECYCLE/RETENTION/PRIVACY y distingue puertas de esquema
+y servicio. [Pendientes](pending-decisions.md#19-a34--puertas-de-persistencia-y-servicio).
+
+Orden orientativo: documentación → acuerdos Core/P5 → evidencia/cobertura →
+modelos/migraciones sin backfill tras acuerdos → servicio/tests → integración y
+ensayos con Core/Henry/consumidores → migración/activación autorizadas. Sin código,
+clasificación real o tests Django ejecutados aquí. S3 V1 sigue como único escritor;
+no cambian A3.1/A3.2, reglas puras, ATR-OBJ-01, historiales o contratos V1.
