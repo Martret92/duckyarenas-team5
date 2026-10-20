@@ -633,3 +633,40 @@ Inventariar datos y clasificar nuevos/legacy explícitamente antes de migrar;
 activación coordinada sin autoridades contradictorias de selección vieja/nueva.
 La identidad jugable no decide apariencia, inventario o vestimenta de DOC-5.
 [Pendientes](../pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
+
+## 15. A3 · Frontera física de la transición
+
+A3-ARQ-01 y A3-CLAS/CAT/REPLAY-01 son direcciones internas **condicionadas**;
+[contrato A3](../contracts/ecomotor-transition-target-v1.md) y
+[pendientes](../pending-decisions.md#15-a3--condiciones-de-compatibilidad-y-activación).
+Base `7039ae6`: A1.1/A1.2 y A2.1 están integrados como módulos puros, no nuevos
+modelos. Se conservan las nueve entidades físicas locales de Parte A, el V2
+histórico de ocho y el diagrama conceptual 02C; ninguna tabla se añade aquí.
+
+| Necesidad conceptual A3 | Dirección aprobada / bloqueo físico |
+| --- | --- |
+| Política de progresión por perfil | Registro persistente unívoco asociado a UserProfileEcomotor, con procedencia y estado de transición separados. Campos Django, tipos, restricciones y relaciones definitivos pendientes; auditoría antes de clasificar existentes. No es UserPlayableState ni permiso de XP. |
+| Catálogo objetivo | Separado, versionado e inmutable una vez usado, conservando identidades/referencias EvolutionStage V1. No se aprueba nombre de modelo, campos, claves o migración; A1.1 solo valida snapshots puros. |
+| Nuevas evoluciones causales | EvolutionEvent.stage apunta físicamente a EvolutionStage V1. Cómo referenciar nuevas épocas sin perder causalidad/historia es bloqueo obligatorio; no escoger otra FK o reescribir eventos por inferencia. |
+| PlayableOption histórico | La relación EvolutionStage de §14 es el diseño conceptual 02C anterior a esta precisión. Debe adaptarse al catálogo separado con integridad histórica; A3 no aprueba la solución física ni descarta la aprobación provisional ARQ-OP-02 de campos/restricciones. |
+| Procedencia de XP objetivo | Nuevas operaciones requieren procedencia persistente e inmutable; representación pendiente, sin añadir campos/tablas aquí. UNIQUE(profile, operation_key) se conserva entre versiones. |
+
+XPEvent V1 no registra versión, nivel o época como snapshots; EvolutionEvent
+no guarda los atributos históricos originales de la etapa. No completar historia
+con catálogos actuales ni renombrar filas V1 para representar épocas objetivo.
+Tres cortes: nueve épocas DAR3, siete etapas V1 terminadas en Actual y siete
+épocas objetivo terminadas en Siglo XX; nivel 8 no añade época.
+
+**Dependencia física externa existente:** en [Duckies](../../apps/duckies/models.py),
+EvolutionItem.stage es OneToOne a EvolutionStage con PROTECT. Sus
+[servicios](../../apps/duckies/services.py) buscan por current_stage_code y comparan
+ordinales; también dependen de active_specialization_code en selección/vestimenta.
+Coordinar con Henry referencias de catálogo y consumidores. Progresión, identidad
+jugable y apariencia no se confunden. No modificar ni aprobar esquema Duckies aquí.
+
+Inventario/auditoría reales, migración autorizada e idempotente y activación
+coordinada requieren relaciones aprobadas, consumidores compatibles y pruebas.
+No reasignar CharacterStats, borrar puntos disponibles o alterar XPEvent,
+EvolutionEvent, StatAllocationEvent y progresos existentes por inferencia.
+Core/P5 mantiene conservación, anonimización/eliminación y on_delete pendientes.
+No se resuelve con este apartado un nuevo esquema, migración o escritor objetivo.

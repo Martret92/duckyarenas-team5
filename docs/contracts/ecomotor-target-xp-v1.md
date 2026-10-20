@@ -198,3 +198,8 @@ vestimenta/equipamiento, selección jugable, API o autenticación nueva. Rewards
 conserva DOC-6 y sus bloqueos; el consumo futuro de A2 requiere coordinación,
 sin aprobar adaptadores o alterar snapshots del contrato Rewards por inferencia.
 A2-CT-01 sigue siendo XP histórica; A3-CT-01 conserva compatibilidad/migración.
+
+Referencia posterior: [A3 · Compatibilidad histórica y activación condicionada](ecomotor-transition-target-v1.md)
+desarrolla las dependencias aquí registradas; el estado vigente de A2.1 puro está
+en [arquitectura A3](../architecture.md#11-a3--compatibilidad-histórica-y-activación-coordinada).
+Las decisiones A2 y el corte histórico de este contrato se conservan.
