@@ -683,3 +683,35 @@ No reasignar CharacterStats, borrar puntos disponibles o alterar XPEvent,
 EvolutionEvent, StatAllocationEvent y progresos existentes por inferencia.
 Core/P5 mantiene conservación, anonimización/eliminación y on_delete pendientes.
 No se resuelve con este apartado un nuevo esquema, migración o escritor objetivo.
+
+## 16. A3.3 · Política de progresión e historial conceptuales
+
+Desarrollo interno de A3-CLAS-01 sobre `75177a2`:
+[decisiones](../decisions.md#a33--clasificación-persistente-de-perfiles--20102026),
+[contrato A3.3](../contracts/ecomotor-profile-classification-v1.md) y
+[pendientes](../pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).
+**No implementado:** no añade tablas al recuento físico de nueve ni sustituye el
+ERD V2 histórico de ocho o los cuatro modelos conceptuales jugables de §14.
+
+| Modelo candidato | Cardinalidad y datos conceptuales | Invariantes / límites |
+| --- | --- | --- |
+| ProfileProgressionPolicy | Perfil con cero o un registro, registro con exactamente un UserProfileEcomotor: OneToOne conceptual. profile, origin, transition_state, revision, created_at, updated_at. | Procedencia explícita sin default e inmutable una vez confirmada; transición separada, revisión monotónica no negativa. Sin registro = no clasificado, no PENDING_REVIEW. No es UserPlayableState ni permiso XP. |
+| ProfileProgressionPolicyEvent | Perfil con cero o muchos eventos; cada evento afecta un perfil. operation_key, acción, estados/revisiones anteriores y posteriores, fecha de confirmación y referencia a operador autorizado pendiente de Core. | Historial inmutable, UNIQUE(profile, operation_key) conceptual en clasificación. Misma operación repetida sin efectos; contenido incompatible en conflicto. No sustituye XPEvent/EvolutionEvent/StatAllocationEvent. |
+
+Procedencias candidatas: LEGACY_V1, NATIVE_V1, NATIVE_TARGET. Estados candidatos:
+PENDING_REVIEW, V1_VERIFIED, TARGET_PREPARED, TARGET_CONFIRMED, BLOCKED. Nombres,
+matriz/transiciones y autorizaciones aún por concretar; no son constantes o
+constraints Django aprobados. Tipos/campos definitivos, relación física entre
+política e historial, operador y on_delete siguen pendientes de Core/P5.
+
+La futura operación confirma política y evento en una frontera atómica del mismo
+alias, D-19/BEGIN IMMEDIATE/timeout 5 s, idempotencia, revisión esperada y rollback;
+sin I/O externo ni select_for_update efectivo supuesto. No inferir clasificación
+por fecha, XP/nivel/época/especialización/stats o ausencia de estado jugable.
+TARGET_CONFIRMED no habilita concesiones: S3 V1 permanece como único escritor
+hasta corte global autorizado, también para perfiles sin clasificación.
+
+A3.1 y A3.2 están integrados (#58/#60), sin clasificar o migrar. COMPATIBLE tiene
+alcance limitado; la evidencia puede quedar obsoleta y debe validarse con actualidad
+suficiente. No hay backfill, reparación ni procedencia inventada de eventos V1.
+Se conservan los historiales existentes y la nomenclatura objetivo ATR-OBJ-01.

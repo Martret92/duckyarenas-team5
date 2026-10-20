@@ -472,6 +472,11 @@ sin borrar puntos disponibles ni reinterpretar resultados antiguos.
 
 ## 16. A3.2 · Alcance y validaciones pendientes
 
+**Estado vigente para A3.3, base 75177a2:** A3.2 está integrado por PR #60, con
+extractor y tests existentes. Las previsiones siguientes corresponden al corte
+documental 8024fa7, no a ausencia actual de implementación. Continúan abiertos
+los límites de cobertura, autorización, conservación y futura transición.
+
 [Decisiones A3.2](decisions.md#a32--inventario-legacy-de-solo-lectura--20102026)
 y [contrato](contracts/ecomotor-legacy-inventory-v1.md), aprobación técnica interna.
 Base `8024fa7`: A3.1 integrado por #58, extract_legacy_audit_snapshot todavía
@@ -521,3 +526,31 @@ o puntos adicionales; cualquier futuro requiere confirmación funcional/coordina
 P1, Core/identidad/autorización/conservación, economía, Rewards y restantes contratos
 mantienen sus residuales. No se activan reglas, A2 o escritores ni se modifica S3,
 A3.1/A3.2, Rewards/Bank/Duckies, datos o modelos.
+
+## 18. A3.3 · Pendientes de clasificación persistente
+
+[Aprobación interna](decisions.md#a33--clasificación-persistente-de-perfiles--20102026)
+y [contrato candidato](contracts/ecomotor-profile-classification-v1.md), desarrollo
+de A3-CLAS-01. A3.1 (#58) y A3.2 (#60) integrados; clasificación persistente no
+implementada. S3 V1 conserva su contrato, incluso sin registro de clasificación.
+
+**Resuelto internamente:** procedencia y transición separadas; ausencia de registro
+no clasifica; procedencia confirmada inmutable; revisión monotónica no negativa;
+historial inmutable y clave (profile, operation_key) propia de clasificación;
+repetición compatible y conflicto incompatible; política/evento atómicos D-19.
+Clasificación no autoriza XP ni activa el escritor objetivo.
+
+| Pendiente | Responsable / límite |
+| --- | --- |
+| Reglas puras 01B | Parte A: concretar nombres candidatos LEGACY_V1/NATIVE_V1/NATIVE_TARGET y PENDING_REVIEW/V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED/BLOCKED, matriz de validez, transiciones y autorizaciones antes de servicios. Sin defaults clasificadores. |
+| Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación de primera clasificación sin estado previo y comparación idempotente pendientes. |
+| Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera transaccional segura, primera creación, revisión esperada y detalle replay/revisión. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
+| Core/P5 | Conservación histórica, eliminación/anonimización, on_delete, identidad canónica del operador y autorización confiable del proceso. No resueltos unilateralmente. |
+| Henry/Duckies y consumidores | Transición de catálogo y referencias, causalidad de nuevas evoluciones y consumidores compatibles; no se cambia esquema Duckies. |
+| Pruebas futuras | Ausencia frente a revisión, procedencias/transiciones, inmutabilidad, duplicados/conflictos, revisiones/concurrencia, rollback, evidencia obsoleta/insuficiente, clasificación sin permiso XP, regresión S3 e aislamiento de perfiles/alias/autorizaciones. Sin tests nuevos o ejecutados aquí. |
+| Fases posteriores | Tras reglas puras y acuerdos Core/P5: modelos/migraciones sin backfill automático, servicios/tests, catálogo/causalidad/Duckies, migración autorizada/ensayos/activación global. No permiso por diagnóstico o clasificación. |
+
+P1–P8, R1–R8 e I1–I9 conservan sus residuales; no se cierran por registrar A3.3.
+Inventario integral, datos reales, conservación y activación siguen pendientes.
+No se desbloquean Rewards F2-A, XP de dominio persistente, S13-A2 o economía.
+Se mantiene ATR-OBJ-01: ATK, DEF, VEL, INT, LOG y CUACK, sin reinterpretar V1.

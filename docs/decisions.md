@@ -1126,3 +1126,34 @@ El diseño objetivo sigue sin implementar ni activar; no se activa A2 ni se reab
 [arquitectura](architecture.md#9-arquitectura-objetivo-02c--no-implementada),
 [ERD conceptual](erd/ecomotor.md#14-opciones-jugables--modelos-conceptuales-02c) y
 [pendientes](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
+
+## A3.3 · Clasificación persistente de perfiles · 20/10/2026
+
+**A3.3-ARQ-01, aprobación interna del Equipo 5**, comunicada por Jaime en 02C,
+sobre develop `75177a238fa74d6e1c719d8074d3e4741d607ee0`. Desarrolla A3-CLAS-01;
+DAR3 sigue siendo la autoridad funcional principal. No es aprobación de Core/P5,
+Henry ni del profesor de modelos Django, permisos o despliegue.
+
+Estado vigente: A3.1 integrado por #58 y extractor A3.2 por #60; sus anotaciones
+anteriores de implementación futura conservan su corte histórico. S3 V1 sigue
+como único escritor de XP; A2.1 solo planifica. **A3.3 no está implementado**.
+
+| Decisión | Acuerdo interno / condición |
+| --- | --- |
+| A3.3-PHYS-01 | ProfileProgressionPolicy candidato, OneToOne conceptual con UserProfileEcomotor; profile, origin, transition_state, revision, created_at, updated_at. Separar procedencia/transición; sin tabla, constraint físico, migración u on_delete aprobado. |
+| A3.3-ORIGIN-01 | Procedencia explícita sin default clasificador e inmutable una vez confirmada. LEGACY_V1, NATIVE_V1 y NATIVE_TARGET son valores candidatos; nombres y matriz completa pendientes. |
+| A3.3-STATE-01 | PENDING_REVIEW, V1_VERIFIED, TARGET_PREPARED, TARGET_CONFIRMED y BLOCKED candidatos. Sin registro significa no clasificado, no revisión. No inferir por fecha/nivel/XP/época/especialización/stats/estado jugable ausente. Revisión monotónica no negativa; transiciones/nombres/permisos por concretar y probar. |
+| A3.3-EVENT-01 | ProfileProgressionPolicyEvent candidato e inmutable: perfil, operation_key, acción, estados/revisiones anteriores y posteriores, confirmación y operador autorizado pendiente de Core. UNIQUE(profile, operation_key) conceptual en clasificación; repetición compatible sin efectos y contenido incompatible en conflicto. No sustituye eventos XP/evolución/stats. |
+| A3.3-AUTH-01 | Clasificación, activación global, emisor autorizado y precondiciones XP son garantías distintas. No hay interruptor XP por perfil. TARGET_CONFIRMED no activa objetivo; S3 V1 sigue bajo su contrato incluso sin clasificación hasta corte autorizado, sin escritores contradictorios. |
+| A3.3-LEGACY-01 | A3.2 extrae fotografía y A3.1 evalúa alcance limitado. COMPATIBLE no clasifica/migra/repara ni autoriza XP. Evidencia puede quedar obsoleta por S3; futura clasificación requiere actualidad y frontera segura, sin backfill ni procedencia inventada. |
+| A3.3-TX-01 | Política y evento confirman/revierten juntos: alias común, atomicidad D-19, idempotencia, revisión esperada y rechazo de cambios obsoletos, SQLite BEGIN IMMEDIATE/timeout 5 s. Sin I/O externo ni bloqueo de fila supuesto mediante select_for_update. Sin firmas definitivas. |
+| A3.3-CORE-01 | Conservación, anonimización/eliminación, relaciones/on_delete, identidad del operador y autorización del proceso pendientes de Core/P5; consumidores y Duckies requieren coordinación con Henry. |
+| A3.3-IMP-01 | Documentación → reglas puras/validadores 01B → contratos Core/P5 → modelos/migraciones sin backfill automático tras acuerdos → servicios/tests → catálogo/causalidad/Duckies → migración autorizada, ensayos y activación posterior. Aquí solo documentación. |
+
+[Contrato A3.3](contracts/ecomotor-profile-classification-v1.md) concentra candidatos,
+operación, errores, garantías y tests futuros; [arquitectura](architecture.md#14-a33--clasificación-persistente-de-perfiles),
+[ERD](erd/ecomotor.md#16-a33--política-de-progresión-e-historial-conceptuales) y
+[pendientes](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).
+Sin reinterpretar eventos V1, crear modelos/backfill, clasificar perfiles o activar XP.
+ATR-OBJ-01 y demás decisiones anteriores mantienen su alcance; no se desbloquean
+Rewards F2-A, dominio persistente, S13-A2 o integración económica.
