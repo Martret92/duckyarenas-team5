@@ -1440,3 +1440,26 @@ políticas y contexto. Sin modificar sus documentos/esquemas o asumir sus contra
 A4.2.1 queda para 01B sin BD/efectos, API concreta por definir. Sin código,
 modelos/migraciones, servicios persistentes, tests nuevos/ejecutados o activación.
 S3 V1 sigue único escritor XP; antecedentes conservados.
+
+## A4.3 · Preparación pura de configuraciones objetivo · 21/10/2026
+
+**Aprobación técnica interna Equipo 5 en 02C el 21/10/2026**, sobre develop
+`e612ed5cba8dfcd1e661649ff9f8459b9f4fb7fa`. DAR3 sigue principal; no atribuir al
+profesor aprobación de APIs, cifras, modelos Django o mecanismos de autorización.
+A4.1 (#73/#74) y A4.2/A4.2.1 (#75/#76) integradas; sus previsiones de implementación
+anteriores conservan su valor histórico. A4.3.1 no implementada.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A4.3-PREP-01 | Preparar con definición A4.2.1 válida/inmutable, seis incrementos y presupuesto explícito; reutilizar A4.1 sin duplicar reglas. Propuesta completa canónica/inmutable con opción/catálogo/versiones/bases/reparto/presupuesto/utilizados/restantes/efectivas. Presupuesto independiente y separado; propuesta válida no autoriza ni confirma. |
+| A4.3-BOUNDARY-01 | Separar preparación pura, resolución autorizada por servidor y confirmación persistente propietaria. Versión/contexto cliente, definición válida, presupuesto navegador, bool o propuesta calculada no demuestran autorización. Sin certificados/tokens/contextos físicos o mecanismo definitivo de obtención. |
+| A4.3-VERSION-01 | Preservar opción/catálogo, versiones distintas y seis bases; versiones no acreditan autenticidad. Confirmación futura conservará bases/procedencia según A4.2-SNAPSHOT-01 sin recálculo silencioso; catálogo objetivo separado A3-CAT-01. Sin campos/tablas/relaciones o políticas nuevas. |
+| A4.3-FAIL-01 | Rechazar entradas incompletas/incompatibles/inconsistentes sin efectos, mutación o defaults. Confirmación futura valida vigencia/elegibilidad/referencias/estado en su frontera correspondiente; no se inventa concurrencia/replay/actualización para A4.3.1. |
+
+[Contrato central](contracts/ecomotor-target-stats-preparation-v1.md) concentra
+resultado, fronteras, responsabilidades y tests futuros; [pendientes](pending-decisions.md#27-a43--preparación-y-fronteras-pendientes).
+Firma/errores/resultado concretos del preparador se revisarán en 01B. Óscar conserva
+parámetros funcionales oficiales, Core contexto/políticas/A3.5, Henry apariencia/
+inventario y otros equipos contratos consumidores; ninguno ratificado por inferencia.
+Sin código, persistencia, endpoints o activación; APIs A4.1/A4.2.1 y V1 intactos.
+No se ejecutan nuevos tests Django en esta PR documental. S3 V1 único escritor XP.
