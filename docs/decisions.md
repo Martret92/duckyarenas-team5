@@ -1415,3 +1415,28 @@ sus invariantes. Sin modelos, persistencia, cambios V1 o activación del objetiv
 [pendientes reales](pending-decisions.md#25-a41--parámetros-y-dependencias-del-validador-objetivo):
 bases y presupuesto oficiales, posibles límites adicionales, fuente/versionado,
 consumidores, integración y Core siguen abiertos. **45 no es presupuesto oficial.**
+
+## A4.2 · Configuración autorizada de estadísticas objetivo · 21/10/2026
+
+**Aprobación técnica interna Equipo 5 en 02C el 21/10/2026**, sobre develop
+`13f0c5a2dff0c94b1e81939bfe50d0ed4b73a8e2`. DAR3 conserva autoridad funcional;
+aclaraciones del profesor no aprueban automáticamente estos mecanismos, cifras
+oficiales o esquemas Django. A4.1/NUM-01 integrada por #74, sin cambios de API.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A4.2-SPLIT-01 | Definición de seis bases por opción con referencia/versiones separada del presupuesto inicial fijo autorizado del jugador. Independiente por configuración, no saldo global agotable ni necesariamente campo de cada definición. Puntos pendientes permitidos; sin presupuestos por época/bonificaciones/puntos nuevos de nivel. |
+| A4.2-ID-01 | Distinguir opción objetivo, catálogo objetivo, versión de catálogo y versión de definición, sin igualar ambas versiones. Códigos definitivos pendientes, nombres visibles no obligatorios. A3-CAT-01 preserva catálogo separado de EvolutionStage V1; no tablas/FKs/índices/SQL o migración implícita. |
+| A4.2-TRUST-01 | Estructura válida no acredita autorización funcional. A4.1 y futuro A4.2.1 no certifican procedencia/publicación/vigencia. Frontera servidor posterior con catálogos/Core/E5, sin fuente autorizada implementada; texto/versión cliente o bool declarativo no bastan. |
+| A4.2-SNAPSHOT-01 | Primera configuración futura conserva seis bases autorizadas, referencia/procedencia de definición, incrementos y presupuesto según 02C; no reinterpretar configuraciones al cambiar catálogo. Campos/formato/reglas de actualización/conservación/eliminación pendientes. Sin modelos/eventos nuevos; estado/stats jugables siguen futuros. |
+| A4.2-CONSUME-01 | Consumidores obtienen estadísticas desde Ecomotor: opción efectiva, seis efectivas, configuración/versión y revisión/coherencia pertinentes. Consulta coherente de lectura, sin selección/puntos; permisos/contexto con Core. Sin endpoint/JSON/firma/token/UI definitivos ni autoridad arbitraria del juego. |
+
+[Contrato central A4.2](contracts/ecomotor-target-stats-config-v1.md) concentra
+responsabilidades, A4.1 integrada, A4.2.1 futura, límites y pruebas;
+[pendientes](pending-decisions.md#26-a42--configuración-confianza-y-consumidores-pendientes).
+Ducky físico actual es unívoco por User; opciones Ecomotor no crean múltiples
+Duckies físicos. Henry conserva apariencia/inventario/equipamiento; Core, identidad,
+políticas y contexto. Sin modificar sus documentos/esquemas o asumir sus contratos.
+A4.2.1 queda para 01B sin BD/efectos, API concreta por definir. Sin código,
+modelos/migraciones, servicios persistentes, tests nuevos/ejecutados o activación.
+S3 V1 sigue único escritor XP; antecedentes conservados.

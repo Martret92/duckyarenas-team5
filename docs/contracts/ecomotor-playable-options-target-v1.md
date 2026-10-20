@@ -102,8 +102,14 @@ funcional de Óscar y coordinación con Training; no son requisito operativo act
 
 [A4.1 · Validación pura de estadísticas](ecomotor-target-stats-validation-v1.md)
 precisa claves exactas, bases explícitas, reparto por configuración y cálculo
-bases + incrementos. Diseño no implementado; no fija bases/presupuesto oficiales,
-no sustituye servicios de selección/redistribución ni modifica V1.
+bases + incrementos. A4.1 integrada como módulo puro por PR #74; no fija
+bases/presupuesto oficiales ni implementa selección/redistribución ni modifica V1.
+[A4.2 · Definiciones de estadísticas](ecomotor-target-stats-config-v1.md) separa
+bases por opción del presupuesto fijo autorizado del jugador, con identidades y
+versiones conceptuales. La fuente confiable y autorización funcional corresponden
+a un componente servidor futuro. Conservar bases/referencia/procedencia al confirmar
+configuraciones futuras; catálogo nuevo no reinterpreta las ya confirmadas.
+No se aprueban tablas o servicios persistentes por esta precisión.
 
 ## 4. SVC-OP-01 a 04 · Contratos objetivo
 
