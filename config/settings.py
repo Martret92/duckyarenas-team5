@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'apps.ecomotor.apps.EcomotorConfig',
     'apps.users.apps.UsersConfig',
     'apps.duckies.apps.DuckiesConfig',
+    'apps.bank.apps.BankConfig',
+    'apps.shop.apps.ShopConfig',
 ]
 
 MIDDLEWARE = [
