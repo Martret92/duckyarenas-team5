@@ -397,3 +397,32 @@ al cambiar, pero sus servicios positivos/persistencia pendientes no aparecen por
 esta aprobación. S1/S2-A/S3/S7-A/S11-A/S13-A1/S14-A están integrados; S3 aún concede
 puntos por nivel y S7-A afecta estadísticas globales. Nuevos modelos/servicios
 jugables no existen. Implementación posterior en 01B, sin tocar contratos V1.
+
+## 14. A2 · Dependencias para XP histórica objetivo
+
+[Arquitectura A2](contracts/ecomotor-target-xp-v1.md) y
+[decisiones](decisions.md#a2--arquitectura-de-xp-histórica-objetivo--20102026)
+aprobadas internamente en 02C sobre develop `6a7d1d7`. A1.1/A1.2 están integrados;
+servicio A2 y su primer planificador todavía no existen. S3 continúa vigente con
+puntos por nivel; no se modifica ni se selecciona versión automáticamente.
+
+**Resuelto internamente:** servicio separado, identidad (profile, operation_key)
+sin versión añadida, replay sin catálogos actuales, A1.1/A1.2 para todos los cruces,
+sin puntos por nivel y validación según clasificación sin reparación legacy.
+A2-CT-01 conserva ese alcance; A3-CT-01 sigue siendo compatibilidad/migración.
+
+| Pendiente / puerta de avance | Responsable y condición |
+| --- | --- |
+| A3 · clasificación y escritor | Parte A/Equipo 5: definir clasificación persistente de perfiles nuevos/heredados, decisión confiable de versión y activación coordinada. Ni catalog_version ni A1.1 autorizan producción; no inferir versión por estado ausente. Sin dos escritores contradictorios por perfil. |
+| A3 · compatibilidad y migración | Inventario de datos reales, política de transición de catálogos y correspondencia de etapas/causas; no renombrar historia, reasignar stats/eventos, recalcular XP/niveles o reparar automáticamente legacy. |
+| A3 · resultados/replay entre versiones | Concretar representación y procedencia cuando no están persistidas. XPEvent no guarda versión/nivel/época y EvolutionEvent no guarda atributos originales de etapa. No prometer replay completo; no convertir puntos históricos V1 a cero. Valores 0/None de compatibilidad solo para concesiones objetivo nuevas. |
+| A3 · validación de estadísticas | Especificar invariantes por clasificación antes de la futura escritura; no copiar automáticamente exigencias de CharacterStats V1 ni omitir validación por ausencia de fila. |
+| Core/P5 | Conservación, anonimización/eliminación, relaciones/on_delete e integración de identidad/autorización siguen pendientes. Este diseño no los resuelve ni autoriza migraciones. |
+| Configuración y producción | Valores XP autorizados, instalación real y permiso de uso; snapshot validado no equivale a configuración oficial. P8 continúa abierto. |
+| Incremento puro A2 | Parte A puede diseñar y probar un planificador sobre A1.1/A1.2 con entradas explícitas/sintéticas, sin escritura ni activación. Firma/detalle técnico y pruebas se concretarán en su incremento. No se crea target_xp_plan.py en esta tarea. |
+
+La aprobación A2 no desbloquea concesión positiva de dominio, S13-A2, Rewards F2-A,
+inventario, selección jugable o contratos externos. P1–P8, R1–R8 y Core conservan
+sus cuestiones residuales; A3 es dependencia de persistencia/activación, no excusa
+para activar producción desde un planificador puro. Las pruebas transaccionales,
+rollback/concurrencia e historia entre versiones son futuras, no ejecutadas aquí.

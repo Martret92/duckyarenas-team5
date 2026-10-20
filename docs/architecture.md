@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Actualización A2 · 20/10/2026:** base develop `6a7d1d7`, A1.1 (#52) y A1.2
+(#53) integrados como módulos puros. La [arquitectura A2](#10-a2--adaptación-de-xp-histórica-objetivo)
+aprobada internamente en 02C separa el futuro escritor XP objetivo de S3 V1.
+A2 no está implementado ni activado; clasificación persistente y transición
+pertenecen a A3. Los cortes 02C siguientes conservan su baseline histórica.
+
 **Corte vigente 02C · 20/10/2026:** develop `8401d46` integra S14-A (#50) y
 S13-A1 (#47). La [arquitectura objetivo 02C](#9-arquitectura-objetivo-02c--no-implementada)
 recoge acuerdos internos nuevos, **sin implementación ni activación**. Los cortes
@@ -635,3 +641,40 @@ reparto idéntico y esquema físico; juegos, dominio/rangos y apariencia/inventa
 [Registro residual](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
 La secuencia V1 terminada en Actual sigue operativa; Siglo XX describe el objetivo
 aprobado todavía no activado. Implementación posterior en 01B.
+
+## 10. A2 · Adaptación de XP histórica objetivo
+
+[Decisiones A2](decisions.md#a2--arquitectura-de-xp-histórica-objetivo--20102026)
+aprobadas internamente en 02C, no ratificación del profesor/Core ni requisitos
+técnicos literales de DAR3. [Contrato A2 objetivo](contracts/ecomotor-target-xp-v1.md)
+separado del [contrato S3 V1](contracts/ecomotor-xp-v1.md), que permanece intacto.
+A2-CT-01 es XP histórica sin puntos; A3-CT-01 es compatibilidad/migración/activación.
+
+| Componente | Estado y responsabilidad |
+| --- | --- |
+| A1.1 · PR #52 | [target_catalog_validation.py](../apps/ecomotor/target_catalog_validation.py) valida snapshot objetivo de niveles/épocas; catalog_version identifica datos, no autorización de producción. |
+| A1.2 · PR #53 | [target_progression.py](../apps/ecomotor/target_progression.py) calcula progresión y todos los cruces sobre A1.1, sin puntos, selección o efectos. Nivel 8 no añade época. |
+| S3 V1 | Escritor integrado vigente: interfaz grant_historical_xp, puntos por nivel, validación e idempotencia actuales. No se altera para activar el objetivo. |
+| A2 objetivo | Servicio separado aprobado arquitectónicamente, aún no implementado. Futura escritura XP/nivel/época e historiales causales sin puntos por nivel, D-19 y mismo alias. |
+| Primer incremento A2 | Planificador puro sobre A1.1/A1.2, sin ORM/escrituras/modelos, migraciones ni activación; implementable después en su propio incremento, no creado aquí. |
+| A3 | Debe resolver clasificación persistente nuevos/legacy, catálogos, compatibilidad de resultados/migración y activación coordinada del escritor único. |
+
+La versión de concesión procede de una decisión confiable del servidor. Ni texto
+de versión ni catálogo técnicamente válido habilitan producción; no inferirla por
+nivel/etapa o ausencia de estado. Un perfil no recibe escritores contradictorios.
+
+Identidad (profile, operation_key) compartida sin añadir versión: recuperar lo
+existente sin nuevos catálogos/efectos; importe incompatible es conflicto. XPEvent
+no guarda versión/nivel/época como snapshots y EvolutionEvent no conserva atributos
+históricos de la etapa referenciada. No reconstruir información no persistida ni
+atribuir procedencia por inferencia. En una concesión objetivo nueva compatible,
+stat_points_awarded=0 y available_points_after=None; eso no cambia resultados V1.
+
+La futura aplicación valida perfil, XP/nivel/etapa y estadísticas según
+clasificación, catálogos y causalidad, sin reparación legacy. Crea exactamente el
+XPEvent y las transiciones correspondientes bajo atomic/SQLite IMMEDIATE, timeout
+5 s, constraints y rollback D-19; retry explícito con identidad idéntica.
+No hay garantías entre BD independientes, cambios de configuración reales o I/O
+externo en transacciones. [Bloqueos de persistencia/activación](pending-decisions.md#14-a2--dependencias-para-xp-histórica-objetivo).
+Core/P5, dominio, rangos S13-A2, Rewards F2-A e inventario mantienen sus pendientes.
+Esta actualización solo modifica documentación, sin tests Django ejecutados.
