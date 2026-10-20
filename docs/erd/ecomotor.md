@@ -564,8 +564,10 @@ en sus aspectos pendientes; no se modifica el diagrama físico ni DOC-6.
 ## 14. Opciones jugables · modelos conceptuales 02C
 
 ARQ-OP-01/02/03 y DOC-ERD-01, aprobados internamente por Equipo 5 el 20/10/2026.
-**No implementados:** ni tablas adicionales a las nueve existentes, ni campos
-Django/migraciones/on_delete aprobados. [Contrato objetivo](../contracts/ecomotor-playable-options-target-v1.md)
+**No implementados:** no añaden tablas a las nueve existentes. ARQ-OP-02 aprueba
+internamente un diseño provisional de campos y restricciones para PlayableOption,
+UserPlayableState y UserPlayableStats. No están aprobadas migraciones, relaciones
+físicas definitivas ni políticas on_delete. [Contrato objetivo](../contracts/ecomotor-playable-options-target-v1.md)
 y [decisiones 02C](../decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026).
 Diagrama conceptual adicional, sin sustituir el Mermaid V2 histórico:
 
@@ -574,7 +576,7 @@ erDiagram
     EVOLUTION_STAGE o|--o| PLAYABLE_OPTION : historica_exclusiva
     SPECIALIZATION o|--o| PLAYABLE_OPTION : tecnologica_exclusiva
     USER_PROFILE_ECOMOTOR ||--o| USER_PLAYABLE_STATE : confirma
-    USER_PLAYABLE_STATE ||--o{ USER_PLAYABLE_STATS : conserva
+    USER_PLAYABLE_STATE ||--|{ USER_PLAYABLE_STATS : conserva
     PLAYABLE_OPTION ||--o{ USER_PLAYABLE_STATS : configura
     PLAYABLE_OPTION ||--o{ USER_PLAYABLE_STATE : activa
     USER_PLAYABLE_STATE ||--|{ PLAYABLE_STATS_CHANGE_EVENT : registra
@@ -585,7 +587,8 @@ Cada opción refiere a **exactamente una** EvolutionStage o Specialization,
 nunca ambas ni ninguna; el diagrama no expresa por sí solo ese XOR. Una identidad
 histórica/tecnológica tiene como máximo una opción; catálogos pueden tener filas
 aún sin opción. Perfil tiene cero o un estado explícito; estado confirmado tiene
-una opción activa y configuración propia válida. Cada configuración tiene historia
+una opción activa y al menos una configuración propia válida: primera elección
+y configuración se confirman atómicamente. Cada configuración tiene historia
 desde su confirmación inicial. Cardinalidades conceptuales, no FKs ejecutables.
 
 | Modelo conceptual | Datos previstos | Cardinalidad e invariantes |
@@ -607,7 +610,7 @@ en esta V1 objetivo; futuro requiere confirmación funcional y coordinación.
 
 | Capa | Regla objetivo / estado |
 | --- | --- |
-| Integridad persistente prevista | Un estado por perfil, identidad histórica/tecnológica exclusiva no duplicada; UNIQUE(playable_state, option) y UNIQUE(playable_state, operation_key). Trasladar garantías al esquema futuro, sin elegir campos Django, índices o nombres de constraints. |
+| Integridad persistente prevista | Un estado por perfil, identidad histórica/tecnológica exclusiva no duplicada; UNIQUE(playable_state, option) y UNIQUE(playable_state, operation_key). ARQ-OP-02 aprueba diseño provisional de campos y restricciones de los tres modelos de catálogo/estado/stats; concreción física definitiva, índices y nombres de constraints pendientes, sin migraciones aprobadas. |
 | Invariantes de servicio | Nivel 8/elegibilidad, propiedad, activa con configuración propia válida, suma dentro del presupuesto, estado/revisión esperados, causalidad histórica y atomicidad. No suponer CHECK entre tablas. |
 | Concurrencia | D-19: atomic, alias común, BEGIN IMMEDIATE, timeout 5 s, unicidad/revisión y rollback. Orden replay/revisión y reparto idéntico pendientes, retry explícito posterior. |
 | Pendiente físico Core/P5 | Relaciones y referencias de eventos, conservación/anonimización/eliminación y on_delete; no copiar CASCADE provisional ni aprobar migración por el diagrama. |

@@ -42,13 +42,13 @@ Valores XP pendientes; no hay puntos adicionales de estadísticas por subir de n
 
 | Contrato objetivo | Entrada y precondiciones conceptuales | Resultado y límites |
 | --- | --- | --- |
-| A1 · Progresión (A1-CT-01) | XP anterior/posterior no decreciente, catálogos versionados válidos y correspondencia objetivo. | Nivel/época anteriores y finales y todas las transiciones cruzadas; cálculo sin escritura ni concesión de puntos por nivel. |
-| A2 · Catálogos (A2-CT-01) | Niveles, siete épocas, umbrales y versión del sistema cuya activación se valida. | Comprobar orden y coincidencia de umbrales niveles 1–7; elección en nivel 8 separada de evolución. Compatibilidad V1 hasta activación coordinada, sin renombrar historia para simular migración. |
-| A3 · Concesión (A3-CT-01) | Perfil persistido, XP positiva, identidad idempotente y configuración autorizada del sistema activo. Referencia actual: grant_historical_xp(profile, amount, operation_key). | Adaptación futura conserva XP, niveles, todas las evoluciones, atomicidad e idempotencia; deja de conceder puntos nuevos por nivel. Revisar explícitamente compatibilidad de stat_points_awarded y available_points_after heredados; no modificar S3 ahora. |
+| A1 · Progresión y validación (A1-CT-01) | XP anterior/posterior no decreciente, catálogos versionados válidos y correspondencia objetivo. | Nivel/época anteriores y finales y todas las transiciones cruzadas; cálculo sin escritura ni concesión de puntos por nivel. |
+| A2 · Adaptación de XP histórica (A2-CT-01) | Perfil persistido, XP positiva, identidad idempotente y configuración autorizada del sistema activo. Referencia actual: grant_historical_xp(profile, amount, operation_key). | Adaptación futura conserva XP, niveles, todas las evoluciones, atomicidad e idempotencia; deja de conceder puntos nuevos por nivel. Revisar explícitamente compatibilidad de stat_points_awarded y available_points_after heredados; no modificar S3 ahora. |
+| A3 · Compatibilidad de catálogos y transición (A3-CT-01) | Niveles, siete épocas, umbrales y versión del sistema cuya activación se valida. | Comprobar orden y coincidencia de umbrales niveles 1–7; elección en nivel 8 separada de evolución. Compatibilidad V1, inventario y clasificación legacy antes de migración y activación coordinada, sin renombrar historia para simular migración. |
 
 Errores: XP/entradas inválidas, configuración/catálogos incompatibles, perfil
-incoherente, conflicto idempotente o BD; sin reparación automática. A1/A2 no
-conceden efectos; A3 confirma/revierte perfil e historiales conjuntamente bajo
+incoherente, conflicto idempotente o BD; sin reparación automática. A1/A3 no
+conceden efectos; A2 confirma/revierte perfil e historiales conjuntamente bajo
 D-19, con retry explícito en nueva transacción. No reconstruir resultados antiguos
 con nueva configuración ni tratar un cálculo como concesión confirmada.
 
@@ -108,12 +108,16 @@ Validación estructural no autentica.
 
 ### SVC-OP-02 · Cambio de Ducky
 
-- Entrada: jugador, configuración destino existente y estado esperado.
-- Comprobar propiedad, configuración válida y estado esperado; activar destino.
+- Entrada: jugador, configuración destino existente y revisión esperada del estado.
+- Comprobar propiedad, configuración válida y revisión esperada antes de resolver
+  repetición. Si es obsoleta, rechazar incluso cuando el objetivo ya esté activo.
+- Con revisión coincidente y destino ya activo, devolver el estado existente sin
+  escrituras. Para un cambio efectivo, activar la configuración destino.
 - Resultado: opción/configuración activas y estado relevante; no altera stats
   guardadas, XP histórica, nivel, etapa, dominio o rangos.
 - No configurar destinos nunca usados ni generar evento de redistribución.
-  Detalle de repetición por especificar, sin prometer replay histórico de cambios.
+  La semántica de revisión/repetición está aprobada; solo queda concretar su
+  implementación técnica. No prometer replay histórico completo tras A → B → A.
 
 ### SVC-OP-03 · Estadísticas efectivas
 
@@ -160,7 +164,8 @@ BD independientes. SVC-OP-03 es lectura; no se le atribuye identidad de concesi�
 
 ## 6. Compatibilidad y activación coordinada
 
-COMP-01/A3-CT-01/ORD-OP-01/PLAN-OP-01 distinguen:
+A3-CT-01, junto con COMP-01/ORD-OP-01/PLAN-OP-01, regula compatibilidad,
+migración legacy y activación coordinada. Distinguen:
 
 1. Nueve épocas de DAR3 original.
 2. Siete etapas V1 terminadas en Actual, stats globales, puntos por nivel y
@@ -197,4 +202,6 @@ por juegos, dominio autorizado, S13-A2, activación conjunta y apariencia/vestim
 inventario con Henry. Cuack requiere aclaración de Óscar.
 Elegir históricos, nivel 8, significado SPE y redistribución gratuita/ilimitada
 están aprobados internamente, sin reabrirse. Rewards F2-A sigue bloqueado según
-sus dependencias. No se aprueban baremos de juegos ni modelos físicos.
+sus dependencias. ARQ-OP-02 sí aprueba el diseño provisional de campos y restricciones de
+PlayableOption, UserPlayableState y UserPlayableStats; no migraciones, relaciones
+físicas definitivas ni on_delete. No se aprueban baremos de juegos.
