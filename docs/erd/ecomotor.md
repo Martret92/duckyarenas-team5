@@ -715,3 +715,37 @@ A3.1 y A3.2 están integrados (#58/#60), sin clasificar o migrar. COMPATIBLE tie
 alcance limitado; la evidencia puede quedar obsoleta y debe validarse con actualidad
 suficiente. No hay backfill, reparación ni procedencia inventada de eventos V1.
 Se conservan los historiales existentes y la nomenclatura objetivo ATR-OBJ-01.
+
+## 17. A3.4 · Dirección física candidata de clasificación
+
+[A3.4-ARQ-01](../decisions.md#a34--dirección-de-persistencia-de-clasificación--20102026)
+y [persistencia candidata](../contracts/ecomotor-classification-persistence-v1.md)
+precisan §16 después de #66. Su indicación anterior de matriz pendiente es corte
+histórico: matriz/protocolo y reglas puras están integrados, no tablas o servicio.
+No altera recuento físico, diagramas anteriores o modelos existentes.
+
+Ubicación objetivo apps.ecomotor/E5, relación conceptual con users.UserProfileEcomotor.
+ProfileProgressionPolicy conserva los datos de §16 con revisión positiva y sin
+defaults clasificadores. Máximo una política por perfil; ausencia no clasifica.
+
+ProfileProgressionPolicyEvent candidato: profile, operation_key, action, origin,
+target_state, expected_revision, incident_reference, blocking_operation_key,
+before_state, before_revision, after_state, after_revision, confirmed_at y operador
+pendiente Core/P5. Debe reconstruir ClassificationRequest, before=None o
+PolicySnapshot, after y ConfirmedClassificationEvent de la API pura #66.
+Ausencia previa real, no revisión cero; estado previo de bloqueo inequívoco,
+sin elegir FK física al bloqueo. Origen inmutable no se reconstruye desde datos vivos.
+
+UNIQUE(profile, operation_key) es garantía conceptual aprobada. Evaluar adicional
+UNIQUE(profile, after_revision) como **propuesta física no definitiva**: evita
+colisiones de revisión, no prueba continuidad, causalidad o atomicidad. Campos
+explícitos recomendados provisionalmente frente a JSON/hash/solo eventos; tipos,
+longitudes, nulidad, colaciones, relaciones/constraints SQL/on_delete no cerrados.
+La API pura no impone límites físicos especulativos: analizar representabilidad.
+
+[Consulta Core/P5](../contracts/ecomotor-classification-core-boundary-v1.md) bloquea
+el cierre del esquema donde afecta conservación, identidad y relaciones; no hay
+contratos externos ratificados ni migraciones autorizadas. El servicio futuro
+requiere además evidencia suficiente en transacción, permisos y confirmación
+conjunta política/evento D-19. A3.2 permanece intacto, sin extracción anidada.
+[Puertas pendientes](../pending-decisions.md#19-a34--puertas-de-persistencia-y-servicio).

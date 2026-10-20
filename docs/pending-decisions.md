@@ -546,7 +546,8 @@ revision inicial 1 y aumento de 1 por transición nueva; replay no muta ni crea 
 [Contrato §3.1–§3.4](contracts/ecomotor-profile-classification-v1.md#31-matriz-aprobada--a33-matrix-01).
 No se permiten otras transiciones nuevas ni BLOCKED → BLOCKED; replay de bloqueo
 confirmado conserva idempotencia. TARGET_CONFIRMED no activa XP y BLOCKED no
-sustituye controles globales. No son reglas ya implementadas o permisos externos.
+sustituye controles globales. En ese corte aún no estaban implementadas; PR #66
+integra ahora las reglas puras, sin permisos externos ni persistencia.
 
 **Protocolo conceptual resuelto tras PR #64:** [A3.3-CONTENT-01, REV-PROTOCOL-01 y REPLAY-PROTOCOL-01](decisions.md#a33--contenido-revisión-y-replay--20102026).
 Contenido original comparable estricto, None distinto de 0, evento histórico primero
@@ -557,7 +558,7 @@ La resolución no aprueba el formato persistente ni la vigencia de evidencia leg
 
 | Pendiente | Responsable / límite |
 | --- | --- |
-| Reglas puras 01B | Parte A: implementar y probar la matriz interna aprobada, primeras clasificaciones por procedencia, recuperación válida/inválida, procedencia inmutable, revisiones y protocolo aprobado: igualdad estricta/contenidos distintos, None frente a 0, revisión correcta/obsoleta, replay con revisión posterior y bloqueo recuperado, historia insuficiente/incoherente y preservación del estado/revisión. Sin defaults ni clasificaciones reales; autorización externa sigue pendiente. |
+| Reglas puras 01B · integrado #66 | profile_classification_rules.py y sus tests ya integrados en 8b6b0f7: matriz, contenido, revisiones y replay sobre datos aportados. No hay persistencia, autorización, evidencia actual de BD o clasificación real. Las previsiones anteriores son antecedentes; este PR no vuelve a ejecutar sus tests. |
 | Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación persistente definitiva de solicitudes/eventos/relaciones, ausencia previa y vínculo inequívoco al bloqueo; mecanismo físico de conservación/comparación pendientes. Primera clasificación sin estado previo y revision=1 ya acordadas conceptualmente. |
 | Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera técnica segura para validar esa evidencia. Contenido/revisión/replay ya resueltos conceptualmente; falta representación física, no una nueva elección de orden. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
 | Core/P5 | Conservación histórica, eliminación/anonimización, on_delete, identidad canónica del operador, tratamiento canónico de su participación en comparación y autorización confiable del proceso. No resueltos unilateralmente. |
@@ -569,3 +570,32 @@ P1–P8, R1–R8 e I1–I9 conservan sus residuales; no se cierran por registrar
 Inventario integral, datos reales, conservación y activación siguen pendientes.
 No se desbloquean Rewards F2-A, XP de dominio persistente, S13-A2 o economía.
 Se mantiene ATR-OBJ-01: ATK, DEF, VEL, INT, LOG y CUACK, sin reinterpretar V1.
+
+## 19. A3.4 · Puertas de persistencia y servicio
+
+[Decisión interna](decisions.md#a34--dirección-de-persistencia-de-clasificación--20102026),
+[contrato candidato](contracts/ecomotor-classification-persistence-v1.md) y
+[consulta Core/P5 no ratificada](contracts/ecomotor-classification-core-boundary-v1.md).
+Reglas puras #66 integradas; políticas/eventos persistentes y servicio no implementados.
+
+**Dirección aprobada:** modelos candidatos E5/apps.ecomotor, política por perfil
+con revisión positiva y evento inmutable reconstruible; identidad por operación,
+transacción D-19 conjunta y lector interno específico para evidencia vigente.
+No implica aprobación de modelos/migraciones, backfill o autorizaciones externas.
+
+| Pendiente | Bloqueo y responsable |
+| --- | --- |
+| Esquema definitivo | Parte A con acuerdos Core/P5: tipos, longitudes, nulidad, colaciones, FKs/constraints SQL, representación exacta de request/before/after y ausencia previa. Analizar límites de claves/revisiones frente a API pura sin máximos especulativos. Bloquea modelos/migraciones finales. |
+| Restricción de revisión | UNIQUE(profile, after_revision) propuesta, no definitiva: evaluar ventajas/limitaciones e historia. No reemplaza identidad aprobada (profile, operation_key), cadena válida o atomicidad. |
+| CORE-A3.3-IDENTITY | Operador canónico y representación; participación en comparación original. Bloquea cierre de campos/relaciones/evidencia y atribución del servicio; no elegir FK o política por inferencia. |
+| CORE-A3.3-LIFECYCLE/RETENTION/PRIVACY | Conservación, eliminación/anonimización y on_delete de User/perfil/política/eventos/claves/incidencias. Bloquean esquema/migraciones y operación con garantías históricas. CASCADE/PROTECT/identidad histórica separada son alternativas sin elección. |
+| CORE-A3.3-AUTH | Permisos para inicial/transición/bloqueo/recuperación/replay y procesos internos: bloquean servicio. Si exigen datos nuevos, revisar también esquema; no son aprobación de acceso por conocer una clave. |
+| Evidencia y cobertura por transición | Parte A/propietarios: concretar lector interno transaccional y verificaciones de V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED, incluidas dependencias fuera del auditor/extractor. Bloquea servicio; no basta fotografía previa ni COMPATIBLE. No anidar A3.2. |
+| Henry/consumidores | Catálogo, causalidad, referencias e integración/ensayos siguen pendientes; dirección local no ratifica cambios Duckies. |
+| Pruebas futuras | OneToOne, unicidades (revisión solo si aprobada), constraints/representabilidad, reconstrucción exacta, ausencia previa, replay sin mutación, conflicto/bloqueo/recuperación, concurrencia, rollback/timeout, evidencia, perfiles/aliases, autorización/retención/eliminación y regresión S3 sin backfill/XP objetivo. |
+
+Secuencia orientativa: A3.4 documental → Core/P5 → evidencia/cobertura →
+modelos/migraciones tras acuerdos sin backfill → servicio/tests → integración y
+ensayos → migración/activación global autorizadas. No calendario ni permiso actual.
+S3 V1 sigue como único escritor; no desbloquear Rewards F2-A, dominio persistente,
+S13-A2, inventario o economía. P1–P8, R1–R8 e I1–I9 conservan sus residuales.
