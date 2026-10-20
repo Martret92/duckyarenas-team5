@@ -1157,3 +1157,30 @@ operación, errores, garantías y tests futuros; [arquitectura](architecture.md#
 Sin reinterpretar eventos V1, crear modelos/backfill, clasificar perfiles o activar XP.
 ATR-OBJ-01 y demás decisiones anteriores mantienen su alcance; no se desbloquean
 Rewards F2-A, dominio persistente, S13-A2 o integración económica.
+
+## A3.3 · Matriz, recuperación y revisiones · 20/10/2026
+
+**Aprobación técnica interna del Equipo 5 en 02C**, posterior a la PR #63,
+sobre develop `b913bf88ee205d87fb7a0a9e11573123028ebfd1`. Precisa A3.3-STATE-01
+y A3.3-TX-01; no es nueva exigencia literal DAR3 ni aprobación de Core/P5.
+La decisión A3.3 anterior conserva su significado histórico: entonces la matriz
+estaba pendiente; ahora se documenta su resolución interna, sin implementación.
+
+| Identificador | Acuerdo y alcance |
+| --- | --- |
+| A3.3-MATRIX-01 | Aprobar la matriz y primeras clasificaciones del contrato §3.1–§3.2: legacy sin registro → PENDING_REVIEW; PENDING_REVIEW → V1_VERIFIED → TARGET_PREPARED → TARGET_CONFIRMED con las condiciones autorizadas de cada paso. Alta NATIVE_V1 únicamente confiable/verificada en V1_VERIFIED; NATIVE_TARGET únicamente tras activación global y alta objetivo válida en TARGET_CONFIRMED. No inferir procedencia/estado ni cambiar procedencia confirmada. Todas las demás transiciones nuevas se rechazan, incluido retroceso TARGET_CONFIRMED → V1_VERIFIED. |
+| A3.3-RECOVERY-01 | Cualquier estado registrado distinto de BLOCKED puede bloquearse por incidencia justificada y acción autorizada. Recuperación explícita solo al estado inmediatamente anterior al bloqueo, con nueva validación y evidencia inequívoca en el evento. No alterar/borrar el bloqueo. BLOCKED → BLOCKED prohibido como operación nueva; replay de bloqueo confirmado conserva idempotencia. |
+| A3.3-REV-01 | Primera clasificación revision=1, ausencia de estado anterior sin inventar historia. Cada transición nueva confirmada suma 1 y registra evento propio. Replay compatible sin mutación/revisión/evento nuevo; identidad conceptual (profile, operation_key) de clasificación. Orden preciso de contenido/revisión/replay pendiente antes de servicios, con D-19 e idempotencia intactos. |
+
+[Matriz y condiciones completas](contracts/ecomotor-profile-classification-v1.md#31-matriz-aprobada--a33-matrix-01)
+centralizan el detalle, sin duplicar un contrato físico. TARGET_CONFIRMED no activa
+XP; BLOCKED no sustituye controles globales de activación/suspensión. Evidencia
+A3.2/COMPATIBLE A3.1 no autoriza clasificación/migración y su vigencia transaccional
+sigue pendiente de protocolo. No backfill, reparación, migración o clasificación real.
+
+Tests puros futuros 01B: matriz permitida/prohibida, altas por procedencia,
+recuperación válida/inválida, procedencia inmutable, revisiones, replay y conflicto.
+Concurrencia/rollback/idempotencia persistente se probarán en servicio Django futuro
+tras dependencias Core/P5. Sin código/tests nuevos ni ejecución de tests Django.
+[Pendientes](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente).
+ATR-OBJ-01, S3 V1 y los demás acuerdos no afectados permanecen intactos.

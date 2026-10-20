@@ -540,14 +540,22 @@ historial inmutable y clave (profile, operation_key) propia de clasificación;
 repetición compatible y conflicto incompatible; política/evento atómicos D-19.
 Clasificación no autoriza XP ni activa el escritor objetivo.
 
+**Precisión posterior a PR #63:** [matriz, recuperación y revisiones aprobadas](decisions.md#a33--matriz-recuperación-y-revisiones--20102026)
+resuelven el grafo permitido, altas por procedencia, recuperación al estado previo,
+revision inicial 1 y aumento de 1 por transición nueva; replay no muta ni crea eventos.
+[Contrato §3.1–§3.4](contracts/ecomotor-profile-classification-v1.md#31-matriz-aprobada--a33-matrix-01).
+No se permiten otras transiciones nuevas ni BLOCKED → BLOCKED; replay de bloqueo
+confirmado conserva idempotencia. TARGET_CONFIRMED no activa XP y BLOCKED no
+sustituye controles globales. No son reglas ya implementadas o permisos externos.
+
 | Pendiente | Responsable / límite |
 | --- | --- |
-| Reglas puras 01B | Parte A: concretar nombres candidatos LEGACY_V1/NATIVE_V1/NATIVE_TARGET y PENDING_REVIEW/V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED/BLOCKED, matriz de validez, transiciones y autorizaciones antes de servicios. Sin defaults clasificadores. |
-| Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación de primera clasificación sin estado previo y comparación idempotente pendientes. |
-| Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera transaccional segura, primera creación, revisión esperada y detalle replay/revisión. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
+| Reglas puras 01B | Parte A: implementar y probar la matriz interna aprobada, primeras clasificaciones por procedencia, recuperación válida/inválida, procedencia inmutable, revisiones, replay compatible y conflicto de clave. Sin defaults ni clasificaciones reales; autorización externa sigue pendiente. |
+| Modelo físico | Parte A/Core/P5: campos/tipos/relaciones/constraints definitivos de ProfileProgressionPolicy y ProfileProgressionPolicyEvent; sin tabla o migración aprobadas. Representación física de ausencia previa y evidencia inequívoca de estado anterior al bloqueo; comparación idempotente pendientes. Primera clasificación sin estado previo y revision=1 ya acordadas conceptualmente. |
+| Evidencia y protocolo | Parte A: actualidad/suficiencia de evidencia mientras S3 escribe, frontera transaccional segura y protocolo técnico de creación/comparación de contenido/revisión esperada/replay, sin rebajar acuerdos de revisiones o idempotencia. A3.2 rechaza transacción exterior; no presuponer extracción anidada ni que COMPATIBLE autoriza clasificar. |
 | Core/P5 | Conservación histórica, eliminación/anonimización, on_delete, identidad canónica del operador y autorización confiable del proceso. No resueltos unilateralmente. |
 | Henry/Duckies y consumidores | Transición de catálogo y referencias, causalidad de nuevas evoluciones y consumidores compatibles; no se cambia esquema Duckies. |
-| Pruebas futuras | Ausencia frente a revisión, procedencias/transiciones, inmutabilidad, duplicados/conflictos, revisiones/concurrencia, rollback, evidencia obsoleta/insuficiente, clasificación sin permiso XP, regresión S3 e aislamiento de perfiles/alias/autorizaciones. Sin tests nuevos o ejecutados aquí. |
+| Pruebas futuras | Validadores puros 01B según fila anterior. Concurrencia, rollback e idempotencia persistente del futuro servicio Django tras dependencias Core/P5; evidencia obsoleta/insuficiente, clasificación sin permiso XP, regresión S3 y aislamiento de perfiles/alias/autorizaciones siguen por verificar. Sin tests nuevos o ejecutados aquí. |
 | Fases posteriores | Tras reglas puras y acuerdos Core/P5: modelos/migraciones sin backfill automático, servicios/tests, catálogo/causalidad/Duckies, migración autorizada/ensayos/activación global. No permiso por diagnóstico o clasificación. |
 
 P1–P8, R1–R8 e I1–I9 conservan sus residuales; no se cierran por registrar A3.3.

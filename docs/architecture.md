@@ -854,8 +854,20 @@ Son dos modelos candidatos, sin tablas, constraints físicos ni migraciones apro
 
 La operación futura confirma política e historial juntos bajo D-19, mismo alias,
 IMMEDIATE/timeout 5 s, revisión esperada, idempotencia y rollback íntegro; sin I/O
-externo ni bloqueo de fila supuesto en SQLite. Estados y procedencias candidatos,
-matriz/transiciones y detalle del protocolo requieren concreción previa al código.
+externo ni bloqueo de fila supuesto en SQLite. La precisión posterior
+[A3.3-MATRIX-01/RECOVERY-01/REV-01](decisions.md#a33--matriz-recuperación-y-revisiones--20102026)
+aprueba internamente matriz, altas iniciales, recuperación y revisiones; no su
+implementación. [Detalle canónico](contracts/ecomotor-profile-classification-v1.md#31-matriz-aprobada--a33-matrix-01).
+
+Primera clasificación legacy en PENDING_REVIEW; pasos autorizados a V1_VERIFIED,
+TARGET_PREPARED y TARGET_CONFIRMED según condiciones del contrato. Altas nativas
+V1 requieren alta confiable/verificada; nativas objetivo solo tras activación global
+y alta válida. Bloqueo por incidencia justificada desde cualquier estado salvo
+BLOCKED; recuperación explícita al estado previo con nueva validación e historial
+conservado. Resto de transiciones nuevas prohibidas, incluido retroceso de
+TARGET_CONFIRMED a V1_VERIFIED y BLOCKED a BLOCKED (distinto de replay).
+Primera revisión 1; cada transición confirmada suma 1 y crea evento; replay no muta.
+Orden técnico contenido/revisión/replay y vigencia de evidencia siguen pendientes.
 
 A3.2 extrae evidencia y A3.1 evalúa un subconjunto; COMPATIBLE no clasifica,
 repara, migra o autoriza XP. S3 puede volver obsoleta una fotografía. Acordar cómo
@@ -864,6 +876,7 @@ rechaza transacción exterior. Una clasificación TARGET_CONFIRMED no activa XP:
 clasificación, corte global autorizado, emisor confiable y precondiciones XP son
 controles distintos. S3 V1 sigue activo incluso sin registro A3.3 hasta corte
 autorizado; no existen dos escritores habilitados por esta arquitectura.
+BLOCKED tampoco sustituye los controles globales de activación o suspensión XP.
 
 [Pendientes A3.3](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente):
 Core/P5 para conservación, anonimización/eliminación, relaciones/on_delete,
