@@ -623,3 +623,27 @@ Replay mantiene A3.3 sin repetir verificaciones de elegibilidad nueva.
 P1–P8, R1–R8 e I1–I9 mantienen sus residuales. No se activa escritor objetivo,
 ni se concede XP ni se crean clasificaciones/backfills por documentar A3.6. S3 V1
 sigue activo y TARGET_CONFIRMED no lo sustituye automáticamente.
+
+## 21. A3.6.1 · Límites de verificación local V1
+
+[A3.6.1-V1-LOCAL-01](decisions.md#a361--verificaciones-locales-v1--20102026),
+aprobación interna Equipo 5 sobre `959b102`, concreta parcialmente
+[la matriz local](contracts/ecomotor-classification-evidence-v1.md#71-matriz-de-evidencia-código-existente-y-límites).
+
+**Resuelto documentalmente:** siete grupos de evidencia local y sus fuentes,
+diferenciando validaciones existentes de comprobaciones posibles aún sin lector.
+Resultados conceptuales superada/insuficiente/incoherente, no cambios de estados
+o enums. No se aprueba convertir COMPATIBLE o éxito local en V1_VERIFIED.
+
+| Pendiente | Responsable / límite |
+| --- | --- |
+| Historia XP y puntos | Parte A: acreditar completitud de concesiones antiguas y origen/gasto de puntos cuando falten eventos. Snapshots locales y extremo XP observado no prueban toda la cadena; no inventar historia ni invalidar todas las observaciones por insuficiencia parcial. |
+| Historia de etapas/especializaciones | Parte A: EvolutionStage no conserva atributos antiguos en EvolutionEvent; estado actual/progresos no acreditan toda la historia de selección, dominio o rangos. No reconstrucción con catálogos actuales o eventos ficticios. |
+| Procedencia y suficiencia V1_VERIFIED | Proceso confiable y propietarios: LEGACY_V1/NATIVE_V1 no se infieren de fechas/XP; cobertura final exigible sigue abierta. Matriz local no autoriza clasificación o migración. |
+| Lector y vigencia | Parte A: API/consultas finales y comprobaciones de lectura dentro de transacción confirmatoria D-19, no servicios escritores usados como auditoría. Fotografía A3.2 previa insuficiente para vigencia; sin extracción anidada. Replay A3.3 intacto. |
+| Henry/Duckies | Referencias completas de inventario/vestimenta y consumidores fuera de verificación local Ecomotor; coordinación pendiente. |
+| A3.5 · Óscar/Core | Identidad, autorización, retención, privacidad y on_delete siguen abiertos; consulta sin cambios o respuestas inventadas. |
+| Pruebas futuras | Perfiles existentes/ausentes, stats inválidas/ausentes, XP duplicada/incoherente, causas ajenas, progreso incompatible con catálogo aplicable, gasto coherente/historia insuficiente, selección/progreso, vigencia tras S3 y replay sin nueva elegibilidad. Sin escrituras, reparación, backfill o activación objetivo. No implementadas ni ejecutadas aquí. |
+
+P1–P8, R1–R8 e I1–I9 y los bloqueos de esquema/integración conservan sus residuales.
+Sin cambios de código, catálogos oficiales, datos o escritor XP: S3 V1 sigue activo.
