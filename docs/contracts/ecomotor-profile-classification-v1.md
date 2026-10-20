@@ -376,3 +376,19 @@ garantiza coherencia perpetua. Nueva transición requiere evidencia vigente y pe
 propios; BLOCKED exige operación autorizada, no diagnóstico automático.
 Matriz, altas, revisión/idempotencia y replay histórico A3.3 intactos; A3.6.2 sigue
 conceptual y A3.2 no se anida. S3 V1 único escritor, sin activación o migraciones.
+
+## 13. A3.6.4 · Lagunas y equivalencia todavía condicionada
+
+[Marco central A3.6.4](ecomotor-classification-evidence-v1.md#10-a364--lagunas-históricas-y-garantías-alternativas)
+exige evaluar lagunas individualmente y acreditar la misma condición obligatoria
+para estudiar una garantía alternativa. No aprueba fuentes, equivalencias concretas,
+lista de lagunas admisibles o suficiencia final V1_VERIFIED.
+Sin prueba obligatoria ni alternativa expresamente admitida/suficiente, o ante
+incoherencia impeditiva, rechazar avance conservando estado/revisión/historial sin
+nuevo evento confirmado; no bloquear automáticamente ni reparar.
+
+Una laguna sin impacto obligatorio solo podría no impedir avance conforme a una
+política aprobada. Uso alternativo futuro debe justificar condición, fuente,
+procedencia, alcance, tiempo, resultado y límites sin aprobar formatos físicos.
+A3.3/replay, lector D-19/A3.6.2 y A3.2 separado intactos; A3.5/Core/Henry pendientes.
+Sin clasificación real o migración. S3 V1 sigue único escritor XP.
