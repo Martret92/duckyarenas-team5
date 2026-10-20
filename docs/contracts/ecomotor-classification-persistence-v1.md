@@ -196,3 +196,20 @@ API/consultas del lector y cobertura verificable por transición siguen pendient
 A3.2 intacto y sin invocación anidada; A3.5 continúa abierto, sin ratificar las
 cinco preguntas de la consulta Core/P5. No se modifica esquema, relaciones,
 constraints propuestos o pruebas existentes ni se activa el escritor objetivo.
+
+## 10. A3.6.2 · Lector dentro de la transacción del servicio
+
+[Contrato canónico A3.6.2](ecomotor-classification-evidence-v1.md#8-a362--contrato-conceptual-del-lector-transaccional-v1)
+precisa el lector específico de §7 sin implementarlo. El servicio controla D-19;
+el lector no abre/confirma/cierra transacción propia, no escribe ni usa servicios
+escritores, otro alias, I/O externo o A3.2 anidado. in_atomic_block no acredita
+por sí solo el contexto correcto; mecanismo confiable aún pendiente.
+
+Entradas conceptuales: perfil, alias autorizado, plan servidor y contexto
+transaccional. Resultado inmutable propuesto con comprobaciones solicitadas y
+realizadas, cobertura/limitaciones y diagnósticos; sin certificación global o
+V1_VERIFIED. Fallos de lectura no se convierten en cobertura completa. Se distingue
+error que aborta lectura de diagnóstico representable tras comprobación completa.
+Evento histórico se resuelve antes: replay no invoca verificaciones de elegibilidad
+nueva. Siguen pendientes API/formato, cobertura suficiente y A3.5/Core/Henry;
+no cambia esquema, reglas puras, S3 o la consulta Core/P5.

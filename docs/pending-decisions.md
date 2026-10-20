@@ -647,3 +647,24 @@ o enums. No se aprueba convertir COMPATIBLE o éxito local en V1_VERIFIED.
 
 P1–P8, R1–R8 e I1–I9 y los bloqueos de esquema/integración conservan sus residuales.
 Sin cambios de código, catálogos oficiales, datos o escritor XP: S3 V1 sigue activo.
+
+## 22. A3.6.2 · Detalle del lector y dependencias
+
+[Cuatro decisiones internas](decisions.md#a362--contrato-del-lector-transaccional-v1--20102026)
+y [contrato canónico](contracts/ecomotor-classification-evidence-v1.md#8-a362--contrato-conceptual-del-lector-transaccional-v1).
+Resuelto como dirección: lector sin escrituras dentro de transacción del servicio;
+perfil/alias/plan servidor/contexto como entradas, resultado inmutable propuesto
+con cobertura explícita y distinción fallo/diagnóstico. No implementado ni API fija.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| Contexto y API | Parte A: mecanismo que acredite frontera controlada por servicio, no solo in_atomic_block; parámetros/tipos/consultas definitivos sin tokens o clases aprobados aquí. Alias/plan autorizados por servidor, sin omisiones elegidas por cliente. |
+| Resultado/errores | Parte A: representación inmutable, solicitado/realizado, cobertura/limitaciones y diagnósticos; excepciones finales y exposición mínima autorizada. Fallo técnico aborta lectura, nunca falso éxito; ausencia histórica puede ser insuficiencia, no corrupción demostrada. |
+| Suficiencia y procedencia | Cobertura final V1_VERIFIED, evidencia verificable por operación y procedencia confiable siguen abiertas con propietarios. Siete grupos locales no son chequeo universal ni autorización de catálogo objetivo/migración/corte. |
+| A3.5 · Core/P5 | Cinco preguntas de identidad, autorización, ciclo de vida, retención y privacidad sin responder/ratificar; on_delete y participación del operador pendientes. Consulta intacta. |
+| Henry y consumidores | Referencias Duckies/inventario y contratos de integración siguen pendientes; lector V1 no los valida integralmente. |
+| Pruebas futuras | Contexto dentro/fuera, alias autorizado/ajeno, perfiles, cobertura parcial/insuficiente, diagnóstico frente a fallo, timeout/rollback, causalidad cruzada sin datos ajenos, concurrencia S3, replay sin nueva elegibilidad y ausencia de escrituras/reparación/backfill/XP objetivo. No creadas ni ejecutadas aquí. |
+
+Evento primero/replay autorizado A3.3 intactos; lector no participa en elegibilidad
+actual de replay válido ni decide transiciones. S3 V1 sigue único escritor. P1–P8,
+R1–R8 e I1–I9 y puertas físicas/externas conservan sus residuales.

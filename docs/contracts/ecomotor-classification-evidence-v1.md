@@ -190,3 +190,114 @@ actuales incompatibles con XP/catálogo aplicable; gasto coherente frente a hist
 insuficiente; selección/progreso incompatibles; cambios S3 entre diagnóstico y
 verificación; replay sin nueva elegibilidad; ausencia de escrituras, reparación,
 backfill o activación XP objetivo. No se crean ni ejecutan tests Django aquí.
+
+## 8. A3.6.2 · Contrato conceptual del lector transaccional V1
+
+A3.6.2-READER-01, INPUT-01, RESULT-01 y ERROR-01, aprobadas internamente por
+Equipo 5 en 02C, documentadas el 20/10/2026 sobre develop
+`1c03e6493ae871e08243eccbcfe154b724a106a9`. Desarrollan A3.6/A3.6.1; DAR3 sigue
+principal, sin atribuir decisiones técnicas o ratificación a Óscar/Core o Henry.
+[Registro](../decisions.md#a362--contrato-del-lector-transaccional-v1--20102026)
+y [pendientes](../pending-decisions.md#22-a362--detalle-del-lector-y-dependencias).
+**Contrato conceptual, lector no implementado y sin API Python definitiva.**
+
+### 8.1. Responsabilidad transaccional · A3.6.2-READER-01
+
+El futuro servicio de clasificación controla la transacción D-19. El lector
+trabaja dentro de esa misma frontera: no abre, confirma o cierra una transacción
+propia, no sale del alias confiable ni invoca servicios capaces de escribir.
+No modifica perfiles/eventos/catálogos/stats, no invoca A3.2 anidado y no hace
+I/O externo. Operación nueva verifica evidencia antes de confirmar política/evento.
+
+Mismo alias autorizado, SQLite BEGIN IMMEDIATE, timeout 5 segundos, rollback
+conjunto y aislamiento frente a operaciones concurrentes de la misma BD.
+La lectura participa en una transacción que puede bloquear temporalmente escritores;
+no es promesa de lectura gratuita ni de bloqueos de fila por select_for_update.
+No hay garantía de atomicidad entre bases/conexiones independientes.
+
+**in_atomic_block por sí solo no acredita una frontera confiable**: mecanismo
+para asegurar que el contexto corresponde a la transacción controlada por el
+servicio todavía pendiente. No equiparar cualquier transacción exterior con esa
+frontera. A3.2 mantiene sus protecciones y su extracción previa separada.
+
+### 8.2. Entradas mínimas · A3.6.2-INPUT-01
+
+| Entrada conceptual | Garantía requerida / límite |
+| --- | --- |
+| Identidad local del perfil | Perfil a examinar, sin permitir acceso a perfiles ajenos por conocer su ID. |
+| Alias de BD | Validado y autorizado por el servicio; lector no consulta otro alias. |
+| Plan de comprobaciones | Elegido por lógica confiable del servidor según operación; cliente no elige qué verificaciones omitir. |
+| Contexto transaccional | Permite asegurar la ejecución en la transacción correcta; representación y mecanismo de acreditación pendientes. |
+
+No fijar parámetros, credenciales/tokens, tipos Django o clases definitivas.
+Identidad del operador y autorización pertenecen al servicio y siguen condicionadas
+a A3.5/Core. El lector observa/diagnostica: no decide qué transición está permitida,
+no autoriza, clasifica o confirma operaciones.
+
+### 8.3. Resultado conceptual · A3.6.2-RESULT-01
+
+Proponer resultado **inmutable** que identifique perfil examinado y ámbito de BD,
+grupos solicitados, comprobaciones realmente realizadas, cobertura efectiva,
+limitaciones y resultados/diagnósticos correspondientes. Conservar las categorías
+A3.6.1: comprobación superada, evidencia insuficiente e incoherencia detectada.
+No crear enums Python/TransitionState ni convertir éxito local en V1_VERIFIED.
+
+Una lectura parcial conforme a un plan explícito debe declarar su alcance; no es
+cobertura universal. Consulta fallida, truncada o incompleta nunca representa
+cobertura total ni un grupo superado. Evitar verified=True global o cualquier
+indicador que aparente autorización/certificación completa. Valores históricos
+sensibles y operation_key no se exponen indiscriminadamente en errores, logs o
+respuestas; solo información necesaria y autorizada, sin historiales ajenos.
+Formato del resultado, detalle de diagnósticos y política de exposición pendientes.
+
+### 8.4. Fallos frente a diagnósticos · A3.6.2-ERROR-01
+
+| Categoría conceptual | Distinción que debe conservarse |
+| --- | --- |
+| Perfil inválido o inexistente | No fabricar evidencia de un perfil válido ni confundir ausencia de perfil con datos leídos correctamente. |
+| Alias/contexto inválido o no confiable | Rechazar lectura en ese contexto, sin consultar fuera del ámbito autorizado. |
+| Error de BD/timeout o lectura truncada | Fallo técnico que obliga a abortar la lectura; servicio garantiza rollback. No convertirlo en vacío, éxito o cobertura completa. |
+| Acceso indebido/referencias cruzadas | Acceso fuera de autorización obliga a abortar. Una contradicción causal observada con datos mínimos autorizados debe distinguirse del acceso indebido; solo es diagnóstico si se puede representar una comprobación completa sin exponer terceros. Si no puede garantizarse la lectura, abortar, sin ampliar permisos. |
+| Evidencia insuficiente | Puede ser diagnóstico tras comprobación completa que constate falta de información histórica; no significa corrupción ni fallo técnico encubierto. |
+| Incoherencia verificable | Contradicción observada representable con alcance suficiente; no reparar datos ni clasificar automáticamente. |
+
+Queda por definir el detalle de representaciones y fallos según cada comprobación;
+no jerarquía definitiva de excepciones Python o códigos HTTP. Ausencia de
+información no equivale a corrupción demostrada. Ningún diagnóstico sustituye
+las condiciones de rechazo de A3.6-GATE-01 o las autorizaciones externas.
+
+### 8.5. Integración con A3.3 y límites de cobertura
+
+1. Servicio valida identidad, petición y autorización confiable.
+2. Abre transacción D-19 en el alias autorizado.
+3. Busca evento histórico por identidad de operación.
+4. Si existe, comprueba contenido original e integridad y resuelve replay sin
+   nueva elegibilidad ni invocar al lector para verificar elegibilidad actual.
+5. Solo para operación nueva, comprueba política/revisión vigentes, verifica
+   evidencia requerida con el lector A3.6.2 y aplica reglas puras A3.3.
+6. Confirma política/evento conjuntamente o revierte.
+
+Replay sigue autorizado y no consulta perfiles ajenos. No alterar las reglas
+puras ni confundir evidencia de elegibilidad con integridad histórica del replay.
+Se conservan los siete grupos de §7.1: perfil, stats, XPEvent, EvolutionEvent,
+progresión, StatAllocationEvent y especializaciones. No son lista obligatoria
+universal: el plan servidor debe justificar qué exige cada operación.
+
+No fabricar estados históricos desde catálogo vivo ni reconstruir eventos, XP,
+puntos, rangos o especializaciones inexistentes. Siguen abiertas suficiencia
+V1_VERIFIED, procedencia confiable y coordinación Duckies/Henry. El lector local
+V1 no autoriza catálogo objetivo, migración o condiciones de corte global.
+
+A3.5 mantiene sus cinco preguntas abiertas: identidad, autorización, ciclo de vida,
+retención y privacidad. [Consulta Core/P5](ecomotor-classification-core-boundary-v1.md)
+intacta, sin aprobación de on_delete/User o participación canónica del operador.
+S3 V1 sigue único escritor XP; no activar objetivo ni migración.
+
+### 8.6. Pruebas futuras
+
+Dentro/fuera de transacción; alias autorizado y rechazo de otro alias; perfil
+existente/inexistente; comprobaciones parciales/cobertura insuficiente; incoherencia
+frente a error de lectura; timeout/rollback sin cobertura falsa; referencias cruzadas
+sin datos ajenos; lectura coherente frente a S3 concurrente; replay sin invocar
+elegibilidad nueva; ausencia de escrituras, reparaciones, backfill y XP objetivo.
+No se implementan ni ejecutan nuevos tests Django en esta PR documental.

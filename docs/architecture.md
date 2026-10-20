@@ -965,3 +965,21 @@ con sus cinco preguntas sin ratificar; no se modifica esa consulta. [Pendientes]
 conservan coberturas V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED, dependencias
 propietarias, esquema y permisos. S3 V1 continúa único escritor XP; TARGET_CONFIRMED
 no activa el objetivo. Sin cambios de código, clasificaciones o migraciones reales.
+
+## 17. A3.6.2 · Contrato conceptual del lector V1
+
+[Decisiones internas A3.6.2](decisions.md#a362--contrato-del-lector-transaccional-v1--20102026)
+y [contrato central](contracts/ecomotor-classification-evidence-v1.md#8-a362--contrato-conceptual-del-lector-transaccional-v1),
+sobre `1c03e64`, desarrollan A3.6/A3.6.1 sin API o lector implementados.
+Servicio controla D-19; lector dentro de la misma transacción, sin abrir o confirmar
+una propia, escribir, consultar otro alias, usar servicios escritores, anidar A3.2
+o realizar I/O externo. in_atomic_block no basta para acreditar contexto confiable.
+
+Perfil, alias autorizado, plan servidor y contexto son entradas conceptuales.
+Resultado inmutable propuesto declara solicitado/realizado, cobertura/limitaciones
+y diagnósticos, sin autorización global. Fallos técnicos no son cobertura completa;
+diagnóstico de insuficiencia o incoherencia exige comprobación representable con
+alcance declarado. Replay A3.3 se resuelve primero sin elegibilidad nueva del lector.
+[Pendientes](pending-decisions.md#22-a362--detalle-del-lector-y-dependencias): API,
+contexto confiable, formato, suficiencia V1_VERIFIED, procedencia y Core/Henry.
+A3.5 sigue abierto; S3 V1 sigue único escritor. Sin código o cambios físicos.

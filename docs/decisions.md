@@ -1298,3 +1298,26 @@ A3.5/Core conserva identidad, autorización, retención, privacidad y on_delete.
 [Pendientes](pending-decisions.md#21-a361--límites-de-verificación-local-v1).
 Sin lector, modelos, servicio, clasificación real, reparación/backfill o activación;
 pruebas de casos locales y vigencia/replay documentadas como futuras, no ejecutadas.
+
+## A3.6.2 · Contrato del lector transaccional V1 · 20/10/2026
+
+**Aprobación técnica interna Equipo 5 en 02C**, sobre develop
+`1c03e6493ae871e08243eccbcfe154b724a106a9`. Desarrolla A3.6/A3.6.1;
+DAR3 conserva autoridad funcional y no se atribuye ratificación a Óscar/Core/Henry.
+
+| Identificador | Acuerdo interno y límite |
+| --- | --- |
+| A3.6.2-READER-01 | Servicio controla transacción D-19 y lector trabaja dentro, sin transacción propia, escritura, otro alias, servicios escritores, A3.2 anidado o I/O externo. IMMEDIATE/timeout 5 s y rollback; in_atomic_block no acredita por sí solo contexto confiable. Mecanismo definitivo pendiente, sin row locking o atomicidad entre BD independientes supuestos. |
+| A3.6.2-INPUT-01 | Perfil local, alias validado/autorizado, plan de comprobaciones confiable servidor y contexto transaccional: entradas conceptuales, no firma/clases definitivas. Cliente no omite verificaciones. Operador/permisos del servicio dependen de A3.5; lector no decide transiciones. |
+| A3.6.2-RESULT-01 | Resultado inmutable propuesto con perfil/ámbito, solicitado/realizado, cobertura/limitaciones y diagnósticos de las tres categorías A3.6.1. Sin enums nuevos, verified=True global o V1_VERIFIED; fallos no son cobertura total. Datos sensibles/claves sin exposición indiscriminada. |
+| A3.6.2-ERROR-01 | Diferenciar perfil inválido/inexistente, alias/contexto no confiable, BD/timeout, acceso indebido/referencias cruzadas, insuficiencia e incoherencia. Separar fallo que aborta lectura de diagnóstico representable de comprobación completa; no confundir ausencia con corrupción o fallo técnico con éxito. Excepciones definitivas pendientes. |
+
+[Contrato central](contracts/ecomotor-classification-evidence-v1.md#8-a362--contrato-conceptual-del-lector-transaccional-v1)
+concreta flujo, límites y pruebas futuras. A3.3 conserva evento primero y replay
+sin nueva elegibilidad: lector solo verifica operaciones nuevas. Siete grupos
+locales no son lista universal; suficiencia V1_VERIFIED y procedencia siguen abiertas.
+A3.5/Core mantiene cinco preguntas sin responder y on_delete pendiente, documento
+intacto; Henry conserva coordinación de referencias/consumidores.
+Sin API Python definitiva, lector, modelos, servicios, tests nuevos o activación.
+S3 V1 sigue único escritor. Pruebas documentadas como futuras, no ejecutadas.
+[Pendientes](pending-decisions.md#22-a362--detalle-del-lector-y-dependencias).
