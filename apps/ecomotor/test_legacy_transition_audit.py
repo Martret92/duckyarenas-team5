@@ -116,7 +116,7 @@ class LegacyTransitionAuditTests(TestCase):
 
     def test_no_historical_stage_attributes_or_level_reconstruction(self):
         # Current stage metadata cannot establish past thresholds/codes/levels.
-        stages = tuple(replace(row, minimum_xp=999, ordinal=7) for row in self.snapshot.stages)
+        stages = tuple(replace(row, minimum_xp=999) for row in self.snapshot.stages)
         result = self.run_audit(stages=stages, profile=replace(self.snapshot.profile, current_level=888),
                                 coverage=replace(self.snapshot.coverage, stages_complete=False))
         self.assertEqual(result.status, Status.REQUIRES_DECISION)
@@ -209,11 +209,30 @@ class LegacyTransitionAuditTests(TestCase):
                 stages = (replace(self.snapshot.stages[0], **changes), self.snapshot.stages[1])
                 self.assert_issue(self.run_audit(stages=stages), "INVALID_STAGE_VALUES")
 
-    def test_partial_stage_codes_and_ordinals_do_not_claim_complete_catalog_validation(self):
-        stages = self.snapshot.stages + (replace(self.snapshot.stages[0], id=3),)
-        result = self.run_audit(stages=stages, coverage=replace(self.snapshot.coverage, stages_complete=False))
+    def test_partial_stage_inventory_detects_observed_duplicates_and_keeps_evidence_gap(self):
+        original = self.snapshot.stages[0]
+        for extra, code in (
+            (original, "DUPLICATE_STAGE_ID"),
+            (replace(original, id=3, ordinal=3), "DUPLICATE_STAGE_CODE"),
+            (replace(original, id=3, code="synthetic-other"), "DUPLICATE_STAGE_ORDINAL"),
+        ):
+            with self.subTest(code=code):
+                stages = self.snapshot.stages + (extra,)
+                coverage = replace(self.snapshot.coverage, stages_complete=False)
+                result = self.run_audit(stages=stages, coverage=coverage)
+                self.assert_issue(result, code)
+                self.assertIn(
+                    LegacyAuditIssue("EVIDENCE_INCOMPLETE", Status.REQUIRES_DECISION, "stages"),
+                    result.issues,
+                )
+                self.assertEqual(result, self.run_audit(stages=stages[::-1], coverage=coverage))
+
+    def test_partial_stage_inventory_without_observed_duplicates_requires_review(self):
+        coverage = replace(self.snapshot.coverage, stages_complete=False)
+        result = self.run_audit(coverage=coverage)
         self.assertEqual(result.status, Status.REQUIRES_DECISION)
         self.assertEqual({item.code for item in result.issues}, {"EVIDENCE_INCOMPLETE"})
+        self.assertEqual(result, self.run_audit(stages=self.snapshot.stages[::-1], coverage=coverage))
 
     def test_opaque_operation_key_is_not_trimmed_or_exposed(self):
         event = replace(self.snapshot.xp_events[0], operation_key=" ")

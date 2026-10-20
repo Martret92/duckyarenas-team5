@@ -250,9 +250,8 @@ def audit_legacy_transition(snapshot: LegacyAuditSnapshot) -> LegacyAuditResult:
         issue("ACCUMULATED_XP_WITHOUT_SUFFICIENT_HISTORY", review, "profile", profile.profile_id)
 
     stages_by_id = duplicate(snapshot.stages, lambda row: row.id, "DUPLICATE_STAGE_ID", "stage")
-    if coverage.stages_complete:
-        duplicate(snapshot.stages, lambda row: row.code, "DUPLICATE_STAGE_CODE", "stage")
-        duplicate(snapshot.stages, lambda row: row.ordinal, "DUPLICATE_STAGE_ORDINAL", "stage")
+    duplicate(snapshot.stages, lambda row: row.code, "DUPLICATE_STAGE_CODE", "stage")
+    duplicate(snapshot.stages, lambda row: row.ordinal, "DUPLICATE_STAGE_ORDINAL", "stage")
     for stage in snapshot.stages:
         if (not _code_valid(stage.code) or not 1 <= stage.ordinal <= 7
                 or not 0 <= stage.minimum_xp <= _BIG_MAX):
