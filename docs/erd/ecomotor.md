@@ -563,12 +563,12 @@ en sus aspectos pendientes; no se modifica el diagrama físico ni DOC-6.
 
 ## 14. Opciones jugables · modelos conceptuales 02C
 
-**Precisión funcional posterior, sin cambio de estructura:** Óscar confirmó
-Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak, según coordinación y
-confirmación directa de Jaime. La tabla/códigos LOG Logística y SPE Especial de
-02C quedan como diseño interno previo cuya correspondencia requiere conciliación;
-no se asigna Cuak a SPE ni se renombra LOG o datos históricos. Papel técnico de
-Cuak, códigos/bases/presupuesto pendientes, sin adoptar 45 puntos como valor oficial.
+**Precisión objetivo [ATR-OBJ-01](../decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026):** tras la conciliación de la PR #61
+sobre Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak confirmados por Óscar,
+Jaime confirma internamente LOG = Lógica y CUACK = Especial / Especialización.
+Sustituye solo la nomenclatura objetivo LOG Logística/SPE del diseño inicial;
+no modifica la estructura ni los atributos V1. Bases, presupuesto, fórmulas y
+migración legacy siguen pendientes, sin adoptar 45 puntos como valor oficial.
 Una imagen de vestimenta completa por época no determina un objeto o relación
 Duckies. [Procedencia y alcance](../decisions.md#conciliación-de-aclaraciones-de-óscar--20102026)
 y [pendientes](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
@@ -604,14 +604,16 @@ desde su confirmación inicial. Cardinalidades conceptuales, no FKs ejecutables.
 
 | Modelo conceptual | Datos previstos | Cardinalidad e invariantes |
 | --- | --- | --- |
-| PlayableOption | Identidad de catálogo, referencia histórica o tecnológica exclusiva, seis bases ATK/DEF/LOG/SPE/VEL/INT. | Una de EvolutionStage/Specialization, nunca ambas/ninguna; sin duplicados de identidad histórica/tecnológica. Cero o muchas configuraciones de jugadores. |
+| PlayableOption | Identidad de catálogo, referencia histórica o tecnológica exclusiva, seis bases ATK/DEF/VEL/INT/LOG/CUACK. | Una de EvolutionStage/Specialization, nunca ambas/ninguna; sin duplicados de identidad histórica/tecnológica. Cero o muchas configuraciones de jugadores. |
 | UserPlayableState | Perfil UserProfileEcomotor, opción activa, presupuesto inicial autorizado y revisión de estado. | Un estado máximo por perfil, solo al confirmar primera elección. Ausencia no clasifica legacy como nuevo. Activa con configuración válida propia. |
 | UserPlayableStats | Estado, opción, snapshot de seis bases, seis incrementos y revisión de configuración. | UNIQUE(playable_state, option); incrementos válidos y suma dentro del presupuesto del estado. Bases conservadas, no catálogo vivo reinterpretado. |
 | PlayableStatsChangeEvent | Identidad de operación, estado, configuración, tipo primera configuración/redistribución, reparto anterior/posterior, revisiones y fecha de confirmación. | UNIQUE(playable_state, operation_key); configuración/estado/propietario coherentes. Historia conservada sin reinterpretación; representación física pendiente. |
 
-ATK Ataque, DEF Defensa, LOG Logística, SPE Especial / Especialización,
-VEL Velocidad, INT Inteligencia. SPE numérico no identifica especialización;
-Cuack pendiente de Óscar, sin séptimo atributo. Efectivas = bases conservadas +
+ATK Ataque, DEF Defensa, VEL Velocidad, INT Inteligencia, LOG Lógica,
+CUACK Especial / Especialización. CUACK es numérico, no identidad tecnológica;
+no hay un séptimo atributo. V1 conserva log_stat = Logística y spe = Especial /
+Especialización; sin conversión automática SPE → CUACK ni reinterpretación de
+log_stat histórico. Efectivas = bases conservadas +
 incrementos. Presupuesto fijo utilizable independientemente en cada Ducky, no
 saldo global agotado; puntos pendientes permitidos. Bases y cantidad pendientes.
 Training no mejora los seis atributos ni concede puntos adicionales para ellos

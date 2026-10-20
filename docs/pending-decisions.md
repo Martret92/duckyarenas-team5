@@ -70,7 +70,7 @@ por sí solos toda la revisión conceptual.
 | ID | Evidencia / estado | Pregunta de cierre | Validadores e impacto |
 | --- | --- | --- | --- |
 | P1 · XP externa | Daily del 09/10/2026: rectificación funcional, en tensión con Ecomotor pp. 1–2 y 6 | ¿XP solo juegos afecta a histórica o también dominio? ¿Qué actividades externas conservan monedas, objetos o puntos? ¿Desde cuándo, qué ocurre con usuarios/recompensas existentes y cómo configurar nuevas actividades? Confirmación escrita sin borrados, recálculos ni conversión automática de todas las actividades externas a premios sin XP. | Óscar, Jaime/Core; bloquea elegibilidad definitiva y migración afectada, no el contrato conceptual. |
-| P2 · Stats | Óscar confirmó Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak, específicas por época y distribución al alcanzar especialización; consulta de coordinación y confirmación directa de Jaime en 02C. El diseño interno previo LOG Logística/SPE Especial se conserva como antecedente en conflicto, no terminología del profesor. | Concretar definición/papel de Cuak, códigos canónicos/correspondencia, bases y presupuesto; 45 puntos no es valor oficial. Sin mapear Cuak a SPE o renombrar LOG/datos. OP-RED-01 y restantes decisiones internas no afectadas se conservan; revisión técnica explícita de lo incompatible. Training no mejora atributos/puntos adicionales en V1 objetivo; futuro requiere confirmación/coordinación. | Óscar/Jaime para precisión funcional y Parte A/Core/juegos para adaptación; sin modificar modelos/contratos físicos por inferencia. |
+| P2 · Stats | Óscar confirmó Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak, específicas por época y distribución al alcanzar especialización; consulta de coordinación y confirmación directa de Jaime en 02C. ATR-OBJ-01 resuelve internamente la nomenclatura objetivo: LOG = Lógica y CUACK = Especial / Especialización, atributo numérico distinto de la identidad tecnológica. LOG Logística/SPE se conservan como antecedentes. | Bases por opción, presupuesto autorizado, fórmulas y migración legacy siguen pendientes; 45 puntos no es valor oficial. No convertir SPE histórico a CUACK ni reinterpretar log_stat V1, que conserva Logística. OP-RED-01 y restantes decisiones no afectadas se conservan. Training no mejora atributos/puntos adicionales en V1 objetivo; futuro requiere confirmación/coordinación. | Parte A para concreción interna; Core/P5 y juegos para transición/consumo. Sin cambios de modelos o contratos físicos por esta precisión. |
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado. S12-A solo acepta DomainXPEvent conceptual. | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y legacy. DomainXPEvent físico y sus relaciones requieren acuerdo previo de conservación, anonimización/eliminación y on_delete; sin copiar CASCADE provisional. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
@@ -374,10 +374,10 @@ y DOC-6/F2-A mantienen sus bloqueos; Rewards v0 candidato, sin premios reales.
 
 ## 13. Pendientes residuales de la arquitectura objetivo 02C
 
-**Precisión posterior en §17:** las referencias siguientes a LOG/SPE como asuntos
-cerrados describen la aprobación interna inicial; la lista funcional Lógica/Cuak
-del profesor exige conciliación de su correspondencia técnica. No se reabren
-históricos jugables, épocas, nivel 8 o gratuidad de redistribución por inferencia.
+**Precisión vigente:** [ATR-OBJ-01](decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026)
+resuelve internamente LOG = Lógica y CUACK = Especial / Especialización tras §17.
+LOG Logística/SPE quedan como antecedentes de 02C y V1; no autorizan conversiones
+de datos. No se reabren históricos jugables, épocas, nivel 8 o redistribución.
 
 [Acuerdos del 20/10/2026](decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026)
 y [contrato objetivo](contracts/ecomotor-playable-options-target-v1.md) aprobados
@@ -387,8 +387,8 @@ ni una migración autorizada. No se cierran P1–P8 en bloque.
 **Cerrado internamente:** siete épocas objetivo (Prehistórico, Griego, Romano,
 Medieval, Renacentista, Revolución Industrial, Siglo XX), umbrales correspondientes
 a niveles 1–7; elección/aplazamiento desde nivel 8, históricos realmente jugables,
-una activa, configuraciones independientes, SPE Especial / Especialización numérico,
-LOG Logística, sin puntos por nivel y OP-RED-01 gratuita/ilimitada. Primera elección
+una activa, configuraciones independientes, CUACK Especial / Especialización numérico,
+LOG Lógica (ATR-OBJ-01), sin puntos por nivel y OP-RED-01 gratuita/ilimitada. Primera elección
 sin guardado parcial; Training no mejora seis atributos/puntos adicionales en V1.
 No usar R-01 para redistribución: pertenece a equipamiento histórico.
 
@@ -401,7 +401,7 @@ No usar R-01 para redistribución: pertenece a equipamiento histórico.
 | Coordinación · Core/P5 | Conservación, anonimización/eliminación, relaciones y on_delete. No borrar/reasignar CharacterStats o historiales ni recalcular XP/niveles sin política aprobada. |
 | Coordinación · juegos/dominio/rangos | Consumo de estadísticas efectivas con juegos, concesión autorizada de XP de dominio/evidencias, recompensas tardías y persistencia/confirmación S13-A2. S13-A1 evalúa, no confirma; DomainXPEvent conceptual y sin tabla aprobada. |
 | Coordinación · apariencia | Henry/Jaime: integración de selección jugable con apariencia, vestimentas históricas e inventario. DOC-5/CORE-07/B-06/R-01 conservan residuales, no bloquean reconocer internos históricos jugables. |
-| Aclaración de Óscar | Cuak ya figura en la lista funcional confirmada, con Lógica; definición/papel técnico, códigos y correspondencia con el diseño previo de seis atributos requieren concreción. No mapearlo a SPE ni renombrar LOG por inferencia. Mejoras futuras Training siguen fuera de V1 objetivo y requieren confirmación/coordinación. |
+| Atributos · precisión interna posterior | ATR-OBJ-01 cierra códigos y significados de LOG y CUACK en el objetivo, sin alterar V1. Bases, presupuesto, fórmulas y adaptación legacy siguen pendientes; no se inventan efectos especiales. Mejoras futuras Training siguen fuera de V1 objetivo y requieren confirmación/coordinación. |
 
 P1 y P3–P5, R1–R8/Rewards, Core y economía mantienen sus pendientes ajenos a 02C;
 F2-A sigue condicionado por DOC-6. XP de dominio y rangos confirmados se conservan
@@ -510,7 +510,7 @@ DAR3 conserva su antecedente; no se inventa fecha exacta de respuesta o aprobaci
 | --- | --- |
 | User, Free, Plus, Pro; User acceso visual previo, distinto del modelo Django. XP igual por misma actividad elegible en membresías jugables. | Core/juegos/E5: contrato de categorías/permisos y cambios de membresía; conciliar con Training sus 2/5 XP. No elegir nuevos importes. DC extra por pago contemplado, cantidades/fórmulas y baremos pendientes de Óscar/Fernando/propietarios. |
 | Imagen completa por época y uso de la vigente hasta especialización; anteriores desbloqueadas reutilizables después. | Henry/Jaime: adquisición/autoequipamiento, representación en objetos/tablas/relaciones, identidades y contratos. Relación de la condición visual con elección jugable 02C, sin asumir equivalencia. CORE-07/B-06/P6/R-01 tienen aclaración parcial, no cierre global. |
-| Seis atributos del profesor: Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak; específicos por época y reparto al alcanzar especialización. | Óscar/Parte A y consumidores: definición/papel de Cuak, códigos/correspondencia y bases/presupuesto. Conflicto con LOG Logística/SPE Especial de 02C; sin renombrado o migración inferidos, sin añadir séptimo atributo. Ejemplo 45 no oficial. |
+| Seis atributos del profesor: Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak; específicos por época y reparto al alcanzar especialización. | ATR-OBJ-01 resuelve posteriormente la nomenclatura objetivo LOG = Lógica y CUACK = Especial / Especialización. Parte A y consumidores deben concretar bases, presupuesto y fórmulas; transición con Core/P5. LOG Logística/SPE se conservan como antecedentes y V1, sin conversión histórica ni séptimo atributo. Ejemplo 45 no oficial. |
 | Siete épocas históricas hasta Siglo XX y elección desde nivel 8 ya confirmadas. | Solo normalización técnica/transición con A3 y propietarios; no alterar identidades V1 ni reabrir secuencia. |
 
 DOC-5 y DAR3 se conservan como antecedentes; reutilización visual intermedia no es
