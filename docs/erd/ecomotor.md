@@ -563,6 +563,17 @@ en sus aspectos pendientes; no se modifica el diagrama físico ni DOC-6.
 
 ## 14. Opciones jugables · modelos conceptuales 02C
 
+**Precisión funcional posterior, sin cambio de estructura:** Óscar confirmó
+Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak, según coordinación y
+confirmación directa de Jaime. La tabla/códigos LOG Logística y SPE Especial de
+02C quedan como diseño interno previo cuya correspondencia requiere conciliación;
+no se asigna Cuak a SPE ni se renombra LOG o datos históricos. Papel técnico de
+Cuak, códigos/bases/presupuesto pendientes, sin adoptar 45 puntos como valor oficial.
+Una imagen de vestimenta completa por época no determina un objeto o relación
+Duckies. [Procedencia y alcance](../decisions.md#conciliación-de-aclaraciones-de-óscar--20102026)
+y [pendientes](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
+El diagrama, cardinalidades y diseño físico permanecen intactos en esta tarea.
+
 ARQ-OP-01/02/03 y DOC-ERD-01, aprobados internamente por Equipo 5 el 20/10/2026.
 **No implementados:** no añaden tablas a las nueve existentes. ARQ-OP-02 aprueba
 internamente un diseño provisional de campos y restricciones para PlayableOption,

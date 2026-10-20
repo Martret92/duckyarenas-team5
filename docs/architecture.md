@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Conciliación funcional · 20/10/2026:** base `f034d2f`, aclaraciones de Óscar
+consultadas en coordinación y confirmadas directamente por Jaime en 02C.
+[§13](#13-aclaraciones-funcionales-confirmadas-y-contraste-con-02c) separa confirmación
+funcional, antecedentes e integración técnica pendiente. No se cambian códigos,
+reglas activas o datos; la fotografía de implementación anterior se conserva.
+
 **Actualización A3.2 · 20/10/2026:** base `8024fa7`, A3 (#57) y A3.1 (#58)
 integrados. [A3.2](#12-a32--extracción-legacy-de-solo-lectura) es arquitectura
 interna aprobada, **no extractor implementado**. A3.1 ya evalúa snapshots puros;
@@ -274,6 +280,13 @@ se convierte en invariante actual. UserSpecializationProgress sin rank conserva
 XP de dominio independiente; fuentes, rangos y obligatoriedad sin validación global.
 
 ### 3.1. Vestimentas históricas · Propuesta DOC-5
+
+**Antecedente, con aclaración posterior en §13:** la reutilización durante épocas
+intermedias descrita debajo fue propuesta E5, no conducta confirmada. Óscar confirmó
+imagen completa por época, solo la vigente durante progresión histórica y uso de
+anteriores desbloqueadas tras elegir especialización. Esto no aprueba adquisición,
+autoequipamiento, objetos o relaciones Duckies; los pendientes antiguos se acotan
+a esas consecuencias técnicas/funcionales, sin reabrir la secuencia de épocas.
 
 Criterio propuesto por E5 el 18/10/2026, recogido en CORE-07, E5-02 y B-06 del
 documento compartido y en el [registro DOC-5](decisions.md#doc-5--criterio-funcional-propuesto-de-vestimentas-históricas--18102026).
@@ -570,6 +583,12 @@ V2-A25/A26 ni DOC-6 retrospectivamente; S13-A no tiene arquitectura aprobada.
 
 ## 9. Arquitectura objetivo 02C · no implementada
 
+**Contraste posterior:** §13 precisa los atributos y la apariencia según Óscar.
+LOG Logística/SPE Especial de este diseño se conservan como decisiones internas
+previas, pendientes de conciliación técnica con Lógica/Cuak; no se presentan como
+atributos confirmados por el profesor ni autorizan renombrar datos. Históricos
+jugables, nivel 8 y restantes decisiones 02C no se reabren automáticamente.
+
 Acuerdos internos del Equipo 5 del 20/10/2026 registrados en
 [decisiones 02C](decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026).
 DAR3 mantiene nueve épocas como antecedente; la aclaración de Óscar del 19/10
@@ -774,3 +793,28 @@ conserva autorización Core, conservación/P5, clasificación/catálogos físico
 activación. legacy_inventory_reader.py y sus tests son propuesta posterior 01B;
 no se crean ni se ejecutan tests Django en este PR. S13-A2, dominio persistente,
 Rewards F2-A e integración económica siguen bloqueados en sus respectivos alcances.
+
+## 13. Aclaraciones funcionales confirmadas y contraste con 02C
+
+Fuente consultada el 20/10/2026: documento compartido de coordinación, CORE-03,
+CORE-07, PROF-04 y Training. Jaime confirmó directamente en 02C que Henry recogió
+lo indicado por Óscar y que el profesor escribió los atributos en la pizarra.
+La fuente mantiene marcadores/estados anteriores: no se infiere su cierre técnico
+ni una fecha de respuesta. [Registro de procedencia](decisions.md#conciliación-de-aclaraciones-de-óscar--20102026)
+y [matriz](contracts/integracion-equipo5-v0.md#02-aclaraciones-confirmadas-de-óscar--conciliación-del-20102026).
+DAR3 sigue principal; aclaraciones posteriores no son decisiones Django aprobadas.
+
+| Asunto | Confirmación funcional y contraste |
+| --- | --- |
+| Membresías | User, Free, Plus y Pro; User describe acceso visual previo, no el modelo Django. Misma XP por misma actividad elegible entre membresías jugables. Extra DuckyCoins por pago contemplado, sin cantidad/fórmula o baremo definitivo. |
+| Training | Sus 2 XP Free / 5 XP Plus-Pro contradicen la igualdad confirmada; Training/E5/Core deben conciliar, sin nueva cantidad ni cambio de reglas por esta PR. |
+| Vestimenta | Imagen completa por época, no seis piezas visuales separadas. En épocas históricas solo vigente; tras especialización, anteriores desbloqueadas. DOC-5/intermedias es antecedente no confirmado. No inferir un Item por imagen, adquisición/autoequipamiento o esquema Duckies. |
+| Estadísticas | Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak; específicas por época, distribución al alcanzar especialización. Cuak/códigos/bases/presupuesto por concretar; 45 no es valor oficial. Conflicto con LOG Logística/SPE Especial de 02C, sin mapeo o reinterpretación de datos aprobados. |
+| Épocas | Se mantienen Prehistórico, Griego, Romano, Medieval, Renacentista, Revolución Industrial, Siglo XX y elección desde nivel 8, sin octava época ni cambios de identidad V1. |
+
+La condición de reutilización visual tras especialización no se traslada por
+inferencia a la elección histórica jugable 02C; requiere coordinación con Henry.
+Separar apariencia, posesión, equipamiento y progreso. La concreción de atributos
+requiere adaptación técnica explícita, no nuevas reglas para todos los servicios.
+[Pendientes residuales](pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
+Sin cambios S3 V1, A3.1/A3.2, Rewards/Bank/Duckies o activación A2; este PR es documental.

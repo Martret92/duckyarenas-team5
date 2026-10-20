@@ -2,6 +2,12 @@
 
 ## 1. Estado y autoridad
 
+**Precisión funcional posterior:** [§8](#8-conciliación-funcional-posterior-con-óscar)
+contrasta las aclaraciones confirmadas de Óscar con el diseño 02C conservado.
+La composición/correspondencia técnica de atributos y la adaptación de apariencia
+siguen pendientes donde entran en conflicto; no se ratifican códigos ni se activa
+el sistema. Las decisiones internas no afectadas conservan su estado.
+
 **Arquitectura objetivo aprobada internamente por el Equipo 5 el 20/10/2026;
 no implementada ni activada.** target-v1 es la versión del diseño, no una API
 disponible, una migración aprobada o una sustitución ejecutada de contratos V1.
@@ -63,9 +69,10 @@ no guarda selección parcial. Alternar histórico/tecnológico conserva estadís
 XP histórica, nivel, etapa, otras configuraciones y progreso tecnológico/rangos
 confirmados independientes. S13-A2 no persiste todavía esos rangos.
 
-E-01/E-02 conservan exactamente seis atributos:
+E-01/E-02 registraron internamente seis atributos; la tabla conserva ese antecedente
+y no es la correspondencia técnica confirmada por Óscar (véase §8):
 
-| Código | Significado aprobado |
+| Código interno 02C | Significado interno; contraste pendiente con §8 |
 | --- | --- |
 | ATK | Ataque |
 | DEF | Defensa |
@@ -74,8 +81,10 @@ E-01/E-02 conservan exactamente seis atributos:
 | VEL | Velocidad |
 | INT | Inteligencia |
 
-SPE es numérico, distinto de la identidad tecnológica. **Cuack requiere aclaración
-de Óscar**; no equivale a SPE ni añade séptimo atributo. Cada Ducky conserva al
+SPE es numérico en el diseño interno, distinto de la identidad tecnológica.
+Óscar nombró Cuak (Cuack en notas anteriores) entre seis atributos; su papel y
+correspondencia técnica siguen pendientes. No asignarlo automáticamente a SPE,
+renombrar LOG o añadir séptimo atributo. Cada Ducky conserva al
 configurarse un snapshot de sus seis bases y seis incrementos independientes.
 Efectivas = bases conservadas + incrementos. Se permite dejar puntos pendientes.
 El presupuesto inicial fijo autorizado del jugador se utiliza independientemente
@@ -199,9 +208,38 @@ firmas, replay/revisión, reparto idéntico y detalles físicos de eventos/const
 Parámetros provisionales internos pueden versionarse/coordinarse sin ser oficiales.
 Coordinación: inventario/migración legacy, conservación/Core/P5, consumo de stats
 por juegos, dominio autorizado, S13-A2, activación conjunta y apariencia/vestimenta/
-inventario con Henry. Cuack requiere aclaración de Óscar.
-Elegir históricos, nivel 8, significado SPE y redistribución gratuita/ilimitada
-están aprobados internamente, sin reabrirse. Rewards F2-A sigue bloqueado según
-sus dependencias. ARQ-OP-02 sí aprueba el diseño provisional de campos y restricciones de
+inventario con Henry. Cuak necesita concreción técnica/funcional según §8.
+Elegir históricos, nivel 8 y redistribución gratuita/ilimitada conservan aprobación
+interna. El significado interno SPE se conserva como antecedente, pendiente de
+conciliar con la lista del profesor; no se presenta como terminología suya.
+Rewards F2-A sigue bloqueado según sus dependencias. ARQ-OP-02 sí aprueba el diseño provisional de campos y restricciones de
 PlayableOption, UserPlayableState y UserPlayableStats; no migraciones, relaciones
 físicas definitivas ni on_delete. No se aprueban baremos de juegos.
+
+## 8. Conciliación funcional posterior con Óscar
+
+Consulta de CORE-03/CORE-07/PROF-04 y Training el 20/10/2026, con confirmación
+directa de Jaime en 02C de las aclaraciones del profesor. [Procedencia](../decisions.md#conciliación-de-aclaraciones-de-óscar--20102026).
+DAR3 y DOC-5/02C se conservan como antecedentes; la aclaración funcional posterior
+no es aprobación de la solución Django ni del contrato técnico compartido.
+
+Óscar confirmó **Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak**,
+específicos por época y distribución de puntos al alcanzar especialización.
+Frente a LOG (Logística) y SPE (Especial / Especialización) internos de §3 hay
+una discrepancia expresa: definición/papel de Cuak, códigos canónicos, bases,
+presupuesto y correspondencia deben concretarse. No traducir Lógica a LOG ni Cuak
+a SPE por inferencia, reinterpretar snapshots o sustituir campos/códigos existentes.
+45 puntos es ilustrativo, no presupuesto autorizado. Se conserva el resto de 02C
+sin convertir este contraste en nuevas reglas de reparto o mejoras de Training.
+
+Vestimenta visual: una imagen completa por época; en progresión histórica solo
+la vigente, y tras elegir especialización se pueden reutilizar anteriores
+desbloqueadas. DOC-5 proponía reutilización intermedia más amplia; no es conducta
+confirmada. Identidad jugable histórica sigue distinta de apariencia: no inferir
+que elegir un histórico en 02C equivale a la condición «elegir especialización».
+Coordinar esa relación con Henry, sin decidir adquisición/autoequipamiento,
+objetos, tablas o relaciones Duckies.
+
+Se mantienen siete épocas históricas hasta Siglo XX y elección desde nivel 8.
+No renombrar V1, reabrir la secuencia, activar A2 o cambiar contratos S3/Rewards.
+[Pendientes residuales](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
