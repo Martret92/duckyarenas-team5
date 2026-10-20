@@ -1,3 +1,8 @@
+> **Lectura vigente · conciliación 20/10/2026:** §0.2 registra aclaraciones
+> funcionales de Óscar confirmadas por Jaime. Las matrices DOC-2/DOC-5 siguientes
+> conservan su corte histórico, sin prevalecer sobre esas aclaraciones ni cerrar
+> contratos técnicos. Documento candidato, sin cambio de firmas o implementación.
+
 > **Estado al 16/10/2026.** H01–H08 son interfaces candidatas y base documental interna de trabajo, no APIs aprobadas ni implementadas. D-20/D-21 están ratificados por Jaime, Henry y Fernando. R-05/R-08 tienen conformidad conceptual Jaime–Henry, sin ratificación física global. R-12 permite avanzar con la inicialización local de Ecomotor (S2-A1/S2-A2 intactas); el alta global, identidad y permisos siguen pendientes de Core. Las firmas siguientes son ejemplos, no autorización de ORM, migraciones ni transacciones compartidas.
 
 ## 0. Matriz de procedencia y acuerdos · DOC-2
@@ -93,6 +98,28 @@ Para cerrar contratos: responsables confirman evidencia/fecha, hechos/identidade
 reglas y tarifas; Core valida permisos/fuente de saldo; A/B/C acuerdan servicios,
 frontera transaccional y recuperación antes del ORM o adaptador afectado.
 
+## 0.2. Aclaraciones confirmadas de Óscar · conciliación del 20/10/2026
+
+Consulta del documento compartido de coordinación: CORE-03, CORE-07, PROF-04 y
+observaciones Training. Jaime confirmó directamente en 02C la procedencia de
+Óscar; Henry tomó nota y el profesor escribió los atributos en la pizarra, según
+esa confirmación. Persisten marcadores/estados antiguos en la fuente; se registra
+la aclaración funcional sin inferir fecha de respuesta ni cierre técnico general.
+DAR3 principal; [registro y autoridad](../decisions.md#conciliación-de-aclaraciones-de-óscar--20102026).
+
+| Referencia | Categoría y contenido confirmado | Contraste / validación residual |
+| --- | --- | --- |
+| CORE-03 | Aclaración posterior de Óscar: User, Free, Plus, Pro. User describe acceso visual previo a entrada; no modelo Django User. Misma XP por misma actividad elegible entre membresías jugables. | Contratos Core/permisos y efectos de cambios de plan pendientes. DuckyCoins extra por pago contempladas, sin cantidades, fórmulas o baremos; no activar reglas. |
+| Training T-04/T-06 y observaciones | Respuesta del Equipo 3 conserva 2 XP Free / 5 XP Plus-Pro. | Conflicto explícito con igualdad XP confirmada por Óscar; Training/E5/Core deben conciliar contrato/configuración. Sin nueva cantidad elegida ni ratificación global de importes o reglas locales. |
+| CORE-07 · vestimenta | Aclaración funcional posterior: imagen de conjunto completo por época, no seis piezas visuales; época vigente durante progresión histórica y anteriores desbloqueadas reutilizables tras elegir especialización. | DOC-5/intermedias queda como propuesta histórica no confirmada. Una imagen no decide un Item, adquisición/autoequipamiento, tablas o relaciones Duckies; Henry/Jaime acuerdan consecuencias técnicas. |
+| CORE-07 · estadísticas | Ataque, Defensa, Velocidad, Inteligencia, Lógica, Cuak; específicas por época y distribución al llegar a especialización. | Conflicto con LOG Logística/SPE Especial de 02C, no mapeo aprobado a códigos. Cuak/papel técnico, bases y presupuesto pendientes; 45 es ejemplo, no valor oficial. |
+| PROF-04 / 19/10 | Se conserva secuencia histórica confirmada hasta Siglo XX y elección desde nivel 8, sin octava época. | Normalización técnica/transición siguen en A3; no renombrar V1 ni reabrir épocas por este contraste. |
+
+CORE-03/CORE-07 tienen aclaraciones funcionales parciales, sin cierre íntegro de
+permisos, esquema o contratos; CORE-01/02/05/06 y restantes preguntas conservan
+sus dependencias. No se ratifican R1–R8/T1–T8 como contratos externos por esto.
+[Preguntas residuales](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
+
 ## 1. Tabla de soluciones y responsables
 
 | **Integración**      | **Solución propuesta**                                                                                   | **¿Por qué conviene?**                                                                                       | **Responsable**                                      |
@@ -110,7 +137,14 @@ frontera transaccional y recuperación antes del ORM o adaptador afectado.
 
 ## Contrato 1. Ecomotor → Duckies
 
-Propuesta funcional pendiente de Óscar y de contrato técnico con Henry
+**Precisión funcional posterior:** prevalece §0.2 sobre la propuesta DOC-5
+conservada debajo. Solo vestimenta vigente durante épocas históricas; reutilizar
+anteriores desbloqueadas tras elegir especialización. Imagen completa por época
+no decide adquisición/autoequipamiento ni representación física. Las firmas y
+mecanismos ilustrativos siguientes no se ratifican; la relación entre selección
+jugable histórica y permiso de apariencia se debe coordinar con Henry.
+
+Contrato técnico candidato; antecedente funcional DOC-5 y aclaración posterior en §0.2
 
 Responsables: Jaime/Ecomotor determina la evolución; Henry/Duckies conserva inventario, posesión, concesiones, equipamiento y apariencias. La interfaz sigue candidata, sin implementación acreditada por este documento.
 
@@ -137,9 +171,9 @@ unlock_stage_items(
 
 Por qué: Ecomotor sigue siendo responsable de la evolución y Duckies de la propiedad de los objetos. Se evita almacenar inventarios paralelos.
 
-Para cerrarlo: Óscar debe aclarar CORE-07/B-06/P6/R-01: seis piezas diferenciadas o su relación con conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/equipamiento automáticos y reutilización, y nueve épocas DAR3 (incluida Era Espacial) frente a siete etapas provisionales. Después, Jaime y Henry deben acordar identidades, idempotencia, adquisición, equipamiento y recuperación de errores; sin fijar composición física, transacción o firma definitiva.
+Pendientes formulados en el corte DOC-5, precisados ahora por §0.2: seis piezas diferenciadas o su relación con conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/equipamiento automáticos y reutilización, y nueve épocas DAR3 (incluida Era Espacial) frente a siete etapas provisionales. Después, Jaime y Henry deben acordar identidades, idempotencia, adquisición, equipamiento y recuperación de errores; sin fijar composición física, transacción o firma definitiva.
 
-**Antecedente R-01:** el ERD global planteaba entrega automática sin equipamiento; Jaime había recordado entrega y equipamiento automáticos, sin aceptación técnica inequívoca de Henry. El 15–16/10 acordaron consultar la reutilización de apariencias a Óscar. DOC-5 formula el comportamiento actual propuesto, sin convertir esos antecedentes en acuerdos aprobados. Véanse [arquitectura](../architecture.md#31-vestimentas-históricas--propuesta-doc-5) y [pendientes](../pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
+**Antecedente R-01:** el ERD global planteaba entrega automática sin equipamiento; Jaime había recordado entrega y equipamiento automáticos, sin aceptación técnica inequívoca de Henry. El 15–16/10 acordaron consultar la reutilización de apariencias a Óscar. DOC-5 formulaba aquella propuesta interna; su contraste funcional posterior está en §0.2, sin convertir los antecedentes en acuerdos técnicos aprobados. Véanse [arquitectura](../architecture.md#31-vestimentas-históricas--propuesta-doc-5) y [pendientes](../pending-decisions.md#8-vestimentas-históricas--propuesta-doc-5).
 
 ## Contrato 2. Shop → Duckies
 

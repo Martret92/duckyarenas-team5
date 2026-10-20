@@ -1050,3 +1050,41 @@ TransactionTestCase y conexiones independientes, no ejecutadas aquí.
 [Pendientes](pending-decisions.md#16-a32--alcance-y-validaciones-pendientes): auditoría
 integral, Core/P5, consumidores, clasificación/catálogo físicos y migración/activación.
 S3 V1 sigue activo; no se desbloquean dominio persistente, S13-A2, Rewards F2-A ni economía.
+
+## Conciliación de aclaraciones de Óscar · 20/10/2026
+
+**Procedencia:** consulta del documento compartido «DuckyArenas · Coordinación
+entre equipos · Respuestas de integración» (CORE-03, CORE-07, PROF-04 y Training)
+el 20/10/2026; confirmación directa de Jaime en 02C de lo indicado por Óscar.
+Henry tomó notas y Óscar escribió los atributos en la pizarra, según esa confirmación;
+no se afirma inspección independiente de la pizarra. La fecha es la de conciliación,
+no una fecha de respuesta inferida: el documento aún conserva marcadores y etiquetas
+antiguas de pendiente. No se modificó la fuente compartida ni se elevan sus demás
+propuestas a acuerdos. DAR3 sigue principal; estas son aclaraciones funcionales
+posteriores, distintas de decisiones internas E5 y contratos técnicos pendientes.
+
+| Fuente / asunto | Aclaración confirmada y alcance residual |
+| --- | --- |
+| CORE-03 · membresías | User, Free, Plus y Pro. User es categoría funcional de acceso visual previo a entrar a la plataforma, no el modelo Django User. La XP de una misma actividad elegible debe ser igual entre membresías jugables. Se contempla DuckyCoins extra por pago, sin cantidades/fórmulas/baremos definitivos. Contratos de identidad, permisos y membresías siguen con Core. |
+| Training · contraste | Respuesta local de 2 XP Free / 5 XP Plus-Pro contradice la igualdad XP confirmada por Óscar. Se conserva como antecedente y conflicto a conciliar con Training, sin escoger nueva cantidad ni activar reglas o modificar código externo. |
+| CORE-07 · vestimenta | Una imagen de vestimenta completa por época, en lugar de seis piezas visuales separadas. Durante progresión histórica solo vestimenta de época vigente; tras elegir especialización pueden reutilizarse anteriores desbloqueadas. DOC-5 proponía reutilización también intermedia: antecedente más amplio, no comportamiento confirmado. Adquisición/autoequipamiento y representación física/contratos Duckies siguen pendientes. |
+| CORE-07 · atributos/pizarra | Ataque, Defensa, Velocidad, Inteligencia, Lógica y Cuak. Atributos específicos por época y distribución de puntos al alcanzar especialización. El ejemplo 45 puntos no es presupuesto oficial. Definición técnica/papel de Cuak, códigos, bases y presupuesto siguen por concretar. |
+| Contraste E-01/E-02 de 02C | ATK, DEF, LOG (Logística), SPE (Especial / Especialización), VEL e INT fueron aprobación interna. Lógica frente a Logística y Cuak frente al esquema interno exigen conciliación explícita; no mapear Cuak a SPE ni renombrar/reinterpretar códigos o datos. Composición/correspondencia técnica pendiente de adaptación; otras decisiones 02C no se reabren por inferencia. |
+| PROF-04 / aclaración del 19/10 ya registrada | Se mantienen siete épocas históricas terminadas en Siglo XX y elección desde nivel 8. No se reabre la secuencia ni se alteran identidades V1; PROF-04 lista épocas/tecnologías, sin aprobar códigos o migración. |
+
+DAR3/nueve épocas/seis piezas y DOC-5/02C se conservan como antecedentes, sin
+presentar propuestas internas como confirmaciones de Óscar. Se precisan solo
+los conflictos de vestimenta y atributos; no se decide un objeto único por imagen,
+una FK o equipamiento automático. Identidad jugable histórica, época y apariencia
+siguen distintas; cómo relacionar la elección jugable 02C con la condición visual
+«tras elegir especialización» requiere coordinación, no equivalencia automática.
+SPE sigue siendo atributo numérico del diseño interno, no identidad de rama;
+no se atribuye a la pizarra ese código o significado. Cuak (Cuack en notas previas)
+no se añade como séptimo atributo ni se implementa por esta conciliación.
+
+[Matriz de procedencia](contracts/integracion-equipo5-v0.md#02-aclaraciones-confirmadas-de-óscar--conciliación-del-20102026),
+[arquitectura](architecture.md#13-aclaraciones-funcionales-confirmadas-y-contraste-con-02c),
+[contrato objetivo](contracts/ecomotor-playable-options-target-v1.md#8-conciliación-funcional-posterior-con-óscar)
+y [pendientes residuales](pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
+Sin nuevas decisiones D, precios o cantidades oficiales, cambios S3/A3.1/A3.2,
+activación A2 ni modificaciones de contratos Rewards/Bank/Duckies.
