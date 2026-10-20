@@ -154,7 +154,7 @@ def _forward_pair(before, after):
     )
 
 
-def _recovery_destination(request, blocked_before, blocking_event):
+def _recovery_destination(request, blocked_before, blocking_event, *, historical=False):
     if type(blocking_event) is not ConfirmedClassificationEvent:
         raise InconsistentClassificationHistoryError("Original blocking evidence is required.")
     if blocking_event.request.action is not ClassificationAction.BLOCK:
@@ -166,6 +166,9 @@ def _recovery_destination(request, blocked_before, blocking_event):
             or request.profile_id != blocking_event.request.profile_id
             or request.origin is not blocking_event.request.origin):
         raise InconsistentClassificationHistoryError("Blocking evidence does not match the recovery.")
+    if request.operation_key == blocking_event.request.operation_key:
+        error = InconsistentClassificationHistoryError if historical else ClassificationContentConflictError
+        raise error("Recovery and block must have distinct operation identities.")
     return blocking_event.before.transition_state
 
 
@@ -195,7 +198,7 @@ def _validate_history(event, blocking_event):
     else:  # RECOVER, with the original block even if current is no longer blocked.
         if before.transition_state is not TransitionState.BLOCKED:
             raise InconsistentClassificationHistoryError("Historical recovery did not start blocked.")
-        valid = after.transition_state is _recovery_destination(request, before, blocking_event)
+        valid = after.transition_state is _recovery_destination(request, before, blocking_event, historical=True)
     if not valid:
         raise InconsistentClassificationHistoryError("Historical action and states are inconsistent.")
 

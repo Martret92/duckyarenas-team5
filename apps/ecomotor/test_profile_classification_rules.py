@@ -138,6 +138,58 @@ class ProfileClassificationRulesTests(TestCase):
                 self.assertEqual(result.before, block.after)
                 self.assertEqual(result.after, policy(state, block.after.revision + 1))
 
+    def assert_unchanged_and_frozen(self, values, originals):
+        self.assertEqual(tuple(asdict(value) for value in values), originals)
+        for value in values:
+            self.assertFalse(hasattr(value, "__dict__"))
+            with self.assertRaises(FrozenInstanceError):
+                setattr(value, fields(value)[0].name, None)
+        self.assertEqual(tuple(asdict(value) for value in values), originals)
+
+    def test_new_recovery_cannot_reuse_confirmed_block_identity(self):
+        block = block_event()
+        original = replace(recovery_request(block), operation_key=block.request.operation_key)
+        inputs = (original, block, block.after)
+        before = tuple(asdict(value) for value in inputs)
+        with self.assertRaises(ClassificationContentConflictError):
+            evaluate_classification_rules(original, current=block.after, blocking_event=block)
+        self.assert_unchanged_and_frozen(inputs, before)
+
+    def test_historical_recovery_with_block_identity_is_inconsistent(self):
+        block = block_event()
+        original = replace(recovery_request(block), operation_key=block.request.operation_key)
+        event = ConfirmedClassificationEvent(original, block.after, policy(State.TARGET_PREPARED, 9))
+        current = policy(State.TARGET_CONFIRMED, 30)
+        inputs = (original, block, event, current)
+        before = tuple(asdict(value) for value in inputs)
+        with self.assertRaises(InconsistentClassificationHistoryError):
+            evaluate_classification_rules(original, current=current, recorded_event=event, blocking_event=block)
+        self.assert_unchanged_and_frozen(inputs, before)
+
+    def test_distinct_recovery_identity_allows_candidate_and_both_historical_replays(self):
+        block = block_event()
+        original = recovery_request(block)
+        self.assertNotEqual(original.operation_key, block.request.operation_key)
+        self.assertEqual(original.blocking_operation_key, block.request.operation_key)
+        inputs = (original, block, block.after)
+        before = tuple(asdict(value) for value in inputs)
+        candidate = evaluate_classification_rules(original, current=block.after, blocking_event=block)
+        self.assertEqual(candidate.kind, Kind.NEW_CANDIDATE)
+        self.assertEqual(candidate.after.transition_state, block.before.transition_state)
+        self.assertEqual(candidate.after.revision, block.after.revision + 1)
+        event = ConfirmedClassificationEvent(original, candidate.before, candidate.after)
+        current = policy(State.TARGET_CONFIRMED, 30)
+        history_inputs = (event, current)
+        history_before = tuple(asdict(value) for value in history_inputs)
+        recovery_replay = evaluate_classification_rules(original, current=current, recorded_event=event, blocking_event=block)
+        block_replay = evaluate_classification_rules(block.request, current=current, recorded_event=block)
+        self.assertEqual(recovery_replay, ClassificationRuleResult(Kind.HISTORICAL_REPLAY, event.before, event.after))
+        self.assertEqual(block_replay, ClassificationRuleResult(Kind.HISTORICAL_REPLAY, block.before, block.after))
+        self.assert_unchanged_and_frozen(inputs, before)
+        self.assert_unchanged_and_frozen(history_inputs, history_before)
+        results = (candidate, recovery_replay, block_replay)
+        self.assert_unchanged_and_frozen(results, tuple(asdict(value) for value in results))
+
     def test_recover_requires_current_blocked_state(self):
         block = block_event()
         for state in State:
