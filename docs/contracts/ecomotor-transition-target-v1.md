@@ -2,6 +2,13 @@
 
 ## 1. Autoridad, alcance y estado
 
+**Estado vigente A3.3 · 20/10/2026, base 75177a2:** A3.1 (#58) y A3.2 (#60)
+ya están integrados como auditor puro y extractor de evidencia, respectivamente.
+Sus propuestas futuras de §10/§12 conservan el corte histórico documentado.
+[Clasificación A3.3](ecomotor-profile-classification-v1.md) desarrolla A3-CLAS-01
+solo conceptualmente; no hay registro físico, clasificación, migración o activación.
+S3 V1 sigue siendo el único escritor XP, incluso para perfiles sin registro A3.3.
+
 A3-ARQ-01 aprobado **internamente y de forma condicionada por el Equipo 5**,
 comunicado por Jaime. Registro documental del 20/10/2026 sobre develop
 `7039ae64cd8975f14a93c4d4bbbc92893adc5ffd`. No ratifica contratos físicos con Óscar/Core, Henry u otros consumidores ni
@@ -25,6 +32,17 @@ S3 V1 sigue como escritor vigente. **A3, su registro persistente, catálogo fís
 objetivo, migración y punto de entrada futuro no están implementados.**
 
 ## 2. Clasificación persistente · A3-CLAS-01
+
+**Desarrollo A3.3:** [contrato de clasificación](ecomotor-profile-classification-v1.md)
+y [decisiones](../decisions.md#a33--clasificación-persistente-de-perfiles--20102026).
+ProfileProgressionPolicy y ProfileProgressionPolicyEvent son modelos candidatos:
+procedencia explícita inmutable, transición separada y revisión monotónica; historial
+inmutable con identidad (profile, operation_key) propia del dominio clasificación.
+Política y evento se confirman juntos bajo D-19; repetición compatible sin efectos,
+contenido incompatible en conflicto. Sin registro = no clasificado, no revisión.
+Nombres/matriz de procedencias/estados son candidatos; clasificación no es un
+interruptor XP ni TARGET_CONFIRMED activa escritor. No se aprueba tabla, backfill,
+on_delete o migración. Core/P5 y Henry/consumidores conservan sus dependencias.
 
 Proponer un registro persistente de política de progresión asociado unívocamente
 a UserProfileEcomotor. Separar **procedencia del perfil** de **estado de transición**;

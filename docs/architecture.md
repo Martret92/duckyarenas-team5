@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Actualización A3.3 · 20/10/2026:** baseline `75177a2`, con PR #61/#62 integradas.
+A3.1 (#58) y A3.2 (#60) están implementados; las notas siguientes que los presentan
+como futuros conservan su corte histórico. [A3.3](#14-a33--clasificación-persistente-de-perfiles)
+es arquitectura interna de clasificación, no tablas o servicios disponibles.
+S3 V1 continúa como único escritor XP; A2.1 no concede ni activa el objetivo.
+
 **Precisión objetivo · 20/10/2026:** [ATR-OBJ-01](decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026),
 posterior a la conciliación de la PR #61, fija internamente LOG = Lógica y
 CUACK = Especial / Especialización en el diseño 02C. No cambia V1, sus datos ni
@@ -829,3 +835,40 @@ Separar apariencia, posesión, equipamiento y progreso. La concreción de atribu
 requiere adaptación técnica explícita, no nuevas reglas para todos los servicios.
 [Pendientes residuales](pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
 Sin cambios S3 V1, A3.1/A3.2, Rewards/Bank/Duckies o activación A2; este PR es documental.
+
+## 14. A3.3 · Clasificación persistente de perfiles
+
+[A3.3-ARQ-01 y acuerdos asociados](decisions.md#a33--clasificación-persistente-de-perfiles--20102026)
+desarrollan A3-CLAS-01, aprobados internamente por Equipo 5; no son especificación
+literal DAR3 ni aceptación externa. [Contrato conceptual](contracts/ecomotor-profile-classification-v1.md)
+y [ERD candidato](erd/ecomotor.md#16-a33--política-de-progresión-e-historial-conceptuales).
+
+ProfileProgressionPolicy separa procedencia explícita inmutable y transición,
+con revisión monotónica no negativa, asociado unívocamente al perfil Ecomotor.
+Sin registro significa **no clasificado**, no PENDING_REVIEW. No inferir por fecha,
+nivel/XP/época/especialización/stats o ausencia de UserPlayableState.
+ProfileProgressionPolicyEvent conserva acciones inmutables, estados/revisiones y
+operador autorizado, con identidad conceptual (profile, operation_key) propia:
+repetición compatible sin nuevos efectos; reutilización incompatible en conflicto.
+Son dos modelos candidatos, sin tablas, constraints físicos ni migraciones aprobadas.
+
+La operación futura confirma política e historial juntos bajo D-19, mismo alias,
+IMMEDIATE/timeout 5 s, revisión esperada, idempotencia y rollback íntegro; sin I/O
+externo ni bloqueo de fila supuesto en SQLite. Estados y procedencias candidatos,
+matriz/transiciones y detalle del protocolo requieren concreción previa al código.
+
+A3.2 extrae evidencia y A3.1 evalúa un subconjunto; COMPATIBLE no clasifica,
+repara, migra o autoriza XP. S3 puede volver obsoleta una fotografía. Acordar cómo
+validar evidencia actual en una frontera segura sin anidar el extractor, que
+rechaza transacción exterior. Una clasificación TARGET_CONFIRMED no activa XP:
+clasificación, corte global autorizado, emisor confiable y precondiciones XP son
+controles distintos. S3 V1 sigue activo incluso sin registro A3.3 hasta corte
+autorizado; no existen dos escritores habilitados por esta arquitectura.
+
+[Pendientes A3.3](pending-decisions.md#18-a33--pendientes-de-clasificación-persistente):
+Core/P5 para conservación, anonimización/eliminación, relaciones/on_delete,
+operador y autorización; Henry/Duckies para consumidores y catálogo. Primero
+reglas puras/validadores 01B y acuerdos necesarios; después modelos sin backfill
+automático, servicios/tests, catálogo/causalidad, migración y activación autorizadas.
+Ninguna de esas fases se ejecuta aquí. No cambia ATR-OBJ-01 ni se desbloquean
+Rewards F2-A, dominio persistente, S13-A2 o integraciones económicas.
