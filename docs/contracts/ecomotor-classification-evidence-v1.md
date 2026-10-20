@@ -301,3 +301,108 @@ frente a error de lectura; timeout/rollback sin cobertura falsa; referencias cru
 sin datos ajenos; lectura coherente frente a S3 concurrente; replay sin invocar
 elegibilidad nueva; ausencia de escrituras, reparaciones, backfill y XP objetivo.
 No se implementan ni ejecutan nuevos tests Django en esta PR documental.
+
+## 9. A3.6.3 · Criterios locales necesarios para V1_VERIFIED
+
+A3.6.3-MIN-01, GAPS-01, NATIVE-01 y TIME-01, aprobadas internamente por Equipo 5
+en 02C, documentadas el 20/10/2026 sobre develop
+`080849ee207c05f844d5ccfd1624ab270d1d5a3a`. DAR3 conserva autoridad funcional;
+no son requisitos literales nuevos ni ratificaciones de Óscar/Core o Henry.
+[Registro](../decisions.md#a363--criterios-de-suficiencia-v1--20102026) y
+[pendientes](../pending-decisions.md#23-a363--suficiencia-lagunas-y-procedencia-pendientes).
+
+Estas condiciones permiten **estudiar** PENDING_REVIEW → V1_VERIFIED, no aprobar
+su cobertura final ni confirmar transiciones por sí mismas. El lector y el
+servicio persistente siguen sin implementar; no se publica una API o esquema.
+
+### 9.1. Controles locales según aplicabilidad · A3.6.3-MIN-01
+
+| Grupo | Condición local necesaria cuando corresponda |
+| --- | --- |
+| Perfil | Existencia, identidad y valores representables. |
+| Estadísticas | CharacterStats existente, relacionado correctamente y con valores válidos. |
+| XP | Coherencia de todos los eventos observados y snapshots, sin afirmar completitud histórica no demostrada. |
+| Evoluciones | Referencias, causas XP y pertenencia correctas, incluidos casos de causalidad cruzada. |
+| Progresión | Nivel/etapa actuales coherentes con XP y catálogo V1 validado y acreditado como aplicable. |
+| Puntos | Coherencia de eventos de gasto disponibles, sin reconstruir saldos históricos inexistentes. |
+| Especializaciones | Selección activa/progresos consistentes con reglas aplicables, respetando ausencia de especialización cuando sea válida. |
+
+Controles necesarios **según operación y procedencia**, no lista que certifique
+por sí sola V1_VERIFIED. La matriz de §7.1 conserva fuentes y límites del código
+existente; §8 conserva el contrato del lector. No introducir reglas que contradigan
+V1 ni usar catálogo actual como prueba de hechos históricos sin acreditar su
+aplicabilidad histórica. Catálogo válido y catálogo aplicable son requisitos distintos.
+
+No considerar incoherencia por defecto la ausencia legítima de eventos o selección.
+En [S11-A](../../apps/ecomotor/specialization_service.py), selección ausente sin
+progresos puede ser un estado válido; selección/progresos contradictorios requieren
+su comprobación específica. No exigir a cualquier perfil una especialización activa.
+
+### 9.2. Lagunas y decisión de avance · A3.6.3-GAPS-01
+
+| Situación | Alcance y consecuencia para una operación nueva |
+| --- | --- |
+| Evidencia suficiente | La condición examinada se acredita conforme a criterios aprobados. No significa cobertura final del perfil automáticamente. |
+| Evidencia insuficiente | Falta información necesaria para acreditar una condición obligatoria: no confirmar transición a V1_VERIFIED; conservar clasificación previa, sin evento de transición nuevo. |
+| Incoherencia detectada | Contradicción observable: tampoco confirmar transición; sin mutación o evento parcial y sin bloqueo automático. |
+
+Son distinciones conceptuales, no nuevos estados/enums ni cambios LegacyAuditStatus.
+La ausencia de un evento antiguo no prueba por sí sola corrupción. No fabricar
+XPEvent, historia de puntos, snapshots, procedencias o cronología por PK para
+completar lagunas. A3.1 COMPATIBLE no acredita suficiencia V1_VERIFIED.
+
+**Pendiente expresamente:** política exacta sobre qué lagunas podrían admitirse
+bajo garantías alternativas válidas, si existiese. No se aprueba excepción general
+para clasificar perfiles de historia incompleta. Una insuficiencia concreta no
+borra el valor de otras observaciones válidas; tampoco habilita avance cuando
+falta una prueba obligatoria. BLOCKED es otra operación con incidencia,
+autorización y condiciones propias; no se ejecuta automáticamente ante diagnóstico.
+
+### 9.3. Procedencia y creación confiable · A3.6.3-NATIVE-01
+
+- LEGACY_V1 requiere procedencia acreditada y evaluación de historia observable,
+  con lagunas tratadas explícitamente.
+- NATIVE_V1 requiere alta confiable y verificada conforme a su proceso creador.
+  No exigir historia antigua inexistente a un nativo recién inicializado.
+
+No inferir NATIVE_V1 de cero XP, fecha reciente, nivel inicial o historial vacío.
+No convertir automáticamente perfiles existentes ni cambiar procedencia confirmada.
+[S2-A](../../apps/ecomotor/initialization.py) garantiza aspectos concretos de creación
+atómica de perfil/stats y configuración inicial; no es un mecanismo universal de
+certificación retrospectiva de procedencia. Acreditación exacta del proceso
+creador y sus dependencias **todavía pendientes**. Se mantiene la matriz de altas
+A3.3; esta precisión no autoriza clasificaciones reales ni un origen por defecto.
+
+### 9.4. Alcance temporal · A3.6.3-TIME-01
+
+Una verificación confirmada acredita las condiciones requeridas **en el momento
+de su transacción**. Una concesión S3 posterior no revoca o altera automáticamente
+clasificación, revisión o eventos confirmados. No garantiza coherencia indefinida.
+Transiciones posteriores requieren sus propias condiciones de evidencia vigente
+y autorización; un diagnóstico posterior no deduce BLOCKED. Bloqueo siempre
+mediante operación autorizada con sus condiciones, sin automatismos por recompensas.
+
+Se conserva A3.3: revisión esperada, identidad por clave, evento histórico primero
+y replay sin nueva elegibilidad. Para nueva operación, lector dentro de transacción
+D-19 controlada por servicio, evidencia actual comprobada en esa misma frontera,
+alias confiable/IMMEDIATE/timeout 5 s y política/evento atómicos o rollback íntegro.
+A3.2 permanece separado y sin extracción anidada. S3 V1 sigue único escritor XP.
+
+### 9.5. Dependencias y pruebas futuras
+
+Abiertos: cobertura final suficiente V1_VERIFIED; política de lagunas admisibles;
+completitud XP y reconstrucción de puntos si falta historia; aplicabilidad histórica
+de catálogos/atributos de etapas; historia de dominio/especializaciones/rangos;
+procedencia confiable; consultas/contexto del lector; A3.5/Core (identidad,
+autorización, ciclo de vida, retención, privacidad y on_delete); Henry/Duckies,
+inventario y referencias de integración. [Consulta Core/P5](ecomotor-classification-core-boundary-v1.md)
+intacta, sin respuestas o permisos inventados. No se cierra dependencia por inferencia.
+
+Tests futuros: datos locales coherentes y evidencia obligatoria suficiente; XPEvent
+antiguos ausentes frente a eventos observados incoherentes; stats ausentes/inválidas;
+progreso incompatible con catálogo aplicable; gastos individuales coherentes sin
+saldo histórico acreditable; ausencia legítima/inconsistente de especialización;
+legacy/nativo con procedencia acreditada; XP posterior a verificación confirmada;
+nueva transición con evidencia obsoleta; replay sin nueva elegibilidad; rechazo
+sin mutaciones/reparaciones/eventos parciales; regresión S3 V1. No se crean ni
+ejecutan nuevos tests Django, modelos, lector o servicio en esta PR documental.

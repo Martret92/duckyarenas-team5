@@ -361,3 +361,18 @@ elegibilidad o mutar el estado actual. COMPATIBLE no clasifica ni certifica nive
 puntos, especializaciones/rangos o Duckies integralmente.
 A3.2 no se anida; A3.5 sigue abierto y sus cinco preguntas Core/P5 no están
 ratificadas. Sin modelos/servicios, migración, clasificación automática o activación.
+
+## 12. A3.6.3 · Suficiencia abierta y alcance temporal
+
+[Contrato central A3.6.3](ecomotor-classification-evidence-v1.md#9-a363--criterios-locales-necesarios-para-v1_verified)
+precisa controles locales necesarios según procedencia/aplicabilidad, sin declarar
+suficiencia final V1_VERIFIED. Si falta prueba obligatoria o existe incoherencia,
+no confirmar avance ni crear evento de transición; no bloquear automáticamente.
+La política de lagunas admisibles y acreditación del proceso creador siguen pendientes.
+
+Verificación confirmada acredita su momento transaccional: XP posterior por S3 no
+revoca clasificación ni altera revisión/eventos automáticamente, pero tampoco se
+garantiza coherencia perpetua. Nueva transición requiere evidencia vigente y permisos
+propios; BLOCKED exige operación autorizada, no diagnóstico automático.
+Matriz, altas, revisión/idempotencia y replay histórico A3.3 intactos; A3.6.2 sigue
+conceptual y A3.2 no se anida. S3 V1 único escritor, sin activación o migraciones.
