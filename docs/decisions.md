@@ -1245,3 +1245,28 @@ modelos/migraciones sin backfill tras acuerdos → servicio/tests → integraci�
 ensayos con Core/Henry/consumidores → migración/activación autorizadas. Sin código,
 clasificación real o tests Django ejecutados aquí. S3 V1 sigue como único escritor;
 no cambian A3.1/A3.2, reglas puras, ATR-OBJ-01, historiales o contratos V1.
+
+## A3.6 · Evidencia vigente y condiciones de clasificación · 20/10/2026
+
+**Aprobación técnica interna del Equipo 5 en 02C**, documentada sobre develop
+`bccc6175ee1751073d8f610d28e99c97da1aad05`, tras arquitectura A3.4 (#67) y reglas
+puras A3.3 (#66). DAR3 sigue principal; no se atribuyen estas decisiones técnicas
+a DAR3, Óscar/Core o Henry. Se conserva la autoridad/fecha de los antecedentes.
+
+| Identificador | Dirección aprobada y límite |
+| --- | --- |
+| A3.6-FRESH-01 | Operación nueva: comprobar datos necesarios dentro de la transacción que confirma política/evento, mismo alias confiable, D-19/BEGIN IMMEDIATE/timeout 5 s, rollback conjunto y sin I/O externo. Diagnóstico previo no garantiza vigencia ni lectura actual implica suficiencia. Lector interno específico como dirección, API/consultas aún pendientes; A3.2 intacto y no anidado. |
+| A3.6-COVERAGE-01 | Aprobar condiciones por operación del contrato canónico: altas confiables por procedencia, verificación V1 suficiente, compatibilidad objetivo/consumidores y condiciones de migración/corte. Bloqueo por incidencia autorizada sin exigir avance; recuperación con bloqueo íntegro y validación nueva; replay con autorización/contenido/integridad propios. No es lista exhaustiva de consultas. Cobertura verificable de V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED pendiente con propietarios; COMPATIBLE no clasifica ni certifica integralmente puntos/niveles/especializaciones/rangos/Duckies. |
+| A3.6-GATE-01 | No confirmar operación nueva sin evidencia requerida/suficiente/vigente, autorización, condiciones externas obligatorias o coherencia de política/historial/revisión. Replay conserva A3.3, evento primero y resultado histórico sin mutación ni nueva elegibilidad. TARGET_CONFIRMED no activa XP; S3 V1 sigue único escritor. Sin migración o clasificación automática. |
+
+[Contrato de evidencia](contracts/ecomotor-classification-evidence-v1.md) concentra
+las nueve filas de cobertura, límites, transacción, dependencias y pruebas futuras;
+[pendientes](pending-decisions.md#20-a36--cobertura-y-protocolo-de-evidencia-pendientes).
+A3.5 sigue abierto: [consulta Core/P5](contracts/ecomotor-classification-core-boundary-v1.md)
+sin respuestas/ratificación de identidad, autorización, ciclo de vida, retención,
+privacidad u on_delete. No se modifica ese documento ni se aprueban permisos.
+
+Pruebas futuras: evidencia obsoleta/actual/incompleta, bloqueo sin avance,
+recuperación validada, replay sin nueva elegibilidad, concurrencia/rollback/eventos
+parciales, aislamiento y regresión S3 sin migración o XP objetivo. Sin código,
+modelos, servicios o tests nuevos/ejecutados; no se activa el objetivo.

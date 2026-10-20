@@ -143,7 +143,10 @@ histórico no es el estado actual. No se implementa el flujo.
 ## 7. Evidencia vigente y lector interno específico
 
 **Dirección aprobada:** lector interno específico para comprobaciones en la
-transacción futura. Su API, consultas y cobertura funcional no se especifican aún.
+transacción futura. [A3.6](ecomotor-classification-evidence-v1.md) precisa que los
+datos necesarios se comprueban dentro de la transacción que confirma política y
+evento; distingue cobertura funcional, actualidad y diagnóstico previo. Su API,
+consultas y cobertura verificable siguen pendientes, no la dirección arquitectónica.
 A3.2 permanece intacto como extractor de inventario previo y rechaza transacciones
 exteriores; no se invoca anidado ni se eliminan sus protecciones.
 
@@ -151,7 +154,7 @@ exteriores; no se invoca anidado ni se eliminan sus protecciones.
 | --- | --- |
 | Fotografía previa A3.2 | Útil para diagnóstico A3.1; susceptible de obsolescencia mientras S3 escribe. No autoriza clasificación o migración. |
 | Evidencia leída/validada en transacción | Necesaria para decidir operaciones nuevas bajo una frontera coherente; exige comprobar suficiencia, no solo actualidad. |
-| Cobertura por transición | Pendiente especificar comprobaciones de V1_VERIFIED, TARGET_PREPARED y TARGET_CONFIRMED, incluidas dependencias fuera de A3.1/A3.2. |
+| Cobertura por transición | Condiciones de las nueve operaciones aprobadas en A3.6-COVERAGE-01; pendientes datos/consultas/criterios verificables, especialmente V1_VERIFIED, TARGET_PREPARED y TARGET_CONFIRMED, incluidas dependencias fuera de A3.1/A3.2. No es lista exhaustiva implementable. |
 
 A3.1 COMPATIBLE no certifica toda la coherencia V1, puntos gastados, dominio,
 especializaciones o Duckies. No se considera resuelto el protocolo concreto por
@@ -177,3 +180,19 @@ conflictos; bloqueo/recuperación con historial íntegro; concurrencia inicial y
 revisiones; rollback conjunto/timeout; evidencia obsoleta/insuficiente; aislamiento
 de perfiles/aliases; autorización/retención/eliminación conforme a Core; regresión
 S3 V1, sin backfill ni concesiones objetivo. No se crean ni ejecutan tests Django.
+
+## 9. A3.6 · Condiciones de evidencia y rechazo
+
+[Decisiones A3.6](../decisions.md#a36--evidencia-vigente-y-condiciones-de-clasificación--20102026)
+y [contrato de evidencia](ecomotor-classification-evidence-v1.md) desarrollan §6–§7
+sin implementar el flujo. Operación nueva solo se confirma con datos necesarios
+comprobados en esa transacción, evidencia suficiente, autorización, condiciones
+externas y política/historial/revisión coherentes; política y evento juntos o rollback.
+Bloqueo no exige avance del perfil inconsistente; recuperación requiere historia
+de bloqueo íntegra y validación nueva. Replay conserva su protocolo histórico,
+sin repetir elegibilidad de operación nueva. COMPATIBLE no implica V1_VERIFIED.
+
+API/consultas del lector y cobertura verificable por transición siguen pendientes.
+A3.2 intacto y sin invocación anidada; A3.5 continúa abierto, sin ratificar las
+cinco preguntas de la consulta Core/P5. No se modifica esquema, relaciones,
+constraints propuestos o pruebas existentes ni se activa el escritor objetivo.

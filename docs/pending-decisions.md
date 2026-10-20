@@ -599,3 +599,27 @@ modelos/migraciones tras acuerdos sin backfill → servicio/tests → integraci�
 ensayos → migración/activación global autorizadas. No calendario ni permiso actual.
 S3 V1 sigue como único escritor; no desbloquear Rewards F2-A, dominio persistente,
 S13-A2, inventario o economía. P1–P8, R1–R8 e I1–I9 conservan sus residuales.
+
+## 20. A3.6 · Cobertura y protocolo de evidencia pendientes
+
+[Decisiones](decisions.md#a36--evidencia-vigente-y-condiciones-de-clasificación--20102026)
+y [contrato canónico](contracts/ecomotor-classification-evidence-v1.md), aprobación
+interna Equipo 5 sobre `bccc617`, sin servicio/modelos o permisos externos.
+
+**Resuelto como dirección:** datos necesarios comprobados en la misma transacción
+que confirma una operación nueva; lector interno específico, sin A3.2 anidado;
+condiciones por operación y rechazo sin evidencia/autorización/condiciones externas
+suficientes o coherencia. Bloqueo no exige avance; recuperación valida de nuevo.
+Replay mantiene A3.3 sin repetir verificaciones de elegibilidad nueva.
+
+| Pendiente | Responsable / alcance no cerrado |
+| --- | --- |
+| Cobertura verificable | Parte A y propietarios: detallar datos/fuentes/criterios para V1_VERIFIED, TARGET_PREPARED y TARGET_CONFIRMED, incluidas dependencias ajenas al alcance A3.1/A3.2. La tabla aprobada no es lista exhaustiva de consultas ni COMPATIBLE autoriza clasificar. |
+| Lector y frontera | Parte A: API/consultas definitivas y comprobaciones dentro de transacción, actualidad más suficiencia, coordinación de condiciones externas sin I/O dentro. A3.2 conserva protección frente a transacción exterior. |
+| A3.5 · Core/P5 | CORE-A3.3-IDENTITY/AUTH/LIFECYCLE/RETENTION/PRIVACY siguen abiertos, incluida participación del operador en comparación y on_delete. Las cinco preguntas no están respondidas/ratificadas; documento de consulta intacto. |
+| Esquema e integración | Puertas A3.4, formatos físicos, relaciones, catálogo y consumidores/Henry siguen pendientes. A3.6 no aprueba modelos/migraciones ni cobertura global del historial. |
+| Tests futuros del servicio | Evidencia obsoleta tras S3/actual en transacción/incompleta o incoherente; bloqueo sin avance; recuperación validada con historia íntegra; replay sin verificaciones nuevas; concurrencia/rollback/eventos parciales, aislamiento de perfiles/alias, regresión S3 sin migración automática o XP objetivo. No creados ni ejecutados aquí. |
+
+P1–P8, R1–R8 e I1–I9 mantienen sus residuales. No se activa escritor objetivo,
+ni se concede XP ni se crean clasificaciones/backfills por documentar A3.6. S3 V1
+sigue activo y TARGET_CONFIRMED no lo sustituye automáticamente.
