@@ -1,4 +1,4 @@
-# A4.1 · Validación pura de estadísticas objetivo · Contrato conceptual v1
+# A4.1 · Validación pura de estadísticas objetivo · Contrato técnico v1
 
 ## 1. Autoridad, alcance y estado
 
@@ -12,8 +12,11 @@ aprueban por sí solas esquemas Django o configuración numérica.
 [opciones objetivo](ecomotor-playable-options-target-v1.md#3-opciones-y-estadísticas)
 y [pendientes](../pending-decisions.md#25-a41--parámetros-y-dependencias-del-validador-objetivo).
 Se desarrolla E-01/E-02 de 02C con ATR-OBJ-01 y se conserva OP-RED-01.
-**Diseño del componente puro, no implementado:** sin API Python definitiva,
-persistencia, servicios nuevos, modelos, migraciones o activación objetivo.
+**Actualización del 21/10/2026 para implementación pura en revisión en 01B:**
+A4.1-NUM-01 resuelve el dominio numérico básico que el corte documental de PR #73
+mantenía pendiente. Firma y representación concretadas internamente en 01B;
+no son reglas numéricas oficiales del profesor ni autorización adicional de Core.
+Sin persistencia, modelos, migraciones o activación objetivo.
 Se usa trazabilidad existente; no se afirma nueva consulta directa de PDFs.
 
 ## 2. Atributos exactos · A4.1-ATTR-01
@@ -41,18 +44,29 @@ no demuestra que una configuración aportada esté funcionalmente autorizada.
 
 - Bases e incrementos contienen **exactamente** las seis claves canónicas: sin
   ausencias, sobrantes o duplicados. No completar entradas con defaults.
-- Bases explícitas numéricas con tipos apropiados para el cálculo, sin booleanos
-  o representaciones incompatibles. Valores oficiales, dominio numérico concreto,
-  límites y reglas adicionales de bases/efectivos pendientes antes de codificar;
-  no ratificar aquí tipos numéricos alternativos, mínimos, máximos o signos permitidos.
-- Incrementos: enteros no negativos, excluyendo booleanos; no aceptar valores no
-  enteros o negativos ni convertirlos silenciosamente para hacer válido un reparto.
-- Presupuesto: entero no negativo, excluyendo booleanos.
+- Bases, incrementos y presupuesto: **enteros Python exactos no negativos**,
+  `type(value) is int` y `value >= 0`, según A4.1-NUM-01 aprobada internamente
+  en 02C el 21/10/2026. Rechazar bool, float, Decimal, cadenas y cualquier otro
+  tipo; sin conversión, redondeo, truncamiento ni completar ausencias.
+- Sin máximos funcionales inventados ni límites técnicos de campos Django en
+  esta capa pura. Bases y presupuesto oficiales siguen pendientes; no hay defaults.
 
-Representación de entrada y firma por concretar. Si la representación admite
-claves repetidas, detectarlas antes de perderlas en una conversión a mapping;
-un mapping ya colapsado no demuestra que su fuente careciese de duplicados.
-No se fija aquí un formato JSON o un nuevo tipo Python.
+### 3.1. API pura concretada en 01B
+
+`validate_target_stats(bases, increments, *, budget: int) -> TargetStatsResult`
+
+`budget` es obligatorio y explícito. Bases e incrementos aceptan exclusivamente
+listas o tuplas explícitas de pares, cada par una lista o tupla de longitud dos.
+Códigos de tipo `str` exacto. Rechazar mappings directos, generadores, iteradores,
+strings/bytes, pares incompletos o ampliados y otros contenedores incompatibles.
+
+Detectar cada código duplicado **antes** de incorporarlo al mapping interno;
+sin claves faltantes/adicionales, alias SPE, capitalización o espacios alternativos.
+No normalizar claves ni completar con cero. Se admite cualquier orden válido;
+solo el resultado se ordena como ATK, DEF, VEL, INT, LOG, CUACK.
+Duplicados ya descartados por una adaptación previa no pueden recuperarse ni
+detectarse retrospectivamente. Esta API no define un formato JSON ni certifica
+la autoridad de la configuración recibida.
 
 ## 4. Reparto y resultado · A4.1-BUDGET-01
 
@@ -60,24 +74,41 @@ Suma de los seis incrementos <= presupuesto. Se permite dejar puntos pendientes,
 incluidos reparto cero y gasto parcial. Por cada atributo:
 **valor efectivo = base validada + incremento validado**.
 
-Resultado conceptual: seis valores efectivos, puntos utilizados (suma de
-incrementos), puntos restantes (presupuesto menos utilizados) y datos de entrada
-validados sin mutaciones. Con mismas entradas válidas, mismo resultado;
-representación concreta del resultado aún pendiente.
+`TargetStatsResult`, dataclass `frozen=True, slots=True`, contiene únicamente:
+`bases`, `increments`, `effective`, `budget`, `points_used` y `points_remaining`.
+Las tres colecciones son tuplas de seis pares `(str, int)` en orden canónico,
+sin listas/dicts internos ni referencias mutables a entradas. Se hacen copias
+defensivas incluso al construir directamente la clase pública.
+
+`points_used = sum(increments)`, `points_remaining = budget - points_used`;
+efectivas = bases + incrementos para cada código. La construcción directa valida
+estructura, tipos, cobertura, presupuesto y todas las igualdades: cifras derivadas
+contradictorias se rechazan. Con las mismas entradas válidas, mismo resultado;
+no se modifican los objetos recibidos. No incluye identidad, permisos, versión,
+XP, clasificación ni estado persistente.
 
 El presupuesto se aplica independientemente a cada Ducky/configuración: no se
 consume presupuesto de otros Duckies. No es un saldo global compartido ni una
 concesión de puntos. OP-RED-01 sigue gratuita/ilimitada; el cálculo puro no ejecuta
 redistribución persistente, registra su historia o selecciona una opción.
 
-## 5. Errores conceptuales
+## 5. Errores de validación
 
 Distinguir entrada inválida, cobertura incompleta/sobrante/duplicada, tipos
 inválidos, presupuesto excedido y configuración inconsistente. Un fallo no
 normaliza, repara o completa silenciosamente entradas ni produce efectos parciales.
 Reglas de consistencia adicionales requieren aprobación; no inventar límites
 para convertir valores base en configuración supuestamente oficial.
-No clases definitivas de excepciones, modelos de error HTTP o firmas obligatorias.
+Jerarquía mínima derivada de `ValueError`:
+
+- `InvalidTargetStatsError`: base general.
+- `InvalidTargetStatsStructureError`: representación, códigos, cobertura o duplicados.
+- `InvalidTargetStatsNumericError`: tipos/valores numéricos o cálculos derivados
+  contradictorios en construcción directa.
+- `TargetStatsBudgetExceededError`: suma de incrementos superior al presupuesto.
+
+No errores HTTP ni persistencia. Comprobar estos datos no acredita una fuente
+oficial autorizada; esa responsabilidad permanece fuera del validador.
 
 ## 6. Separación pura y compatibilidad · A4.1-PURE-01
 
@@ -93,18 +124,19 @@ StatAllocationEvent y contratos/servicios/migraciones V1 no cambian. No renombra
 campos, convertir SPE histórico a CUACK o reinterpretar datos. S3 V1 conserva
 su comportamiento y puntos por nivel hasta activación coordinada autorizada.
 
-## 7. Pendientes y pruebas futuras en 01B
+## 7. Pendientes y pruebas en 01B
 
-Pendientes: bases oficiales por opción, presupuesto numérico autorizado, dominio
-y posibles límites adicionales de bases/efectivos, fuentes/versionado de
+Pendientes: bases oficiales por opción, presupuesto numérico autorizado,
+posibles límites funcionales adicionales, fuentes/versionado de
 configuración y reglas funcionales adicionales si se aprueban. También contratos
 de consumo con otros equipos, modelos/conservación/migración con Óscar/Core y
 activación coordinada del objetivo. **45 puntos no es presupuesto oficial.**
 No fijar valores predeterminados o máximos de juego/almacenamiento por inferencia.
 
-Tests futuros: reparto válido y efectivas; gasto total/parcial; reparto cero;
-presupuesto excedido; claves ausentes/sobrantes/duplicadas; booleanos y no enteros
-en incrementos/presupuesto, negativos donde sean inválidos y tipos base incompatibles
-con su dominio acordado; entradas sin mutaciones; dos opciones con configuraciones
-y presupuestos independientes; compatibilidad sin modificar V1.
-No se implementan ni ejecutan tests Django en esta PR documental ni se crea código.
+El corte de PR #73 solo documentaba pruebas futuras. Este incremento añade
+[validador puro](../../apps/ecomotor/target_stats_validation.py) y
+[tests sintéticos](../../apps/ecomotor/test_target_stats_validation.py) de cálculo,
+gasto total/parcial/cero, tipos estrictos, claves/duplicados, inmutabilidad,
+construcción directa, independencia, enteros grandes y aislamiento de Django/V1.
+Los resultados reales de ejecución se registran en la PR de implementación;
+no se presentan cantidades sintéticas como parámetros oficiales.

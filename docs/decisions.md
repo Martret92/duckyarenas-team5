@@ -1386,3 +1386,32 @@ No bases, presupuesto o límites oficiales inventados; ejemplo 45 no autorizado.
 V1 conserva log_stat Logística y spe Especial / Especialización, servicios e historia.
 Sin código, modelos, migraciones, servicios o tests nuevos/ejecutados; posterior
 implementación pura en 01B. No se activa A2 ni se modifica S3 V1.
+
+## A4.1-NUM-01 · Dominio numérico y concreción pura 01B · 21/10/2026
+
+**Aprobación técnica interna del Equipo 5 en 02C**, comunicada por Jaime el
+21/10/2026, posterior al contrato integrado mediante PR #73 sobre develop
+`693f41d5ab012591b4b89d79239d000983072b6e`. DAR3 conserva autoridad funcional;
+esta decisión no atribuye al profesor cifras oficiales, presupuesto, esquemas
+o autorización de configuración. El registro A4.1 anterior se conserva como
+antecedente: su incertidumbre sobre el dominio numérico básico queda resuelta.
+
+**A4.1-NUM-01:** bases, incrementos y presupuesto son enteros Python exactos no
+negativos (`type(value) is int`, valor >= 0). Rechazar bool, float, Decimal,
+cadenas y tipos incompatibles sin convertir, redondear, truncar o completar.
+Efectivas = bases + incrementos; utilizados = suma de incrementos; restantes =
+presupuesto - utilizados, con suma <= presupuesto. Gasto completo, parcial o cero
+permitido, por configuración independiente. Sin máximos funcionales inventados
+ni límites técnicos de almacenamiento impuestos en esta capa pura.
+
+**Concreción técnica de implementación en 01B, no nueva regla funcional:**
+`validate_target_stats(bases, increments, *, budget) -> TargetStatsResult`;
+listas/tuplas explícitas de pares permiten rechazar duplicados antes de colapsar
+claves. Solo ATK, DEF, VEL, INT, LOG y CUACK, una vez cada una. Resultado frozen/slots
+con tuplas canónicas y copias defensivas; construcción directa también valida
+sus invariantes. Sin modelos, persistencia, cambios V1 o activación del objetivo.
+
+[Contrato técnico](contracts/ecomotor-target-stats-validation-v1.md) y
+[pendientes reales](pending-decisions.md#25-a41--parámetros-y-dependencias-del-validador-objetivo):
+bases y presupuesto oficiales, posibles límites adicionales, fuente/versionado,
+consumidores, integración y Core siguen abiertos. **45 no es presupuesto oficial.**

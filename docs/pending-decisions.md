@@ -719,22 +719,29 @@ S3 V1 sigue único escritor. P1–P8, R1–R8 e I1–I9 mantienen residuales.
 
 ## 25. A4.1 · Parámetros y dependencias del validador objetivo
 
-[Cuatro acuerdos internos](decisions.md#a41--validación-pura-de-estadísticas-objetivo--21102026)
-y [contrato conceptual](contracts/ecomotor-target-stats-validation-v1.md), sobre
-`0e960de`. Resuelto como diseño: seis atributos ATR-OBJ-01, bases explícitas,
-reparto validado por configuración con puntos pendientes y cálculo puro determinista.
-No implementado, no autorización de configuración oficial o de persistencia.
+[Acuerdos internos iniciales](decisions.md#a41--validación-pura-de-estadísticas-objetivo--21102026)
+y [contrato técnico](contracts/ecomotor-target-stats-validation-v1.md), documentados
+inicialmente sobre `0e960de` e integrados en PR #73. La precisión
+[A4.1-NUM-01 y API 01B](decisions.md#a41-num-01--dominio-numérico-y-concreción-pura-01b--21102026)
+del 21/10/2026 resuelve el dominio numérico básico: bases, incrementos y presupuesto
+enteros exactos no negativos; bool y tipos no enteros rechazados, sin conversiones.
+Efectivas=bases+incrementos y suma de incrementos <= presupuesto. Gasto total,
+parcial o cero; cada configuración independiente.
+
+API pura concretada: secuencias explícitas de pares para detectar duplicados y
+resultado frozen/slots canónico. Implementación para revisión en 01B, sin
+autorización de configuración oficial ni persistencia. La incertidumbre previa
+del dominio básico no se mantiene abierta; permanecen los siguientes pendientes.
 
 | Pendiente | Responsable / alcance |
 | --- | --- |
-| Bases por opción | Equipo 5: valores oficiales/autorizados, dominio numérico y posibles límites base/efectivos. Sin defaults, mínimos o máximos inventados ni efectos especiales implícitos. |
+| Bases por opción | Equipo 5: valores oficiales/autorizados y posibles límites funcionales adicionales de bases/efectivos. Dominio básico ya resuelto por NUM-01; sin defaults ni máximos inventados o efectos especiales implícitos. |
 | Presupuesto | Cantidad numérica autorizada; 45 ilustrativo no es oficial. Cada Ducky/configuración independiente, sin consumir presupuesto ajeno. |
 | Configuración/reglas | Fuentes, versionado y reglas adicionales solo si se aprueban. Validador no autentica ni acredita autorización de datos aportados. |
-| Representación pura | Firma/entradas/resultados/errores definitivos y tratamiento de duplicados antes de colapsar claves; sin clases o formatos físicos aprobados por esta documentación. |
-| Consumo e integración | Contratos de estadísticas con otros equipos; modelos, conservación/migración con Óscar/Core y activación coordinada del objetivo. No cambiar V1 o dependencias por inferencia. |
-| Pruebas futuras 01B | Reparto válido, gasto total/parcial/cero, exceso, claves ausentes/sobrantes/duplicadas, tipos/bool/negativos inválidos, no mutación, independencia de dos opciones y compatibilidad V1. No implementadas ni ejecutadas aquí. |
+| Consumo e integración | Contratos de estadísticas con otros equipos; modelos, conservación/migración con Óscar/Core y activación coordinada del objetivo. No cambiar V1 o dependencias por inferencia. La API pura no define un esquema físico. |
+| Pruebas e integración futura | Este incremento incorpora tests puros sintéticos y regresiones; resultados reales en la PR de implementación. Pruebas de consumidores/persistencia/migración/activación continúan pendientes de sus contratos y autorizaciones. |
 
 E-01/E-02, ATR-OBJ-01 y OP-RED-01 conservan autoridad/alcance. V1 mantiene log_stat
 Logística y spe Especial / Especialización sin transformación histórica. S3 V1
-no cambia; sin modelos, migraciones, servicios o activación. P1–P8, R1–R8 e I1–I9
+no cambia; sin modelos, migraciones, servicios persistentes o activación. P1–P8, R1–R8 e I1–I9
 y los pendientes Core/Henry/integración mantienen sus residuales.
