@@ -981,3 +981,38 @@ Core/P5 conserva retención, anonimización/eliminación y on_delete pendientes.
 [Dependencias A3](pending-decisions.md#14-a2--dependencias-para-xp-histórica-objetivo)
 no bloquean diseñar/probar el planificador puro, pero sí la futura activación.
 No se modifican contratos V1 ni se desbloquean dominio, S13-A2 o Rewards F2-A.
+
+## A3 · Compatibilidad histórica y activación coordinada · 20/10/2026
+
+**A3-ARQ-01, aprobación interna y condicionada del Equipo 5**, comunicada en el
+encargo A3. Base develop `7039ae64cd8975f14a93c4d4bbbc92893adc5ffd`; A2.1 puro
+integrado por PR #56, sin escritor objetivo. DAR3 sigue como fuente funcional;
+aclaraciones de Óscar sobre épocas no aprueban mecanismos Django, versión o
+despliegue elegidos internamente. Se conserva trazabilidad existente, sin nueva
+consulta directa de PDFs ni aprobación de contratos físicos externos.
+
+| ID | Decisión interna aprobada / condición |
+| --- | --- |
+| A3-CLAS-01 | Proponer registro persistente de política unívoco por UserProfileEcomotor, separando procedencia y estado de transición. No inferirlo por nivel/época/stats/ausencia de UserPlayableState; existentes requieren auditoría. Clasificación no autoriza XP; campos/tipos/constraints pendientes. |
+| A3-CAT-01 | Conservar EvolutionStage V1 y adoptar catálogo objetivo separado, versionado e inmutable tras uso. Nueve épocas DAR3, siete etapas V1/Actual y siete épocas objetivo/Siglo XX siguen distintas; nivel 8 no añade época. Identificación causal en EvolutionEvent y adaptación PlayableOption son bloqueos físicos, sin solución aprobada. |
+| A3-MIG-01 | Inventario de perfiles/XP/niveles/épocas/eventos/stats/especializaciones y Duckies. Diagnósticos compatibles, requieren decisión o incoherentes no autorizan migración automática. Futura migración explícita/trazable/idempotente/concurrente; no reinterpretar eventos, reasignar stats ni recalcular XP/niveles por inferencia. |
+| A3-WRITER-01 | S3 V1 vigente hasta activación; único punto interno futuro con versión confiable del servidor, nunca del cliente. Preferir primera activación mediante corte global coordinado frente a cohortes con escritores simultáneos. Preparación/suspensión/activación/detención son conceptos, no constantes o implementación. |
+| A3-REPLAY-01 | UNIQUE(profile, operation_key) entre versiones; validación inicial y transacción antes de buscar operación. Existente valida importe/snapshots/causalidad y devuelve historia disponible sin catálogo/clasificación nueva. Ausente comprueba clasificación/escritor. Nuevas concesiones objetivo necesitan procedencia persistente inmutable, representación física pendiente. |
+| A3-RES-01 | S3 conserva puntos mientras activo. Concesión objetivo nueva sin puntos: compatibilidad 0/None en stat_points_awarded/available_points_after; no reinterpretar V1, borrar saldo heredado o reconstruir snapshots ausentes. Interfaz final compartida pendiente. |
+| A3-DEPLOY-01 | Inventario → esquema compatible aprobado → clasificación/auditoría → ensayo aislado → suspensión/drenaje → migración autorizada → activación objetivo → supervisión/detención segura. Requiere datos/catálogos/autorización, escritor único, consumidores, pruebas y acuerdos externos; sin reversión automática a S3 tras XP objetivo. |
+
+El [contrato A3](contracts/ecomotor-transition-target-v1.md) concentra diseño y
+bloqueos. XPEvent V1 no guarda versión/nivel/época; EvolutionEvent no guarda
+atributos históricos de etapa. Se conserva A2-IDEM-01 y su replay primero,
+sin rutas alternativas no autorizadas ni reinterpretación de información ausente.
+
+**A3.1 es propuesta futura:** auditoría pura por snapshots explícitos y diagnósticos
+inmutables, sin ORM/escrituras/XP o permiso de migración; nombres/firmas candidatos
+se concretarán en 01B. No se crea ningún archivo Python en esta tarea.
+Dependencias actuales Duckies: EvolutionItem.stage, current_stage_code y consultas
+de época/ordinales; referencias de catálogo deben coordinarse con Henry.
+Clasificación, catálogo físico, nuevas relaciones causales/PlayableOption y
+procedencia persistente siguen sin implementar; Core/P5, datos reales/contratos,
+catálogos autorizados y pruebas mantienen sus bloqueos. No se desbloquean Rewards
+F2-A, dominio persistente, S13-A2 ni economía/inventario. [Pendientes A3](pending-decisions.md#15-a3--condiciones-de-compatibilidad-y-activación).
+A1-CT-01/A2-CT-01 conservan su significado; A3-CT-01 es compatibilidad/transición.

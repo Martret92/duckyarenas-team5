@@ -426,3 +426,34 @@ inventario, selección jugable o contratos externos. P1–P8, R1–R8 y Core con
 sus cuestiones residuales; A3 es dependencia de persistencia/activación, no excusa
 para activar producción desde un planificador puro. Las pruebas transaccionales,
 rollback/concurrencia e historia entre versiones son futuras, no ejecutadas aquí.
+
+## 15. A3 · Condiciones de compatibilidad y activación
+
+[Decisiones A3](decisions.md#a3--compatibilidad-histórica-y-activación-coordinada--20102026)
+y [contrato](contracts/ecomotor-transition-target-v1.md), aprobación interna
+condicionada sobre `7039ae6`. §14 conserva el corte A2 anterior: A2.1 ya está
+integrado por #56 como planificador puro, sin servicio de concesión objetivo.
+
+**Dirección resuelta internamente:** registro unívoco por perfil que separa
+procedencia/transición; catálogo objetivo separado/versionado/inmutable tras uso;
+auditoría sin migración automática; escritor único y preferencia de corte global;
+replay histórico primero y resultados sin puntos solo para nuevas concesiones
+objetivo. La implementación y sus puertas siguen abiertas:
+
+| Bloqueo / siguiente validación | Responsable y límite |
+| --- | --- |
+| Clasificación física | Parte A con Core/P5: campos/tipos/constraints del registro de política, identidad/procedencia y transición persistentes; auditoría previa de existentes. No inferir clasificación ni autorización por nivel/época/stats/estado ausente. |
+| Catálogo objetivo físico | Parte A: diseño separado, versionado e inmutable tras uso; catálogos/valores autorizados. No renombrar EvolutionStage V1 ni tratar snapshot A1.1 como permiso de producción. |
+| Causalidad y PlayableOption | Parte A/Core con Henry: identificar nuevas épocas en EvolutionEvent y adaptar relación histórica de PlayableOption sin perder integridad/historia. Bloqueo físico explícito; sin FK, tabla o migración seleccionada. |
+| Procedencia de concesiones nuevas | Parte A/Core: representación persistente inmutable sin cambiar identidad (profile, operation_key). No atribuir versión retrospectiva a XPEvent V1 ni reconstruir snapshots ausentes. |
+| Datos y transformación | Equipo 5: inventario de perfiles/XP/niveles/épocas/eventos/stats/especializaciones/Duckies, diagnósticos compatibles/decisión/incoherentes y política autorizada. Diagnóstico no permite migrar ni recalcular/reasignar por inferencia. |
+| Core/P5 | Conservación, anonimización/eliminación y on_delete de registros/relaciones; retención y legacy siguen pendientes, sin copiar políticas provisionales o aprobar modelos. |
+| Duckies y consumidores | Henry/Parte A y consumidores: EvolutionItem.stage, current_stage_code, ordinales y selección visual; acordar adaptación de referencias/contratos. No cambiar Duckies ni equiparar época, identidad y apariencia. |
+| Entrada y activación | Equipo 5: detalle técnico del punto único, suspensión/drenaje, migración autorizada, activación/supervisión/detención y consumidores compatibles. Nunca selección por cliente; sin retorno automático S3 tras XP objetivo. |
+| Resultados y pruebas | Interfaz final compartida, compatibilidad V1 y saldo heredado conservados; pruebas de migración, concurrencia, rollback y activación aún necesarias, sin replays completos de información no guardada. |
+| A3.1 posterior | Propuesta de auditoría pura; nombres/firmas antes de implementar en 01B. Sin ORM/escrituras/XP o autorización de migración; no se crean archivos Python en esta PR. |
+
+P1–P8 y R1–R8 conservan sus residuales. No se desbloquean Rewards F2-A, dominio
+persistente, S13-A2 o economía/inventario por registrar A3. S3 V1 sigue vigente;
+las nuevas concesiones objetivo prevén 0/None en campos de puntos compatibles,
+sin borrar puntos disponibles ni reinterpretar resultados antiguos.

@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Actualización A3 · 20/10/2026:** develop `7039ae6` incluye A2.1 puro (#56) y
+Duckies (#54). [A3](#11-a3--compatibilidad-histórica-y-activación-coordinada) registra
+compatibilidad y activación aprobadas internamente y condicionadas, **sin activar
+ni implementar escritores objetivo**. Las menciones anteriores al planificador A2
+futuro son cortes históricos; hoy está integrado, sin autorización de concesiones.
+
 **Actualización A2 · 20/10/2026:** base develop `6a7d1d7`, A1.1 (#52) y A1.2
 (#53) integrados como módulos puros. La [arquitectura A2](#10-a2--adaptación-de-xp-histórica-objetivo)
 aprobada internamente en 02C separa el futuro escritor XP objetivo de S3 V1.
@@ -678,3 +684,46 @@ No hay garantías entre BD independientes, cambios de configuración reales o I/
 externo en transacciones. [Bloqueos de persistencia/activación](pending-decisions.md#14-a2--dependencias-para-xp-histórica-objetivo).
 Core/P5, dominio, rangos S13-A2, Rewards F2-A e inventario mantienen sus pendientes.
 Esta actualización solo modifica documentación, sin tests Django ejecutados.
+
+## 11. A3 · Compatibilidad histórica y activación coordinada
+
+[A3-ARQ-01 y decisiones asociadas](decisions.md#a3--compatibilidad-histórica-y-activación-coordinada--20102026)
+son aprobaciones internas condicionadas, no decisiones técnicas atribuidas a DAR3
+u Óscar. [Contrato de transición](contracts/ecomotor-transition-target-v1.md) y
+[puertas pendientes](pending-decisions.md#15-a3--condiciones-de-compatibilidad-y-activación).
+A3-CT-01 conserva compatibilidad/migración; no cambia A1 de progresión ni A2 de XP.
+
+Estado verificado: A1.1/A1.2 y [planificador A2.1](../apps/ecomotor/target_xp_plan.py)
+integrados; plan_target_xp_grant devuelve TargetXPPlan inmutable, no consulta estado
+persistido ni autoriza versión/escritura. S3 V1 conserva puntos e interfaz y sigue
+vigente. Registro de política, catálogo objetivo físico, migrador, entrada única y
+auditoría A3.1 **no están implementados**.
+
+La dirección objetivo separa procedencia del perfil y transición en un registro
+persistente unívoco por perfil; no clasifica por nivel/época/stats o ausencia de
+estado jugable. Clasificar no autoriza XP. Preserva EvolutionStage V1 y propone
+catálogo objetivo separado/versionado/inmutable tras uso. EvolutionEvent y la
+relación histórica de PlayableOption requieren resolver identidad/causalidad física:
+[frontera de esquema pendiente](erd/ecomotor.md#15-a3--frontera-física-de-la-transición).
+No renombrar filas V1 para simular las épocas nuevas.
+
+Única entrada futura con versión confiable de servidor y preferencia de corte
+global inicial. Preparar, suspender y drenar escritores antiguos, migrar solo con
+autorización, activar y supervisar/detener. Son conceptos de despliegue, no flags
+implementados; no se promete retorno automático a S3 tras concesiones objetivo.
+Replay mantiene (profile, operation_key): después de autorización/validaciones y
+transacción, buscar historia **antes** de exigir clasificación o catálogo de nueva
+concesión. Nuevas operaciones objetivo necesitan procedencia persistente inmutable,
+sin solución física aprobada; nada reconstruye snapshots V1 inexistentes.
+
+Duckies ya depende de EvolutionItem.stage a EvolutionStage y servicios que consultan
+current_stage_code, ordinales y active_specialization_code ([modelos](../apps/duckies/models.py),
+[servicios](../apps/duckies/services.py)). Época, identidad jugable y apariencia son
+responsabilidades distintas. Coordinar catálogo/consumidores con Henry, sin cambiar
+Duckies ni aprobar sus relaciones por este documento.
+
+A3.1 se propone como auditoría pura posterior: snapshots explícitos y diagnósticos
+inmutables sin ORM, efectos o autorización de migración. Primero inventario real,
+esquema/relaciones aprobados, Core/P5, consumidores y pruebas; después activación
+coordinada. Rewards F2-A, dominio persistente, S13-A2 e inventario/economía mantienen
+sus límites. Sin cambios de código ni tests Django ejecutados en esta PR.
