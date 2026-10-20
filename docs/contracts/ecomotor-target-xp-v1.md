@@ -110,10 +110,12 @@ No se define aquí dataclass final, endpoint o nombres de excepciones disponible
 
 ## 7. Validaciones y perfiles heredados · A2-VAL-01
 
-Validar perfil persistido/existente y alias, XP e importe técnicamente válidos,
-nivel y etapa, estado de estadísticas **según clasificación del perfil**,
-catálogos/versionado autorizados, límites técnicos representables y causalidad de
-eventos. Rechazar incoherencias sin normalizar ni reparar datos legacy.
+Para concesiones nuevas, validar perfil persistido/existente y alias, XP e importe
+técnicamente válidos, nivel y etapa, estado de estadísticas **según clasificación
+del perfil**, catálogos/versionado autorizados, límites técnicos representables y
+causalidad de eventos. Rechazar incoherencias sin normalizar ni reparar datos legacy.
+El replay conserva las validaciones estructurales e históricas necesarias de §8,
+sin exigir clasificación o elegibilidad de un escritor de concesiones nuevas.
 
 No copiar a ciegas la exigencia S3 de CharacterStats global a cualquier futuro
 perfil objetivo ni dispensar validación por ausencia de esa fila. A3 debe definir
@@ -128,11 +130,24 @@ ningún error autoriza concesión parcial o reparación silenciosa.
 
 ## 8. Atomicidad y concurrencia · D-19
 
-Futura escritura con transaction.atomic en el alias común antes de lecturas
-mutables: verificar escritor/clasificación autorizados, buscar operación previa,
-validar causalidad y, solo si es nueva, calcular y confirmar perfil/XPEvent y
-EvolutionEvent conjuntamente. La recuperación histórica no exige catálogos nuevos.
-Este flujo no implementa un dispatcher ni resuelve el esquema pendiente de A3.
+Orden conceptual de recuperación y futura escritura:
+
+1. Validar inicialmente identidad, autorización, importe y clave.
+2. Abrir transaction.atomic en el alias común conforme a D-19, antes de lecturas
+   mutables, y realizar las validaciones estructurales necesarias.
+3. Buscar XPEvent por (profile, operation_key).
+4. Si existe, comprobar importe, snapshots y causalidad y devolver el resultado
+   histórico disponible, sin exigir clasificación, elegibilidad del escritor
+   actual o catálogos de concesiones nuevas. Un replay V1 sigue siendo recuperable
+   tras un cambio de versión, con las limitaciones históricas descritas en §4.
+5. Si no existe, resolver la clasificación persistente y el escritor autorizado
+   conforme a A3.
+6. Solo entonces validar catálogos/progreso y confirmar conjuntamente los efectos
+   de la concesión nueva sobre perfil, XPEvent y EvolutionEvent.
+
+La autorización inicial sigue siendo obligatoria también para el replay; este
+orden no crea una ruta alternativa sin autorización, no modifica S3 V1 ni
+implementa un dispatcher o resuelve el esquema pendiente de A3.
 
 SQLite BEGIN IMMEDIATE, timeout cinco segundos, unicidad persistente perfil/clave
 y perfil/etapa como defensas complementarias; no depender de select_for_update
