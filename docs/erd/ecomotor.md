@@ -17,6 +17,12 @@
 
 ## 1. Estado, fuentes y alcance
 
+**Actualización 02C · 20/10/2026:** el [diseño objetivo §14](#14-opciones-jugables--modelos-conceptuales-02c)
+añade cuatro modelos solo conceptuales, fuera del recuento de nueve entidades
+físicas actuales. Se conserva el ERD V2 histórico de ocho. S13-A1 (#47) y S14-A
+(#50) están integrados sin tablas nuevas; las referencias previas a especialización
+pendiente son antecedentes. Nueva selección histórica/tecnológica no implementada.
+
 Diseño documental aceptado **internamente por Parte A**, V2-A1…V2-A29, con las
 condiciones del [registro](../decisions.md). No es aprobación global de Óscar,
 Core ni Partes B/C, ni autorización del ORM definitivo. D-01…D-19 siguen intactas;
@@ -554,3 +560,73 @@ eliminación y on_delete de sus relaciones. Antes de premios reales hacen falta
 orígenes autorizados, vínculo confiable hecho–destinatario y reglas validadas;
 ValidatedRewardFact por sí solo no autoriza. P5/P7 y Rewards F2-A siguen bloqueados
 en sus aspectos pendientes; no se modifica el diagrama físico ni DOC-6.
+
+## 14. Opciones jugables · modelos conceptuales 02C
+
+ARQ-OP-01/02/03 y DOC-ERD-01, aprobados internamente por Equipo 5 el 20/10/2026.
+**No implementados:** ni tablas adicionales a las nueve existentes, ni campos
+Django/migraciones/on_delete aprobados. [Contrato objetivo](../contracts/ecomotor-playable-options-target-v1.md)
+y [decisiones 02C](../decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026).
+Diagrama conceptual adicional, sin sustituir el Mermaid V2 histórico:
+
+```mermaid
+erDiagram
+    EVOLUTION_STAGE o|--o| PLAYABLE_OPTION : historica_exclusiva
+    SPECIALIZATION o|--o| PLAYABLE_OPTION : tecnologica_exclusiva
+    USER_PROFILE_ECOMOTOR ||--o| USER_PLAYABLE_STATE : confirma
+    USER_PLAYABLE_STATE ||--o{ USER_PLAYABLE_STATS : conserva
+    PLAYABLE_OPTION ||--o{ USER_PLAYABLE_STATS : configura
+    PLAYABLE_OPTION ||--o{ USER_PLAYABLE_STATE : activa
+    USER_PLAYABLE_STATE ||--|{ PLAYABLE_STATS_CHANGE_EVENT : registra
+    USER_PLAYABLE_STATS ||--|{ PLAYABLE_STATS_CHANGE_EVENT : documenta
+```
+
+Cada opción refiere a **exactamente una** EvolutionStage o Specialization,
+nunca ambas ni ninguna; el diagrama no expresa por sí solo ese XOR. Una identidad
+histórica/tecnológica tiene como máximo una opción; catálogos pueden tener filas
+aún sin opción. Perfil tiene cero o un estado explícito; estado confirmado tiene
+una opción activa y configuración propia válida. Cada configuración tiene historia
+desde su confirmación inicial. Cardinalidades conceptuales, no FKs ejecutables.
+
+| Modelo conceptual | Datos previstos | Cardinalidad e invariantes |
+| --- | --- | --- |
+| PlayableOption | Identidad de catálogo, referencia histórica o tecnológica exclusiva, seis bases ATK/DEF/LOG/SPE/VEL/INT. | Una de EvolutionStage/Specialization, nunca ambas/ninguna; sin duplicados de identidad histórica/tecnológica. Cero o muchas configuraciones de jugadores. |
+| UserPlayableState | Perfil UserProfileEcomotor, opción activa, presupuesto inicial autorizado y revisión de estado. | Un estado máximo por perfil, solo al confirmar primera elección. Ausencia no clasifica legacy como nuevo. Activa con configuración válida propia. |
+| UserPlayableStats | Estado, opción, snapshot de seis bases, seis incrementos y revisión de configuración. | UNIQUE(playable_state, option); incrementos válidos y suma dentro del presupuesto del estado. Bases conservadas, no catálogo vivo reinterpretado. |
+| PlayableStatsChangeEvent | Identidad de operación, estado, configuración, tipo primera configuración/redistribución, reparto anterior/posterior, revisiones y fecha de confirmación. | UNIQUE(playable_state, operation_key); configuración/estado/propietario coherentes. Historia conservada sin reinterpretación; representación física pendiente. |
+
+ATK Ataque, DEF Defensa, LOG Logística, SPE Especial / Especialización,
+VEL Velocidad, INT Inteligencia. SPE numérico no identifica especialización;
+Cuack pendiente de Óscar, sin séptimo atributo. Efectivas = bases conservadas +
+incrementos. Presupuesto fijo utilizable independientemente en cada Ducky, no
+saldo global agotado; puntos pendientes permitidos. Bases y cantidad pendientes.
+Training no mejora los seis atributos ni concede puntos adicionales para ellos
+en esta V1 objetivo; futuro requiere confirmación funcional y coordinación.
+
+### 14.1. Restricciones, servicios y detalles físicos pendientes
+
+| Capa | Regla objetivo / estado |
+| --- | --- |
+| Integridad persistente prevista | Un estado por perfil, identidad histórica/tecnológica exclusiva no duplicada; UNIQUE(playable_state, option) y UNIQUE(playable_state, operation_key). Trasladar garantías al esquema futuro, sin elegir campos Django, índices o nombres de constraints. |
+| Invariantes de servicio | Nivel 8/elegibilidad, propiedad, activa con configuración propia válida, suma dentro del presupuesto, estado/revisión esperados, causalidad histórica y atomicidad. No suponer CHECK entre tablas. |
+| Concurrencia | D-19: atomic, alias común, BEGIN IMMEDIATE, timeout 5 s, unicidad/revisión y rollback. Orden replay/revisión y reparto idéntico pendientes, retry explícito posterior. |
+| Pendiente físico Core/P5 | Relaciones y referencias de eventos, conservación/anonimización/eliminación y on_delete; no copiar CASCADE provisional ni aprobar migración por el diagrama. |
+
+Épocas objetivo en orden: **Prehistórico, Griego, Romano, Medieval, Renacentista,
+Revolución Industrial y Siglo XX**, niveles 1–7 con umbrales coincidentes. Nivel 8
+abre elección, no octava época. Tecnología: Developer, Ciber, Sistemas, Data IA,
+Gamer; códigos pendientes. No renombrar nueve épocas DAR3 ni siete etapas V1
+terminadas en Actual. Validadores anteriores compatibles hasta activación;
+sin puntos nuevos por nivel en el objetivo.
+
+### 14.2. Conservación y coexistencia con V1
+
+XPEvent, EvolutionEvent, StatAllocationEvent, CharacterStats y
+UserSpecializationProgress permanecen. No reasignar stats globales/eventos a
+opciones por inferencia ni borrar historia/recalcular XP/niveles. S13-A2 pendiente:
+conservar rangos no equivale a columna ya implementada. DomainXPEvent y RewardEvent
+siguen conceptuales/candidatos con bloqueos propios, fuera del recuento físico.
+Inventariar datos y clasificar nuevos/legacy explícitamente antes de migrar;
+activación coordinada sin autoridades contradictorias de selección vieja/nueva.
+La identidad jugable no decide apariencia, inventario o vestimenta de DOC-5.
+[Pendientes](../pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).

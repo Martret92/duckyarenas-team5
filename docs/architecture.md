@@ -2,6 +2,13 @@
 
 ## 1. Estado y fuentes
 
+**Corte vigente 02C · 20/10/2026:** develop `8401d46` integra S14-A (#50) y
+S13-A1 (#47). La [arquitectura objetivo 02C](#9-arquitectura-objetivo-02c--no-implementada)
+recoge acuerdos internos nuevos, **sin implementación ni activación**. Los cortes
+DOC-S14-A/DOC-S13-A1 siguientes conservan su redacción histórica anterior a sus
+implementaciones; el estado actual prevalece en §9.1. Contratos V1 intactos,
+incluidas sus notas históricas de revisión.
+
 **Actualización DOC-S14-A:** develop
 `e401c33045b4f1b4c8621c54c21757483769b56b` integra S13-A1 puro (#47).
 El [cambio de especialización S14-A](contracts/ecomotor-specialization-switch-v1.md)
@@ -202,6 +209,10 @@ HTTP y concurrencia SQLite file-backed. Regresión histórica comunicada en DOC-
 la suite ni comprobar instalaciones o datos reales.
 
 ## 3. Requisitos funcionales y límites de V2
+
+**Antecedente V2/V1:** la secuencia terminada en Actual y las condiciones siguientes
+describen el diseño anterior todavía implementado. 02C sustituye su objetivo
+funcional según §9, sin activación ni reinterpretación de filas/eventos existentes.
 
 La XP histórica es acumulativa y no decreciente. Resultado o XP provisional de
 partida, recompensa evaluada y XP consolidada son magnitudes distintas.
@@ -538,3 +549,89 @@ ValidatedRewardFact no autoriza por sí solo. No se desbloquea F2-A.
 La firma grant_domain_xp y DomainXPGrantResult son candidatos, no servicios
 disponibles. Detalles técnicos, reglas y rangos siguen pendientes. No se modifica
 V2-A25/A26 ni DOC-6 retrospectivamente; S13-A no tiene arquitectura aprobada.
+
+## 9. Arquitectura objetivo 02C · no implementada
+
+Acuerdos internos del Equipo 5 del 20/10/2026 registrados en
+[decisiones 02C](decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026).
+DAR3 mantiene nueve épocas como antecedente; la aclaración de Óscar del 19/10
+comunicada por Jaime confirma las siete históricas siguientes. Modelos, estadísticas
+y servicios son aprobación interna, no aprobación global del profesor.
+[Contrato objetivo](contracts/ecomotor-playable-options-target-v1.md).
+
+| Nivel | Época histórica objetivo |
+| --- | --- |
+| 1 | Prehistórico |
+| 2 | Griego |
+| 3 | Romano |
+| 4 | Medieval |
+| 5 | Renacentista |
+| 6 | Revolución Industrial |
+| 7 | Siglo XX |
+
+Umbrales de época iguales a los de esos niveles; XP numérica pendiente. Nivel 8
+abre elección, no nueva época; niveles posteriores continúan. Siglo XX es la
+última histórica y puede seguir efectiva aplazando la elección. Una concesión
+reconoce todas las transiciones cruzadas. No hay puntos adicionales por nivel
+en el objetivo, aunque S3 V1 todavía los concede.
+
+Desde nivel 8: históricos desbloqueados y Developer, Ciber, Sistemas, Data IA o
+Gamer, códigos pendientes. Históricos son Duckies jugables, **no apariencias**.
+Una opción explícita activa; antes rige época alcanzada. Primera elección confirma
+opción/configuración juntas, abandono sin parcial. Alternar recupera configuraciones,
+conserva XP histórica, nivel, etapa y progresos tecnológicos/rangos confirmados
+independientes. S13-A2 aún no persiste rangos.
+
+Cada opción conserva snapshot de seis bases y reparto independiente; efectivas =
+bases + incrementos. Presupuesto inicial fijo del jugador utilizable en cada
+opción sin consumo global, puntos pendientes permitidos. ATK Ataque, DEF Defensa,
+**LOG Logística**, **SPE Especial / Especialización**, VEL Velocidad, INT Inteligencia.
+SPE numérico no identifica tecnología. Cuack pendiente de Óscar, sin séptimo atributo.
+Training no modifica estos seis atributos ni concede puntos adicionales para ellos
+en esta V1 objetivo; mejoras futuras requieren confirmación y coordinación.
+
+OP-RED-01: redistribución gratuita, ilimitada, independiente por Ducky, histórica,
+atómica e idempotente bajo concurrencia; sin monedas/objetos o cambios de bases,
+XP/nivel/dominio/rangos. No es R-01 de equipamiento.
+[Cuatro modelos conceptuales](erd/ecomotor.md#14-opciones-jugables--modelos-conceptuales-02c)
+y SVC-OP-01…04 separan catálogo, selección, configuraciones e historia, todavía
+sin implementación. Ecomotor posee progreso/selección/stats; Duckies inventario,
+equipamiento/apariencia. La elección jugable no resuelve DOC-5.
+
+### 9.1. Implementación verificada frente al objetivo
+
+| Componente | Estado en develop 8401d46 / diferencia objetivo |
+| --- | --- |
+| S1/S2-A | Progresión pura e inicialización local integradas; catálogos V1 compatibles hasta activación coordinada. |
+| S3 | XP histórica integrada con puntos de ascenso; adaptación futura sin puntos nuevos y revisión explícita de resultados heredados, sin cambiar contrato hoy. |
+| S7-A | Asignación global CharacterStats/StatAllocationEvent integrada; no redistribución independiente por opción. |
+| S11-A | Selección tecnológica inicial integrada (#44), compatibilidad de múltiples progresos adaptada en #50; elegibilidad V1 en Actual. |
+| S13-A1 | Evaluador puro integrado por [#47](https://github.com/Martret92/duckyarenas-team5/pull/47), [rank_progression.py](../apps/ecomotor/rank_progression.py); evalúa, no confirma ni persiste rangos. |
+| S14-A | Cambio tecnológico integrado por [#50](https://github.com/Martret92/duckyarenas-team5/pull/50), [specialization_switch_service.py](../apps/ecomotor/specialization_switch_service.py); estado esperado, progresos conservados y D-19. Idempotencia por estado, sin evento/replay histórico completo. |
+| S13-A2 / DomainXPEvent | Confirmación/persistencia de rangos pendiente; DomainXPEvent conceptual, sin tabla física aprobada ni servicio positivo de dominio integrado. |
+| Rewards | Fase 1 pura integrada; F2-A mantiene dependencias Core/configuración y no es servicio persistente implementado. |
+| Opciones / SVC-OP-01…04 | Arquitectura objetivo aprobada internamente; sin modelos, migraciones ni servicios disponibles. |
+
+Los contratos [XP V1](contracts/ecomotor-xp-v1.md),
+[asignación V1](contracts/ecomotor-stat-allocation-v1.md),
+[selección V1](contracts/ecomotor-specialization-v1.md) y
+[cambio V1](contracts/ecomotor-specialization-switch-v1.md) conservan esos incrementos,
+no la nueva selección histórica/tecnológica. S8-A ya está integrada (#40), conforme
+a su actualización anterior; pausas DOC-1…DOC-6 son antecedentes. No se ejecutan
+tests Django en esta consolidación documental.
+
+### 9.2. Transición y límites
+
+Inventariar datos y clasificar explícitamente nuevos/heredados antes de migrar.
+Ausencia de UserPlayableState no significa perfil nuevo. No renombrar catálogos
+para reinterpretar EvolutionEvent, reasignar CharacterStats a una opción, borrar
+StatAllocationEvent o recalcular XP/niveles sin política aprobada. Evitar dos
+autoridades entre active_specialization_code y selección nueva; activar servicios/
+consumidores coordinadamente. Core/P5 debe acordar relaciones, conservación,
+anonimización/eliminación y on_delete. Se conservan eventos y progresos.
+
+Pendientes: códigos, XP/bases/presupuesto autorizados, firmas, replay/revisión,
+reparto idéntico y esquema físico; juegos, dominio/rangos y apariencia/inventario.
+[Registro residual](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c).
+La secuencia V1 terminada en Actual sigue operativa; Siglo XX describe el objetivo
+aprobado todavía no activado. Implementación posterior en 01B.
