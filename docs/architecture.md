@@ -935,3 +935,33 @@ no trasladar límites inexistentes de la API pura al esquema sin análisis.
 distinguen acuerdos previos a modelos/migraciones de condiciones del servicio.
 No backfill, clasificación real, escritor objetivo, cambios S3 o integración de
 otros dominios. Tests persistentes futuros, no ejecutados en esta PR documental.
+
+## 16. A3.6 · Evidencia vigente y rechazo seguro
+
+[Decisiones A3.6-FRESH/COVERAGE/GATE-01](decisions.md#a36--evidencia-vigente-y-condiciones-de-clasificación--20102026),
+aprobadas internamente por Equipo 5 en 02C sobre `bccc617`, desarrollan A3.4/A3.3,
+no requisitos literales DAR3 ni acuerdos externos.
+[Contrato de evidencia](contracts/ecomotor-classification-evidence-v1.md) centraliza
+cobertura por operación y pruebas futuras. No hay servicio/lector interno o modelos
+persistentes implementados; las reglas puras #66 siguen sin confirmar operaciones.
+
+Para operación nueva, verificar datos necesarios dentro de la misma transacción
+que confirma política y evento: D-19, alias confiable, IMMEDIATE/timeout 5 s,
+rollback conjunto y sin I/O externo. Fotografía A3.2/diagnóstico A3.1 previos no
+garantizan vigencia; comprobar datos actuales tampoco prueba suficiencia funcional.
+Lector interno específico como dirección; API/consultas y cobertura verificable por
+transición aún pendientes, sin invocar A3.2 anidado o modificar sus protecciones.
+
+Bloqueo requiere incidencia y autorización sin exigir que el perfil inconsistente
+supere avance. Recuperación exige bloqueo íntegro y validación nueva para su destino
+permitido. COMPATIBLE no equivale a V1_VERIFIED ni acredita toda la historia V1.
+Falta de evidencia suficiente/vigente, autorización, condiciones externas o coherencia
+impide confirmar una operación nueva. Replay conserva A3.3: evento primero,
+autorización/contenido/integridad, resultado histórico sin efectos y sin revalidar
+la elegibilidad actual como si fuera operación nueva.
+
+[A3.5/Core/P5](contracts/ecomotor-classification-core-boundary-v1.md) sigue abierto,
+con sus cinco preguntas sin ratificar; no se modifica esa consulta. [Pendientes](pending-decisions.md#20-a36--cobertura-y-protocolo-de-evidencia-pendientes)
+conservan coberturas V1_VERIFIED/TARGET_PREPARED/TARGET_CONFIRMED, dependencias
+propietarias, esquema y permisos. S3 V1 continúa único escritor XP; TARGET_CONFIRMED
+no activa el objetivo. Sin cambios de código, clasificaciones o migraciones reales.

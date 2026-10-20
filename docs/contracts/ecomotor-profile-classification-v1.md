@@ -208,8 +208,10 @@ No certifica integralmente estadísticas gastadas, especializaciones o Duckies.
 
 Mientras S3 escriba, la fotografía puede quedar obsoleta. Una operación futura
 de clasificación debe validar evidencia y precondiciones suficientemente actuales
-bajo una frontera transaccional segura. El mecanismo para obtener/verificar esa
-evidencia está pendiente: no se presume que pueda invocarse el extractor A3.2
+bajo la misma transacción que confirma política/evento, según
+[A3.6-FRESH-01](ecomotor-classification-evidence-v1.md#2-evidencia-vigente--a36-fresh-01).
+Se aprueba la dirección de lector interno específico; API/consultas y cobertura
+verificable siguen pendientes: no se presume que pueda invocarse el extractor A3.2
 dentro de otra transacción, pues el extractor actual rechaza transacciones exteriores.
 No cambiarlo ni eliminar su protección por este diseño. No realizar backfill ni
 inventar identidad o procedencia de eventos antiguos.
@@ -341,3 +343,21 @@ on_delete, FK al bloqueo o participación canónica del operador en comparación
 Cobertura suficiente por transición sigue pendiente; no anidar A3.2 ni ampliar
 COMPATIBLE a certificación de toda V1. No modelos/migraciones, clasificación real,
 backfill o activación. Las reglas puras ya integradas no sustituyen esas garantías.
+
+## 11. A3.6 · Evidencia vigente y condiciones
+
+[Contrato de evidencia](ecomotor-classification-evidence-v1.md) centraliza la
+precisión interna A3.6-FRESH-01/COVERAGE-01/GATE-01. Se conservan matriz, altas,
+recuperación, identidad, contenido, revisiones y orden de replay A3.3.
+Operaciones nuevas requieren datos necesarios comprobados dentro de su transacción
+y evidencia suficiente por transición; las condiciones aprobadas no fijan consultas
+exhaustivas. Bloqueo autorizado no exige verificaciones de avance; recuperación
+exige bloqueo íntegro y validación nueva de su destino.
+
+Sin evidencia suficiente/vigente, autorización, condiciones externas obligatorias
+o coherencia de política/historial/revisión, no confirmar operación nueva.
+Replay histórico conserva autorización, contenido e integridad sin exigir nueva
+elegibilidad o mutar el estado actual. COMPATIBLE no clasifica ni certifica niveles,
+puntos, especializaciones/rangos o Duckies integralmente.
+A3.2 no se anida; A3.5 sigue abierto y sus cinco preguntas Core/P5 no están
+ratificadas. Sin modelos/servicios, migración, clasificación automática o activación.
