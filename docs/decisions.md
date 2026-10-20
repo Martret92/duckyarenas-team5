@@ -1016,3 +1016,37 @@ procedencia persistente siguen sin implementar; Core/P5, datos reales/contratos,
 catálogos autorizados y pruebas mantienen sus bloqueos. No se desbloquean Rewards
 F2-A, dominio persistente, S13-A2 ni economía/inventario. [Pendientes A3](pending-decisions.md#15-a3--condiciones-de-compatibilidad-y-activación).
 A1-CT-01/A2-CT-01 conservan su significado; A3-CT-01 es compatibilidad/transición.
+
+## A3.2 · Inventario legacy de solo lectura · 20/10/2026
+
+**A3.2-ARQ-01, aprobación interna del Equipo 5**, comunicada en este encargo sobre
+develop `8024fa7673e5587bcc49025a2fafe3eb215c1273`. A3 (#57) y A3.1 (#58) están
+integrados; las menciones anteriores a A3.1 futuro son antecedentes fechados.
+DAR3 conserva autoridad funcional; extractor/alias/transacciones son elecciones
+técnicas internas, no especificación literal del profesor o permiso de Core.
+
+| ID | Decisión interna / límite |
+| --- | --- |
+| A3.2-SCOPE-01 | Un perfil por operación: perfil, CharacterStats, XPEvent/EvolutionEvent propios, catálogo EvolutionStage V1 completo y causalidad mínima bidireccional. No inventario masivo ni auditoría integral de asignaciones, especializaciones, Duckies, umbrales/puntos históricos o migración. |
+| A3.2-API-01 | extract_legacy_audit_snapshot(profile_id, *, using) -> LegacyAuditSnapshot conceptual; ID entero estricto persistido, alias de llamador interno confiable y autorizado. Solo clases tipadas A3.1, sin modelos/QuerySets, diagnósticos o permisos. Firma definitiva en 01B, sin auth propia. |
+| A3.2-CONS-01 | Todas las lecturas y materialización en transacción corta del mismo alias. SQLite IMMEDIATE/timeout 5 puede bloquear escritores; sin row locking select_for_update, I/O externo, esperas o auditorías extensas. Proponer rechazo de transacción exterior activa. Fotografía posterior no es evidencia indefinidamente vigente ni permiso de migración. |
+| A3.2-COV-01 | Sin snapshots parciales. xp_events_complete: todos propios; evolution_events_complete: todos propios y causalidad prevista completa; stages_complete: catálogo completo; character_stats_observed: consulta correcta incluso sin fila. Vacíos observados válidos y stats ausentes None; cobertura no significa coherencia. Fallos nunca se convierten en vacíos inventados. |
+| A3.2-CAUS-01 | Detectar evolución propia con causa XP ajena y evolución ajena con XP propia, usando solo IDs/propietarios mínimos sin incorporar historiales ajenos. Causalidad cruzada confirmada falla; causa realmente ausente conserva referencia representable para XP_CAUSE_NOT_FOUND. Sin reparar, ampliar permisos o filtrar datos de terceros. |
+| A3.2-PRIV-01 | Campos mínimos de snapshots, operation_key exacta sin normalizar/truncar/anonimizar; no logs/errores/trazas/exportaciones con su contenido. Sin datos personales Core, endpoint público, exportación masiva o almacenamiento adicional. |
+| A3.2-SEP-01 | Extractor obtiene evidencia, A3.1 evalúa, futuros servicios clasifican/migran/conceden con permisos propios. Sin invocación automática de auditoría, clasificación o migración; fotografía/diagnóstico compatible no activa políticas. |
+
+[Contrato A3.2](contracts/ecomotor-legacy-inventory-v1.md) concentra cobertura,
+campos, errores conceptuales y pruebas previstas. A3.1 ya implementa snapshots y
+audit_legacy_transition, no este extractor. Las ausencias observadas pueden ser
+diagnósticos del auditor; causalidad extranjera confirmada es fallo del extractor.
+A3.2 no está implementado y no devuelve resultados de auditoría.
+
+Incremento futuro en 01B: legacy_inventory_reader.py y test_legacy_inventory_reader.py,
+nombres/firmas por revisar; no se crean en esta PR. Sin cambios iniciales de A3.1,
+S3, modelos Users/Ecomotor/Duckies, migraciones o configuración. Errores separados
+de ID/alias/perfil/lectura/cobertura/representabilidad/causalidad, sin clases Python
+ni códigos HTTP definitivos. Pruebas de concurrencia SQLite previstas con
+TransactionTestCase y conexiones independientes, no ejecutadas aquí.
+[Pendientes](pending-decisions.md#16-a32--alcance-y-validaciones-pendientes): auditoría
+integral, Core/P5, consumidores, clasificación/catálogo físicos y migración/activación.
+S3 V1 sigue activo; no se desbloquean dominio persistente, S13-A2, Rewards F2-A ni economía.

@@ -195,3 +195,28 @@ pruebas de migración, concurrencia, rollback y activación.
 No se desbloquean Rewards F2-A, dominio persistente, S13-A2 o economía/inventario.
 A1/A2 puros integrados no autorizan activar objetivo. Solo documentación: sin
 código, modelos, migraciones, tests nuevos o ejecución de tests Django.
+
+## 12. A3.2 · Extracción de evidencia separada de auditoría
+
+Actualización sobre `8024fa7`: A3.1 ya está integrado por PR #58 como
+[auditor puro y clases de snapshots](../../apps/ecomotor/legacy_transition_audit.py).
+§10 conserva su propuesta histórica previa a implementación; su extractor en
+pruebas de aislamiento es código de test, no un servicio de producción instalado.
+A3.1 recibe evidencia, no lee BD ni autoriza migraciones; COMPATIBLE tiene alcance
+estructural limitado, no certificación global de historia/Duckies o activación.
+
+[A3.2 · Inventario legacy](ecomotor-legacy-inventory-v1.md) documenta el extractor
+futuro aprobado internamente: un perfil, alias confiable, transacción corta
+IMMEDIATE/timeout 5 con costes de bloqueo, snapshots tipados y cobertura íntegra
+o fallo. Causalidad extranjera confirmada falla sin historiales ajenos; causa
+realmente ausente se conserva si representable para diagnóstico A3.1 posterior.
+Ausencia observada de stats es None, no error de lectura. La extracción no llama
+automáticamente al auditor, clasificador o migración, ni activa política.
+
+Fuera del alcance integral: asignaciones de stats, especializaciones, Duckies,
+umbrales históricos, puntos gastados y futura compatibilidad de migración.
+Operation_key se conserva exacta sin registrarla en logs/errores/trazas/exportaciones.
+Privacidad y autorización Core siguen obligatorias. S3 V1 continúa activo; no se
+modifica ni se ejecuta migración/activación. A3.2 y sus tests son futuros 01B,
+sin cambios iniciales de A3.1, S3, modelos/migraciones o configuración.
+[Pendientes A3.2](../pending-decisions.md#16-a32--alcance-y-validaciones-pendientes).

@@ -2,6 +2,12 @@
 
 ## 1. Estado y fuentes
 
+**Actualización A3.2 · 20/10/2026:** base `8024fa7`, A3 (#57) y A3.1 (#58)
+integrados. [A3.2](#12-a32--extracción-legacy-de-solo-lectura) es arquitectura
+interna aprobada, **no extractor implementado**. A3.1 ya evalúa snapshots puros;
+las menciones anteriores a su implementación futura son cortes históricos.
+S3 V1 sigue activo; no hay migración ni activación del objetivo.
+
 **Actualización A3 · 20/10/2026:** develop `7039ae6` incluye A2.1 puro (#56) y
 Duckies (#54). [A3](#11-a3--compatibilidad-histórica-y-activación-coordinada) registra
 compatibilidad y activación aprobadas internamente y condicionadas, **sin activar
@@ -727,3 +733,44 @@ inmutables sin ORM, efectos o autorización de migración. Primero inventario re
 esquema/relaciones aprobados, Core/P5, consumidores y pruebas; después activación
 coordinada. Rewards F2-A, dominio persistente, S13-A2 e inventario/economía mantienen
 sus límites. Sin cambios de código ni tests Django ejecutados en esta PR.
+
+## 12. A3.2 · Extracción legacy de solo lectura
+
+[Decisiones A3.2](decisions.md#a32--inventario-legacy-de-solo-lectura--20102026)
+y [contrato de inventario](contracts/ecomotor-legacy-inventory-v1.md), aprobación
+interna técnica del Equipo 5, no requisito literal DAR3. Un perfil por operación,
+sin inventario masivo ni validación integral de otros dominios.
+
+| Capa | Estado y responsabilidad |
+| --- | --- |
+| A3.1 · PR #58 | [Auditor puro](../apps/ecomotor/legacy_transition_audit.py) integrado: recibe LegacyAuditSnapshot tipado, devuelve diagnósticos limitados a su subconjunto observable V1, sin ORM/migración. |
+| A3.2 | Extractor futuro por ID de perfil y alias interno confiable; evidencia tipada de perfil/stats/eventos propios/catálogo y causalidad mínima en ambos sentidos. No diagnósticos ni permisos de migración. |
+| Clasificación/migración/XP | No se activan por extraer o auditar; requieren sus autorizaciones y decisiones. S3 V1 conserva su comportamiento. |
+
+API conceptual extract_legacy_audit_snapshot(profile_id, *, using), no firma
+implementada. Llamador autorizado por Core para inspección; entrada/existencia
+validadas no sustituyen permisos. Solo snapshots A3.1 materializados, sin User,
+modelos, QuerySets, claves en logs o datos personales de Core.
+
+Todas las lecturas bajo transacción corta del mismo alias. La configuración
+SQLite IMMEDIATE/timeout 5 permite fotografía coherente y **puede bloquear
+escritores**; sin bloqueos de fila select_for_update ni promesa de lectura gratuita.
+Se propone rechazar transacción exterior activa; sin I/O externo, esperas o
+invocación automática de auditoría. Materializar antes de salir; cambios posteriores
+no invalidan el pasado observado ni lo convierten en evidencia siempre vigente.
+
+Sin snapshots parciales: cuatro flags de cobertura completos tras consulta correcta.
+Vacíos observados son válidos; ausencia consultada de stats es None, no fallo de
+lectura. Cobertura no prueba catálogo o historia coherentes. Timeout/truncado/fallo
+produce error explícito, nunca vacío artificial. Causalidad propia→XP ajena y
+ajena→XP propia se comprueba con información mínima; cruce confirmado rechaza
+sin historial ajeno en respuesta. Causa realmente ausente conserva referencia
+representable para XP_CAUSE_NOT_FOUND de A3.1, sin repararla.
+
+No cubre integralmente StatAllocationEvent, especializaciones/dominio/rangos,
+Duckies, umbrales históricos o puntos gastados; no certifica compatibilidad de
+migración. [Pendientes](pending-decisions.md#16-a32--alcance-y-validaciones-pendientes)
+conserva autorización Core, conservación/P5, clasificación/catálogos físicos y
+activación. legacy_inventory_reader.py y sus tests son propuesta posterior 01B;
+no se crean ni se ejecutan tests Django en este PR. S13-A2, dominio persistente,
+Rewards F2-A e integración económica siguen bloqueados en sus respectivos alcances.
