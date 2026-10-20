@@ -20,10 +20,12 @@ consulta directa de PDFs o contratos externos ratificados.
 | --- | --- |
 | #73 / #74 | Arquitectura A4.1 e implementación pura integradas. |
 | #75 / #76 | Arquitectura A4.2 y validador puro A4.2.1 integrados. |
-| A4.3 / A4.3.1 | Arquitectura interna aprobada; preparador puro todavía no implementado. |
+| #77 / A4.3 | Corte conceptual integrado; arquitectura interna aprobada. |
+| A4.3.1 | Preparador puro implementado para revisión en PR, todavía no integrado. Base bf456d6f01133f615b11367ce323f7c88b94693b. |
 
-No modificar las APIs integradas ni crear aquí código, persistencia, fuentes
-oficiales, endpoints, interfaces o activación del Ecomotor objetivo.
+La PR #77 no implementaba código. A4.3.1 concreta la API interna mínima en 01B
+sin modificar las APIs integradas ni añadir persistencia, fuentes oficiales,
+endpoints o activación del Ecomotor objetivo.
 
 ## 2. Preparación conceptual · A4.3-PREP-01
 
@@ -51,7 +53,7 @@ de bases ni saldo consumido por configurar otro Ducky. Puntos pendientes permiti
 
 | Capa | Responsabilidad y estado |
 | --- | --- |
-| Preparación pura | Combinar definición/incrementos/presupuesto, verificar estructura y aritmética. A4.3.1 futura; sin BD ni efectos. |
+| Preparación pura | Combinar definición/incrementos/presupuesto, verificar estructura y aritmética. A4.3.1 implementada para revisión; sin BD ni efectos. |
 | Resolución autorizada futura | Servidor obtiene definición aplicable y presupuesto permitido desde fuentes confiables, comprobando contexto, elegibilidad y vigencia. No implementada/ratificada por esta documentación. |
 | Confirmación persistente futura | Servicios propietarios confirman selección o redistribución con referencias, estado, revisiones, idempotencia e historial correspondientes. Fuera del preparador y condicionada a 02C/Core. |
 
@@ -79,7 +81,7 @@ Formato histórico y contratos de persistencia/Core siguen pendientes.
 Preparación rechaza definición inválida, incrementos incompletos/duplicados,
 tipos incompatibles, presupuesto inválido/excedido e incompatibilidad contextual
 cuando se solicite comprobación estructural. Esa comparación conserva el alcance
-de A4.2.1; no aprueba un parámetro nuevo para una API de preparación aún sin fijar.
+de A4.2.1 mediante expected_catalog, concretado internamente en 01B para A4.3.1.
 Fallo no produce efectos ni muta entradas, no completa bases/presupuesto/puntos
 automáticamente. No conversiones, defaults o reparaciones silenciosas.
 
@@ -111,19 +113,58 @@ Ninguna dependencia se considera ratificada por esta separación. Permanecen
 abiertos fuentes confiables/publicación/vigencia, valores autorizados, contratos
 de consumo, persistencia/conservación/migración y activación coordinada.
 
-## 7. Próximo incremento A4.3.1 y pruebas futuras
+## 7. A4.3.1 · API pura concretada en 01B
 
-**A4.3.1 — Preparador puro de configuraciones objetivo**, para 01B: recibir
-una definición válida/inmutable, incrementos/presupuesto, invocar A4.1 y devolver
-propuesta completa canónica/inmutable conservando identidad/versiones. Sin Django,
-BD, I/O, otros servicios o certificación de autorización.
-Firma Python, errores y estructura definitiva del resultado deberán revisarse en
-01B antes de implementar; no APIs compartidas definitivas de juegos/frontend.
+```python
+prepare_target_stats_configuration(
+    *, definition: TargetStatsDefinitionSnapshot, increments, budget: int,
+    expected_catalog: TargetStatsCatalogContext | None = None,
+) -> PreparedTargetStatsConfiguration
+```
 
-Tests futuros: preparación válida, gasto total/parcial/cero, efectivas correctas,
-identidad/versiones/bases preservadas, exceso e incrementos inválidos,
-definición/contexto incompatibles, fallo sin efectos, entradas intactas, inmutabilidad,
-determinismo/independencia, reutilización A4.1/A4.2.1, aislamiento Django/I/O y
-regresión V1. No se implementan ni ejecutan nuevos tests Django en esta PR documental.
+Todos los argumentos son keyword-only; presupuesto obligatorio. No se aceptan
+definiciones crudas, mappings, objetos similares o subclases como sustitutos del
+tipo exacto TargetStatsDefinitionSnapshot. Incrementos conservan la representación
+A4.1 de listas/tuplas de pares, con detección de duplicados antes de colapsarlos.
+
+PreparedTargetStatsConfiguration es una dataclass frozen/slots con únicamente
+definition: TargetStatsDefinitionSnapshot y calculation: TargetStatsResult.
+La composición conserva opción, catálogo, versiones independientes y bases en
+definition, y bases/incrementos/efectivas/presupuesto/utilizados/restantes en
+calculation. No duplica campos ni contiene expected_catalog, jugador, permiso,
+selección, publicación o estado confirmado.
+
+La función revalida la definición mediante validate_target_stats_definition,
+pasándole sus valores originales y el contexto opcional. Después delega reparto
+y cálculo en validate_target_stats. No replica sus reglas ni usa helpers privados.
+Sin contexto no hay comparación; con contexto A4.2.1 valida su tipo exacto e
+igualdad de catalog_id/catalog_version. definition_version puede ser diferente.
+La coincidencia contextual no acredita autorización, vigencia ni procedencia.
+
+La construcción directa también exige los tipos exactos de ambos componentes:
+reconstruye la definición mediante la API pública A4.2.1 y el cálculo mediante el
+constructor validado TargetStatsResult, incluyendo sus seis campos. Comprueba
+definition.bases == calculation.bases después de revalidar. Almacena copias
+independientes y validadas, con tuplas canónicas; no confía únicamente en frozen,
+pues una entrada puede haber sido manipulada fuera de sus constructores.
+
+Se propagan sin envolver las excepciones A4.1 InvalidTargetStatsStructureError,
+InvalidTargetStatsNumericError y TargetStatsBudgetExceededError; y las A4.2.1
+InvalidTargetStatsDefinitionIdentityError, InvalidTargetStatsDefinitionStructureError,
+InvalidTargetStatsDefinitionNumericError y TargetStatsDefinitionCatalogMismatchError.
+El único error nuevo es InvalidTargetStatsPreparationError(ValueError): tipos de
+componentes incompatibles o bases contradictorias entre definición y cálculo.
+Nunca se devuelve una propuesta parcial ni se mutan entradas ante un rechazo.
+
+## 8. Pruebas y límites de implementación
+
+31 tests sintéticos cubren preparación, gasto total/parcial/cero, identidades y
+versiones, errores delegados, contextos incompatibles, entradas manipuladas incluso
+tras construcción frozen, construcción directa, copias defensivas, inmutabilidad,
+determinismo, independencia, enteros grandes, delegación pública e importación y
+ejecución aisladas sin Django. Las ejecuciones reales y regresiones se registran
+en la PR de implementación, sin atribuirlas al corte documental #77.
+
 Pruebas de permisos/fuentes oficiales/publicación/vigencia/transacciones/idempotencia
-y configuración persistente pertenecen a incrementos posteriores.
+y configuración persistente pertenecen a incrementos posteriores. No hay ORM,
+I/O, reloj, servicios V1, autorización, confirmación ni activación en A4.3.1.

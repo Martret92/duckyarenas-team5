@@ -779,15 +779,17 @@ esta arquitectura ni se modifican reglas A4.1, datos o módulos externos.
 y [contrato conceptual](contracts/ecomotor-target-stats-preparation-v1.md), sobre
 e612ed5. Resuelto como arquitectura: propuesta pura completa reutilizando
 A4.1/A4.2.1 integradas, identidad/versiones/bases preservadas y separación de
-preparación, resolución autorizada y confirmación persistente. A4.3.1 no implementada.
+preparación, resolución autorizada y confirmación persistente. El corte conceptual
+#77 no implementaba A4.3.1; ahora implementada para revisión en PR desde bf456d6,
+sin considerarla integrada antes del merge autorizado.
 
 | Pendiente | Responsable / alcance |
 | --- | --- |
-| A4.3.1 posterior 01B | Firma, clases de error y resultado concreto del preparador puro, antes de implementar. Sin duplicar reglas A4.1/A4.2.1 ni aprobar APIs compartidas definitivas de juegos/frontend. |
+| A4.3.1 · implementada para revisión | API keyword-only prepare_target_stats_configuration(definition, increments, budget, expected_catalog=None); resultado frozen/slots compuesto por definition y calculation. Revalidación defensiva mediante APIs públicas A4.2.1/A4.1, tipos exactos, copias independientes y bases coincidentes incluso en construcción directa. Excepciones originales propagadas; único error propio InvalidTargetStatsPreparationError para tipos incompatibles o bases contradictorias. Sin APIs externas definitivas ni autorización. |
 | Parámetros y fuentes | Óscar: bases oficiales, presupuesto numérico y reglas funcionales adicionales que correspondan. Parte A/Core: futura resolución confiable con publicación/vigencia/contexto/elegibilidad. Propuesta válida, versión textual, contexto cliente o bool no autorizan. |
 | Confirmación e historia | Servicios propietarios futuros: selección/redistribución con verificaciones, referencias, estado, revisiones, idempotencia e historial; persistencia/conservación/migración y activación pendientes. Sin nuevas políticas A4.3.1 de concurrencia/replay/actualización por inferencia. |
 | Core/Henry/consumidores | Identidad, permisos, contexto confiable y A3.5/Core; relación opción/Ducky físico, apariencia/inventario con Henry; contratos de consulta de efectivas por otros equipos. No ratificados. |
-| Pruebas futuras | Preparación válida, gasto total/parcial/cero, efectivas/identidad/versiones/bases, exceso/entradas/contexto inválidos, fallos sin efectos/no mutación, resultado inmutable/determinismo/independencia, reutilización APIs, aislamiento Django/I/O y regresión V1. No implementadas/ejecutadas aquí. |
+| Pruebas A4.3.1 | 31 tests sintéticos implementados: cálculo, errores/contexto, manipulación de frozen, construcción directa, copias, inmutabilidad, independencia, delegación pública y aislamiento sin Django. Resultados de ejecución y regresiones en la PR de implementación. Pruebas de resolución confiable, autorización y confirmación persistente siguen pendientes. |
 
 Puntos pendientes, presupuesto independiente, ATR-OBJ-01, E-01/E-02, OP-RED-01
 y A3-CAT-01 conservados. No nuevos valores oficiales ni reinterpretación log_stat/
