@@ -1270,3 +1270,31 @@ Pruebas futuras: evidencia obsoleta/actual/incompleta, bloqueo sin avance,
 recuperación validada, replay sin nueva elegibilidad, concurrencia/rollback/eventos
 parciales, aislamiento y regresión S3 sin migración o XP objetivo. Sin código,
 modelos, servicios o tests nuevos/ejecutados; no se activa el objetivo.
+
+## A3.6.1 · Verificaciones locales V1 · 20/10/2026
+
+**A3.6.1-V1-LOCAL-01**, aprobada internamente por Equipo 5 en 02C sobre develop
+`959b102a608883373b7dd0f8e62a65dffe5c7df4`. Precisa parcialmente A3.6-COVERAGE-01;
+DAR3 conserva autoridad funcional. No es aprobación del profesor/Core o Henry
+ni certificación de cobertura suficiente para V1_VERIFIED.
+
+Se revisaron modelos Users/Ecomotor, auditor A3.1, extractor A3.2 y servicios
+S2-A/S3/S1/S7-A/S11-A. [Matriz canónica](contracts/ecomotor-classification-evidence-v1.md#71-matriz-de-evidencia-código-existente-y-límites)
+separa para perfil, stats, XPEvent, EvolutionEvent, progresión, StatAllocationEvent
+y especializaciones: verificaciones implementadas, verificaciones posibles con
+filas actuales aún sin lector A3.6 y límites de información histórica persistida.
+Los servicios existentes validan operaciones propias, no auditan integralmente
+ni deben invocarse para escribir durante una supuesta comprobación de lectura.
+
+Resultados conceptuales por comprobación: superada, evidencia insuficiente o
+incoherencia detectada. No nuevos enums/TransitionState/LegacyAuditStatus ni
+conversión COMPATIBLE → V1_VERIFIED. Datos incompletos no prueban igualdad,
+completitud o incoherencia global; no fabricar eventos/snapshots/procedencias.
+
+A3.6-FRESH-01/D-19 y replay A3.3 siguen intactos. Pendientes completitud XP,
+origen/gasto de puntos, atributos históricos de etapas, historia de especialización/
+dominio/rangos, Duckies/Henry, procedencia confiable y cobertura final V1_VERIFIED.
+A3.5/Core conserva identidad, autorización, retención, privacidad y on_delete.
+[Pendientes](pending-decisions.md#21-a361--límites-de-verificación-local-v1).
+Sin lector, modelos, servicio, clasificación real, reparación/backfill o activación;
+pruebas de casos locales y vigencia/replay documentadas como futuras, no ejecutadas.

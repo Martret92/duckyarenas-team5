@@ -120,3 +120,73 @@ a las puertas A3.4/Core; esta arquitectura no habilita ninguno por inferencia.
 No se crean ni ejecutan nuevos tests Django: esta PR solo documenta garantías y
 pruebas pendientes. No modifica A3.1, A3.2, reglas puras A3.3, historial, Core,
 Duckies, Bank/Shop, Rewards, modelos, configuración o datos.
+
+## 7. A3.6.1 · Verificaciones locales V1
+
+**A3.6.1-V1-LOCAL-01**, aprobada internamente por Equipo 5 en 02C y documentada
+el 20/10/2026 sobre develop `959b102a608883373b7dd0f8e62a65dffe5c7df4`.
+Concreta parcialmente A3.6-COVERAGE-01, no su cobertura final suficiente para
+V1_VERIFIED. DAR3 conserva autoridad funcional; esta delimitación técnica no se
+atribuye al profesor o a Core. Se han revisado los archivos enlazados, sin ejecutar
+sus servicios o tests ni afirmar una nueva consulta directa de PDFs.
+[Decisión](../decisions.md#a361--verificaciones-locales-v1--20102026) y
+[pendientes](../pending-decisions.md#21-a361--límites-de-verificación-local-v1).
+
+### 7.1. Matriz de evidencia, código existente y límites
+
+Fuentes comunes: [modelos Ecomotor](../../apps/ecomotor/models.py) y
+[perfil Users](../../apps/users/models.py). Las constraints y campos persistidos
+aportan garantías concretas, no prueba de completitud histórica. Las comprobaciones
+siguientes son locales a V1; no aplican nomenclatura/catálogos objetivo a datos V1.
+
+| Grupo | Qué comprueba ya el código existente / fuentes | Posible con datos actuales, aún no implementado en lector A3.6 | Qué no acredita completamente |
+| --- | --- | --- | --- |
+| Perfil | [A3.2](../../apps/ecomotor/legacy_inventory_reader.py) verifica ID/alias y existencia al extraer; [A3.1](../../apps/ecomotor/legacy_transition_audit.py) comprueba representación de XP total/nivel/códigos. [S2-A](../../apps/ecomotor/initialization.py) comprueba User existente y estructura de pareja perfil/stats; [S3](../../apps/ecomotor/xp_service.py) vuelve a leer perfil y valida estructura en su operación. | Verificar existencia e identidad local, pertenencia/alias, valores de XP total, nivel y etapa en la misma transacción de clasificación; distinguir inexistencia de perfil de datos inválidos. | Fecha, XP o estado actual no prueban procedencia LEGACY_V1/NATIVE_V1. La relación con User no sustituye identidad/autorización Core ni garantiza cómo se creó el perfil. |
+| Estadísticas | A3.2 observa CharacterStats o ausencia; A3.1 comprueba ausencia observada, pertenencia y valores representables del subconjunto V1. S3 y [S7-A](../../apps/ecomotor/stat_allocation.py) validan estructura; S7-A comprueba rangos del backend para su operación. | Verificar existencia, perfil propietario y representabilidad de seis atributos V1 y available_points bajo el alias elegido. Ausencia observada no es fallo de lectura; datos no representables se distinguen de base funcional desconocida. | No hay prueba general de las bases históricas autorizadas ni del origen/gasto íntegro de puntos. No imponer positividad ficticia a todos los atributos IntegerField ni sustituir log_stat/spe por atributos objetivo. |
+| XPEvent | A3.1 detecta IDs/claves duplicados en la evidencia, propietario incorrecto, importes/snapshots inválidos, xp_after superior al total y total sin extremo observado suficiente. Constraints fijan unicidad por perfil/clave y suma de cada evento. Replay S3 valida el evento solicitado y su relación con el total; no audita todo el historial. | Examinar todos los eventos observados del perfil, identidad/claves exactas, importes positivos y coherencia xp_after=xp_before+amount; evaluar relaciones observables con el total sin inferir cronología por PK. | Llegar al total observado no demuestra completitud. Concesiones antiguas ausentes impiden acreditar toda la cadena; no sumar eventos como prueba universal ni inventar los faltantes. XPEvent no guarda versión, nivel/etapa o puntos como snapshots. |
+| EvolutionEvent | A3.1 comprueba referencias a etapa/XP y pertenencia en snapshots; A3.2 y S3 detectan causalidad cruzada en ambos sentidos. Existe unicidad perfil/etapa; S3 crea eventos causales para etapas cruzadas en una concesión nueva. | Examinar referencias/casos ausentes y propietario de cada causa, incluidas evoluciones ajenas que referencien XP propia, con información mínima sin exponer historiales de terceros. | EvolutionEvent referencia EvolutionStage actual, sin conservar sus atributos originales. No reconstruir nombres/umbrales/ordinales históricos con el catálogo vivo ni asumir que están registrados todos los cambios antiguos. |
+| Progresión | [S1](../../apps/ecomotor/progression.py) resuelve nivel/etapa y transiciones sobre definiciones validadas. S3 compara nivel/etapa actuales con XP y catálogo V1 para una concesión nueva; S7-A y [S11-A](../../apps/ecomotor/specialization_service.py) contrastan etapa y elegibilidad de sus operaciones. A3.1 no deriva niveles ni valida esta correspondencia integral. | Con catálogo V1 completo/válido y correspondencia confiable de códigos, resolver nivel/etapa para XP actual y comparar con perfil. Separar configuración ausente/inaplicable de contradicción observable frente a configuración válida aplicable. | Un catálogo vigente no prueba qué catálogo regía antiguamente ni reconstruye nivel/etapa históricos sin snapshots. No convertir un cambio de configuración en prueba automática de corrupción histórica ni usar siete épocas objetivo para reinterpretar V1. |
+| StatAllocationEvent | S7-A valida identidad, clave, propietario, atributo V1, importes representables y snapshots del evento solicitado en replay; constraints verifican gasto positivo, aumento 1:1 y ecuaciones de saldo/atributo. Operación nueva valida etapa Actual, fondos y actualización conjunta. A3.1/A3.2 no incluyen estos eventos en su cobertura actual. | Leer y comprobar los eventos disponibles por perfil: identidad/claves, gasto, incremento, saldo antes/después y atributo antes/después. Diagnosticar contradicciones locales sin ejecutar allocate_stat_points o escribir. | Snapshots individuales no reconstruyen todo el origen/gasto de puntos si falta historia; tampoco bases antiguas o puntos concedidos por niveles sin snapshot. No exigir que la suma observada explique todo el saldo ni ordenar globalmente por PK para fabricar un ledger. |
+| Especializaciones | S11-A valida selección activa, catálogo, pertenencia/identidad de UserSpecializationProgress, referencias, duplicados y dominio representable en las filas que examina; la selección activa debe tener progreso compatible. Unicidad perfil/especialización y dominio no negativo constan en modelos. A3.1/A3.2 no cubren integralmente este dominio. | Examinar código activo, Specialization referenciada y progresos observables del perfil, coherencia de selección/posesión y valores representables, sin invocar selección o cambiar estado. | Estado actual no prueba historial completo de selecciones/cambios, concesiones de dominio o rangos. No inventar DomainXPEvent ni inferir rangos persistidos a partir de un evaluador puro. |
+
+No reutilizar servicios de escritura como auditores: ensure_ecomotor_initialized,
+grant_historical_xp, allocate_stat_points y select_initial_specialization pueden
+escribir en sus operaciones propias. Sus validaciones describen comportamiento
+implementado, no una API de lectura integral. El lector A3.6 sigue sin existir;
+esta matriz no aprueba sus consultas finales ni modifica esos servicios.
+
+### 7.2. Resultados conceptuales de cada comprobación
+
+| Categoría conceptual | Alcance |
+| --- | --- |
+| Comprobación superada | Datos examinados cumplen las reglas aplicables a esa comprobación, con su alcance y evidencia identificados. |
+| Evidencia insuficiente | Faltan datos o garantías para acreditar la condición; no se supone coherencia ni se inventa historia. |
+| Incoherencia detectada | Se observa una contradicción verificable, diferenciada de una mera ausencia de información. |
+
+No son valores nuevos de TransitionState, enums Python o cambios de LegacyAuditStatus.
+No existe conversión automática de estas categorías o de COMPATIBLE a V1_VERIFIED.
+Una comprobación superada no certifica el perfil entero; evidencia insuficiente
+sobre una parte no invalida injustificadamente las observaciones válidas de otras.
+
+### 7.3. Vigencia, dependencias y pruebas futuras
+
+A3.6-FRESH-01 permanece íntegra: las comprobaciones exigidas para una operación
+nueva se ejecutarán dentro de la transacción que confirme política y evento,
+mismo alias confiable, D-19/BEGIN IMMEDIATE/timeout 5 s y rollback íntegro, sin
+I/O externo. Una fotografía previa no acredita por sí sola vigencia. No anidar
+A3.2 ni cambiar sus protecciones; API/consultas del lector siguen pendientes.
+Replay histórico mantiene A3.3 sin revalidar elegibilidad actual.
+
+Pendientes: completitud de XP antigua; origen/gasto íntegros de puntos si falta
+historia; atributos históricos de etapas no persistidos; historia de especialización/
+dominio/rangos; referencias Duckies/inventario con Henry; procedencia confiable
+sin inferencias; cobertura final V1_VERIFIED; A3.5 identidad/autorización/retención/
+privacidad/on_delete con Óscar/Core. No crear XPEvent, historiales o procedencias
+para subsanar huecos ni autorizar migración por estas comprobaciones parciales.
+
+Tests futuros del lector/servicio: perfil correcto/inexistente; stats ausentes o
+inválidas; XPEvent duplicado/incoherente; evolución con causa XP ajena; nivel/etapa
+actuales incompatibles con XP/catálogo aplicable; gasto coherente frente a historia
+insuficiente; selección/progreso incompatibles; cambios S3 entre diagnóstico y
+verificación; replay sin nueva elegibilidad; ausencia de escrituras, reparación,
+backfill o activación XP objetivo. No se crean ni ejecutan tests Django aquí.
