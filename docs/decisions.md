@@ -948,3 +948,36 @@ S13-A1 y S14-A siguen integrados; S3 todavía concede puntos por nivel. S13-A2 y
 DomainXPEvent no son persistencia existente. Rewards F2-A mantiene sus bloqueos;
 DOC-5 es vestimenta/inventario, no identidad jugable. No se autoriza migración,
 borrado de eventos, recálculo legacy o cambio de código en esta tarea documental.
+
+## A2 · Arquitectura de XP histórica objetivo · 20/10/2026
+
+**Autoridad:** aprobación interna de 02C comunicada por Jaime en el encargo A2,
+sobre develop `6a7d1d7c8cede455e1aa9ecd2de66382bea3aba7`. A1.1 (#52) y A1.2
+(#53) ya están integrados como validación/cálculo puros, sin escritores objetivo.
+DAR3 conserva su autoridad funcional; estas elecciones técnicas no son requisitos
+literales del profesor ni ratificación de Core. Se usa la trazabilidad existente,
+sin nueva consulta directa de PDFs. Los acuerdos 02C anteriores se conservan.
+
+| ID | Decisión aprobada internamente / alcance |
+| --- | --- |
+| A2-ARQ-01 | Servicio objetivo separado. S3 V1 conserva interfaz, puntos y comportamiento hasta activación coordinada; no se modifica ahora. |
+| A2-VER-01 | Versión de concesión decidida por servidor confiable. catalog_version textual o snapshot validado A1.1 no autorizan producción. Clasificación persistente de perfil, escritor único y activación dependen de A3; sin selección automática de versión. |
+| A2-IDEM-01 | Mantener (profile, operation_key), sin añadir versión a identidad. Operaciones existentes recuperan datos históricos sin catálogos actuales; importe incompatible es conflicto. Conservar límites de snapshots XPEvent/EvolutionEvent, sin replay completo inventado. |
+| A2-EVO-01 | A1.1/A1.2 calculan nivel/época y todos los cruces. Nueva concesión futura crea un XPEvent y exactamente las EvolutionEvent causales de épocas cruzadas, sin otra época en nivel 8 ni eventos iniciales ficticios. |
+| A2-RES-01 | Nuevas concesiones objetivo sin puntos por nivel; si se conservan campos compatibles, stat_points_awarded=0 y available_points_after=None. No reinterpretar puntos/resultados históricos V1. |
+| A2-VAL-01 | Validar perfil, XP, nivel, etapa, estadísticas según clasificación, catálogos y causalidad; rechazar incoherencias sin reparar legacy. No inferir clasificación por ausencia de estado. |
+| A2-IMP-01 | Primer incremento implementable: planificador puro sobre A1.1/A1.2; sin escrituras/modelos/migraciones, cambios S3 o activación. No se crea en este PR. |
+
+[Contrato A2 objetivo](contracts/ecomotor-target-xp-v1.md) detalla alternativas,
+resultados, replay entre versiones y D-19. **A2-CT-01 sigue siendo adaptación de XP
+sin puntos; A3-CT-01 sigue siendo compatibilidad de catálogos, migración legacy y
+activación coordinada.** El servicio transaccional A2 no está implementado;
+clasificación, migración y compatibilidad de resultados se resolverán en A3.
+
+XPEvent no persiste versión, nivel o época como snapshots; EvolutionEvent conserva
+la referencia de etapa, no sus atributos históricos originales. No reconstruir
+historia con catálogos nuevos, renombrar etapas o convertir puntos antiguos a cero.
+Core/P5 conserva retención, anonimización/eliminación y on_delete pendientes.
+[Dependencias A3](pending-decisions.md#14-a2--dependencias-para-xp-histórica-objetivo)
+no bloquean diseñar/probar el planificador puro, pero sí la futura activación.
+No se modifican contratos V1 ni se desbloquean dominio, S13-A2 o Rewards F2-A.
