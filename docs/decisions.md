@@ -904,3 +904,47 @@ Se mantiene la limitación A → B → A: comparar el código esperado no detect
 solicitud histórica. Sin evento físico, tokens persistentes ni garantía de replay
 histórico completo. S12-A-02, P5/P7 y Rewards F2-A conservan sus límites/bloqueos;
 recompensas tardías siguen pendientes. No aprobación externa ni premios reales.
+
+## 02C · Arquitectura objetivo del Ecomotor · 20/10/2026
+
+**Procedencia y autoridad:** aprobación interna del Equipo 5 comunicada por Jaime
+en este encargo. Base develop `8401d462f70138f0b364a9e3869b1d798b6ae5df`, S14-A
+integrado por PR #50 y S13-A1 por #47. La aclaración de Óscar del 19/10 comunicada
+por Jaime confirma las siete épocas históricas; no le atribuye diseño técnico
+ni las demás decisiones internas. DAR3 sigue principal, con nueve épocas como
+antecedente. Se conserva trazabilidad existente, sin nueva consulta directa de PDFs.
+
+**Arquitectura objetivo aprobada internamente, no implementada ni activada.**
+V1 y sus contratos siguen describiendo el comportamiento integrado hasta transición
+coordinada. Las decisiones anteriores conservan su significado histórico.
+
+| ID / ámbito 02C | Decisión aprobada internamente y alcance |
+| --- | --- |
+| ARQ-PROG-01 | Prehistórico, Griego, Romano, Medieval, Renacentista, Revolución Industrial, Siglo XX en niveles 1–7, umbrales coincidentes. Nivel 8 abre elección, no octava época; niveles posteriores continúan. Puede aplazarse y seguir como Siglo XX. Sin puntos adicionales por nivel ni XP numérica oficial. |
+| A1-CT-01 | Progresión y validación objetivo reconocen todas las épocas cruzadas, distinguen nivel, última época y desbloqueo de elección. |
+| A2-CT-01 | Adaptación de XP histórica mantiene referencia S3, atomicidad/idempotencia y transiciones; elimina puntos nuevos por nivel y revisa campos heredados de resultados. Sin cambiar S3 ahora. |
+| A3-CT-01 | Compatibilidad de catálogos V1 hasta activación, migración legacy y activación coordinada; correspondencia objetivo de umbrales niveles/épocas sin renombrar historia. |
+| T-01 / T-02 / T-03; I-01 | Desde nivel 8, siete históricos jugables y cinco tecnológicos: Developer, Ciber, Sistemas, Data IA, Gamer; códigos pendientes. Una opción explícita activa; antes rige época alcanzada. Confirmar opción/configuración juntas, abandono sin parcial. Cambiar recupera stats y conserva XP/nivel/etapa y dominio/rangos tecnológicos independientes. |
+| E-01 / E-02 | ATK Ataque, DEF Defensa, LOG Logística, SPE Especial / Especialización, VEL Velocidad, INT Inteligencia. SPE numérico, no identidad; Cuack pendiente. Snapshot de bases y reparto independientes, efectivas = bases + incrementos, puntos pendientes permitidos. Presupuesto inicial fijo utilizable en cada Ducky, no saldo global consumible. Sin puntos por nivel ni mejoras de seis atributos/puntos adicionales mediante Training en esta V1 objetivo. |
+| OP-RED-01 | Redistribución gratuita, ilimitada, por Ducky, histórica, atómica, idempotente y concurrente; sin monedas/objetos ni cambios de bases/XP/nivel/dominio/rangos. No es R-01 histórico de equipamiento. |
+| ARQ-OP-01 / ARQ-OP-02 / ARQ-OP-03; DOC-ERD-01 | Cuatro modelos conceptuales no implementados: PlayableOption, UserPlayableState, UserPlayableStats y PlayableStatsChangeEvent. Exclusión histórica/tecnológica, configuración única estado/opción, presupuesto/activa coherentes y eventos únicos estado/operation_key. ARQ-OP-02 aprueba diseño provisional de campos y restricciones de PlayableOption, UserPlayableState y UserPlayableStats; migraciones, relaciones físicas definitivas y on_delete no aprobados. |
+| SVC-OP-01 | Configurar opción nunca usada: nivel 8 y elegibilidad, snapshot/reparto/selección/evento atómicos; estado solo en primera confirmación. Tecnología sin progreso crea dominio cero, nunca reset existente. |
+| SVC-OP-02 | Activar configuración existente con revisión esperada: si coincide y destino ya activo, devolver estado existente sin escrituras; revisión obsoleta rechaza incluso destino activo. Sin modificar stats/progreso, configurar destinos automáticamente o generar redistribución. Sin replay histórico completo tras A → B → A; detalle técnico de implementación pendiente. |
+| SVC-OP-03 | Consulta coherente de opción efectiva y seis atributos: época antes de elegir; activa/configuración conservada después. Sin escrituras. |
+| SVC-OP-04 | Reparto completo de seis incrementos, propiedad/presupuesto/revisión y evento atómicos; no afecta a otros Duckies ni consume recursos. |
+| DOC-CON-01 | Contrato objetivo nuevo separado de V1, entradas/resultados conceptuales, sin firmas/APIs implementadas. |
+| COMP-01 / ORD-OP-01 / PLAN-OP-01 | Conservar nueve épocas DAR3, siete etapas V1 terminadas en Actual y siete épocas objetivo terminadas en Siglo XX. Inventariar/clasificar legacy y acordar migración/activación sin reasignar stats/historia o duplicar autoridades. Core/P5 conserva relaciones/retención/on_delete pendientes. Implementación posterior en 01B. |
+
+Los IDs T/E/I anteriores se interpretan en **02C**, sin aprobar baremos homónimos
+de juegos. El [contrato objetivo](contracts/ecomotor-playable-options-target-v1.md)
+concentra alcance y pendientes; [ERD conceptual](erd/ecomotor.md#14-opciones-jugables--modelos-conceptuales-02c)
+separa diseño de nueve entidades físicas. [Pendientes 02C](pending-decisions.md#13-pendientes-residuales-de-la-arquitectura-objetivo-02c)
+no reabre lo aprobado ni cierra P1–P8 en bloque.
+
+**Sustitución funcional futura, no retroactiva:** 02C sustituirá el objetivo anterior
+de Actual, stats globales y puntos por nivel (V2-A8/A19/A20/A21 y servicios V1 en
+lo incompatible) al activarse; conserva esos antecedentes. S1/S2-A/S3/S7-A/S11-A,
+S13-A1 y S14-A siguen integrados; S3 todavía concede puntos por nivel. S13-A2 y
+DomainXPEvent no son persistencia existente. Rewards F2-A mantiene sus bloqueos;
+DOC-5 es vestimenta/inventario, no identidad jugable. No se autoriza migración,
+borrado de eventos, recálculo legacy o cambio de código en esta tarea documental.

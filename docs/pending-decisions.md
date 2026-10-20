@@ -2,6 +2,12 @@
 
 ## 1. Marco vigente
 
+**Actualización 02C · 20/10/2026:** base develop `8401d46`, S13-A1 (#47) y S14-A
+(#50) integrados. Nueva arquitectura jugable aprobada internamente, no implementada;
+[§13](#13-pendientes-residuales-de-la-arquitectura-objetivo-02c) distingue decisiones
+cerradas de parámetros y coordinación residual. Los cortes anteriores conservan
+su valor histórico y no reabren lo aprobado en 02C.
+
 D-20/D-21 registran el reparto y apps objetivo acordados internamente el 08/10.
 No queda abierta la pregunta antigua sobre Jaime/Félix/Henry: D-13 se conserva
 como antecedente. D-14…D-16 siguen sin aprobación técnica conjunta automática.
@@ -37,6 +43,10 @@ R1–R8 de Rewards no son los mismos identificadores que R-01…R-14 del ERD glo
 
 ### 1.2. Ejemplos técnicos y preguntas residuales
 
+La referencia V2-A21 de este antecedente no impide el objetivo posterior 02C:
+secuencia histórica actualizada y umbrales alineados a niveles 1–7, sin activación
+ni reinterpretación de catálogos/historias V1. P8 conserva parámetros pendientes.
+
 | Referencia | Evidencia histórica y categoría | Qué falta acordar / relación |
 | --- | --- | --- |
 | E-F1 · Redondeo XP | E: DAR_DuckyClash p. 18 ilustra 20,7 → 21; DAR_formulas p. 15 usa `math.floor(total_xp)`. Son variantes ilustrativas. | Política de redondeo antes de premios reales y coordinación si afecta al contrato; I/C, vinculada a I9/R8. No se escoge una variante. |
@@ -60,13 +70,13 @@ por sí solos toda la revisión conceptual.
 | ID | Evidencia / estado | Pregunta de cierre | Validadores e impacto |
 | --- | --- | --- | --- |
 | P1 · XP externa | Daily del 09/10/2026: rectificación funcional, en tensión con Ecomotor pp. 1–2 y 6 | ¿XP solo juegos afecta a histórica o también dominio? ¿Qué actividades externas conservan monedas, objetos o puntos? ¿Desde cuándo, qué ocurre con usuarios/recompensas existentes y cómo configurar nuevas actividades? Confirmación escrita sin borrados, recálculos ni conversión automática de todas las actividades externas a premios sin XP. | Óscar, Jaime/Core; bloquea elegibilidad definitiva y migración afectada, no el contrato conceptual. |
-| P2 · Stats | Daily del 09/10/2026: stats por rol antes de Actual y distribución/edición en Actual, aclaración parcial. S7-A integrado (PR #32) resuelve internamente asignación solo en Actual, coste 1:1 e historial idempotente; no es aprobación global del profesor. | Siguen abiertos iniciales, tabla/presupuesto, límites, redistribución, efectos al especializarse y demás condiciones funcionales. No adoptar todos a 5, tabla de Clash o suma de 45 como defaults oficiales. | Óscar, Jaime, Henry y juegos; S2-A/S7-A locales existen, parámetros y límites funcionales siguen pendientes. |
+| P2 · Stats | 02C (20/10): seis atributos definidos, LOG Logística y SPE Especial / Especialización numérico; stats independientes por Ducky, snapshot de bases, presupuesto inicial fijo utilizable en cada opción, puntos pendientes y sin puntos por nivel. OP-RED-01 gratuita, ilimitada e histórica está cerrada internamente. S7-A global sigue implementado hasta transición. | Pendientes bases por opción, cantidad autorizada, firmas/esquema, replay frente a revisión y reparto idéntico. Cuack requiere aclaración de Óscar, no es SPE ni séptimo atributo. Training no mejora seis atributos ni concede puntos adicionales para ellos en esta V1 objetivo; futuro requiere confirmación/coordinación. | Equipo 5/Jaime para parámetros/diseño; Core/P5 para conservación, juegos para consumo de stats. No reabrir SPE ni gratuidad. |
 | P3 · Cursos | Daily del 09/10/2026: ejemplos de objetos y puntos; bonificación diaria de XP propuesta, no confirmada. Daily del 13/10/2026: corrección automática en LMS, insignias y posible relación futura con Bank; euros/cotización mencionados sin especificación | ¿Qué premios, condiciones, efectos/consumos, cantidades y cobertura V1? ¿Cómo conceder puntos sin ascenso de nivel ni XP? LMS/Bank es una expectativa futura: sin premios, cantidades, XP, conversión económica, contratos o alcance V1 definidos; no resuelve P1. | Óscar y A/B/C; reglas, puntos e integración externa. |
 | P4 · User/auth | Sin respuesta nueva; conflicto PR07/D-09/D-10 bajo D-17 | User estándar/CustomUser, autenticación/JWT, origen autorizado, permisos e integración común. No crear auth paralela. | Óscar/Core y Equipo 5; exposición externa y migraciones. |
 | P5 · Conservación | Pendiente; M-01 fail-closed interno preservado. S12-A solo acepta DomainXPEvent conceptual. | Retención, anonimización/eliminación de User, perfiles, stats, Rewards y movimientos; referencias, borrado y legacy. DomainXPEvent físico y sus relaciones requieren acuerdo previo de conservación, anonimización/eliminación y on_delete; sin copiar CASCADE provisional. | Óscar/Core y A/B/C; FKs/on_delete y migraciones definitivas. |
-| P6 · Vestimenta/Museo | DAR3 conserva seis piezas por época obtenidas por progreso/misiones y conjuntos anteriores. DOC-5 (18/10) concreta la propuesta E5: conjunto completo por época, adquisición/autoequipamiento al evolucionar y reutilización de anteriores obtenidos también en épocas intermedias; futuras no alcanzadas excluidas. | CORE-07, B-06 y R-01 abiertos: Óscar debe aclarar piezas diferenciadas/composición de conjuntos, entrega automática frente a progreso/misiones, aprobación de adquisición/autoequipamiento y reutilización, y nueve épocas (Era Espacial incluida) frente a siete etapas provisionales. Mantener compatibilidad, saltos y Museo pendientes; no asumir un único Item por conjunto. | Óscar para aclaración funcional; Henry/Jaime para identidades, idempotencia, adquisición/equipamiento y recuperación; Fernando si afecta a comercio. |
-| P7 · Especializaciones | S11-A integrado (#44), S12-A conceptual (#45), S13-A1 puro integrado (#47) y S14-A-01…07 aprobados internamente, sin servicio de cambio implementado. | Abiertos códigos canónicos, obligatoriedad/acceso adicional, concreciones de cambio y compatibilidad S11-A, reinicios, fuentes/importes de dominio, autorización de evidencias, persistencia/confirmación de rangos y recompensas tardías. No cerrar P7 ni activar baremos. | Óscar, Jaime y juegos; [S11-A](contracts/ecomotor-specialization-v1.md), [S12-A](contracts/ecomotor-domain-xp-v1.md), [S13-A1](contracts/ecomotor-ranks-evaluator-v1.md) y [S14-A](contracts/ecomotor-specialization-switch-v1.md), sin ratificación global Core. |
-| P8 · Umbrales/configuración | Invariantes V2-A20/A21 y carga JSON/diagnóstico S6-A ya implementados localmente; INITIAL_CONFIGURATION sigue ausente. | Valores autorizados, instalación real por proceso y cambios históricos prospectivos/retroactivos sin rebajar progreso ni reconceder puntos silenciosamente. S6-A no activa el servidor ni aprueba producción. | Óscar/Jaime y Core si afecta a migración; administración y reconciliación. |
+| P6 · Vestimenta/Museo | DAR3 y DOC-5 conservan seis piezas/conjuntos y su propuesta de adquisición/equipamiento. 02C aprueba históricos como opciones jugables reales y selección desde nivel 8; no son simples apariencias ni cierre de DOC-5. | CORE-07, B-06 y R-01 mantienen cuestiones residuales de piezas, entrega/equipamiento, Museo e integración de apariencia/inventario. Aclaración de Óscar del 19/10 comunicada en 02C fija la secuencia histórica objetivo; no resuelve la política de transición desde nueve épocas DAR3/siete etapas V1, ni autoriza renombrar eventos. | Óscar para pendientes funcionales; Henry/Jaime para identidad jugable frente a vestimenta, idempotencia y recuperación; Fernando si afecta a comercio. |
+| P7 · Opciones/especializaciones | S11-A (#44), S13-A1 puro (#47) y S14-A (#50) integrados. 02C aprueba elección histórica/tecnológica desde nivel 8, aplazamiento, una activa y conservación independiente de configuraciones/dominio/rangos confirmados. | Códigos canónicos de Developer, Ciber, Sistemas, Data IA, Gamer; XP de dominio autorizada, rangos S13-A2, contratos y transición a selección explícita. No está implementada la nueva elección ni se reinician progresos. Conservar cuestión de recompensas tardías y evidencias S12-A. | Jaime/Equipo 5, Core y juegos; Henry para integración visual. Sin reabrir acceso nivel 8 ni históricos jugables. |
+| P8 · Umbrales/configuración | S6-A integrado. 02C fija siete épocas/niveles 1–7 con umbrales coincidentes; nivel 8 abre elección, sin octava época; niveles posteriores continúan y sin puntos nuevos por nivel en objetivo. V1 sigue compatible hasta activación. | Códigos y valores numéricos XP, bases y presupuesto fijo autorizados/versionados, instalación real, compatibilidad de catálogos y política histórica de transición/cambios. No recalcular XP/niveles ni convertir ilustraciones en parámetros oficiales. | Equipo 5/Jaime para candidatos versionados/coordinados; Core/P5 para conservación/migración y activación conjunta. P8 no se cierra por fijar reglas estructurales. |
 
 ### Integración pendiente con Core y servicios económicos comunes
 
@@ -307,6 +317,10 @@ Las referencias anteriores a pausas/implementación describen sus cortes histór
 
 ## 11. S13-A / S13-A1 · arquitectura aprobada, evaluador sin implementar
 
+**Antecedente DOC-S13-A1:** el título y preguntas siguientes describen el corte
+previo a PR #47. Hoy el evaluador puro está integrado; S13-A2 sigue pendiente.
+El cambio tecnológico ya se implementó en #50; nueva elección 02C aún no existe.
+
 El [contrato del evaluador](contracts/ecomotor-ranks-evaluator-v1.md) registra las
 siete decisiones internas y las precisiones aprobadas por Jaime en 02B.
 La secuencia por especialización y la evaluación del siguiente rango están
@@ -334,7 +348,9 @@ y las precisiones S14-A-08/09 aprobadas internamente en 02B sobre develop
 Los estados previos de §11 describen el corte documental anterior a su implementación.
 
 Las preguntas de compatibilidad y precedencia ya están resueltas internamente;
-su implementación sigue pendiente y el servicio S11-A actual no se modifica aquí.
+su implementación y compatibilidad S11-A están integradas mediante PR #50.
+Las filas de implementación siguientes se conservan como plan histórico ya cumplido,
+sin presentar S13-A2, dominio o arquitectura 02C como implementados.
 
 | Pendiente antes de avanzar | Alcance / responsable |
 | --- | --- |
@@ -348,3 +364,36 @@ S14-A sin evento físico solo ofrece idempotencia por estado; A → B → A no p
 distinguir una solicitud histórica de una nueva si vuelve a coincidir la precondición.
 No se añade una política de identidad histórica para resolverlo. S12-A/DomainXPEvent
 y DOC-6/F2-A mantienen sus bloqueos; Rewards v0 candidato, sin premios reales.
+
+## 13. Pendientes residuales de la arquitectura objetivo 02C
+
+[Acuerdos del 20/10/2026](decisions.md#02c--arquitectura-objetivo-del-ecomotor--20102026)
+y [contrato objetivo](contracts/ecomotor-playable-options-target-v1.md) aprobados
+internamente por Equipo 5, sin implementación. No son ratificación de Core/juegos
+ni una migración autorizada. No se cierran P1–P8 en bloque.
+
+**Cerrado internamente:** siete épocas objetivo (Prehistórico, Griego, Romano,
+Medieval, Renacentista, Revolución Industrial, Siglo XX), umbrales correspondientes
+a niveles 1–7; elección/aplazamiento desde nivel 8, históricos realmente jugables,
+una activa, configuraciones independientes, SPE Especial / Especialización numérico,
+LOG Logística, sin puntos por nivel y OP-RED-01 gratuita/ilimitada. Primera elección
+sin guardado parcial; Training no mejora seis atributos/puntos adicionales en V1.
+No usar R-01 para redistribución: pertenece a equipamiento histórico.
+
+| Ámbito | Pendiente real / responsable |
+| --- | --- |
+| Interno · catálogos/parámetros | Equipo 5: códigos técnicos de épocas/tecnológicas, umbrales XP numéricos, seis bases por opción y cantidad del presupuesto fijo. Candidatos versionados/coordinados no son valores oficiales. |
+| Interno · contratos/errores | Parte A: firmas Python definitivas, orden entre replay idempotente y revisión obsoleta, caso de redistribución sin cambios y representación de resultados/historia. No trasladar automáticamente precedencia de S14-A a servicios nuevos. |
+| Interno · diseño físico | Detalle definitivo de eventos, campos/revisiones y restricciones; modelos solo conceptuales. No confundir unicidad conceptual aprobada con migración. |
+| Coordinación · transición | Equipo 5/Core: inventario de datos y clasificación explícita nuevos/legacy, migración y activación conjunta. Ausencia de UserPlayableState no identifica perfil nuevo; evitar doble autoridad con active_specialization_code. |
+| Coordinación · Core/P5 | Conservación, anonimización/eliminación, relaciones y on_delete. No borrar/reasignar CharacterStats o historiales ni recalcular XP/niveles sin política aprobada. |
+| Coordinación · juegos/dominio/rangos | Consumo de estadísticas efectivas con juegos, concesión autorizada de XP de dominio/evidencias, recompensas tardías y persistencia/confirmación S13-A2. S13-A1 evalúa, no confirma; DomainXPEvent conceptual y sin tabla aprobada. |
+| Coordinación · apariencia | Henry/Jaime: integración de selección jugable con apariencia, vestimentas históricas e inventario. DOC-5/CORE-07/B-06/R-01 conservan residuales, no bloquean reconocer internos históricos jugables. |
+| Aclaración de Óscar | Significado y función de Cuack, sin equipararlo a SPE o añadir atributo. Cualquier futura mejora Training exige confirmación funcional y coordinación, fuera de V1 objetivo. |
+
+P1 y P3–P5, R1–R8/Rewards, Core y economía mantienen sus pendientes ajenos a 02C;
+F2-A sigue condicionado por DOC-6. XP de dominio y rangos confirmados se conservan
+al cambiar, pero sus servicios positivos/persistencia pendientes no aparecen por
+esta aprobación. S1/S2-A/S3/S7-A/S11-A/S13-A1/S14-A están integrados; S3 aún concede
+puntos por nivel y S7-A afecta estadísticas globales. Nuevos modelos/servicios
+jugables no existen. Implementación posterior en 01B, sin tocar contratos V1.
