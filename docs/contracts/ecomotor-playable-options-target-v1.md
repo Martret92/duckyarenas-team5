@@ -262,3 +262,13 @@ objetos, tablas o relaciones Duckies.
 Se mantienen siete épocas históricas hasta Siglo XX y elección desde nivel 8.
 No renombrar V1, reabrir la secuencia, activar A2 o cambiar contratos S3/Rewards.
 [Pendientes residuales](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
+
+## 9. A4.3 · Preparación previa a configuración futura
+
+[Contrato canónico A4.3](ecomotor-target-stats-preparation-v1.md) separa propuesta
+pura, resolución autorizada y confirmación persistente. A4.1 (#74) y A4.2.1 (#76)
+están integradas; A4.3.1 será un preparador que preserve identidad/versiones/bases
+y reutilice A4.1 con incrementos/presupuesto explícitos, todavía sin implementación.
+No selecciona, redistribuye, autoriza o persiste por producir una propuesta válida.
+Se mantienen precondiciones y límites SVC-OP-01…04, snapshot 02C, OP-RED-01 y
+A3-CAT-01; no nuevas políticas de replay/concurrencia, campos o valores oficiales.

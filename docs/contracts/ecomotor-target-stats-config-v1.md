@@ -17,8 +17,10 @@ y [pendientes](../pending-decisions.md#26-a42--configuración-confianza-y-consum
 Se utiliza trazabilidad existente, sin afirmar nueva consulta directa de PDFs.
 
 A4.1 está implementada e integrada por PR #74 como módulo puro. A4.2 es arquitectura;
-**A4.2.1 está implementada como componente puro para revisión en 01B**, desde
-base `f5acadfd1fed8234106fa6152e1e4aef8638ea05` (PR #75 integrada).
+**A4.2.1 está integrada como componente puro mediante PR #76**, sobre develop
+`e612ed5cba8dfcd1e661649ff9f8459b9f4fb7fa`. El corte de implementación para revisión
+partía de `f5acadfd1fed8234106fa6152e1e4aef8638ea05` (PR #75 integrada); se conserva
+como antecedente, no integración pendiente.
 [§9](#9-a421--api-pura-concretada-en-01b) registra su API técnica aprobada en 01B,
 sin nuevas decisiones funcionales DAR3 o autorización externa. No existen por ello catálogos objetivo
 publicados, fuentes de configuración autorizadas, snapshots persistentes o servicios
@@ -112,7 +114,7 @@ con datos arbitrarios de bases/reparto/versiones.
 ## 7. A4.1 integrada y futuro A4.2.1
 
 **Corte histórico DOC-A4.2:** la previsión de implementación siguiente se conserva;
-A4.2.1 ahora está implementada para revisión según §9, sin persistencia o resolución
+A4.2.1 ya está integrada por #76 según §9, sin persistencia o resolución
 confiable de configuración. A4.1 mantiene su firma y comportamiento.
 
 API existente en [target_stats_validation.py](../../apps/ecomotor/target_stats_validation.py):
@@ -229,3 +231,12 @@ Pendientes funcionales y externos de §8 intactos: códigos/bases/presupuesto of
 fuente confiable, publicación/versionado/vigencia reales, Core/Henry/consumidores,
 persistencia/conservación/migración y activación coordinada. S3 V1 sigue único
 escritor XP; no se activa el objetivo ni se crea un servicio persistente.
+
+## 10. Relación con A4.3 · Propuesta pura de configuración
+
+[A4.3](ecomotor-target-stats-preparation-v1.md) define la futura preparación de
+una propuesta completa: definición A4.2.1 válida e inmutable, incrementos y
+presupuesto separado, reutilizando A4.1 para reparto/efectivas. Conserva identidad,
+versiones y bases usadas sin demostrar fuente confiable, elegibilidad o autorización.
+A4.3.1 no implementada; resolución autorizada y confirmación persistente son capas
+posteriores. API/reglas de A4.1 y A4.2.1 integradas no cambian por esta referencia.

@@ -754,8 +754,9 @@ y [contrato conceptual](contracts/ecomotor-target-stats-config-v1.md), sobre
 `13f0c5a`. Resuelto como arquitectura: definición por opción separada de presupuesto
 del jugador, identidad/versiones diferenciadas, estructura frente a autorización,
 conservación conceptual de bases y consumo propietario Ecomotor.
-A4.1/NUM-01 integrada #74; A4.2.1 implementada como validador puro para revisión
-en 01B, sobre base f5acadf con arquitectura #75 integrada, sin persistencia/autorización.
+A4.1/NUM-01 integrada #74; A4.2.1 integrada como validador puro por #76 en e612ed5,
+sin persistencia/autorización. El corte previo de revisión partía de f5acadf;
+no describe una integración todavía pendiente.
 
 | Pendiente | Responsable / alcance |
 | --- | --- |
@@ -764,10 +765,31 @@ en 01B, sobre base f5acadf con arquitectura #75 integrada, sin persistencia/auto
 | Fuente y ciclo de definiciones | Fuente real autorizada, publicación/versionado/sustitución/vigencia y resolución confiable por servidor. Validación estructural, TargetStatsResult o versión textual no autorizan. |
 | Configuraciones confirmadas | Formato físico, reglas de actualización/conservación/eliminación y persistencia de UserPlayableState/UserPlayableStats/eventos. Conservar bases/procedencia sin recálculo silencioso por catálogo nuevo, sin aprobar campos o tablas. |
 | Core/Henry/consumidores | Contexto/permisos, contratos de consumo de estadísticas y coordinación catálogo/selección/apariencia/inventario. Ducky físico OneToOne no equivale a crear múltiples Duckies por opciones Ecomotor. |
-| A4.2.1 · implementada para revisión | API keyword-only validate_target_stats_definition, dos dataclasses frozen/slots, cinco excepciones ValueError, identidades/versiones exactas y seis bases enteras exactas no negativas. Comparación opcional de catálogo/versiones aportados por llamador, no confianza. [API concreta](contracts/ecomotor-target-stats-config-v1.md#9-a421--api-pura-concretada-en-01b). Sin presupuesto en definición, BD, permisos o certificación de fuente/publicación/vigencia; A4.1 intacta. |
+| A4.2.1 · integrada #76 | API keyword-only validate_target_stats_definition, dos dataclasses frozen/slots, cinco excepciones ValueError, identidades/versiones exactas y seis bases enteras exactas no negativas. Comparación opcional de catálogo/versiones aportados por llamador, no confianza. [API concreta](contracts/ecomotor-target-stats-config-v1.md#9-a421--api-pura-concretada-en-01b). Sin presupuesto en definición, BD, permisos o certificación de fuente/publicación/vigencia; A4.1 intacta. |
 | Pruebas e integración | Tests puros sintéticos A4.2.1 implementados para identidad/versiones/bases/contexto, errores, copias/inmutabilidad/no mutación, independencia, interoperabilidad A4.1 y aislamiento sin Django. Resultados reales de nuevos tests/regresiones/suite en PR de implementación. Autorización/persistencia/conservación/consumo y activación siguen pendientes. |
 | Activación y legacy | Modelos y migración/conservación con Core, compatibilidad histórica y activación coordinada siguen pendientes. S3 V1 único escritor; no activar objetivo. |
 
 ATR-OBJ-01, E-01/E-02 y OP-RED-01 y demás decisiones no afectadas conservan alcance.
 P1–P8, R1–R8 e I1–I9 mantienen residuales; no se cierran contratos compartidos por
 esta arquitectura ni se modifican reglas A4.1, datos o módulos externos.
+
+## 27. A4.3 · Preparación y fronteras pendientes
+
+[Cuatro decisiones internas](decisions.md#a43--preparación-pura-de-configuraciones-objetivo--21102026)
+y [contrato conceptual](contracts/ecomotor-target-stats-preparation-v1.md), sobre
+e612ed5. Resuelto como arquitectura: propuesta pura completa reutilizando
+A4.1/A4.2.1 integradas, identidad/versiones/bases preservadas y separación de
+preparación, resolución autorizada y confirmación persistente. A4.3.1 no implementada.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| A4.3.1 posterior 01B | Firma, clases de error y resultado concreto del preparador puro, antes de implementar. Sin duplicar reglas A4.1/A4.2.1 ni aprobar APIs compartidas definitivas de juegos/frontend. |
+| Parámetros y fuentes | Óscar: bases oficiales, presupuesto numérico y reglas funcionales adicionales que correspondan. Parte A/Core: futura resolución confiable con publicación/vigencia/contexto/elegibilidad. Propuesta válida, versión textual, contexto cliente o bool no autorizan. |
+| Confirmación e historia | Servicios propietarios futuros: selección/redistribución con verificaciones, referencias, estado, revisiones, idempotencia e historial; persistencia/conservación/migración y activación pendientes. Sin nuevas políticas A4.3.1 de concurrencia/replay/actualización por inferencia. |
+| Core/Henry/consumidores | Identidad, permisos, contexto confiable y A3.5/Core; relación opción/Ducky físico, apariencia/inventario con Henry; contratos de consulta de efectivas por otros equipos. No ratificados. |
+| Pruebas futuras | Preparación válida, gasto total/parcial/cero, efectivas/identidad/versiones/bases, exceso/entradas/contexto inválidos, fallos sin efectos/no mutación, resultado inmutable/determinismo/independencia, reutilización APIs, aislamiento Django/I/O y regresión V1. No implementadas/ejecutadas aquí. |
+
+Puntos pendientes, presupuesto independiente, ATR-OBJ-01, E-01/E-02, OP-RED-01
+y A3-CAT-01 conservados. No nuevos valores oficiales ni reinterpretación log_stat/
+spe V1. S3 V1 sigue único escritor; sin A2/A4 activados. P1–P8, R1–R8 e I1–I9
+mantienen sus residuales; permisos/fuentes/transacciones persistentes posteriores.
