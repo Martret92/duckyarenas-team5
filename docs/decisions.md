@@ -1342,3 +1342,26 @@ centraliza matriz, lagunas, procedencia, temporalidad y pruebas futuras;
 A3.3/A3.6.2, D-19, evento primero/replay y A3.2 separado permanecen intactos.
 A3.5/Core/Henry y cobertura final siguen abiertos. Sin API definitiva, modelos,
 lector, servicios, migraciones o tests nuevos/ejecutados. Antecedentes conservados.
+
+## A3.6.4 · Lagunas históricas y garantías alternativas · 20/10/2026
+
+**Aprobación arquitectónica interna Equipo 5 en 02C**, sobre develop
+`8790ac7ddd9703d2d3686038e87f01d814358419`. Continúa A3.6.1–A3.6.3; DAR3 sigue
+principal. No son requisitos literales nuevos ni acuerdos de Óscar/Core o Henry.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A3.6.4-GAP-01 | Evaluar cada laguna: condición, historia ausente, evidencia directa, fuentes alternativas existentes/candidatas e impacto. Separar ausencia legítima, historia incompleta, prueba obligatoria insuficiente y contradicción. Sin corrupción inferida, cronología PK o eventos inventados; COMPATIBLE no es V1_VERIFIED. |
+| A3.6.4-ALT-01 | Alternativa solo podría acreditar la misma condición obligatoria con garantías suficientes: perfil inequívoco, procedencia, cobertura, tiempo, coherencia, independencia probatoria y validación/autorización propietaria. Ejemplos son hipótesis no constatadas ni admitidas; no equivalencia por parecido o estado actual circular. |
+| A3.6.4-GATE-01 | Si condiciones obligatorias acreditadas y resto de requisitos cumplidos, evaluación puede continuar. Laguna no obligatoria solo bajo política aprobada puede no impedirla. Prueba obligatoria ausente sin alternativa admitida/suficiente, o incoherencia impeditiva: rechazo sin mutar estado/revisión/historial ni nuevo evento confirmado. No excepción genérica, BLOCKED automático, reparación o migración. Política concreta de admisibilidad pendiente. |
+| A3.6.4-TRACE-01 | Justificar uso futuro mediante condición, laguna, fuente/procedencia, alcance, vigencia/aplicabilidad, resultado motivado y límites; distinguir examen de evidencia de autorización. No aprueba campos/modelos/tablas/firmas/formato/retención; privacidad, conservación e identidad del operador pendientes A3.5/Core. |
+
+[Contrato canónico](contracts/ecomotor-classification-evidence-v1.md#10-a364--lagunas-históricas-y-garantías-alternativas)
+centraliza ejemplos, criterios, puerta de avance y pruebas futuras;
+[pendientes](pending-decisions.md#24-a364--admisibilidad-y-equivalencias-pendientes).
+Lista de lagunas, fuentes disponibles/confiables, equivalencias específicas y
+suficiencia final V1_VERIFIED siguen abiertas, al igual que procedencia, lector y
+Core/Henry. PR #61 no resuelve esas dependencias técnicas; consulta Core intacta.
+A3.3/replay y D-19 conservados, sin I/O externo transaccional o A3.2 anidado.
+Sin código, modelos, servicios, clasificación real, migraciones o tests nuevos/
+ejecutados. S3 V1 continúa único escritor; antecedentes conservados.

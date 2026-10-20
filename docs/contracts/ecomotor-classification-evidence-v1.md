@@ -406,3 +406,122 @@ legacy/nativo con procedencia acreditada; XP posterior a verificación confirmad
 nueva transición con evidencia obsoleta; replay sin nueva elegibilidad; rechazo
 sin mutaciones/reparaciones/eventos parciales; regresión S3 V1. No se crean ni
 ejecutan nuevos tests Django, modelos, lector o servicio en esta PR documental.
+
+## 10. A3.6.4 · Lagunas históricas y garantías alternativas
+
+A3.6.4-GAP-01, ALT-01, GATE-01 y TRACE-01, aprobadas internamente por Equipo 5
+en 02C y documentadas el 20/10/2026 sobre develop
+`8790ac7ddd9703d2d3686038e87f01d814358419`. Continúan A3.6.1–A3.6.3.
+DAR3 conserva autoridad funcional; estas decisiones técnicas no son requisitos
+literales nuevos ni ratificaciones de Óscar/Core o Henry.
+[Registro](../decisions.md#a364--lagunas-históricas-y-garantías-alternativas--20102026)
+y [pendientes](../pending-decisions.md#24-a364--admisibilidad-y-equivalencias-pendientes).
+
+**Marco conceptual aprobado, no lista concreta de lagunas admisibles ni cierre de
+suficiencia V1_VERIFIED.** No se implementan modelos, lector, servicios o clasificación.
+
+### 10.1. Evaluación individual · A3.6.4-GAP-01
+
+Para cada laguna identificar por separado: condición que se pretende acreditar,
+información histórica ausente, evidencia directa realmente disponible, posibles
+fuentes alternativas existentes o candidatas (distinguirlas) e impacto sobre la
+suficiencia de la operación. No extrapolar un diagnóstico a toda la historia.
+
+| Situación conceptual | Distinción y ejemplo |
+| --- | --- |
+| Ausencia legítima de eventos | Nativo sin recompensas previas, con procedencia acreditada: la ausencia no prueba corrupción. Tampoco acredita por sí sola que sea nativo. |
+| Historial incompleto | Legacy con XP anterior a los XPEvent observados: datos actuales no demuestran la cadena completa ni su origen. |
+| Evidencia obligatoria insuficiente | Evolución antigua sin versión/atributos históricos del catálogo: si esa información es necesaria para una condición obligatoria, no darla por acreditada usando el catálogo vivo. |
+| Contradicción verificable | EvolutionEvent cuya causa XP pertenece a otro perfil: contradicción causal observada, distinta de una mera ausencia de historia. |
+
+Las situaciones se evalúan según condición, alcance y procedencia; no son nuevos
+enums o estados. No inferir cronología por PK ni reconstruir eventos no persistidos.
+A3.1 COMPATIBLE conserva su alcance limitado y no equivale a V1_VERIFIED.
+
+### 10.2. Equivalencia de garantías · A3.6.4-ALT-01
+
+Una garantía alternativa solo podría sustituir evidencia ausente si acredita
+**la misma condición obligatoria** con garantías suficientes y expresamente
+admitidas. Evaluar identificación inequívoca del perfil, procedencia confiable,
+alcance/cobertura, vigencia o aplicabilidad temporal acreditada, coherencia con
+registros observados e independencia probatoria suficiente. No usar circularmente
+el estado actual para certificar su propia procedencia. Fuente validada y
+autorizada conforme a contratos propietarios aplicables.
+
+**Hipótesis por estudiar, no fuentes históricas constatadas ni equivalencias aprobadas:**
+
+| Laguna | Posible garantía alternativa por estudiar |
+| --- | --- |
+| XP antigua | Saldo inicial históricamente acreditado y trazabilidad posterior suficiente. |
+| Puntos | Saldo inicial autorizado y movimientos posteriores acreditados. |
+| Evoluciones | Catálogo histórico verificable y causas de evolución correspondientes. |
+| Especializaciones | Pruebas confiables de selección y progreso. |
+| Procedencia del perfil | Evidencia del proceso de creación original. |
+| Duckies/inventario | Pruebas acordadas con Henry y propietarios de esos datos. |
+
+La tabla no afirma que existan copias históricas, snapshots, versiones de catálogo
+o registros confiables. Primero comprobar disponibilidad real, procedencia y
+alcance; no aprobar equivalencia por parecido, declaración sin respaldo o solo
+estado actual. Definir criterios específicos por condición sigue pendiente.
+
+### 10.3. Puerta de avance · A3.6.4-GATE-01
+
+Para operación nueva hacia V1_VERIFIED:
+
+- Si todas las condiciones obligatorias están acreditadas y se cumple el resto
+  de requisitos, la evaluación puede continuar; no es confirmación automática.
+- Si una laguna no afecta a ninguna condición obligatoria conforme a política
+  aprobada, registrar el límite sin convertirlo automáticamente en impedimento.
+- Si falta una condición obligatoria y no hay garantía alternativa expresamente
+  admitida y suficiente, rechazar transición. Sin política aprobada para esa prueba
+  ausente, rechazo seguro.
+- Si hay incoherencia impeditiva, rechazar sin reparación automática.
+
+**No excepción genérica para perfiles de historia incompleta.** La política exacta
+de admisibilidad continúa pendiente: este marco no la sustituye. Rechazo conserva
+estado, revisión e historial de clasificación sin nuevo evento confirmado.
+No crear evento BLOCKED automáticamente: bloqueo es otra operación con incidencia,
+autorización y condiciones propias. Sin inventar datos o activar migraciones.
+
+### 10.4. Justificación y trazabilidad · A3.6.4-TRACE-01
+
+Uso futuro de garantías alternativas justificable mediante información conceptual:
+condición evaluada, laguna, fuente utilizada/procedencia, alcance, vigencia o
+aplicabilidad, resultado motivado y limitaciones restantes. Distinguir evidencia
+examinada de decisión autorizada; una fuente aportada no es autorización.
+
+No se aprueban campos, modelos, tablas, firmas, formatos físicos o retención por
+esta trazabilidad. Representación técnica, privacidad, conservación e identidad
+del operador permanecen sujetas a A3.5/Core. No exponer datos ajenos, claves de
+operación o historiales innecesarios.
+
+### 10.5. Vigencia transaccional y dependencias
+
+A3.3 conserva revisión esperada, idempotencia por clave, evento histórico primero
+y replay sin nuevas comprobaciones de elegibilidad. Lector A3.6.2 dentro de la
+transacción controlada por servicio: alias confiable, D-19/BEGIN IMMEDIATE/timeout
+5 s, evidencia vigente en la misma frontera que confirma política/evento, rollback
+íntegro y sin I/O externo. A3.2 separado sin anidación; reglas puras intactas.
+
+Fuentes externas potenciales requieren procedimiento de acreditación y vigencia
+compatible con esa frontera, aún por concretar con propietarios. No autorizar
+consultas externas dentro de transacción ni considerar suficiente cualquier
+certificación antigua. No se altera el alcance temporal de A3.6.3-TIME-01.
+
+Abiertos: lista concreta de lagunas admisibles; equivalencias específicas por
+condición; fuentes realmente disponibles/confiables; cobertura final V1_VERIFIED;
+procedencia acreditada LEGACY_V1/NATIVE_V1; API/consultas del lector; A3.5/Core
+(identidad, autorización, ciclo de vida, retención, privacidad/on_delete); evidencia
+Duckies/inventario/consumidores con Henry. [Consulta Core/P5](ecomotor-classification-core-boundary-v1.md)
+intacta, sin acuerdos inferidos. Las aclaraciones funcionales de PR #61 no
+resuelven estas dependencias técnicas. S3 V1 continúa como único escritor XP.
+
+### 10.6. Pruebas futuras
+
+Ausencia legítima; XP antigua incompleta; alternativa equivalente/autorizada frente
+a fuente no confiable, circular o insuficiente; cobertura temporal incompleta;
+contradicción con datos persistidos; evolución causada por XP ajena; evidencia
+obsoleta antes de confirmación; rechazo sin eventos parciales o cambios de
+clasificación; replay sin nueva elegibilidad; ausencia de backfill/reparaciones/
+migraciones/activación; regresión S3 V1. Casos hipotéticos no ratifican fuentes o
+políticas reales. No se implementan ni ejecutan tests Django en esta PR documental.

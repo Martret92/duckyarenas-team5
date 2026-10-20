@@ -693,3 +693,26 @@ XP posterior no revoca automáticamente verificación confirmada ni muta estado/
 eventos. No se garantiza coherencia indefinida: nuevas transiciones validan sus
 condiciones y BLOCKED sigue siendo operación autorizada independiente. S3 V1 sigue
 único escritor. P1–P8, R1–R8 e I1–I9 conservan residuales; sin migración/activación.
+
+## 24. A3.6.4 · Admisibilidad y equivalencias pendientes
+
+[Cuatro acuerdos internos](decisions.md#a364--lagunas-históricas-y-garantías-alternativas--20102026)
+y [marco canónico](contracts/ecomotor-classification-evidence-v1.md#10-a364--lagunas-históricas-y-garantías-alternativas).
+Resuelto conceptualmente: análisis individual de lagunas, equivalencia de la misma
+condición obligatoria, rechazo seguro y justificación trazable. No lista admisible,
+fuentes aprobadas, formatos físicos ni suficiencia final V1_VERIFIED.
+
+| Pendiente | Responsable / alcance |
+| --- | --- |
+| Política de lagunas | Parte A/propietarios: lista concreta y condiciones de admisibilidad, sin excepción general. Sin prueba obligatoria y alternativa expresamente admitida/suficiente, rechazo seguro; laguna no obligatoria solo se trata así bajo política aprobada. |
+| Equivalencias específicas | Criterios por condición y suficiencia: identidad, procedencia, cobertura, tiempo, coherencia e independencia. Estado actual no certifica circularmente su origen; declaraciones sin respaldo no bastan. |
+| Fuentes disponibles | Comprobar existencia real/confiabilidad. Saldos iniciales, movimientos, catálogos históricos y pruebas de selección/creación son hipótesis, no recursos constatados. Acreditación/vigencia compatible con D-19 sin consultas externas dentro de transacción. |
+| Cobertura y procedencia | Cobertura final V1_VERIFIED, acreditación LEGACY_V1/NATIVE_V1 y límites históricos XP/puntos/etapas/dominio/rangos continúan abiertos. No convertir COMPATIBLE o ejemplos en aprobación. |
+| Lector y representación | API/consultas/contexto A3.6.2 y formato de justificación: TRACE no aprueba modelos/campos/tablas/firmas/retención. Sin reconstrucción de historia no persistida. |
+| A3.5 · Óscar/Core | Identidad/autorización, ciclo de vida, retención, privacidad/on_delete y operador pendientes; consulta intacta. Aclaraciones funcionales PR #61 no cierran estos contratos técnicos. |
+| Henry y consumidores | Evidencia Duckies/inventario y referencias con propietarios; sin pruebas alternativas ratificadas por el equipo. |
+| Tests futuros | Ausencias legítimas/XP incompleta, alternativas hipotéticas equivalentes/autorizadas frente a fuentes no confiables/circulares/insuficientes, cobertura temporal incompleta, contradicciones/XP ajena, vigencia, rechazo íntegro, replay y regresión S3 sin reparación/backfill/migración/activación. No implementados ni ejecutados aquí. |
+
+Rechazo conserva clasificación/revisión/historial sin nuevo evento confirmado;
+BLOCKED requiere operación propia autorizada. A3.3, D-19 y A3.2 separado intactos;
+S3 V1 sigue único escritor. P1–P8, R1–R8 e I1–I9 mantienen residuales.
