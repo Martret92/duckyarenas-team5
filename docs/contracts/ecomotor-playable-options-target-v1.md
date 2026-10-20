@@ -100,6 +100,11 @@ por opción siguen pendientes; no hay puntos adicionales por subir de nivel.
 en esta primera versión objetivo.** Mejoras futuras requieren confirmación
 funcional de Óscar y coordinación con Training; no son requisito operativo actual.
 
+[A4.1 · Validación pura de estadísticas](ecomotor-target-stats-validation-v1.md)
+precisa claves exactas, bases explícitas, reparto por configuración y cálculo
+bases + incrementos. Diseño no implementado; no fija bases/presupuesto oficiales,
+no sustituye servicios de selección/redistribución ni modifica V1.
+
 ## 4. SVC-OP-01 a 04 · Contratos objetivo
 
 Entradas/resultados conceptuales, **sin firmas Python ni APIs implementadas**.
