@@ -30,7 +30,7 @@ A1.1/A1.2 y [A2.1](../../apps/ecomotor/target_xp_plan.py) ya están integrados
 (PR #52/#53/#56): validación, cálculo y planificación puros, sin concesiones.
 S3 V1 sigue como escritor vigente. **Registro persistente A3, migración de perfiles
 y punto de entrada futuro no están implementados.** El catálogo preparatorio de
-fase 1 está implementado para revisión en PR, según el estado posterior de §3;
+fase 1 está integrado mediante #88, según el estado posterior de §3;
 no autoriza uso real ni añade un escritor objetivo.
 
 ## 2. Clasificación persistente · A3-CLAS-01
@@ -172,10 +172,12 @@ directas y operaciones concurrentes, y mecanismo verificable para acreditar la
 condición de versión utilizada. Una versión completa utilizada permanece inmutable
 junto con sus niveles/épocas; sus cambios requieren crear una nueva versión.
 
-La garantía y sus mecanismos **todavía no están implementados**. Triggers SQLite
-concretos y su política de implementación siguen sin aprobar; no se eligen por
-inferencia ni se simulan mediante booleanos o versiones textuales. Mecanismos
-de publicación, permisos y servicios de mantenimiento tampoco se deciden aquí.
+La garantía y sus mecanismos **todavía no están implementados**. En el corte
+documental #86 no estaban aprobados los triggers SQLite ni su política. La
+decisión posterior A3-CAT-FREEZE-01, descrita abajo, aprueba su uso y la preferencia
+de instalación irreversible; SQL, nombres y detalles concretos siguen pendientes.
+No se simulan garantías mediante booleanos o versiones textuales. Publicación,
+permisos y servicios de mantenimiento no se deciden aquí.
 
 A3-CAT-EVENT-01 permanece intacta: evoluciones objetivo separadas de EvolutionEvent
 V1, con causalidad XP, perfil y época/versiones verificables, todos los cruces y
@@ -185,9 +187,10 @@ Core/A3.5 conserva supresión/conservación/on_delete; Henry, EvolutionItem y
 vestimentas siguen pendientes. Publicación, códigos/umbrales autorizados, migración
 de perfiles y activación coordinada no se desbloquean. S3 V1 sigue único escritor XP.
 
-#### Fase 1 · Persistencia preparatoria implementada para revisión
+#### Fase 1 · Persistencia preparatoria integrada
 
-Base `ca27e88c74b175152ef5c1bddb1383b76e1002c7`, tras #86; no integrada hasta merge.
+Implementada desde `ca27e88c74b175152ef5c1bddb1383b76e1002c7`, tras #86, e integrada
+mediante #88 en develop `68f0c1ac415ad741b9ccae1beddadc292c80c2ca`.
 Se añaden únicamente las tres tablas y restricciones mediante
 ecomotor.0006_target_catalog_preparation, sin datos, RunPython, backfill o triggers.
 No se ejecuta esa migración sobre las SQLite locales existentes durante el trabajo.
@@ -233,6 +236,69 @@ esquema/datos V1 sin precarga. Resultados reales en PR. La aserción histórica 
 0005 comprueba su propia aplicación, sin exigir ser la última migración futura.
 Fase 2, fuente/publicación oficial, referencias reales de progresión, eventos
 objetivo, conservación Core/Henry y activación siguen pendientes/prohibidos.
+
+### A3-CAT-FREEZE-01 · Congelación del catálogo objetivo
+
+Decisión interna Equipo 5, aprobada en **02C-2 el 21/10/2026**, posterior a #88.
+Desarrolla la fase 2 de IMMUT-01 sin reescribir PHYS-01 ni cambiar la separación
+A3-CAT-EVENT-01. DAR3 conserva autoridad funcional; no ratificación externa.
+**Contrato conceptual: campo, servicio, migración y triggers no implementados.**
+
+**Estado único:** TargetCatalogVersion.frozen_at es una fecha nullable generada
+por el servidor. NULL significa preparatoria; una fecha, marcada como congelada.
+No published, active, is_used ni estados redundantes. No descongelación ni cambios
+en versiones congeladas; las modificaciones requieren una versión nueva. La
+marca no equivale a publicación, autorización funcional ni prueba de validación
+A1.1. Las tres tablas preparatorias y el lector de fase 1 se conservan.
+
+**Servicio interno candidato:** freeze_target_catalog_version(catalog_version_id,
+*, using). No es una API disponible. Validar identidad técnica exacta y alias;
+leer la versión y validar todo su contenido mediante
+validate_target_catalog_version y A1.1 dentro de **una única transacción SQLite
+IMMEDIATE conforme a D-19**. Si es válida y no está congelada, establecer fecha
+con hora del servidor. Si ya está congelada y sigue siendo válida, devolver el
+estado existente sin actualizar la fecha: repetición idempotente, no una nueva
+congelación. También una repetición rechaza contenido inválido; no lo repara.
+
+Cualquier error de identidad, alias, versión ausente, catálogo incoherente o BD
+impide confirmar una congelación parcial. Distinguir esas causas en la futura
+implementación; fallos y timeout no se convierten en éxito. Rollback de la marca
+ante error. No fijar aún excepciones/resultados Python definitivos. Respetar el
+manejo transaccional existente de Django: no introducir un BEGIN manual dentro
+de una transacción activa sin diseñarlo. El servicio no publica, concede XP,
+activa catálogos ni garantiza por sí solo autorización funcional.
+
+**Protección física aprobada:** triggers SQLite sobre las tres tablas con errores
+explícitos RAISE(ABORT); SQL definitivo, nombres y detalle técnico pendientes.
+
+- TargetCatalogVersion: impedir eliminación y cualquier cambio de una versión ya
+  congelada, incluida descongelación y alteración de identidad o fecha. Rechazar
+  inserciones directas con frozen_at no nulo. Permitir NULL→fecha únicamente sin
+  modificación simultánea de identidad.
+- TargetLevelThreshold y TargetEpoch: impedir inserciones que afecten a versiones
+  congeladas, y actualizaciones o eliminaciones de sus filas. Impedir traslados
+  hacia o desde versiones congeladas. Comprobar OLD.catalog_id y NEW.catalog_id
+  cuando corresponda, sin limitar la protección al destino de una actualización.
+
+Los triggers protegerán las versiones **marcadas** como congeladas; no certificarán
+por sí solos que la marca se estableció mediante el servicio autorizado. No se
+introduce una tabla ficticia de uso ni un protocolo de publicación para suplirlo.
+
+**Migración y conservación:** futura migración posterior a
+0006_target_catalog_preparation, con campo y protección física. Preferencia
+aprobada de **instalación irreversible de triggers**, para que una reversión no
+elimine silenciosamente la protección. Migraciones posteriores que reconstruyan
+tablas deberán preservar o reinstalar las garantías. Nada de ello se instala en
+esta PR documental; la protección efectiva y su concurrencia deben demostrarse
+mediante los tests de la futura implementación.
+
+**Condiciones para consumidores futuros:** identidad exacta de versión y fuente
+confiable, validación de catálogo completo, protección física instalada y efectiva,
+configuración funcional autorizada y referencia causal verificable a la versión
+utilizada. frozen_at por sí solo no cumple esas condiciones. Uso real bloqueado;
+sin eventos objetivo, referencias reales de progresión, publicación o activación.
+Core/A3.5, conservación, permisos, Henry, valores oficiales y consumidores siguen
+pendientes. S3 V1 continúa como único escritor XP activo.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 

@@ -1693,3 +1693,46 @@ persistencia preparatoria. Se mantiene preservar versiones históricas utilizada
 Campos y unicidades PHYS-01, A3-CAT-EVENT-01, V1/S3 y pendientes Core/A3.5/Henry,
 umbrales oficiales, publicación, eventos y activación intactos. Esta PR solo
 documenta, sin modelos, migraciones, código o tests nuevos.
+
+
+## A3-CAT-FREEZE-01 · Congelación del catálogo objetivo · 21/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C-2 el 21/10/2026**, sobre develop
+`68f0c1ac415ad741b9ccae1beddadc292c80c2ca`, tras integrar #88. No es un requisito
+técnico literal de DAR3 ni aprobación externa de Óscar, Core o Henry.
+Desarrolla la fase 2 de [A3-CAT-IMMUT-01](#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo)
+y conserva el antecedente [A3-CAT-PHYS-01](#a3-cat-phys-01--diseño-mínimo-del-catálogo-objetivo--21102026).
+La fase 1 (tres modelos, 0006 y lector A1.1) está integrada; la congelación aquí
+aprobada **todavía no está implementada**.
+
+- Único campo conceptual nuevo: TargetCatalogVersion.frozen_at, fecha nullable
+  generada por servidor. NULL indica versión preparatoria; fecha indica marcada
+  como congelada. Sin descongelación; cambios requieren una versión nueva. Sin
+  published, active, is_used u otros estados redundantes. La fecha no acredita
+  publicación, autorización funcional ni ejecución de A1.1.
+- Servicio interno candidato freeze_target_catalog_version(catalog_version_id,
+  *, using): identidad técnica exacta y alias, transacción SQLite IMMEDIATE según
+  D-19, lectura y validación completa mediante el lector existente/A1.1, y marca
+  con hora del servidor. Si ya está congelada, revalidar y devolver el estado
+  existente sin cambiar fecha. Error implica rollback, nunca confirmación parcial.
+  Respetar la gestión transaccional Django, sin BEGIN manual dentro de una
+  transacción activa sin diseñarlo. No publica, activa ni concede XP.
+- Protección física aprobada mediante triggers SQLite con RAISE(ABORT): padre
+  congelado no se modifica ni elimina; no inserción directa con fecha; NULL→fecha
+  solo sin cambiar identidad simultáneamente. Hijos no admiten inserción,
+  actualización, borrado o traslado que afecte a una versión congelada, comprobando
+  OLD.catalog_id y NEW.catalog_id cuando corresponda. No se redacta SQL ni se
+  fijan nombres/detalles de triggers. Protegen la marca, no certifican su origen
+  en el servicio autorizado.
+- Futura migración posterior a 0006: campo y protección física. Preferencia
+  aprobada por instalación irreversible de triggers, para evitar retirar
+  silenciosamente la defensa al revertir. Reconstrucciones futuras de tablas
+  deberán preservar o reinstalar esas garantías.
+
+[Contrato conceptual y condiciones de consumo](contracts/ecomotor-transition-target-v1.md#a3-cat-freeze-01--congelación-del-catálogo-objetivo).
+Uso real bloqueado hasta identidad/fuente confiables, validación completa,
+protección instalada y efectiva, configuración autorizada y referencia causal
+verificable a la versión usada. frozen_at no basta. Sin tablas de uso ficticias,
+eventos objetivo, publicación o activación; S3 V1 sigue único escritor XP activo.
+Implementación, pruebas de concurrencia y acuerdos Core/A3.5/Henry/consumidores,
+valores oficiales y permisos continúan pendientes. Este registro solo documenta.
