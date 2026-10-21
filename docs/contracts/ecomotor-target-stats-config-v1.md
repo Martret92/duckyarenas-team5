@@ -239,8 +239,9 @@ escritor XP; no se activa el objetivo ni se crea un servicio persistente.
 una propuesta completa: definición A4.2.1 válida e inmutable, incrementos y
 presupuesto separado, reutilizando A4.1 para reparto/efectivas. Conserva identidad,
 versiones y bases usadas sin demostrar fuente confiable, elegibilidad o autorización.
-A4.3.1 no implementada; resolución autorizada y confirmación persistente son capas
-posteriores. API/reglas de A4.1 y A4.2.1 integradas no cambian por esta referencia.
+El corte conceptual #77 no implementaba A4.3.1; ahora integrada por #78.
+Resolución autorizada y confirmación persistente continúan como capas futuras.
+API/reglas de A4.1 y A4.2.1 integradas no cambian por esta referencia.
 
 ## 11. Presupuesto provisional · Precisión posterior
 
@@ -257,3 +258,15 @@ La resolución confiable sigue pendiente. Si se persisten configuraciones futura
 cambiar el presupuesto requiere política expresa de versionado y tratamiento de
 las ya confirmadas; no recalcular silenciosamente.
 [Pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).
+
+## 12. Resolución confiable A4.4
+
+[Referencia canónica A4.4](ecomotor-target-stats-resolution-v1.md): fuente con
+publicación autorizada distinta de mera estructura válida o almacenamiento servidor.
+No implementación física elegida. Servidor verifica opción/pertenencia, catálogo y
+versiones, definición aplicable, presupuesto y elegibilidad/contexto; reutiliza
+A4.2.1/A4.3.1 sin cambiar sus APIs. TargetStatsCatalogContext no certifica confianza.
+Redistribución conserva bases confirmadas; cambio/lectura usan configuración propia
+persistida, sin imponerles automáticamente vigencia de primera configuración.
+Reglas para definiciones retiradas/sustituidas/antiguas, fuentes reales, permisos
+y confirmación persistente siguen pendientes. Presupuesto provisional de §11 intacto.

@@ -271,8 +271,9 @@ No renombrar V1, reabrir la secuencia, activar A2 o cambiar contratos S3/Rewards
 
 [Contrato canónico A4.3](ecomotor-target-stats-preparation-v1.md) separa propuesta
 pura, resolución autorizada y confirmación persistente. A4.1 (#74) y A4.2.1 (#76)
-están integradas; A4.3.1 será un preparador que preserve identidad/versiones/bases
-y reutilice A4.1 con incrementos/presupuesto explícitos, todavía sin implementación.
+están integradas; la previsión inicial de preparador A4.3.1 se concretó e integró
+por #78: conserva identidad/versiones/bases y reutiliza A4.1 con incrementos/
+presupuesto explícitos. El antecedente conceptual no implementaba código.
 No selecciona, redistribuye, autoriza o persiste por producir una propuesta válida.
 Se mantienen precondiciones y límites SVC-OP-01…04, snapshot 02C, OP-RED-01 y
 A3-CAT-01; no nuevas políticas de replay/concurrencia, campos o valores oficiales.
@@ -295,3 +296,17 @@ vigente durante progresión histórica y anteriores desbloqueadas tras elegir
 especialización; no nuevas reglas de adquisición, equipamiento o esquema Duckies.
 [Coordinación](integracion-equipo5-v0.md#03-precisiones-posteriores--presupuesto-recursos-y-membresías)
 y [pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).
+
+## 11. A4.4 · Resolución antes de confirmación futura
+
+[Contrato A4.4](ecomotor-target-stats-resolution-v1.md) separa estructura válida,
+fuentes autorizadas, preparación pura integrada y confirmación persistente futura.
+Servidor obtiene/verifica identidad, permisos, definición/bases/presupuesto y
+versiones aplicables; opción/incrementos son entradas propuestas, sin que el cliente
+imponga bases, presupuesto, catálogo o autoridad mediante flags. Sin API externa definitiva.
+Primera configuración usa bases autorizadas aplicables; redistribución conserva
+snapshot confirmado; cambio utiliza configuración propia confirmada; lectura usa
+estado efectivo/configuración persistida con coherencia. No vigencia uniforme
+impuesta ni recálculo silencioso. Definiciones retiradas/sustituidas/antiguas,
+fuentes reales y acuerdos Core/Henry/consumidores siguen pendientes. 45 provisional
+interno no autoriza configuración ni activa el objetivo. SVC-OP-01…04 no implementados.
