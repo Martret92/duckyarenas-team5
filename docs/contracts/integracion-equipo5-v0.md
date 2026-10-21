@@ -120,21 +120,6 @@ permisos, esquema o contratos; CORE-01/02/05/06 y restantes preguntas conservan
 sus dependencias. No se ratifican R1–R8/T1–T8 como contratos externos por esto.
 [Preguntas residuales](../pending-decisions.md#17-aclaraciones-confirmadas-de-óscar--pendientes-residuales).
 
-## 1. Tabla de soluciones y responsables
-
-| **Integración**      | **Solución propuesta**                                                                                   | **¿Por qué conviene?**                                                                                       | **Responsable**                                      |
-| -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Ecomotor → Duckies   | Proponer `unlock_stage_items()` para coordinar desbloqueos; concesión y equipamiento pendientes en R-01. | Jaime controla la evolución y Henry el inventario. Evita duplicar piezas y conserva las anteriores.          | Henry implementa; Jaime define etapas y condiciones. |
-| Shop → Duckies       | Crear `grant_item()` para entregar al inventario los objetos comprados.                                  | Centraliza las entregas, valida cantidades y niveles y evita duplicados. También sirve para Rewards.         | Henry implementa; Fernando integra.                  |
-| Duckies → Shop       | Crear `get_item_ownership()` para consultar si el usuario ya posee un objeto.                            | Evita ofrecer compras innecesarias de objetos permanentes y permite consultar el inventario sin modificarlo. | Henry implementa; Fernando utiliza.                  |
-| Shop → Bank          | Crear `debit_coins()` para descontar monedas y registrar el movimiento.                                  | Centraliza los gastos, comprueba fondos y evita cobros duplicados.                                           | Fernando implementa ambas partes.                    |
-| Ecomotor → Bank      | Crear `credit_coins()` para conceder monedas por actividades recompensadas.                              | Ecomotor decide el premio y Bank controla el saldo. Evita acreditar dos veces la misma recompensa.           | Fernando implementa; Jaime integra.                  |
-| Bank → Perfil global | Hacer que Bank opere sobre el saldo oficial del perfil, sin crear otro saldo independiente.              | Mantiene las DuckyCoins sincronizadas con toda la plataforma `notodoescodigo.com`.                           | Fernando + Óscar/Core.                               |
-| Juegos → Ecomotor    | Crear `process_game_result()` para recibir resultados de partidas validados por el servidor.             | Centraliza XP y recompensas e impide que el cliente se conceda premios arbitrarios.                          | Jaime implementa; equipos de juegos integran.        |
-| Juegos → Duckies     | Crear `consume_item()` para validar y descontar objetos utilizados en partidas.                          | Evita consumos duplicados, controla cantidades y registra el historial de uso.                               | Henry implementa; equipos de juegos integran.        |
-
-**En las siguientes soluciones propuestas para cada contrato que queda por resolver para el equipo 5. Los códigos que se muestran en cada solución son solo ejemplos de lo que debería implementar el miembro al que le corresponda.**
-
 ## 0.3. Precisiones posteriores · Presupuesto, recursos y membresías
 
 Registro del 21/10/2026 comunicado por Jaime en 02C tras revisar aclaraciones de
@@ -153,6 +138,21 @@ Las matrices anteriores conservan su corte histórico; se aplica esta precisión
 El contrato sigue candidato. No nuevas firmas, rutas gráficas, archivos oficiales,
 modelos o relaciones físicas. A4.1/A4.2.1/A4.3.1 y S3 V1 no cambian; sin activación
 A2 o del Ecomotor objetivo. A4.4 se documentará por separado.
+
+## 1. Tabla de soluciones y responsables
+
+| **Integración**      | **Solución propuesta**                                                                                   | **¿Por qué conviene?**                                                                                       | **Responsable**                                      |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Ecomotor → Duckies   | Proponer `unlock_stage_items()` para coordinar desbloqueos; concesión y equipamiento pendientes en R-01. | Jaime controla la evolución y Henry el inventario. Evita duplicar piezas y conserva las anteriores.          | Henry implementa; Jaime define etapas y condiciones. |
+| Shop → Duckies       | Crear `grant_item()` para entregar al inventario los objetos comprados.                                  | Centraliza las entregas, valida cantidades y niveles y evita duplicados. También sirve para Rewards.         | Henry implementa; Fernando integra.                  |
+| Duckies → Shop       | Crear `get_item_ownership()` para consultar si el usuario ya posee un objeto.                            | Evita ofrecer compras innecesarias de objetos permanentes y permite consultar el inventario sin modificarlo. | Henry implementa; Fernando utiliza.                  |
+| Shop → Bank          | Crear `debit_coins()` para descontar monedas y registrar el movimiento.                                  | Centraliza los gastos, comprueba fondos y evita cobros duplicados.                                           | Fernando implementa ambas partes.                    |
+| Ecomotor → Bank      | Crear `credit_coins()` para conceder monedas por actividades recompensadas.                              | Ecomotor decide el premio y Bank controla el saldo. Evita acreditar dos veces la misma recompensa.           | Fernando implementa; Jaime integra.                  |
+| Bank → Perfil global | Hacer que Bank opere sobre el saldo oficial del perfil, sin crear otro saldo independiente.              | Mantiene las DuckyCoins sincronizadas con toda la plataforma `notodoescodigo.com`.                           | Fernando + Óscar/Core.                               |
+| Juegos → Ecomotor    | Crear `process_game_result()` para recibir resultados de partidas validados por el servidor.             | Centraliza XP y recompensas e impide que el cliente se conceda premios arbitrarios.                          | Jaime implementa; equipos de juegos integran.        |
+| Juegos → Duckies     | Crear `consume_item()` para validar y descontar objetos utilizados en partidas.                          | Evita consumos duplicados, controla cantidades y registra el historial de uso.                               | Henry implementa; equipos de juegos integran.        |
+
+**En las siguientes soluciones propuestas para cada contrato que queda por resolver para el equipo 5. Los códigos que se muestran en cada solución son solo ejemplos de lo que debería implementar el miembro al que le corresponda.**
 
 ## Contrato 1. Ecomotor → Duckies
 
