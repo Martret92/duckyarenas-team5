@@ -764,6 +764,11 @@ preparatoria; esta no autoriza progresión, publicación o activación. Diseño 
 de eventos, relación con XPEvent, consulta conjunta y
 adaptación histórica de PlayableOption siguen pendientes:
 [frontera de esquema pendiente](erd/ecomotor.md#15-a3--frontera-física-de-la-transición).
+Precisión posterior FREEZE-01 (base 0a95115): frozen_at, servicio con transacción
+exterior SQLite IMMEDIATE y nueve triggers físicos implementados para revisión;
+0007 irreversible, sin datos ni publicación. Se rechazan transacciones exteriores
+activas; protección DML no acredita autorización ni resiste alteración administrativa
+del esquema. [Estado y límites](contracts/ecomotor-transition-target-v1.md#a3-cat-freeze-01--congelación-del-catálogo-objetivo).
 No renombrar filas V1 para simular las épocas nuevas.
 
 Única entrada futura con versión confiable de servidor y preferencia de corte

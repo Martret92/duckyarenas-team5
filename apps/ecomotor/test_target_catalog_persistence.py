@@ -136,7 +136,7 @@ class TargetCatalogModelTests(TestCase):
 
     def test_no_points_authority_or_real_progression_fields(self):
         self.assertEqual({f.name for f in TargetLevelThreshold._meta.fields}, {"id", "catalog", "level", "minimum_xp"})
-        self.assertEqual({f.name for f in TargetCatalogVersion._meta.fields}, {"id", "catalog_id", "version"})
+        self.assertEqual({f.name for f in TargetCatalogVersion._meta.fields}, {"id", "catalog_id", "version", "frozen_at"})
         self.assertEqual({f.name for f in TargetEpoch._meta.fields}, {"id", "catalog", "code", "name", "ordinal", "minimum_xp"})
 
 
@@ -332,16 +332,18 @@ class TargetCatalogMigrationTests(PlainTestCase):
         self.assertEqual(migration.dependencies, [BEFORE])
         self.assertTrue(all(type(operation) is CreateModel for operation in migration.operations))
         self.assertEqual({operation.name for operation in migration.operations}, {m.__name__ for m in TARGET_MODELS})
-        self.migrate(AFTER)
+        historical = self.migrate(AFTER)
         with self.db.cursor() as cursor:
-            for model in TARGET_MODELS:
+            for current_model in TARGET_MODELS:
+                model = historical.get_model("ecomotor", current_model.__name__)
                 constraints = self.db.introspection.get_constraints(cursor, model._meta.db_table)
                 self.assertTrue({item.name for item in model._meta.constraints}.issubset(constraints))
                 columns = self.db.introspection.get_table_description(cursor, model._meta.db_table)
                 self.assertEqual({column.name for column in columns}, {field.column for field in model._meta.fields})
 
     def test_alternative_alias_reader_never_reads_default(self):
-        self.migrate(AFTER)
+        executor = MigrationExecutor(self.db)
+        executor.migrate(executor.loader.graph.leaf_nodes())
         catalog = synthetic_catalog(using=self.alias)
         with CaptureQueriesContext(connections["default"]) as queries:
             result = validate_target_catalog_version(catalog.pk, using=self.alias)
