@@ -1538,3 +1538,26 @@ de implementar, sin simular confianza con proveedores de prueba o certificados.
 Fuentes reales, bases oficiales, ciclo de definiciones, Core/A3.5, Henry,
 consumidores y persistencia siguen abiertos. Sin código, tests Django ejecutados,
 modelos, migraciones o activación. S3 V1 sigue único escritor XP; no activar A2.
+
+## A3.5 · Propuestas internas para Core · 21/10/2026
+
+**Dirección arquitectónica aprobada internamente por Equipo 5 en 02C el 21/10/2026**,
+comunicada por Jaime, sobre develop `3f140da0f53596fff429553641ac81b5f82ce6de`.
+No son respuestas de Óscar/Core ni autorización de modelos/migraciones. DAR3
+conserva autoridad funcional; estas propuestas técnicas no son requisitos literales
+nuevos del profesor. Antecedentes A3.3/A3.4/A3.6 y preguntas originales preservados.
+
+| Identificador | Dirección interna preferida, pendiente de compatibilidad/confirmación Core |
+| --- | --- |
+| CORE-A3.3-IDENTITY | Separar perfil/operador, contexto servidor confiable y atribución histórica original; representación, procesos y comparación canónica pendientes. |
+| CORE-A3.3-AUTH | Administradores/procesos internos expresamente autorizados por operación, incluido replay; clave conocida no autoriza. Permisos e integración Core pendientes. |
+| CORE-A3.3-LIFECYCLE | Evitar destrucción silenciosa de evidencia necesaria; conservación/anonimización/supresión acordadas con Core, sin elegir on_delete. |
+| CORE-A3.3-RETENTION | Sin limpieza automática de eventos en primera versión; evidencia mientras sea legítimamente necesaria. Sin plazos ficticios/perpetuidad ni impedir eliminación Core; tratamiento definitivo pendiente. |
+| CORE-A3.3-PRIVACY | Acceso mínimo, no exposición innecesaria, atribución protegida y límites explícitos de reconstrucción/replay tras supresión/anonimización; integración Core pendiente. |
+
+[Respuesta canónica y residuales por pregunta](contracts/ecomotor-classification-core-boundary-v1.md#6-a35--respuestas-preferidas-del-equipo-5--21102026)
+y [pendientes](pending-decisions.md#30-a35--preferencias-internas-y-acuerdos-externos-pendientes).
+Las cinco preguntas siguen visibles e intactas; elegir una preferencia interna no
+cierra operador, permisos, eliminación/conservación/privacidad, on_delete o esquema.
+Sin nuevos campos/FKs, modelos, migraciones, backfill, cambios de idempotencia/
+replay o activación. S3 V1 sigue único escritor XP; no modificaciones de otros equipos.
