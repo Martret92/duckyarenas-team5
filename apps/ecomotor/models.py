@@ -171,11 +171,13 @@ class UserSpecializationProgress(models.Model):
 
 
 class TargetCatalogVersion(models.Model):
-    """Preparatory catalog identity; neither publication nor historical freeze."""
+    """Catalog identity with optional physical freeze, never publication."""
 
     id = models.BigAutoField(primary_key=True)
     catalog_id = models.CharField(max_length=64)
     version = models.CharField(max_length=64)
+
+    frozen_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [

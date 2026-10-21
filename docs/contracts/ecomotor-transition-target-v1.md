@@ -172,7 +172,7 @@ directas y operaciones concurrentes, y mecanismo verificable para acreditar la
 condición de versión utilizada. Una versión completa utilizada permanece inmutable
 junto con sus niveles/épocas; sus cambios requieren crear una nueva versión.
 
-La garantía y sus mecanismos **todavía no están implementados**. En el corte
+En el corte IMMUT-01 la garantía y sus mecanismos no estaban implementados. En el corte
 documental #86 no estaban aprobados los triggers SQLite ni su política. La
 decisión posterior A3-CAT-FREEZE-01, descrita abajo, aprueba su uso y la preferencia
 de instalación irreversible; SQL, nombres y detalles concretos siguen pendientes.
@@ -234,15 +234,17 @@ el valor puro inmutable devuelto **no demuestra congelación o autorización**.
 A1.1, alias y ausencia de escrituras, y migración aislada 0005→0006 preservando
 esquema/datos V1 sin precarga. Resultados reales en PR. La aserción histórica de
 0005 comprueba su propia aplicación, sin exigir ser la última migración futura.
-Fase 2, fuente/publicación oficial, referencias reales de progresión, eventos
-objetivo, conservación Core/Henry y activación siguen pendientes/prohibidos.
+En ese corte de fase 1, fase 2 y uso real seguían pendientes. La implementación
+posterior de FREEZE-01 se precisa abajo; fuente/publicación oficial, referencias
+reales, eventos objetivo, conservación Core/Henry y activación siguen pendientes.
 
 ### A3-CAT-FREEZE-01 · Congelación del catálogo objetivo
 
 Decisión interna Equipo 5, aprobada en **02C-2 el 21/10/2026**, posterior a #88.
 Desarrolla la fase 2 de IMMUT-01 sin reescribir PHYS-01 ni cambiar la separación
 A3-CAT-EVENT-01. DAR3 conserva autoridad funcional; no ratificación externa.
-**Contrato conceptual: campo, servicio, migración y triggers no implementados.**
+**Antecedente conceptual #89:** campo, servicio, migración y triggers no estaban
+implementados. El estado posterior de implementación para revisión se detalla abajo.
 
 **Estado único:** TargetCatalogVersion.frozen_at es una fecha nullable generada
 por el servidor. NULL significa preparatoria; una fecha, marcada como congelada.
@@ -288,9 +290,8 @@ introduce una tabla ficticia de uso ni un protocolo de publicación para suplirl
 0006_target_catalog_preparation, con campo y protección física. Preferencia
 aprobada de **instalación irreversible de triggers**, para que una reversión no
 elimine silenciosamente la protección. Migraciones posteriores que reconstruyan
-tablas deberán preservar o reinstalar las garantías. Nada de ello se instala en
-esta PR documental; la protección efectiva y su concurrencia deben demostrarse
-mediante los tests de la futura implementación.
+tablas deberán preservar o reinstalar las garantías. El corte documental #89 no instalaba
+esa protección; la implementación posterior y sus pruebas se precisan abajo.
 
 **Condiciones para consumidores futuros:** identidad exacta de versión y fuente
 confiable, validación de catálogo completo, protección física instalada y efectiva,
@@ -299,6 +300,73 @@ utilizada. frozen_at por sí solo no cumple esas condiciones. Uso real bloqueado
 sin eventos objetivo, referencias reales de progresión, publicación o activación.
 Core/A3.5, conservación, permisos, Henry, valores oficiales y consumidores siguen
 pendientes. S3 V1 continúa como único escritor XP activo.
+
+#### Implementación FREEZE-01 para revisión · posterior a #89
+
+Base develop `0a95115b703d26676179d6f87476d5dde6f64ab8`; implementación en PR, no
+integrada hasta merge. Único campo añadido: frozen_at DateTimeField(null=True,
+blank=True), sin auto_now_add ni valor predeterminado. Fecha asignada por servidor.
+Sin nuevos estados de publicación ni cambios a los modelos V1.
+
+API interna: freeze_target_catalog_version(catalog_version_id, *, using) devuelve
+TargetCatalogFreezeResult(catalog_version_id, frozen_at), dataclass frozen con
+slots. Una repetición válida devuelve los mismos valores sin escritura ni nueva
+lectura del reloj, pero vuelve a validar el catálogo completo mediante el lector
+A1.1. El resultado no contiene ni acredita publicación, autorización o uso real.
+
+Identidad exacta positiva representable y alias explícito; entradas inválidas:
+InvalidTargetCatalogError. Configuración/transacción incompatible:
+TargetCatalogFreezeTransactionError. Versión ausente: TargetCatalogVersion.DoesNotExist.
+Los errores de catálogo y DatabaseError se propagan sin convertirlos en éxito ni
+ocultar su causa. Sin reintentos automáticos. El servicio abre atomic antes de
+leer versión y contenido, y guarda exclusivamente frozen_at dentro de ese bloque.
+
+Se exige conexión SQLite con transaction_mode IMMEDIATE y timeout=5 según D-19,
+y control de autocommit compatible. **Se rechaza cualquier transacción exterior
+activa**, atomic anidado o autocommit manual desactivado: un savepoint no crea
+un nuevo BEGIN IMMEDIATE. No BEGIN manual ni cambios de settings. La misma
+frontera contiene lectura, validación completa y marca; fallo implica rollback.
+El lector preparatorio por separado conserva sus límites de concurrencia; solo
+su composición dentro de este servicio aporta la transacción controlada.
+
+0007_target_catalog_freeze depende de 0006, añade el campo e instala **nueve
+triggers BEFORE**: tres por tabla, para INSERT/UPDATE/DELETE. RunSQL recibe una
+lista de sentencias CREATE TRIGGER completas, sin dividir sus cuerpos por punto
+y coma; reverse_sql ausente hace irreversible la instalación. Revertir a 0006
+lanza IrreversibleError y conserva campo, triggers, datos y registro de migración.
+Sin datos, RunPython, triggers V1 ni modificaciones de tablas V1. No se aplica la
+migración a las SQLite habituales durante este trabajo.
+
+Los triggers usan RAISE(ABORT) y protegen todos los campos del padre congelado,
+incluida PK, identidad y fecha; solo permiten NULL→fecha sin cambio simultáneo de
+identidad. Hijos comprueban OLD/NEW catálogo según operación y bloquean ambos
+sentidos de traslado. También se rechazan reemplazos INSERT OR REPLACE/UPDATE
+OR REPLACE que pudieran eliminar implícitamente una fila congelada por conflicto
+de PK o unicidad, aunque el destino nuevo fuera preparatorio. Los catálogos aún
+preparatorios siguen siendo editables conforme a las restricciones locales.
+
+**Garantía probada y límites:** DML ordinario ORM y SQL directo, incluidos
+QuerySet.update y reemplazos; no defensa contra administradores capaces de
+eliminar triggers o alterar el esquema. Una marca directa NULL→fecha sin cambiar
+identidad sigue siendo posible y no prueba ejecución de A1.1 ni autorización.
+Una repetición del servicio revalida y rechaza un catálogo inválido así marcado.
+Futuras reconstrucciones de tablas deben preservar o reinstalar la protección.
+
+25 tests sintéticos cubren servicio/rollback, DML ORM/SQL, nueve triggers efectivos
+en sqlite_master, conservación de datos V1 y reversión irreversible. La concurrencia
+usa TransactionTestCase, SQLite temporal file-backed y conexiones independientes:
+doble congelación, cambios de niveles/épocas en ambos órdenes, rechazo si el cambio
+previo invalida catálogo, BEGIN IMMEDIATE antes de SELECT, timeout real de cinco
+segundos sin marca parcial y reintento explícito desde nueva transacción.
+Resultados de las ejecuciones en PR. El test histórico de 0006 usa sus modelos de
+estado para comprobar columnas de esa migración; el test del lector con ORM actual
+aplica el esquema actual en su archivo temporal. No se relajan restricciones.
+
+La protección física implementada para revisión no completa las condiciones de
+consumo real anteriores: fuente/configuración funcional autorizadas, identidad y
+referencia causal de uso siguen siendo necesarias. Sin escritor objetivo, eventos
+objetivo, publicación, activación o migración de perfiles; Core/A3.5, Henry,
+conservación y valores oficiales permanecen pendientes. S3 V1 intacto.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 
