@@ -31,7 +31,7 @@ de resolución. No modelos, migraciones, endpoints o activación objetivo.
 | Concepto | Contenido y límite |
 | --- | --- |
 | Definición de estadísticas por opción | Identidad de opción jugable, referencia y versión del catálogo objetivo aplicable, versión de definición y exactamente seis bases ATK/DEF/VEL/INT/LOG/CUACK. |
-| Presupuesto autorizado del jugador | Cantidad inicial fija autorizada, sin valor numérico oficial. Se utiliza independientemente al configurar cada opción; no se agota por configurar otro Ducky ni pertenece necesariamente a cada definición de bases. |
+| Presupuesto autorizado del jugador | Cantidad inicial fija, sin valor numérico oficial del profesor; A4-PRESUPUESTO-PROV-01 adopta 45 provisionalmente por opción (véase §11). Se utiliza independientemente al configurar cada opción; no se agota por configurar otro Ducky ni pertenece necesariamente a cada definición de bases. |
 
 La configuración individual usa ambos conceptos sin fusionarlos. A4.1 recibe
 budget explícito para calcular un reparto; esa entrada no implica que el presupuesto
@@ -126,7 +126,8 @@ bool/float/Decimal y conversiones; seis atributos, duplicados rechazados en
 secuencias de pares; efectivas=bases+incrementos, presupuesto/restantes y resultado
 inmutable/canónico. Su estructura no incluye certificado de autorización.
 A4.2 aportará conceptualmente bases candidatas para validación, no cifras oficiales.
-45 puntos sigue siendo ejemplo no oficial.
+En este corte histórico, 45 puntos era un ejemplo no oficial. La adopción interna
+provisional posterior se registra en [§11](#11-presupuesto-provisional--precisión-posterior).
 
 **A4.2.1 previsto en 01B:** validador puro de definiciones por opción. Comprobar
 identidad conceptual estructural, versiones explícitas, seis bases completas,
@@ -240,3 +241,19 @@ presupuesto separado, reutilizando A4.1 para reparto/efectivas. Conserva identid
 versiones y bases usadas sin demostrar fuente confiable, elegibilidad o autorización.
 A4.3.1 no implementada; resolución autorizada y confirmación persistente son capas
 posteriores. API/reglas de A4.1 y A4.2.1 integradas no cambian por esta referencia.
+
+## 11. Presupuesto provisional · Precisión posterior
+
+[A4-PRESUPUESTO-PROV-01](../decisions.md#doc-aclaraciones-2010--presupuesto-vestimentas-y-membresías--21102026),
+acordada internamente por Equipo 5 el 21/10/2026: utilizar 45 puntos iniciales por
+opción, iguales e independientes, permitiendo reparto completo, parcial o cero.
+No saldo global consumible ni valor atribuido a Óscar/DAR3. Precisa el antecedente
+ilustrativo de §7; el presupuesto definitivo, seis bases y reglas adicionales
+siguen pendientes. Parámetro revisable si se confirma otro valor o hay inconsistencias.
+
+Sin presupuesto dentro de la definición de bases, defaults en validadores o cambios
+de API/comportamiento A4.1/A4.2.1/A4.3.1. Usar 45 no acredita autorización funcional.
+La resolución confiable sigue pendiente. Si se persisten configuraciones futuras,
+cambiar el presupuesto requiere política expresa de versionado y tratamiento de
+las ya confirmadas; no recalcular silenciosamente.
+[Pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).

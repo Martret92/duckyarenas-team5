@@ -5,7 +5,8 @@
 **Precisión funcional posterior:** [§8](#8-conciliación-funcional-posterior-con-óscar)
 contrasta las aclaraciones confirmadas de Óscar con el diseño 02C conservado.
 La precisión interna [ATR-OBJ-01](../decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026) resuelve la nomenclatura objetivo:
-LOG = Lógica y CUACK = Especial / Especialización. Bases, presupuesto, fórmulas,
+LOG = Lógica y CUACK = Especial / Especialización. [§10](#10-precisiones-posteriores--presupuesto-y-recursos)
+registra 45 puntos provisionales por decisión interna posterior. Bases, presupuesto definitivo, fórmulas,
 transición legacy y adaptación de apariencia siguen pendientes; no se activa el
 sistema ni se cambian campos o datos V1.
 
@@ -93,8 +94,9 @@ Cada Ducky conserva al
 configurarse un snapshot de sus seis bases y seis incrementos independientes.
 Efectivas = bases conservadas + incrementos. Se permite dejar puntos pendientes.
 El presupuesto inicial fijo autorizado del jugador se utiliza independientemente
-en cada Ducky: no es saldo global consumido al configurar otro. Cantidad y bases
-por opción siguen pendientes; no hay puntos adicionales por subir de nivel.
+en cada Ducky: no es saldo global consumido al configurar otro. A4-PRESUPUESTO-PROV-01
+adopta 45 provisionalmente por opción (§10); presupuesto definitivo y bases siguen
+pendientes. No hay puntos adicionales por subir de nivel.
 
 **Training no modifica los seis atributos ni concede puntos adicionales para ellos
 en esta primera versión objetivo.** Mejoras futuras requieren confirmación
@@ -248,7 +250,9 @@ códigos, significados, bases y presupuesto estaban pendientes de concreción.
 ATR-OBJ-01 resuelve posteriormente solo la nomenclatura objetivo según §3;
 no es una reinterpretación de snapshots ni una sustitución de campos V1.
 Bases, presupuesto, fórmulas y transición legacy continúan pendientes.
-45 puntos es ilustrativo, no presupuesto autorizado. Se conserva el resto de 02C
+En el corte histórico de conciliación, 45 puntos era ilustrativo. La decisión
+interna posterior de §10 lo adopta provisionalmente, sin convertirlo en cifra
+oficial de Óscar. Se conserva el resto de 02C
 sin convertir este contraste en nuevas reglas de reparto o mejoras de Training.
 
 Vestimenta visual: una imagen completa por época; en progresión histórica solo
@@ -272,3 +276,22 @@ y reutilice A4.1 con incrementos/presupuesto explícitos, todavía sin implement
 No selecciona, redistribuye, autoriza o persiste por producir una propuesta válida.
 Se mantienen precondiciones y límites SVC-OP-01…04, snapshot 02C, OP-RED-01 y
 A3-CAT-01; no nuevas políticas de replay/concurrencia, campos o valores oficiales.
+
+## 10. Precisiones posteriores · Presupuesto y recursos
+
+[Registro del 21/10/2026](../decisions.md#doc-aclaraciones-2010--presupuesto-vestimentas-y-membresías--21102026)
+tras aclaraciones funcionales del 20/10: A4-PRESUPUESTO-PROV-01 es una decisión
+interna posterior, no de Óscar/DAR3. Adopta 45 puntos iniciales por opción, mismos
+e independientes, con reparto completo/parcial/cero y sin saldo global consumido.
+Valor revisable; bases y reglas adicionales pendientes. No defaults ni cambios de
+APIs puras ni autorización por utilizar 45. Configuraciones persistentes futuras
+requieren política expresa de versionado/cambio; no recálculo silencioso de confirmadas.
+
+Una imagen completa por época está confirmada, pero las imágenes definitivas aún
+no se han entregado al Equipo 5 según 02C. Recepción gráfica pendiente de Óscar;
+Henry conserva avatar/apariencia. No se acredita integración visual completada ni
+se bloquea implementación pura de evolución/estadísticas. Se mantiene vestimenta
+vigente durante progresión histórica y anteriores desbloqueadas tras elegir
+especialización; no nuevas reglas de adquisición, equipamiento o esquema Duckies.
+[Coordinación](integracion-equipo5-v0.md#03-precisiones-posteriores--presupuesto-recursos-y-membresías)
+y [pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).

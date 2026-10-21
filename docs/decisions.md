@@ -1463,3 +1463,50 @@ parámetros funcionales oficiales, Core contexto/políticas/A3.5, Henry aparienc
 inventario y otros equipos contratos consumidores; ninguno ratificado por inferencia.
 Sin código, persistencia, endpoints o activación; APIs A4.1/A4.2.1 y V1 intactos.
 No se ejecutan nuevos tests Django en esta PR documental. S3 V1 único escritor XP.
+
+## DOC-Aclaraciones-20/10 · Presupuesto, vestimentas y membresías · 21/10/2026
+
+Registro del 21/10/2026, sobre develop `780c967e8b8913e318775fa479636e19bf6dfeba`.
+Procedencia: precisiones comunicadas por Jaime en 02C tras revisar las aclaraciones
+funcionales de Óscar del 20/10. Se conserva la trazabilidad de la conciliación
+anterior, sin afirmar nueva consulta directa al documento compartido o a DAR3.
+DAR3 sigue como fuente funcional principal; se distinguen las siguientes autoridades.
+
+**A4-PRESUPUESTO-PROV-01 · Decisión interna provisional del Equipo 5:** utilizar
+**45 puntos de reparto inicial por opción jugable**, de forma independiente e
+igual para cada opción, sin saldo global consumible. Reparto completo, parcial o
+cero permitido conforme a A4.1. El valor permite avanzar y es revisable si se
+confirma otro presupuesto o aparecen inconsistencias funcionales; no procede de
+Óscar ni de DAR3. Las referencias anteriores a 45 como ejemplo se conservan como
+antecedentes, precisados por esta adopción interna posterior, sin convertirlo en
+valor oficial del profesor. Las seis bases y reglas adicionales siguen pendientes.
+
+Sin defaults implícitos ni cambios de API/comportamiento en A4.1, A4.2.1 o A4.3.1;
+utilizar 45 no autoriza por sí solo una configuración. Si en el futuro existen
+configuraciones persistentes, cualquier cambio de presupuesto exigirá política
+expresa de versionado y tratamiento de las confirmadas, sin recálculo silencioso.
+
+**Aclaración funcional y recursos pendientes:** Óscar confirmó una imagen de
+vestimenta completa por época. Según la información actual comunicada en 02C,
+las imágenes definitivas aún no se han entregado al Equipo 5. Su recepción es
+dependencia gráfica; no bloquea evolución/estadísticas puras ni acredita integración
+visual completada. Henry conserva avatar y representación de apariencia. Se mantiene
+uso de vestimenta vigente durante progresión histórica y reutilización de anteriores
+desbloqueadas tras elegir especialización, sin ampliar adquisición/equipamiento.
+Los recursos gráficos históricos de Classroom no prueban esta entrega definitiva.
+
+**Membresías:** User funcional (acceso visual previo a entrar) es distinto del
+modelo User estándar Django utilizado actualmente. Free, Plus y Pro están
+confirmadas funcionalmente, pero no implementadas aquí como niveles de membresía;
+el modelo Django no demuestra implementación de las cuatro categorías. Core debe
+acordar representación, asignación, cambios, permisos y condiciones de acceso.
+Beneficios adicionales de DuckyCoins siguen sin cifras/fórmulas aprobadas.
+Permanece el conflicto Training 2 XP Free / 5 XP Plus-Pro frente a igualdad de XP
+por la misma actividad elegible confirmada por Óscar; sin elegir nuevas cifras.
+
+[Pendientes y propietarios](pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías),
+[coordinación candidata](contracts/integracion-equipo5-v0.md#03-precisiones-posteriores--presupuesto-recursos-y-membresías),
+[bases/presupuesto](contracts/ecomotor-target-stats-config-v1.md#11-presupuesto-provisional--precisión-posterior)
+y [opciones objetivo](contracts/ecomotor-playable-options-target-v1.md#10-precisiones-posteriores--presupuesto-y-recursos).
+Sin implementación, cambios V1 o activación: S3 V1 sigue único escritor XP.
+A4.4 queda fuera de este incremento y se documentará en otra PR.
