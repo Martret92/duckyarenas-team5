@@ -1,9 +1,13 @@
 """Synthetic file-backed audits. DDL corruption exists only in disposable files."""
 
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import FrozenInstanceError, replace
 from importlib import import_module
 from io import StringIO
+from os.path import relpath
+from pathlib import Path
+from shutil import copyfile
 from threading import Event, get_ident
 from time import monotonic
 from unittest import TestCase
@@ -285,6 +289,146 @@ class CatalogAuditTests(AuditDatabase, TestCase):
             self.assertTrue(statements[0].startswith("BEGIN IMMEDIATE"))
             self.assertTrue(all(s.startswith(("BEGIN IMMEDIATE","SELECT","PRAGMA TABLE_INFO","PRAGMA FOREIGN_KEY_LIST","COMMIT")) for s in statements))
             self.assertEqual((self.rows(),self.schema()),before)
+
+
+class CatalogAuditOpenTests(AuditDatabase, TestCase):
+    @contextmanager
+    def configured_database(self, name, **options):
+        self.open_alias_count = getattr(self, "open_alias_count", 0) + 1
+        alias = f"catalog_audit_open_{self.open_alias_count}"
+        configuration = self.db.settings_dict.copy()
+        configuration["NAME"] = name
+        configuration["OPTIONS"] = {**configuration["OPTIONS"], **options}
+        connections.databases[alias] = configuration
+        database = connections[alias]
+        try:
+            yield database
+        finally:
+            database.close()
+            del connections[alias]
+            del connections.databases[alias]
+
+    def test_missing_file_is_operational_and_command_exits_three_without_creating(self):
+        missing = Path(self.db.settings_dict["NAME"]).with_name("missing audit # synthetic.sqlite3")
+        with self.configured_database(missing) as database:
+            original = database.settings_dict
+            options = original["OPTIONS"].copy()
+            self.assertFalse(missing.exists())
+            with self.assertRaises(OperationalError):
+                audit.audit_target_catalog(1, using=database.alias)
+            self.assertFalse(missing.exists())
+            self.assertIsNone(database.connection)
+            self.assertIs(database.settings_dict, original)
+            self.assertIs(connections.databases[database.alias], original)
+            self.assertEqual(original["OPTIONS"], options)
+            output = StringIO()
+            with self.assertRaises(CommandError) as caught:
+                call_command("audit_target_catalog", "--catalog-version-id", "1",
+                             "--database", database.alias, stdout=output)
+            self.assertEqual(caught.exception.returncode, 3)
+            self.assertNotIn(NOTICE, output.getvalue())
+            self.assertEqual(output.getvalue(), "")
+            self.assertFalse(missing.exists())
+            Command = import_module(COMMAND_MODULE).Command
+            command = Command(stdout=StringIO(), stderr=StringIO())
+            with self.assertRaises(SystemExit) as exited:
+                command.run_from_argv(["manage.py", "audit_target_catalog", "--catalog-version-id", "1",
+                                       "--database", database.alias])
+            self.assertEqual(exited.exception.code, 3)
+            self.assertFalse(missing.exists())
+
+    def test_missing_file_uri_and_memory_like_filenames_are_not_created(self):
+        for suffix in ("", "?mode=rwc", "?cache=private", "?%6dode=rwc&note=a+b"):
+            missing = Path(self.db.settings_dict["NAME"]).with_name("missing uri # synthetic.sqlite3")
+            with self.subTest(suffix=suffix), self.configured_database(missing.as_uri()+suffix) as database:
+                with self.assertRaises(OperationalError): audit.audit_target_catalog(1, using=database.alias)
+                self.assertFalse(missing.exists())
+        missing = Path(self.db.settings_dict["NAME"]).with_name("ordinary-mode=memory.sqlite3")
+        with self.configured_database(missing) as database:
+            with self.assertRaises(OperationalError): audit.audit_target_catalog(1, using=database.alias)
+        self.assertFalse(missing.exists())
+
+    def test_existing_paths_and_file_uris_preserve_configuration_and_data(self):
+        path = Path(self.db.settings_dict["NAME"])
+        before = self.rows(), self.schema()
+        for name in (path, str(path), relpath(path), path.as_uri(), path.as_uri()+"?mode=rw",
+                     path.as_uri()+"?mode=rwc&cache=private&note=a+b"):
+            with self.subTest(name=name), self.configured_database(name) as database:
+                original = database.settings_dict
+                original_options = original["OPTIONS"]
+                original_values = original_options.copy()
+                with patch.object(database, "get_new_connection", wraps=database.get_new_connection) as connect:
+                    result = audit.audit_target_catalog(self.version.pk, using=database.alias)
+                self.assertTrue(result.technically_conformant)
+                params = connect.call_args.args[0]
+                self.assertIn("mode=rw", params["database"])
+                self.assertNotIn("mode=rwc", params["database"])
+                if "note=a+b" in str(name): self.assertIn("note=a+b", params["database"])
+                self.assertIs(database.settings_dict, original)
+                self.assertIs(connections.databases[database.alias], original)
+                self.assertEqual(original["NAME"], name)
+                self.assertIs(original["OPTIONS"], original_options)
+                self.assertEqual(original_options, original_values)
+        self.assertEqual((self.rows(), self.schema()), before)
+
+    def test_effective_database_option_is_guarded_instead_of_only_name(self):
+        missing = Path(self.db.settings_dict["NAME"]).with_name("missing override.sqlite3")
+        with self.configured_database(self.db.settings_dict["NAME"], database=str(missing)) as database:
+            original = database.settings_dict
+            with self.assertRaises(OperationalError): audit.audit_target_catalog(1, using=database.alias)
+            self.assertIs(database.settings_dict, original)
+            self.assertEqual(original["OPTIONS"]["database"], str(missing))
+        self.assertFalse(missing.exists())
+
+    def test_disappearing_file_is_not_recreated_between_preparation_and_open(self):
+        disposable = Path(self.db.settings_dict["NAME"]).with_name("disappearing.sqlite3")
+        copyfile(self.db.settings_dict["NAME"], disposable)
+        with self.configured_database(disposable) as database:
+            connect = database.get_new_connection
+            def disappear(params):
+                self.assertIn("mode=rw", params["database"])
+                disposable.unlink()
+                return connect(params)
+            original = database.settings_dict
+            with patch.object(database, "get_new_connection", side_effect=disappear):
+                with self.assertRaises(OperationalError): audit.audit_target_catalog(self.version.pk, using=database.alias)
+            self.assertFalse(disposable.exists())
+            self.assertIs(database.settings_dict, original)
+
+    def test_native_memory_and_memory_uri_are_supported_without_files(self):
+        for name in (":memory:", "file::memory:?cache=shared", "file:catalog_audit_private?mode=memory"):
+            with self.subTest(name=name), self.configured_database(name) as database:
+                original = database.settings_dict
+                with patch.object(database, "get_new_connection", wraps=database.get_new_connection) as connect:
+                    result = audit.audit_target_catalog(1, using=database.alias)
+                self.assertIn("MIGRATION_0007_MISSING", self.codes(result))
+                self.assertEqual(connect.call_args.args[0]["database"], name)
+                self.assertIs(database.settings_dict, original)
+
+    def test_shared_memory_uri_keeps_existing_schema_and_catalog_visible(self):
+        name = "file:catalog_audit_shared?mode=memory&cache=shared"
+        with self.configured_database(name) as keeper:
+            executor = MigrationExecutor(keeper)
+            executor.migrate(executor.loader.graph.leaf_nodes())
+            version = synthetic_catalog(using=keeper.alias)
+            with self.configured_database(name) as database:
+                result = audit.audit_target_catalog(version.pk, using=database.alias)
+                self.assertTrue(result.technically_conformant)
+                self.assertEqual(result.catalog_id, version.catalog_id)
+
+    def test_read_only_uri_mode_is_preserved_and_duplicate_modes_rejected(self):
+        name = Path(self.db.settings_dict["NAME"]).as_uri()+"?mode=ro&cache=private"
+        self.assertEqual(audit._noncreating_database_name(name), name)
+        with self.configured_database(name) as database:
+            with patch.object(database, "get_new_connection", wraps=database.get_new_connection) as connect:
+                result = audit.audit_target_catalog(self.version.pk, using=database.alias)
+            self.assertTrue(result.technically_conformant)
+            self.assertEqual(connect.call_args.args[0]["database"], name)
+        missing = Path(self.db.settings_dict["NAME"]).with_name("ambiguous.sqlite3")
+        for query in ("?mode=memory&mode=rwc", "?mode=invalid", "?mode=rwc%00", "?mode%00ignored=rwc"):
+            with self.subTest(query=query), self.configured_database(missing.as_uri()+query) as database:
+                with self.assertRaises(OperationalError): audit.audit_target_catalog(1, using=database.alias)
+            self.assertFalse(missing.exists())
 
 
 class AuditPre0007Tests(FileDatabase,TestCase):

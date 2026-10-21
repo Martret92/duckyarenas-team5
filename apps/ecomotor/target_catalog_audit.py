@@ -9,9 +9,12 @@ not a formal equivalence proof or protection against schema administrators.
 from dataclasses import dataclass
 from enum import Enum
 from importlib import import_module
+from os import fsdecode
+from pathlib import Path
 import re
+from urllib.parse import unquote
 
-from django.db import connections, transaction
+from django.db import OperationalError, connections, transaction
 from django.utils.dateparse import parse_datetime
 
 from .models import TargetCatalogVersion, TargetEpoch, TargetLevelThreshold
@@ -188,12 +191,67 @@ def _observe(connection, catalog_version_id, using):
     return TargetCatalogAuditResult(using, catalog_version_id, catalog_id, version, frozen_at, state, tuple(checks))
 
 
+def _noncreating_database_name(database):
+    """Use SQLite's atomic open-existing flag, not an exists()/open race.
+
+    Keep URI paths and unrelated query parameters verbatim (including literal
+    '+' characters). Only decode mode for inspection; never use substring-based
+    memory detection, which could mistake an ordinary filename for an in-memory DB.
+    """
+    name = fsdecode(database)
+    if "\x00" in name or name.startswith("file:") and "\x00" in unquote(name):
+        raise OperationalError("Invalid SQLite database name; audit connection not opened.")
+    if name == ":memory:":
+        return name
+    if not name.startswith("file:"):
+        return Path(name).absolute().as_uri() + "?mode=rw"
+    root, fragment_separator, fragment = name.partition("#")
+    base, query_separator, query = root.partition("?")
+    parts = query.split("&") if query_separator else []
+    modes = [(index, unquote(part.partition("=")[2])) for index, part in enumerate(parts)
+             if unquote(part.partition("=")[0]) == "mode"]
+    if len(modes) > 1:
+        raise OperationalError("Ambiguous SQLite URI mode; audit connection not opened.")
+    if unquote(base[5:]) == ":memory:" or modes and modes[0][1] == "memory":
+        return name
+    if modes:
+        index, mode = modes[0]
+        if mode not in ("rw", "ro", "rwc"):
+            raise OperationalError("Unsupported SQLite URI mode; audit connection not opened.")
+        if mode != "rwc":
+            return name
+        parts[index] = "mode=rw"
+    else:
+        parts.append("mode=rw")
+    return base + "?" + "&".join(parts) + fragment_separator + fragment
+
+
+def _ensure_noncreating_connection(connection):
+    if connection.connection is not None:
+        connection.ensure_connection()
+        return
+    # Respect the effective database parameter, including OPTIONS['database'].
+    database = connection.get_connection_params()["database"]
+    safe_database = _noncreating_database_name(database)
+    original = connection.settings_dict
+    # Django's normal connect lifecycle still runs. This is a temporary private
+    # dictionary on this thread-owned wrapper; configured NAME/OPTIONS and the
+    # global alias dictionary are neither mutated nor replaced.
+    try:
+        connection.settings_dict = {**original, "OPTIONS": {**original["OPTIONS"], "database": safe_database}}
+        connection.ensure_connection()
+    finally:
+        connection.settings_dict = original
+
+
 def audit_target_catalog(catalog_version_id: int, *, using: str) -> TargetCatalogAuditResult:
     """Complete a coherent technical observation or propagate operational failure.
 
     Missing migration/schema/trigger/catalog and A1.1 violations are diagnostics.
     Connection, lock, timeout and unexpected SQL errors remain real failures.
     No migration executor/recorder that could create django_migrations is used.
+    Closed file connections open with mode=rw, never creating a missing file.
+    Native memory destinations are preserved; alias configuration is unchanged.
     """
     if (type(catalog_version_id) is not int or not 1 <= catalog_version_id <= 2**63 - 1
             or type(using) is not str or not using or using not in connections):
@@ -204,7 +262,7 @@ def audit_target_catalog(catalog_version_id: int, *, using: str) -> TargetCatalo
             or options.get("timeout") != 5 or options.get("autocommit", -1) != -1
             or connection.in_atomic_block):
         raise TargetCatalogAuditTransactionError("A controlled outer SQLite IMMEDIATE transaction is required.")
-    connection.ensure_connection()
+    _ensure_noncreating_connection(connection)
     if (not connection.get_autocommit() or connection.connection.in_transaction
             or connection.transaction_mode != "IMMEDIATE"
             or getattr(connection.connection, "autocommit", -1) != -1):
