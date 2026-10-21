@@ -168,3 +168,56 @@ class UserSpecializationProgress(models.Model):
                 name="ecomotor_domain_xp_nonnegative",
             ),
         ]
+
+
+class TargetCatalogVersion(models.Model):
+    """Preparatory catalog identity; neither publication nor historical freeze."""
+
+    id = models.BigAutoField(primary_key=True)
+    catalog_id = models.CharField(max_length=64)
+    version = models.CharField(max_length=64)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["catalog_id", "version"], name="ecomotor_tcat_identity_unique"),
+            models.CheckConstraint(condition=~models.Q(catalog_id=""), name="ecomotor_tcat_id_nonempty"),
+            models.CheckConstraint(condition=~models.Q(version=""), name="ecomotor_tcat_ver_nonempty"),
+        ]
+
+
+class TargetLevelThreshold(models.Model):
+    """Preparatory level only; target progression awards no level stat points."""
+
+    id = models.BigAutoField(primary_key=True)
+    catalog = models.ForeignKey(TargetCatalogVersion, on_delete=models.PROTECT)
+    level = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    minimum_xp = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["catalog", "level"], name="ecomotor_tlevel_unique"),
+            models.CheckConstraint(condition=models.Q(level__gt=0), name="ecomotor_tlevel_positive"),
+            models.CheckConstraint(condition=models.Q(minimum_xp__gte=0), name="ecomotor_tlevel_xp_nonnegative"),
+        ]
+
+
+class TargetEpoch(models.Model):
+    """Preparatory historical epoch, separate from EvolutionStage V1."""
+
+    id = models.BigAutoField(primary_key=True)
+    catalog = models.ForeignKey(TargetCatalogVersion, on_delete=models.PROTECT)
+    code = models.CharField(max_length=64)
+    name = models.CharField(max_length=100)
+    ordinal = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(7)])
+    minimum_xp = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["catalog", "code"], name="ecomotor_tepoch_code_unique"),
+            models.UniqueConstraint(fields=["catalog", "ordinal"], name="ecomotor_tepoch_ordinal_unique"),
+            models.CheckConstraint(condition=models.Q(ordinal__gte=1, ordinal__lte=7),
+                                   name="ecomotor_tepoch_ordinal_range"),
+            models.CheckConstraint(condition=models.Q(minimum_xp__gte=0), name="ecomotor_tepoch_xp_nonnegative"),
+            models.CheckConstraint(condition=~models.Q(code=""), name="ecomotor_tepoch_code_nonempty"),
+            models.CheckConstraint(condition=~models.Q(name=""), name="ecomotor_tepoch_name_nonempty"),
+        ]

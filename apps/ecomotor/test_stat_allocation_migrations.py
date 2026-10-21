@@ -78,7 +78,7 @@ class StatAllocationMigrationTests(TestCase):
         executor = MigrationExecutor(self.db)
         executor.loader.graph.validate_consistency()
         self.assertIn(BEFORE, {node.key for node in executor.loader.graph.node_map[AFTER].parents})
-        self.assertFalse(executor.migration_plan(executor.loader.graph.leaf_nodes("ecomotor")))
+        self.assertFalse(executor.migration_plan([AFTER]))
         event = apps.get_model("ecomotor", "StatAllocationEvent")
         with self.db.cursor() as cursor:
             constraints = self.db.introspection.get_constraints(cursor, event._meta.db_table)

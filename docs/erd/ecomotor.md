@@ -1,5 +1,9 @@
 # Ecomotor y evolución · ERD V2 provisional de Parte A
 
+> Fase 1 A3-CAT-PHYS-01 implementada para revisión desde ca27e88: tres tablas
+> preparatorias adicionales mediante 0006, sin datos ni uso real. Véase §15.1;
+> los recuentos V1 y notas documentales siguientes conservan su corte histórico.
+
 > Actualización DOC-S12-A: develop `84f809d` integra selección S11-A por PR #44.
 > UserSpecializationProgress y domain_xp_total ya son físicos; no hay servicio
 > integrado de concesión positiva. DomainXPEvent es **solo conceptual**, separado
@@ -659,7 +663,7 @@ histórico de ocho y el diagrama conceptual 02C; ninguna tabla se añade aquí.
 | Necesidad conceptual A3 | Dirección aprobada / bloqueo físico |
 | --- | --- |
 | Política de progresión por perfil | Registro persistente unívoco asociado a UserProfileEcomotor, con procedencia y estado de transición separados. Campos Django, tipos, restricciones y relaciones definitivos pendientes; auditoría antes de clasificar existentes. No es UserPlayableState ni permiso de XP. |
-| Catálogo objetivo | Separado de V1; A3-CAT-PHYS-01 concreta tres modelos candidatos mínimos descritos abajo. No tablas integradas ni migración realizada. Protección de inmutabilidad tras uso pendiente; A1.1 valida catálogo completo, no publicación/autorización. |
+| Catálogo objetivo | Separado de V1; fase 1 implementada para revisión mediante 0006, sin integración antes del merge ni migración aplicada a datos locales. Protección de inmutabilidad pendiente; A1.1 valida catálogo completo, no publicación/autorización. |
 | Nuevas evoluciones causales | A3-CAT-EVENT-01 decide eventos objetivo separados de EvolutionEvent V1. Causa XP verificable, perfil y época/versiones históricas requeridos conceptualmente; nombre/campos/claves/restricciones, relaciones con XPEvent/catálogo/perfiles y consulta conjunta pendientes. EvolutionEvent.stage sigue apuntando a EvolutionStage V1, sin reescritura ni migración implícita. |
 | PlayableOption histórico | La relación EvolutionStage de §14 es el diseño conceptual 02C anterior a esta precisión. Debe adaptarse al catálogo separado con integridad histórica; A3 no aprueba la solución física ni descarta la aprobación provisional ARQ-OP-02 de campos/restricciones. |
 | Procedencia de XP objetivo | Nuevas operaciones requieren procedencia persistente e inmutable; representación pendiente, sin añadir campos/tablas aquí. UNIQUE(profile, operation_key) se conserva entre versiones. |
@@ -691,14 +695,16 @@ No se resuelve con este apartado un nuevo esquema, migración o escritor objetiv
 
 ### 15.1. A3-CAT-PHYS-01 · Tres modelos candidatos de catálogo
 
-**Representación mínima documental, fuera del inventario de tablas integradas.**
-Aprobación interna en 02C; ningún modelo ORM, migración o dato creado aquí.
+El antecedente #85 era representación mínima documental, sin tablas. Ahora fase 1
+implementada para revisión en PR: TargetCatalogVersion, TargetLevelThreshold y
+TargetEpoch añadidos por 0006, sin datos ni integración antes de merge autorizado.
+Separados del esquema V1, sin modificar sus tablas o relaciones.
 
 | Modelo Django candidato | Contenido mínimo | Restricciones locales previstas |
 | --- | --- | --- |
-| TargetCatalogVersion | catalog_id lógico y version; distinguirlos de la PK técnica aún sin tipo elegido | Unicidad (catalog_id, version). Fila existente no acredita publicación. |
-| TargetLevelThreshold | Referencia catalog a la versión, level, minimum_xp; sin stat_points_awarded | Unicidad (catalog, level), nivel entero positivo, XP no negativa. |
-| TargetEpoch | Referencia catalog a la versión, code, name, ordinal, minimum_xp | Unicidad (catalog, ordinal) y (catalog, code); ordinal 1–7, código/nombre no vacíos y XP no negativa. |
+| TargetCatalogVersion | PK BigAutoField; catalog_id lógico/version CharField(64) | Unicidad conjunta; checks de cadena no vacía. Fila no acredita publicación. |
+| TargetLevelThreshold | PK BigAutoField, catalog ForeignKey(PROTECT), level PositiveIntegerField, minimum_xp PositiveBigIntegerField; sin stat_points_awarded | Unicidad (catalog, level), check nivel >0 y XP >=0. |
+| TargetEpoch | PK BigAutoField, catalog ForeignKey(PROTECT), code CharField(64), name CharField(100), ordinal PositiveSmallIntegerField, minimum_xp PositiveBigIntegerField | Unicidades catálogo/code y catálogo/ordinal; checks ordinal 1–7, XP >=0, código/nombre distintos de cadena vacía. |
 
 [Contrato central A3-CAT-PHYS-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
 detalla validación completa A1.1: siete épocas, niveles consecutivos desde 1 y
@@ -711,7 +717,11 @@ no implementada: [A3-CAT-IMMUT-01](../contracts/ecomotor-transition-target-v1.md
 permite persistencia preparatoria sin uso real y exige protección antes del primer
 uso real; sustituye únicamente la condición temporal PHYS-01 anterior. Sin estados
 de publicación, triggers, permisos o políticas de mantenimiento elegidos. No se
-fijan tipos Django, longitudes, on_delete ni relaciones de eventos objetivo.
+añaden relaciones de eventos objetivo. PROTECT es protección local padre-hijo,
+no congelación histórica. full_clean valida longitudes ORM; SQLite no impone
+max_length ni los checks vacíos rechazan todo texto de solo espacios. El lector
+por PK técnica/alias revalida metadatos y delega a A1.1, sin snapshot concurrente
+estable ni autoridad. Detalles y errores en el contrato central; V1 intacto.
 A3-CAT-EVENT-01, V1, Henry/Core, publicación/umbrales y activación mantienen sus límites.
 
 ## 16. A3.3 · Política de progresión e historial conceptuales

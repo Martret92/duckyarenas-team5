@@ -737,7 +737,7 @@ u Óscar. [Contrato de transición](contracts/ecomotor-transition-target-v1.md) 
 [puertas pendientes](pending-decisions.md#15-a3--condiciones-de-compatibilidad-y-activación).
 A3-CT-01 conserva compatibilidad/migración; no cambia A1 de progresión ni A2 de XP.
 
-Estado verificado: A1.1/A1.2 y [planificador A2.1](../apps/ecomotor/target_xp_plan.py)
+Estado verificado en el corte histórico A3: A1.1/A1.2 y [planificador A2.1](../apps/ecomotor/target_xp_plan.py)
 integrados; plan_target_xp_grant devuelve TargetXPPlan inmutable, no consulta estado
 persistido ni autoriza versión/escritura. S3 V1 conserva puntos e interfaz y sigue
 vigente. Registro de política, catálogo objetivo físico, migrador, entrada única y
@@ -752,8 +752,11 @@ separa también los eventos de evolución objetivo de EvolutionEvent V1, conserv
 causa XP verificable, perfil y época/versiones históricas. Todas las épocas cruzadas
 se registran sin duplicados; replay no añade XP/evoluciones y nivel 8 no añade época.
 V1 permanece intacto. [A3-CAT-PHYS-01](contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
-concreta tres modelos candidatos de catálogo: TargetCatalogVersion,
-TargetLevelThreshold (sin puntos por nivel) y TargetEpoch; todavía no implementados.
+concreta TargetCatalogVersion, TargetLevelThreshold (sin puntos por nivel) y
+TargetEpoch: fase 1 implementada para revisión desde ca27e88, con migración 0006
+solo estructural y lector preparatorio por PK/alias delegado a A1.1. BigAutoField,
+identidades CharField(64), nombre CharField(100), enteros/checks locales y FK
+PROTECT; no congelación histórica ni lectura estable frente a cambios concurrentes.
 Adaptación explícita a A1.1 con puntos cero técnicos; validación no autoriza publicación.
 Según [A3-CAT-IMMUT-01](contracts/ecomotor-transition-target-v1.md#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo),
 protección de inmutabilidad pendiente antes del uso real, no de la persistencia

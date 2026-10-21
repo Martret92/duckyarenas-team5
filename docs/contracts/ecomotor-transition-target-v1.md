@@ -28,8 +28,10 @@ Desarrolla A3-CT-01 sin cambiar A1-CT-01 (progresión/validación) ni A2-CT-01
 
 A1.1/A1.2 y [A2.1](../../apps/ecomotor/target_xp_plan.py) ya están integrados
 (PR #52/#53/#56): validación, cálculo y planificación puros, sin concesiones.
-S3 V1 sigue como escritor vigente. **A3, su registro persistente, catálogo físico
-objetivo, migración y punto de entrada futuro no están implementados.**
+S3 V1 sigue como escritor vigente. **Registro persistente A3, migración de perfiles
+y punto de entrada futuro no están implementados.** El catálogo preparatorio de
+fase 1 está implementado para revisión en PR, según el estado posterior de §3;
+no autoriza uso real ni añade un escritor objetivo.
 
 ## 2. Clasificación persistente · A3-CLAS-01
 
@@ -105,8 +107,9 @@ No existe aún servicio objetivo persistente por aprobar esta separación.
 
 Diseño mínimo aprobado internamente por Equipo 5 en 02C, registrado el 21/10/2026
 sobre develop `18b6bbd4174cc7325f4511906cb26827d2aafeff`. No requisito técnico literal
-DAR3 ni aprobación de Óscar/Core/Henry. **Tres modelos Django candidatos, todavía
-no implementados**; este registro no genera código, migración, datos o activación.
+DAR3 ni aprobación de Óscar/Core/Henry. El corte documental #85 describía **tres
+modelos candidatos no implementados**; el estado posterior de fase 1 se precisa
+a continuación, sin convertir ese antecedente en autorización de uso real.
 
 | Modelo candidato | Campos conceptuales mínimos | Restricciones locales previstas |
 | --- | --- | --- |
@@ -114,11 +117,11 @@ no implementados**; este registro no genera código, migración, datos o activac
 | TargetLevelThreshold | Referencia a TargetCatalogVersion (catalog), level, minimum_xp | Unicidad (catalog, level); level entero positivo y minimum_xp no negativa. **Sin stat_points_awarded persistente.** |
 | TargetEpoch | Referencia a TargetCatalogVersion (catalog), code, name, ordinal, minimum_xp | Unicidad (catalog, ordinal) y (catalog, code); ordinal entre 1 y 7; code y name no vacíos; minimum_xp no negativa. |
 
-Son restricciones por fila o de unicidad local expresables en BD. No fijan tipos
-Django concretos, longitudes, PKs, nombres de constraints, índices adicionales o
-políticas on_delete. Códigos definitivos, nombres oficiales y umbrales XP autorizados
-no se crean con ejemplos. La mera existencia de una fila, versión textual o
-booleano no acredita publicación oficial, confianza ni autorización.
+Son restricciones por fila o de unicidad local expresables en BD. Los tipos,
+longitudes y on_delete internos de fase 1 se concretan abajo. Códigos definitivos,
+nombres oficiales y umbrales XP autorizados no se crean con ejemplos. La mera
+existencia de una fila, versión textual o booleano no acredita publicación oficial,
+confianza ni autorización.
 
 La futura adaptación ORM → [A1.1](../../apps/ecomotor/target_catalog_validation.py)
 construirá explícitamente LevelDefinition(level, minimum_xp, stat_points_awarded=0)
@@ -153,8 +156,8 @@ TargetCatalogVersion, TargetLevelThreshold y TargetEpoch, restricciones locales 
 BD, validación de catálogo completo reutilizando A1.1, migración estructural vacía
 de datos y tests. Los catálogos son preparatorios, **sin autorización de uso real**.
 Esta fase no implementa protección de inmutabilidad contra escrituras directas
-ni permite afirmar que las versiones estén congeladas. Esta PR solo documenta:
-no crea aún tablas, migraciones, validadores o tests.
+ni permite afirmar que las versiones estén congeladas. El corte documental #86
+no creaba tablas, migraciones, validadores o tests.
 
 Durante fase 1 no se habilitan escritor XP objetivo, referencias reales de
 progresión a estas versiones, eventos de evolución objetivo basados en ellas,
@@ -181,6 +184,55 @@ eventos con este catálogo, XPEvent o perfiles ni consulta histórica conjunta.
 Core/A3.5 conserva supresión/conservación/on_delete; Henry, EvolutionItem y
 vestimentas siguen pendientes. Publicación, códigos/umbrales autorizados, migración
 de perfiles y activación coordinada no se desbloquean. S3 V1 sigue único escritor XP.
+
+#### Fase 1 · Persistencia preparatoria implementada para revisión
+
+Base `ca27e88c74b175152ef5c1bddb1383b76e1002c7`, tras #86; no integrada hasta merge.
+Se añaden únicamente las tres tablas y restricciones mediante
+ecomotor.0006_target_catalog_preparation, sin datos, RunPython, backfill o triggers.
+No se ejecuta esa migración sobre las SQLite locales existentes durante el trabajo.
+
+Todas las PK son BigAutoField. TargetCatalogVersion usa catalog_id/version
+CharField(64), unicidad conjunta y checks distintos de cadena vacía.
+TargetLevelThreshold usa catalog ForeignKey(PROTECT), level PositiveIntegerField
+mayor que cero y minimum_xp PositiveBigIntegerField no negativa, con unicidad
+catálogo/nivel. TargetEpoch usa catalog ForeignKey(PROTECT), code CharField(64),
+name CharField(100), ordinal PositiveSmallIntegerField 1–7 y minimum_xp
+PositiveBigIntegerField no negativa; unicidades catálogo/code y catálogo/ordinal,
+checks de ordinal/XP y textos distintos de cadena vacía. Constraints con nombres
+explícitos e independientes de V1; sin stat_points_awarded ni frozen/published.
+
+full_clean aplica validación ORM, incluidos max_length y rangos de campos; save,
+create o update no lo invocan automáticamente. Los checks/constraints efectivos
+de BD son distintos: SQLite no impone max_length ni los checks de cadena vacía
+rechazan todo texto compuesto solo por espacios. PROTECT protege la relación
+padre-hijo al borrar mediante ORM, **no congela versiones ni sus hijos**, ni
+implementa la defensa histórica frente a SQL directo/concurrencia de fase 2.
+
+API interna de lectura preparatoria:
+validate_target_catalog_version(catalog_version_id, *, using) → TargetCatalogSnapshot.
+PK técnica entera exacta positiva representable y alias configurado explícito;
+no selección por versión textual ni búsqueda de última versión. Tres lecturas del
+mismo alias, filtradas por la PK del catálogo, materializan niveles/épocas y pasan
+version.version y códigos ordenados a la API pública A1.1. LevelDefinition recibe
+stat_points_awarded=0; no columna física ni cambio de S1/A1.1. El resultado A1.1
+conserva texto de versión, no catalog_id/PK ni un certificado de identidad global.
+El llamador conserva el contexto de la PK seleccionada; no infiere autoridad.
+
+El lector rechaza metadatos vacíos/solo espacios, tipos textuales o longitudes
+inválidos; A1.1 valida los números y catálogo completo sin conversiones silenciosas.
+Entrada o estructura inválida: InvalidTargetCatalogError. Versión ausente:
+TargetCatalogVersion.DoesNotExist. Fallos reales DatabaseError se propagan sin
+convertirlos en catálogo vacío/válido. Sin reparaciones, escrituras o llamadas XP/A4.
+No transacción ni snapshot estable entre lecturas o ante cambios posteriores:
+el valor puro inmutable devuelto **no demuestra congelación o autorización**.
+
+27 tests sintéticos distinguen integridad local, límites ORM/SQLite, validación
+A1.1, alias y ausencia de escrituras, y migración aislada 0005→0006 preservando
+esquema/datos V1 sin precarga. Resultados reales en PR. La aserción histórica de
+0005 comprueba su propia aplicación, sin exigir ser la última migración futura.
+Fase 2, fuente/publicación oficial, referencias reales de progresión, eventos
+objetivo, conservación Core/Henry y activación siguen pendientes/prohibidos.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 
