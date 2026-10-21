@@ -1643,3 +1643,27 @@ de eventos con XPEvent/perfiles/épocas/versiones, consulta histórica conjunta,
 conservación/supresión/on_delete Core/A3.5, EvolutionItem/vestimentas con Henry,
 publicación y umbrales autorizados, migración y activación coordinada.
 Sin código, modelos, esquemas físicos, migraciones ni servicio XP objetivo persistente.
+
+## A3-CAT-PHYS-01 · Diseño mínimo del catálogo objetivo · 21/10/2026
+
+**Aprobado internamente por Equipo 5 en 02C**, comunicado por Jaime, sobre develop
+18b6bbd4174cc7325f4511906cb26827d2aafeff. Concreción documental, no modelos implementados
+ni aprobación externa de Óscar/Core/Henry. DAR3 conserva autoridad funcional.
+
+Tres modelos candidatos: TargetCatalogVersion (catalog_id/version, únicos juntos;
+identidad lógica distinta de PK técnica), TargetLevelThreshold (catálogo, level
+positivo, minimum_xp no negativa, únicos catálogo/nivel, sin stat_points_awarded)
+y TargetEpoch (catálogo, code/name no vacíos, ordinal 1–7, minimum_xp no negativa;
+unicidades catálogo/ordinal y catálogo/code).
+
+Adaptación futura explícita a estructuras A1.1: stat_points_awarded=0 en cada
+LevelDefinition, sin persistirlo. A1.1 valida las invariantes de catálogo completo,
+no solo por fila ni publicación/autorización. Una versión completa usada no cambia;
+crear otra para cambios. Garantía no implementada: concretar protección antes de
+implementar físicamente, sin mecanismos o estados de publicación inventados.
+
+[Detalle central, invariantes y límites](contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato).
+Precisa los antecedentes donde el modelo del catálogo seguía pendiente; no altera
+A3-CAT-EVENT-01 o A2-EVO-01. Eventos objetivo/relaciones/consulta conjunta, conservación/
+supresión/on_delete Core/A3.5, Henry, códigos/umbrales oficiales, publicación, migración
+y activación siguen abiertos. V1 intacto; S3 único escritor XP. Sin código ni migración.

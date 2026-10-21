@@ -454,12 +454,16 @@ objetivo. La implementación y sus puertas siguen abiertas:
 
 Precisión posterior [A3-CAT-EVENT-01](contracts/ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo):
 separación conceptual de eventos objetivo respecto a EvolutionEvent V1 decidida
-internamente en 02C. V1 intacto; no diseño físico ni activación aprobados.
+internamente en 02C. V1 intacto; no diseño físico de eventos ni activación aprobados.
+La precisión [A3-CAT-PHYS-01](contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
+resuelve internamente el mínimo de los tres modelos candidatos de catálogo,
+sin implementarlos ni cerrar sus mecanismos de protección.
 
 | Bloqueo / siguiente validación | Responsable y límite |
 | --- | --- |
 | Clasificación física | Parte A con Core/P5: campos/tipos/constraints del registro de política, identidad/procedencia y transición persistentes; auditoría previa de existentes. No inferir clasificación ni autorización por nivel/época/stats/estado ausente. |
-| Catálogo objetivo físico | Parte A: modelo concreto del catálogo separado/versionado/inmutable tras uso pendiente; publicación oficial y umbrales XP autorizados pendientes. No renombrar EvolutionStage V1 ni tratar snapshot A1.1 como permiso de producción. |
+| Catálogo objetivo mínimo · diseño aprobado | TargetCatalogVersion, TargetLevelThreshold y TargetEpoch candidatos, con campos y restricciones locales de A3-CAT-PHYS-01; adaptación explícita A1.1 con stat_points_awarded=0 sin campo persistente. Implementación/modelos/migración no realizados. Publicación, códigos definitivos y umbrales XP autorizados pendientes; no renombrar EvolutionStage V1 ni tratar A1.1 como permiso. |
+| Inmutabilidad de versión utilizada | Regla interna aprobada para versión completa y niveles/épocas: cambios en nueva versión. Garantía no implementada; mecanismo de protección y acreditación de uso deben concretarse antes de implementación física. Sin triggers, flags, estados de publicación, permisos o mantenimiento elegidos. |
 | Eventos objetivo y consulta conjunta | Parte A/Core: nombre, campos, claves, restricciones y relaciones con XPEvent/perfiles/catálogo/épocas/versiones pendientes, así como consulta de historia conjunta. Separados de EvolutionEvent V1 según A3-CAT-EVENT-01; no FK, on_delete, índice, tabla o migración elegidos ni copia automática de restricciones V1. |
 | Causalidad y PlayableOption | Parte A/Core con Henry: causa XP verificable y correspondencia histórica de perfil/época/versiones en eventos objetivo separados, sin alterar referencias V1. Adaptación PlayableOption, EvolutionItem y vestimentas pendiente con Henry. |
 | Procedencia de concesiones nuevas | Parte A/Core: representación persistente inmutable sin cambiar identidad (profile, operation_key). No atribuir versión retrospectiva a XPEvent V1 ni reconstruir snapshots ausentes. |

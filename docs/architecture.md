@@ -751,7 +751,12 @@ catálogo objetivo separado/versionado/inmutable tras uso. La precisión interna
 separa también los eventos de evolución objetivo de EvolutionEvent V1, conservando
 causa XP verificable, perfil y época/versiones históricas. Todas las épocas cruzadas
 se registran sin duplicados; replay no añade XP/evoluciones y nivel 8 no añade época.
-V1 permanece intacto. Diseño físico, relación con XPEvent, consulta conjunta y
+V1 permanece intacto. [A3-CAT-PHYS-01](contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
+concreta tres modelos candidatos de catálogo: TargetCatalogVersion,
+TargetLevelThreshold (sin puntos por nivel) y TargetEpoch; todavía no implementados.
+Adaptación explícita a A1.1 con puntos cero técnicos; validación no autoriza publicación.
+Protección de inmutabilidad tras uso pendiente antes de implementar. Diseño físico
+de eventos, relación con XPEvent, consulta conjunta y
 adaptación histórica de PlayableOption siguen pendientes:
 [frontera de esquema pendiente](erd/ecomotor.md#15-a3--frontera-física-de-la-transición).
 No renombrar filas V1 para simular las épocas nuevas.
