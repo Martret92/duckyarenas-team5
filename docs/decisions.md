@@ -975,8 +975,13 @@ activación coordinada.** El servicio transaccional A2 no está implementado;
 clasificación, migración y compatibilidad de resultados se resolverán en A3.
 
 XPEvent no persiste versión, nivel o época como snapshots; EvolutionEvent conserva
-la referencia de etapa, no sus atributos históricos originales. No reconstruir
-historia con catálogos nuevos, renombrar etapas o convertir puntos antiguos a cero.
+la referencia de etapa, no sus atributos históricos originales. La mención original
+a EvolutionEvent en A2-EVO-01 se conserva como antecedente; su materialización
+objetivo queda precisada posteriormente por
+[A3-CAT-EVENT-01](#a3-cat-event-01--separación-de-eventos-objetivo--21102026),
+sin retirar causalidad, todos los cruces, replay, escritor único o atomicidad A2.
+No reconstruir historia con catálogos nuevos, renombrar etapas o convertir puntos
+antiguos a cero.
 Core/P5 conserva retención, anonimización/eliminación y on_delete pendientes.
 [Dependencias A3](pending-decisions.md#14-a2--dependencias-para-xp-histórica-objetivo)
 no bloquean diseñar/probar el planificador puro, pero sí la futura activación.
@@ -1000,6 +1005,10 @@ consulta directa de PDFs ni aprobación de contratos físicos externos.
 | A3-REPLAY-01 | UNIQUE(profile, operation_key) entre versiones; validación inicial y transacción antes de buscar operación. Existente valida importe/snapshots/causalidad y devuelve historia disponible sin catálogo/clasificación nueva. Ausente comprueba clasificación/escritor. Nuevas concesiones objetivo necesitan procedencia persistente inmutable, representación física pendiente. |
 | A3-RES-01 | S3 conserva puntos mientras activo. Concesión objetivo nueva sin puntos: compatibilidad 0/None en stat_points_awarded/available_points_after; no reinterpretar V1, borrar saldo heredado o reconstruir snapshots ausentes. Interfaz final compartida pendiente. |
 | A3-DEPLOY-01 | Inventario → esquema compatible aprobado → clasificación/auditoría → ensayo aislado → suspensión/drenaje → migración autorizada → activación objetivo → supervisión/detención segura. Requiere datos/catálogos/autorización, escritor único, consumidores, pruebas y acuerdos externos; sin reversión automática a S3 tras XP objetivo. |
+
+La referencia original de A3-CAT-01 a identificación en EvolutionEvent es un
+antecedente precisado por [A3-CAT-EVENT-01](#a3-cat-event-01--separación-de-eventos-objetivo--21102026):
+eventos objetivo separados, sin diseño físico aprobado.
 
 El [contrato A3](contracts/ecomotor-transition-target-v1.md) concentra diseño y
 bloqueos. XPEvent V1 no guarda versión/nivel/época; EvolutionEvent no guarda
@@ -1606,3 +1615,31 @@ Fuente real, publicación/vigencia/elegibilidad, parámetros oficiales, Core/A3.
 Henry, consumidores y confirmación persistente siguen pendientes. APIs anteriores,
 demo y S3 V1 intactos; sin migraciones, persistencia o activación.
 [API, errores y límites](contracts/ecomotor-target-stats-resolution-v1.md#9-a441--frontera-mínima-y-ensayo-estructural).
+
+## A3-CAT-EVENT-01 · Separación de eventos objetivo · 21/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C**, comunicada por Jaime; registro sobre
+develop ca77b43cc9b1ddb2d44a3edf3cac5c22e3b3cba1. Decisión técnica local, no requisito
+literal DAR3 ni aprobación externa de Óscar, Core o Henry.
+
+Conservar EvolutionStage/EvolutionEvent V1, referencias y comportamiento. Catálogo
+objetivo separado, versionado e inmutable una vez utilizado; eventos de evolución
+objetivo separados de EvolutionEvent V1. Cada evolución conservará causa XP
+verificable, perfil correspondiente e identidad histórica de época/versiones.
+Cada época cruzada origina un evento, sin duplicados; replay no añade XP ni
+evoluciones. Nivel 8 desbloquea elección, no octava época. Sin reinterpretación,
+renombrado o migración silenciosa V1.
+
+Precisa A2-EVO-01 sin reescribir su historia: la obligación de registrar todos los
+cruces se cumple con eventos objetivo separados. Se mantiene (profile, operation_key),
+XP acumulativa, un evento XP por concesión nueva, causalidad, escritor único,
+atomicidad/concurrencia D-19, rechazo de incoherencias y ausencia de puntos por nivel.
+No trasladar restricciones físicas V1 al objetivo por inferencia.
+
+[Detalle conceptual A3-CAT](contracts/ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo)
+y [conciliación A2](contracts/ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01).
+Pendientes: modelo del catálogo, nombres/campos/claves/restricciones y relaciones
+de eventos con XPEvent/perfiles/épocas/versiones, consulta histórica conjunta,
+conservación/supresión/on_delete Core/A3.5, EvolutionItem/vestimentas con Henry,
+publicación y umbrales autorizados, migración y activación coordinada.
+Sin código, modelos, esquemas físicos, migraciones ni servicio XP objetivo persistente.
