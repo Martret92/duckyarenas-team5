@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorio de estadísticas · Ecomotor</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #091423; color: #eef5ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; }
+    main { max-width: 850px; margin: 0 auto; }
+    .eyebrow { color: #58e0cc; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin: .5rem 0; }
+    p { line-height: 1.6; }
+    .notice, form, .result { background: #13243b; border: 1px solid #38516c; border-radius: 16px; padding: 24px; margin: 24px 0; }
+    .notice { border-left: 4px solid #f5cf69; }
+    .notice p { margin: .4rem 0; }
+    .subtitle, .hint { color: #c1cfdf; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; }
+    input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #71869e; background: #091423; color: #eef5ff; font: inherit; }
+    fieldset { padding: 0; border: 0; margin: 24px 0; min-width: 0; }
+    legend { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    button { background: #58e0cc; color: #09232d; font: inherit; font-weight: 750; padding: 14px 24px; border: 0; border-radius: 9px; cursor: pointer; }
+    :focus-visible { outline: 3px solid #f5cf69; outline-offset: 4px; }
+    .errorlist { color: #ffc1c1; padding-left: 22px; line-height: 1.5; }
+    .result { border-color: #58e0cc; }
+    .result h2 { margin-top: 0; color: #58e0cc; }
+    dl { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+    dd { margin: 0; font-weight: 700; }
+    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } .notice, form, .result { padding: 18px; } button { width: 100%; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Ecomotor · Laboratorio local</p>
+    <h1>Prueba tu reparto de estadísticas</h1>
+    <p class="subtitle">Explora una opción tecnológica y comprueba cómo distribuir hasta {{ demo_budget }} puntos provisionales.</p>
+  </header>
+  <aside class="notice" aria-label="Límites de la demostración">
+    <p><strong>Demostración local: no se guardan datos</strong>.</p>
+    <p>45 puntos es un presupuesto provisional del Equipo 5.</p>
+    <p>Las estadísticas base y la selección definitiva todavía no están disponibles.</p>
+  </aside>
+  <form method="post" action="{% url 'target-stats-demo' %}">
+    {% csrf_token %}
+    {% if form.errors %}<div role="alert"><p>Revisa el reparto indicado.</p>{{ form.non_field_errors }}</div>{% endif %}
+    <div>{{ form.option.label_tag }}{{ form.option }}{{ form.option.errors }}</div>
+    <fieldset>
+      <legend>Incrementos propuestos</legend>
+      <div class="grid">
+        {% for field in form %}{% if field.name != 'option' %}
+        <div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>
+        {% endif %}{% endfor %}
+      </div>
+    </fieldset>
+    <p class="hint">Puedes gastar todos los puntos, una parte o ninguno. Cada comprobación es independiente.</p>
+    <button type="submit">Comprobar reparto</button>
+  </form>
+  {% if result %}
+  <section class="result" aria-labelledby="result-title" role="status">
+    <h2 id="result-title">Reparto válido</h2>
+    <dl>
+      <dt>Opción seleccionada</dt><dd>{{ result.option_label }}</dd>
+      <dt>Puntos gastados</dt><dd>{{ result.points_used }}</dd>
+      <dt>Puntos restantes</dt><dd>{{ result.points_remaining }}</dd>
+    </dl>
+    <p>Comprobación completada. No se ha guardado ni confirmado ninguna selección.</p>
+  </section>
+  {% endif %}
+</main>
+</body>
+</html>

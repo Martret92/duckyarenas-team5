@@ -1561,3 +1561,25 @@ Las cinco preguntas siguen visibles e intactas; elegir una preferencia interna n
 cierra operador, permisos, eliminación/conservación/privacidad, on_delete o esquema.
 Sin nuevos campos/FKs, modelos, migraciones, backfill, cambios de idempotencia/
 replay o activación. S3 V1 sigue único escritor XP; no modificaciones de otros equipos.
+
+## A4-DEMO-01 · Demostración local de reparto · 21/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C**, comunicada por Jaime. Implementación
+en PR para revisión, sobre develop 22e979e; no integrada hasta merge autorizado.
+DAR3 conserva autoridad funcional; no implica aprobación de Óscar/Core/Henry.
+
+Pantalla Django anónima y sin persistencia, habilitada exclusivamente por settings
+y URLconf de demo en /demo/ecomotor/, con servidor ligado explícitamente a
+127.0.0.1. Cinco etiquetas tecnológicas (Developer, Ciber, Sistemas, Data IA,
+Gamer), seis incrementos ATK/DEF/VEL/INT/LOG/CUACK y botón Comprobar reparto.
+Validación HTTP estricta, sin duplicados ni parámetros de autoridad, y CSRF real.
+
+Reutiliza A4.1 con seis ceros sintéticos como bases técnicas y DEMO_BUDGET=45
+en servidor; muestra solo opción y puntos gastados/restantes. No muestra bases
+ni efectivas definitivas. A4-PRESUPUESTO-PROV-01 es una decisión separada:
+presupuesto provisional interno, no oficial del profesor. No define catálogos,
+selección real, autorización, sesión de jugador o activación del objetivo.
+
+Sin cambios V1, Core, Duckies, modelos/migraciones, configuración global o
+INITIAL_CONFIGURATION. Bases oficiales, resolución confiable y Core/A3.5 siguen
+pendientes. [Contrato local](contracts/ecomotor-target-stats-demo-v1.md).
