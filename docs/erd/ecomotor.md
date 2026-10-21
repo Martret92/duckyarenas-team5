@@ -707,7 +707,9 @@ no añade época. Adaptación pura con stat_points_awarded=0, nunca campo persis
 Esas invariantes entre filas no se sustituyen por checks locales de BD.
 
 Versión completa utilizada inmutable; cambios requieren nueva versión. Protección
-no implementada y mecanismo pendiente antes de implementación física. Sin estados
+no implementada: [A3-CAT-IMMUT-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo)
+permite persistencia preparatoria sin uso real y exige protección antes del primer
+uso real; sustituye únicamente la condición temporal PHYS-01 anterior. Sin estados
 de publicación, triggers, permisos o políticas de mantenimiento elegidos. No se
 fijan tipos Django, longitudes, on_delete ni relaciones de eventos objetivo.
 A3-CAT-EVENT-01, V1, Henry/Core, publicación/umbrales y activación mantienen sus límites.

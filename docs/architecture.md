@@ -755,7 +755,9 @@ V1 permanece intacto. [A3-CAT-PHYS-01](contracts/ecomotor-transition-target-v1.m
 concreta tres modelos candidatos de catálogo: TargetCatalogVersion,
 TargetLevelThreshold (sin puntos por nivel) y TargetEpoch; todavía no implementados.
 Adaptación explícita a A1.1 con puntos cero técnicos; validación no autoriza publicación.
-Protección de inmutabilidad tras uso pendiente antes de implementar. Diseño físico
+Según [A3-CAT-IMMUT-01](contracts/ecomotor-transition-target-v1.md#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo),
+protección de inmutabilidad pendiente antes del uso real, no de la persistencia
+preparatoria; esta no autoriza progresión, publicación o activación. Diseño físico
 de eventos, relación con XPEvent, consulta conjunta y
 adaptación histórica de PlayableOption siguen pendientes:
 [frontera de esquema pendiente](erd/ecomotor.md#15-a3--frontera-física-de-la-transición).

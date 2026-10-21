@@ -1667,3 +1667,29 @@ Precisa los antecedentes donde el modelo del catálogo seguía pendiente; no alt
 A3-CAT-EVENT-01 o A2-EVO-01. Eventos objetivo/relaciones/consulta conjunta, conservación/
 supresión/on_delete Core/A3.5, Henry, códigos/umbrales oficiales, publicación, migración
 y activación siguen abiertos. V1 intacto; S3 único escritor XP. Sin código ni migración.
+
+## A3-CAT-IMMUT-01 · Protección progresiva del catálogo objetivo
+
+**Aprobada internamente por Equipo 5 en 02C-2 el 21/10/2026**, comunicada por Jaime;
+base develop 9b03d3bf485b6d2ca7940b822e6e6544005aca11. No requisito técnico literal
+DAR3 ni ratificación externa. Sustituye solo la condición temporal del registro
+[A3-CAT-PHYS-01](#a3-cat-phys-01--diseño-mínimo-del-catálogo-objetivo--21102026),
+conservado como antecedente: ya no exige protección completa antes de crear la
+persistencia preparatoria. Se mantiene preservar versiones históricas utilizadas.
+
+- Fase 1: se permite implementar los tres modelos, restricciones locales de BD,
+  validación completa A1.1, migración estructural vacía de datos y tests. Catálogos
+  preparatorios sin uso real; no protección contra escrituras directas implementada
+  ni versiones declaradas congeladas. Sin escritor XP objetivo, referencias reales
+  de progresión, eventos objetivo basados en estas versiones, publicación o activación.
+  No campos frozen, published o equivalentes; A1.1 no acredita aprobación de Óscar.
+- Fase 2: antes del primer uso real aprobar e implementar congelación transaccional,
+  protección física de versión/niveles/épocas ante modificaciones/eliminaciones,
+  escrituras directas y concurrencia, y acreditación verificable de versión utilizada.
+  Versión completa utilizada inmutable; cambios requieren nueva versión. Triggers
+  SQLite concretos y su política no aprobados; garantía todavía no implementada.
+
+[Detalle central y límites](contracts/ecomotor-transition-target-v1.md#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo).
+Campos y unicidades PHYS-01, A3-CAT-EVENT-01, V1/S3 y pendientes Core/A3.5/Henry,
+umbrales oficiales, publicación, eventos y activación intactos. Esta PR solo
+documenta, sin modelos, migraciones, código o tests nuevos.
