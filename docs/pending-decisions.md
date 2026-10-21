@@ -780,12 +780,12 @@ y [contrato conceptual](contracts/ecomotor-target-stats-preparation-v1.md), sobr
 e612ed5. Resuelto como arquitectura: propuesta pura completa reutilizando
 A4.1/A4.2.1 integradas, identidad/versiones/bases preservadas y separación de
 preparación, resolución autorizada y confirmación persistente. El corte conceptual
-#77 no implementaba A4.3.1; ahora implementada para revisión en PR desde bf456d6,
-sin considerarla integrada antes del merge autorizado.
+#77 no implementaba A4.3.1; integrada posteriormente por #78. El corte de revisión
+desde bf456d6 se conserva como antecedente, no integración pendiente.
 
 | Pendiente | Responsable / alcance |
 | --- | --- |
-| A4.3.1 · implementada para revisión | API keyword-only prepare_target_stats_configuration(definition, increments, budget, expected_catalog=None); resultado frozen/slots compuesto por definition y calculation. Revalidación defensiva mediante APIs públicas A4.2.1/A4.1, tipos exactos, copias independientes y bases coincidentes incluso en construcción directa. Excepciones originales propagadas; único error propio InvalidTargetStatsPreparationError para tipos incompatibles o bases contradictorias. Sin APIs externas definitivas ni autorización. |
+| A4.3.1 · integrada #78 | API keyword-only prepare_target_stats_configuration(definition, increments, budget, expected_catalog=None); resultado frozen/slots compuesto por definition y calculation. Revalidación defensiva mediante APIs públicas A4.2.1/A4.1, tipos exactos, copias independientes y bases coincidentes incluso en construcción directa. Excepciones originales propagadas; único error propio InvalidTargetStatsPreparationError para tipos incompatibles o bases contradictorias. Sin APIs externas definitivas ni autorización. |
 | Parámetros y fuentes | Equipo 5 adopta 45 provisionalmente por opción en A4-PRESUPUESTO-PROV-01 (§28); Óscar: bases oficiales, presupuesto definitivo y reglas funcionales adicionales que correspondan. Parte A/Core: futura resolución confiable con publicación/vigencia/contexto/elegibilidad. Propuesta válida, versión textual, contexto cliente o bool no autorizan. |
 | Confirmación e historia | Servicios propietarios futuros: selección/redistribución con verificaciones, referencias, estado, revisiones, idempotencia e historial; persistencia/conservación/migración y activación pendientes. Sin nuevas políticas A4.3.1 de concurrencia/replay/actualización por inferencia. |
 | Core/Henry/consumidores | Identidad, permisos, contexto confiable y A3.5/Core; relación opción/Ducky físico, apariencia/inventario con Henry; contratos de consulta de efectivas por otros equipos. No ratificados. |
@@ -815,3 +815,26 @@ conservan las reglas ya confirmadas de uso, sin ampliarlas. Fuente autorizada,
 publicación/vigencia, permisos, conservación y activación siguen pendientes.
 No se cierran P1–P8 ni contratos compartidos en bloque. No cambios de API, código,
 modelos o tests; S3 V1 intacto y único escritor, sin A2 ni sistema objetivo activados.
+
+## 29. A4.4 · Resolución confiable y dependencias
+
+[Cinco acuerdos internos](decisions.md#a44--resolución-confiable-de-estadísticas-objetivo--21102026)
+y [contrato central](contracts/ecomotor-target-stats-resolution-v1.md), del
+21/10/2026 sobre 529e6a0. Cerrado arquitectónicamente: fuente frente a estructura,
+autoridad de entradas servidor, comprobaciones de resolución, conservación/vigencia
+diferenciada por operación y rechazo sin efectos. No resolutor implementado.
+
+| Pendiente | Propietario y alcance |
+| --- | --- |
+| Fuentes y publicación | Parte A/A3 con propietarios: fuente real y autoridad de publicación acordadas; alternativa física/versionado/aplicabilidad pendientes. Datos en servidor no equivalen a oficiales; fixtures sintéticos solo pruebas. |
+| Parámetros | Óscar: bases oficiales, presupuesto definitivo y posibles reglas adicionales. 45 por opción sigue provisional interno según §28; no publicación ni permiso por utilizarlo, sin defaults. |
+| Ciclo de definiciones | Retiradas/sustituidas/incompatibles/antiguas: concretar reglas por operación. Redistribución conserva bases snapshot; no recálculo silencioso de confirmadas. |
+| Resolución y confirmación | Firma/API y mecanismo confiable pendientes; frontera transaccional definitiva con servicios persistentes/A3/Core. Resolver/preparar no confirma ni crea configuración persistente. |
+| A4.4.1 candidato | Frontera cerrada por defecto, rechazar sin fuentes y probar proveedores sintéticos sin convertirlos en oficiales; revisar garantía útil en 01B antes de implementar. No clases/certificados/adaptadores físicos elegidos. |
+| A3/Core/Henry/consumidores | Catálogo objetivo/procedencia/compatibilidad/migración; identidad/permisos/ciclo de vida/conservación A3.5; opción frente a Ducky físico; contrato de lectura. Ninguno ratificado por este incremento. |
+| Pruebas futuras | Fuente no configurada, opción desconocida, catálogo/versiones incompatibles, definición ausente/ambigua/sustituida/retirada, presupuesto ausente/inválido, sustitución cliente, proveedor fallido, reutilización A4.3.1, cero efectos, independencia, snapshots intactos y regresión V1. Permisos reales/concurrencia/transacciones/idempotencia/persistencia en servicios futuros. |
+
+APIs A4.1/A4.2.1/A4.3.1 intactas; A4.3.1 integrada por #78. Pendientes P1–P8,
+Core/Henry y demás contratos no se cierran en bloque. Sin nuevos valores oficiales,
+fuentes publicadas, código, modelos, migraciones o tests ejecutados aquí. V1 sin
+reinterpretación; S3 único escritor activo, sin A2 ni Ecomotor objetivo activados.

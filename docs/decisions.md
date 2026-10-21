@@ -1510,3 +1510,31 @@ por la misma actividad elegible confirmada por Óscar; sin elegir nuevas cifras.
 y [opciones objetivo](contracts/ecomotor-playable-options-target-v1.md#10-precisiones-posteriores--presupuesto-y-recursos).
 Sin implementación, cambios V1 o activación: S3 V1 sigue único escritor XP.
 A4.4 queda fuera de este incremento y se documentará en otra PR.
+
+## A4.4 · Resolución confiable de estadísticas objetivo · 21/10/2026
+
+**Arquitectura interna aprobada por Equipo 5 en 02C el 21/10/2026**, comunicada
+por Jaime, sobre develop `529e6a03a8c97d745ffbeadc9da3c67b83edafd3`. DAR3 conserva
+autoridad funcional; no se atribuyen a Óscar decisiones técnicas, nuevas cifras,
+APIs o modelos. Se usa trazabilidad existente, sin nueva consulta directa de fuentes.
+A4.1 #74, A4.2.1 #76 y A4.3.1 #78 integradas; las previsiones anteriores conservan
+su fecha y significado histórico. #79 integra el presupuesto provisional interno.
+
+| Identificador | Acuerdo y límite |
+| --- | --- |
+| A4.4-SOURCE-01 | Separar resolución y fuentes: configuración versionada servidor, catálogo Django o servicio externo si se acuerda su necesidad son alternativas, sin elegir implementación física. Requiere autoridad de publicación acordada; almacenamiento servidor o fixtures sintéticos no acreditan aprobación oficial. |
+| A4.4-INPUT-01 | Petición podrá incluir opción/seis incrementos. Servidor obtiene/verifica identidad, permisos, contexto, definición/bases/presupuesto/versiones; cliente no impone estos últimos ni pertenencia o autoridad por bool. Sin firmas/endpoints/auth definitivos. |
+| A4.4-RESOLVE-01 | Verificar opción/pertenencia a catálogo autorizado, identidades/versiones, estado/aplicabilidad de definición, presupuesto y elegibilidad/contexto cuando correspondan; reutilizar A4.2.1/A4.3.1. Contexto estructural no certifica confianza; resolver no confirma persistencia. |
+| A4.4-LIFECYCLE-01 | Primera configuración usa bases autorizadas aplicables; redistribución conserva bases confirmadas; cambio usa configuración propia confirmada; lectura coherente usa estado efectivo/configuración persistida. Sin vigencia uniforme impuesta; retiradas/sustituidas/antiguas pendientes. A4.2-SNAPSHOT-01/A3-CAT-01 conservados, sin esquema físico. |
+| A4.4-FAIL-01 | Rechazo sin efectos si falta fuente autorizada/bases/presupuesto, incompatibilidad o elegibilidad no acreditada. Sin defaults, versiones alternativas silenciosas, flags cliente, confirmaciones parciales o reparación de historia. Frontera transaccional futura con servicios/A3/Core. |
+
+[Contrato canónico](contracts/ecomotor-target-stats-resolution-v1.md) y
+[pendientes](pending-decisions.md#29-a44--resolución-confiable-y-dependencias).
+A4-PRESUPUESTO-PROV-01 se conserva: 45 por opción, independientes, gasto total/
+parcial/cero, parámetro de desarrollo interno revisable; presupuesto definitivo
+y autorización real separados. Sin budget implícito ni cambios de validadores.
+A4.4.1 es candidato a frontera cerrada por defecto; revisar utilidad en 01B antes
+de implementar, sin simular confianza con proveedores de prueba o certificados.
+Fuentes reales, bases oficiales, ciclo de definiciones, Core/A3.5, Henry,
+consumidores y persistencia siguen abiertos. Sin código, tests Django ejecutados,
+modelos, migraciones o activación. S3 V1 sigue único escritor XP; no activar A2.

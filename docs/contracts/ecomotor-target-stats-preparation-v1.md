@@ -21,7 +21,7 @@ consulta directa de PDFs o contratos externos ratificados.
 | #73 / #74 | Arquitectura A4.1 e implementación pura integradas. |
 | #75 / #76 | Arquitectura A4.2 y validador puro A4.2.1 integrados. |
 | #77 / A4.3 | Corte conceptual integrado; arquitectura interna aprobada. |
-| A4.3.1 | Preparador puro implementado para revisión en PR, todavía no integrado. Base bf456d6f01133f615b11367ce323f7c88b94693b. |
+| A4.3.1 · #78 | Preparador puro integrado. El corte previo para revisión partía de bf456d6f01133f615b11367ce323f7c88b94693b; se conserva como antecedente, no integración pendiente. |
 
 La PR #77 no implementaba código. A4.3.1 concreta la API interna mínima en 01B
 sin modificar las APIs integradas ni añadir persistencia, fuentes oficiales,
@@ -53,7 +53,7 @@ de bases ni saldo consumido por configurar otro Ducky. Puntos pendientes permiti
 
 | Capa | Responsabilidad y estado |
 | --- | --- |
-| Preparación pura | Combinar definición/incrementos/presupuesto, verificar estructura y aritmética. A4.3.1 implementada para revisión; sin BD ni efectos. |
+| Preparación pura | Combinar definición/incrementos/presupuesto, verificar estructura y aritmética. A4.3.1 integrada por #78; sin BD ni efectos. |
 | Resolución autorizada futura | Servidor obtiene definición aplicable y presupuesto permitido desde fuentes confiables, comprobando contexto, elegibilidad y vigencia. No implementada/ratificada por esta documentación. |
 | Confirmación persistente futura | Servicios propietarios confirman selección o redistribución con referencias, estado, revisiones, idempotencia e historial correspondientes. Fuera del preparador y condicionada a 02C/Core. |
 
@@ -168,3 +168,13 @@ en la PR de implementación, sin atribuirlas al corte documental #77.
 Pruebas de permisos/fuentes oficiales/publicación/vigencia/transacciones/idempotencia
 y configuración persistente pertenecen a incrementos posteriores. No hay ORM,
 I/O, reloj, servicios V1, autorización, confirmación ni activación en A4.3.1.
+
+## 9. Resolución confiable A4.4
+
+[Contrato A4.4](ecomotor-target-stats-resolution-v1.md) desarrolla la frontera
+entre datos estructurales, obtención autorizada, preparación A4.3.1 integrada
+por #78 y confirmación persistente futura. No cambia la API de §7. Contexto de
+catálogo, versiones y propuesta pura no acreditan confianza. Primera configuración,
+redistribución, cambio y lectura tienen necesidades distintas de vigencia/historia.
+45 es parámetro provisional interno según #79, sin defaults ni autorización por
+su uso. Resolutor y fuentes reales siguen pendientes; A4.4.1 solo candidato.
