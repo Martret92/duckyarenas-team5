@@ -139,12 +139,40 @@ validar una fila o sus restricciones locales. name es metadato del modelo candid
 no un atributo nuevo en StageDefinition ni validado por A1.1. A1.1 prueba coherencia
 técnica, nunca publicación oficial o autorización.
 
-**Inmutabilidad aprobada, todavía no implementada:** una versión completa no puede
-modificarse después de utilizarse; cambios requieren una nueva versión. Su alcance
-comprende la versión y sus niveles/épocas, no solo un identificador textual.
-El mecanismo de protección y cómo acreditar su uso deben concretarse **antes de
-la implementación física**. No se eligen triggers, estados de publicación, flags,
-permisos o servicios de mantenimiento por inferencia.
+#### A3-CAT-IMMUT-01 · Protección progresiva del catálogo objetivo
+
+Decisión interna aprobada por Equipo 5 en **02C-2 el 21/10/2026**, registrada sobre
+develop `9b03d3bf485b6d2ca7940b822e6e6544005aca11`. No requisito técnico literal DAR3
+ni ratificación externa de Óscar/Core/Henry. **Sustituye únicamente la condición
+temporal de A3-CAT-PHYS-01** que exigía protección completa antes de implementar
+físicamente los modelos; no elimina la obligación de preservar versiones históricas.
+Campos, unicidades, adaptación/validación A1.1 y separación V1 anteriores se conservan.
+
+**Fase 1 · Persistencia preparatoria permitida:** futura implementación de
+TargetCatalogVersion, TargetLevelThreshold y TargetEpoch, restricciones locales de
+BD, validación de catálogo completo reutilizando A1.1, migración estructural vacía
+de datos y tests. Los catálogos son preparatorios, **sin autorización de uso real**.
+Esta fase no implementa protección de inmutabilidad contra escrituras directas
+ni permite afirmar que las versiones estén congeladas. Esta PR solo documenta:
+no crea aún tablas, migraciones, validadores o tests.
+
+Durante fase 1 no se habilitan escritor XP objetivo, referencias reales de
+progresión a estas versiones, eventos de evolución objetivo basados en ellas,
+publicación o activación del catálogo. No introducir campos frozen, published o
+equivalentes. A1.1 valida estructura; no acredita valores aprobados por Óscar,
+publicación o autorización funcional. S3 V1 sigue único escritor XP activo.
+
+**Fase 2 · Protección obligatoria antes del primer uso real de cualquier versión:**
+aprobar e implementar congelación transaccional, protección física de versión,
+niveles y épocas frente a modificaciones y eliminaciones, incluidas escrituras
+directas y operaciones concurrentes, y mecanismo verificable para acreditar la
+condición de versión utilizada. Una versión completa utilizada permanece inmutable
+junto con sus niveles/épocas; sus cambios requieren crear una nueva versión.
+
+La garantía y sus mecanismos **todavía no están implementados**. Triggers SQLite
+concretos y su política de implementación siguen sin aprobar; no se eligen por
+inferencia ni se simulan mediante booleanos o versiones textuales. Mecanismos
+de publicación, permisos y servicios de mantenimiento tampoco se deciden aquí.
 
 A3-CAT-EVENT-01 permanece intacta: evoluciones objetivo separadas de EvolutionEvent
 V1, con causalidad XP, perfil y época/versiones verificables, todos los cruces y
