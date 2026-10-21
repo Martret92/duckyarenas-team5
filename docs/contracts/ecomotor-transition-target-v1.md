@@ -368,6 +368,64 @@ referencia causal de uso siguen siendo necesarias. Sin escritor objetivo, evento
 objetivo, publicación, activación o migración de perfiles; Core/A3.5, Henry,
 conservación y valores oficiales permanecen pendientes. S3 V1 intacto.
 
+### A3-XP-PREVIEW-01 · Simulación interna de XP objetivo
+
+Aprobación interna Equipo 5 en 02C-2 del 21/10/2026; base 68b8587 tras #90.
+La congelación descrita en el corte anterior ya está integrada por #90; el
+simulador no la invoca ni modifica su estado.
+DAR3 conserva autoridad funcional. Implementación para revisión, sin autorización
+de uso real, publicación, activación o escritor objetivo.
+
+Se simula con catálogo persistido **preparatorio o congelado**. Entrada interna:
+preview_target_xp(catalog_version_id, *, using, xp_before, amount). PK técnica exacta
+positiva y alias configurado explícito; XP anterior entera no negativa y amount
+entero estrictamente positivo, excluyendo bool y conversiones implícitas. Obtener
+snapshot con validate_target_catalog_version y A1.1; delegar íntegramente cálculo
+a plan_target_xp_grant de A2.1, sin copiar reglas de niveles, épocas o puntos.
+
+Resultado TargetXPPreview, dataclass frozen/slots con catalog_version_id y plan
+TargetXPPlan. Toda progresión se consulta por plan.progression: versión textual,
+XP/niveles/épocas anteriores y finales, cruces e indicadores de elección. No datos
+duplicados ni octava época, selección automática, eventos o progreso persistente.
+El resultado es una observación informativa y no permanece vigente indefinidamente.
+
+Frontera exterior transaction.atomic(using=using), SQLite IMMEDIATE y timeout=5,
+con comprobación de conexión coherente con D-19 antes de la primera lectura.
+Transacciones exteriores activas y autocommit manual desactivado se rechazan con
+TargetXPPreviewTransactionError; un savepoint no inicia BEGIN IMMEDIATE. Sin BEGIN
+manual, select_for_update como bloqueo SQLite, settings nuevos o I/O externo.
+Solo lecturas y cálculo puro dentro de la transacción; salida del comando después
+de cerrarla. Puede bloquear temporalmente escritores. No congelación ni cambios
+de frozen_at, tampoco reparación o reintentos automáticos.
+
+Errores originales conservados: InvalidTargetCatalogError para PK/alias/catálogo,
+InvalidTargetXPError para XP anterior, InvalidTargetXPAmountError para importe,
+TargetCatalogVersion.DoesNotExist para versión ausente y DatabaseError para SQL,
+locks o timeout. Ninguno se transforma en snapshot vacío o plan favorable.
+
+Comando interno preview_target_xp: --catalog-version-id, --database, --xp-before
+y --amount son obligatorios. Adaptación mediante BaseCommand/CommandError;
+salida legible con PK, versión, XP, niveles, épocas, cruces y desbloqueo. Aviso:
+**SIMULACIÓN INTERNA — No se ha concedido XP real. El catálogo no queda autorizado ni activado por esta operación.**
+Sin fixtures automáticos, endpoints, publicación ni acciones administrativas.
+
+A3-CAT-USE-01A y A3-CAT-TRACE-01A se mencionan en el traspaso, pero su articulado
+adicional no está aportado: pendiente de detalle documental en 02C-2. Solo límites
+respaldados: no autorización de uso ni trazabilidad persistente real. No derivar
+permisos, tablas de uso, eventos o garantías nuevas de esos identificadores.
+Core/A3.5, Henry, configuración oficial y activación mantienen sus bloqueos.
+S3 V1, congelación y APIs A1/A2 permanecen intactos.
+
+Cobertura de implementación: 25 tests sintéticos de servicio/comando, delegación
+A1.1/A2.1, inmutabilidad, errores y ausencia de DML. Se comparan todas las tablas
+de la base aislada antes/después (con perfil, estadísticas e historial V1 presentes)
+y frozen_at en catálogos preparatorios/congelados. La consola se comprueba fuera
+de atomic. Concurrencia TransactionTestCase file-backed con conexiones distintas:
+modificación de nivel o época antes/después de la lectura y cambios conjuntos de
+umbrales sin mezclar estados, más timeout real y nueva simulación tras el fallo.
+Resultados reales de regresiones/suite en PR; no implican pruebas de activación.
+
+
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 
 Inventariar perfiles, XP, niveles, épocas, XPEvent/EvolutionEvent, estadísticas y
