@@ -60,7 +60,9 @@ precondiciones de una concesión nueva. No se crea aquí un registro ni backfill
 Conservar EvolutionStage y EvolutionEvent V1, sus identidades, referencias
 existentes y comportamientos actuales. Dirección aprobada:
 **catálogo objetivo separado, versionado e inmutable una vez utilizado**.
-Su esquema físico y la relación entre versiones y filas no están aprobados.
+El corte A3-CAT-01 no aprobaba esquema físico. A3-CAT-PHYS-01 concreta más abajo
+los tres modelos candidatos mínimos; implementación y protección de inmutabilidad
+siguen pendientes, sin modelos ni migraciones generados por esta documentación.
 TargetCatalogSnapshot A1.1 es un valor puro validado, no ese catálogo persistente
 ni permiso de publicación/producción.
 
@@ -88,7 +90,7 @@ Se conserva la identidad (profile, operation_key) de
 y las garantías [A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01),
 sin reinterpretar, renombrar o migrar silenciosamente etapas/eventos V1.
 
-**Diseño físico pendiente:** modelo concreto del catálogo, nombre/campos/claves/
+**Diseño físico pendiente de eventos:** nombre/campos/claves/
 restricciones de eventos objetivo, relaciones con perfiles, épocas/versiones y
 XPEvent, y consulta histórica conjunta. La separación conceptual no selecciona
 FKs, on_delete, índices o migraciones ni copia restricciones físicas V1.
@@ -98,6 +100,59 @@ integración con EvolutionItem/vestimentas requieren acuerdo con Henry.
 Conservación/supresión y relaciones siguen con Core/A3.5. Publicación oficial,
 umbrales XP autorizados, migración y activación coordinada permanecen pendientes.
 No existe aún servicio objetivo persistente por aprobar esta separación.
+
+### A3-CAT-PHYS-01 · Catálogo objetivo mínimo candidato
+
+Diseño mínimo aprobado internamente por Equipo 5 en 02C, registrado el 21/10/2026
+sobre develop `18b6bbd4174cc7325f4511906cb26827d2aafeff`. No requisito técnico literal
+DAR3 ni aprobación de Óscar/Core/Henry. **Tres modelos Django candidatos, todavía
+no implementados**; este registro no genera código, migración, datos o activación.
+
+| Modelo candidato | Campos conceptuales mínimos | Restricciones locales previstas |
+| --- | --- | --- |
+| TargetCatalogVersion | catalog_id, version | Unicidad (catalog_id, version). La identidad lógica del catálogo es distinta de la PK técnica que Django pueda necesitar; no se elige aquí su tipo. |
+| TargetLevelThreshold | Referencia a TargetCatalogVersion (catalog), level, minimum_xp | Unicidad (catalog, level); level entero positivo y minimum_xp no negativa. **Sin stat_points_awarded persistente.** |
+| TargetEpoch | Referencia a TargetCatalogVersion (catalog), code, name, ordinal, minimum_xp | Unicidad (catalog, ordinal) y (catalog, code); ordinal entre 1 y 7; code y name no vacíos; minimum_xp no negativa. |
+
+Son restricciones por fila o de unicidad local expresables en BD. No fijan tipos
+Django concretos, longitudes, PKs, nombres de constraints, índices adicionales o
+políticas on_delete. Códigos definitivos, nombres oficiales y umbrales XP autorizados
+no se crean con ejemplos. La mera existencia de una fila, versión textual o
+booleano no acredita publicación oficial, confianza ni autorización.
+
+La futura adaptación ORM → [A1.1](../../apps/ecomotor/target_catalog_validation.py)
+construirá explícitamente LevelDefinition(level, minimum_xp, stat_points_awarded=0)
+y StageDefinition(code, ordinal, minimum_xp). Aportará orden de códigos explícito
+y catalog_version de la versión seleccionada, sin elegir aquí una codificación
+de identidad/versiones ni una fuente autorizadora. El cero es un valor de adaptación
+a la estructura pura existente, **no un campo TargetLevelThreshold** ni un cambio
+de S1/V1. No se modifica el validador A1.1, que admite puntos heredados no nulos.
+
+El servicio futuro validará el catálogo completo mediante A1.1, además de las
+restricciones locales: exactamente siete épocas con ordinales consecutivos 1–7;
+niveles consecutivos desde 1, al menos ocho y posibilidad de posteriores;
+XP inicial cero en nivel/época iniciales; umbrales estrictamente crecientes en
+ambas colecciones; códigos únicos en el orden explícito; igualdad de umbrales
+nivel/época en posiciones 1–7. Nivel 8 tiene umbral propio, desbloquea elección
+y no constituye octava época. Estas invariantes entre filas no se acreditan con
+validar una fila o sus restricciones locales. name es metadato del modelo candidato,
+no un atributo nuevo en StageDefinition ni validado por A1.1. A1.1 prueba coherencia
+técnica, nunca publicación oficial o autorización.
+
+**Inmutabilidad aprobada, todavía no implementada:** una versión completa no puede
+modificarse después de utilizarse; cambios requieren una nueva versión. Su alcance
+comprende la versión y sus niveles/épocas, no solo un identificador textual.
+El mecanismo de protección y cómo acreditar su uso deben concretarse **antes de
+la implementación física**. No se eligen triggers, estados de publicación, flags,
+permisos o servicios de mantenimiento por inferencia.
+
+A3-CAT-EVENT-01 permanece intacta: evoluciones objetivo separadas de EvolutionEvent
+V1, con causalidad XP, perfil y época/versiones verificables, todos los cruces y
+replay sin duplicados conforme a A2-EVO-01. No se deciden relaciones físicas de
+eventos con este catálogo, XPEvent o perfiles ni consulta histórica conjunta.
+Core/A3.5 conserva supresión/conservación/on_delete; Henry, EvolutionItem y
+vestimentas siguen pendientes. Publicación, códigos/umbrales autorizados, migración
+de perfiles y activación coordinada no se desbloquean. S3 V1 sigue único escritor XP.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 

@@ -659,7 +659,7 @@ histórico de ocho y el diagrama conceptual 02C; ninguna tabla se añade aquí.
 | Necesidad conceptual A3 | Dirección aprobada / bloqueo físico |
 | --- | --- |
 | Política de progresión por perfil | Registro persistente unívoco asociado a UserProfileEcomotor, con procedencia y estado de transición separados. Campos Django, tipos, restricciones y relaciones definitivos pendientes; auditoría antes de clasificar existentes. No es UserPlayableState ni permiso de XP. |
-| Catálogo objetivo | Separado, versionado e inmutable una vez usado, conservando identidades/referencias EvolutionStage V1. No se aprueba nombre de modelo, campos, claves o migración; A1.1 solo valida snapshots puros. |
+| Catálogo objetivo | Separado de V1; A3-CAT-PHYS-01 concreta tres modelos candidatos mínimos descritos abajo. No tablas integradas ni migración realizada. Protección de inmutabilidad tras uso pendiente; A1.1 valida catálogo completo, no publicación/autorización. |
 | Nuevas evoluciones causales | A3-CAT-EVENT-01 decide eventos objetivo separados de EvolutionEvent V1. Causa XP verificable, perfil y época/versiones históricas requeridos conceptualmente; nombre/campos/claves/restricciones, relaciones con XPEvent/catálogo/perfiles y consulta conjunta pendientes. EvolutionEvent.stage sigue apuntando a EvolutionStage V1, sin reescritura ni migración implícita. |
 | PlayableOption histórico | La relación EvolutionStage de §14 es el diseño conceptual 02C anterior a esta precisión. Debe adaptarse al catálogo separado con integridad histórica; A3 no aprueba la solución física ni descarta la aprobación provisional ARQ-OP-02 de campos/restricciones. |
 | Procedencia de XP objetivo | Nuevas operaciones requieren procedencia persistente e inmutable; representación pendiente, sin añadir campos/tablas aquí. UNIQUE(profile, operation_key) se conserva entre versiones. |
@@ -688,6 +688,29 @@ No reasignar CharacterStats, borrar puntos disponibles o alterar XPEvent,
 EvolutionEvent, StatAllocationEvent y progresos existentes por inferencia.
 Core/P5 mantiene conservación, anonimización/eliminación y on_delete pendientes.
 No se resuelve con este apartado un nuevo esquema, migración o escritor objetivo.
+
+### 15.1. A3-CAT-PHYS-01 · Tres modelos candidatos de catálogo
+
+**Representación mínima documental, fuera del inventario de tablas integradas.**
+Aprobación interna en 02C; ningún modelo ORM, migración o dato creado aquí.
+
+| Modelo Django candidato | Contenido mínimo | Restricciones locales previstas |
+| --- | --- | --- |
+| TargetCatalogVersion | catalog_id lógico y version; distinguirlos de la PK técnica aún sin tipo elegido | Unicidad (catalog_id, version). Fila existente no acredita publicación. |
+| TargetLevelThreshold | Referencia catalog a la versión, level, minimum_xp; sin stat_points_awarded | Unicidad (catalog, level), nivel entero positivo, XP no negativa. |
+| TargetEpoch | Referencia catalog a la versión, code, name, ordinal, minimum_xp | Unicidad (catalog, ordinal) y (catalog, code); ordinal 1–7, código/nombre no vacíos y XP no negativa. |
+
+[Contrato central A3-CAT-PHYS-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
+detalla validación completa A1.1: siete épocas, niveles consecutivos desde 1 y
+al menos ocho, umbrales iniciales cero/crecientes y correspondencia 1–7. Nivel 8
+no añade época. Adaptación pura con stat_points_awarded=0, nunca campo persistente.
+Esas invariantes entre filas no se sustituyen por checks locales de BD.
+
+Versión completa utilizada inmutable; cambios requieren nueva versión. Protección
+no implementada y mecanismo pendiente antes de implementación física. Sin estados
+de publicación, triggers, permisos o políticas de mantenimiento elegidos. No se
+fijan tipos Django, longitudes, on_delete ni relaciones de eventos objetivo.
+A3-CAT-EVENT-01, V1, Henry/Core, publicación/umbrales y activación mantienen sus límites.
 
 ## 16. A3.3 · Política de progresión e historial conceptuales
 
