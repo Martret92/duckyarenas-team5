@@ -409,10 +409,12 @@ salida legible con PK, versión, XP, niveles, épocas, cruces y desbloqueo. Avis
 **SIMULACIÓN INTERNA — No se ha concedido XP real. El catálogo no queda autorizado ni activado por esta operación.**
 Sin fixtures automáticos, endpoints, publicación ni acciones administrativas.
 
-A3-CAT-USE-01A y A3-CAT-TRACE-01A se mencionan en el traspaso, pero su articulado
-adicional no está aportado: pendiente de detalle documental en 02C-2. Solo límites
-respaldados: no autorización de uso ni trazabilidad persistente real. No derivar
-permisos, tablas de uso, eventos o garantías nuevas de esos identificadores.
+En el corte de PR #91, A3-CAT-USE-01A y A3-CAT-TRACE-01A se mencionaban en el
+traspaso sin articulado adicional aportado; se registraron solo los límites
+respaldados: no autorización de uso ni trazabilidad persistente real. La
+conciliación posterior documenta abajo [USE-01A](#a3-cat-use-01a--condiciones-de-uso-autorizado-del-catálogo-objetivo)
+y [TRACE-01A](#a3-cat-trace-01a--procedencia-y-trazabilidad-causal-del-catálogo-objetivo).
+Se conserva PREVIEW-01: su resultado no autoriza ni genera registros de uso real.
 Core/A3.5, Henry, configuración oficial y activación mantienen sus bloqueos.
 S3 V1, congelación y APIs A1/A2 permanecen intactos.
 
@@ -425,6 +427,97 @@ modificación de nivel o época antes/después de la lectura y cambios conjuntos
 umbrales sin mezclar estados, más timeout real y nueva simulación tras el fallo.
 Resultados reales de regresiones/suite en PR; no implican pruebas de activación.
 
+
+### A3-CAT-USE-01A · Condiciones de uso autorizado del catálogo objetivo
+
+Aprobada internamente por Equipo 5 en **02C-2 el 21/10/2026**. Articulado conciliado
+sobre b60b59b tras #91; no nueva aprobación ni requisito técnico literal DAR3 o
+ratificación externa. **Contrato conceptual, sin implementación de autorización.**
+
+Para **cada nueva concesión XP objetivo**, las condiciones aprobadas son:
+
+1. Catálogo completo y coherente según A1.1, no solo filas localmente válidas.
+2. Versión congelada y protegida físicamente conforme a
+   [FREEZE-01](#a3-cat-freeze-01--congelación-del-catálogo-objetivo).
+3. Identidad confiable compuesta por alias de BD, PK técnica exacta y comprobación
+   de catalog_id y version; ni solo texto ni PK descontextualizada.
+4. frozen_at, PK y versión textual no prueban aprobación funcional.
+5. Una fuente confiable del servidor deberá acreditar contenido y aplicabilidad
+   de la configuración autorizada.
+6. El servidor resuelve la versión aplicable; el cliente no la selecciona como
+   autoridad ni convierte sus parámetros en aprobación.
+7. La falta de cualquiera de estas garantías rechaza la nueva concesión sin efectos.
+8. La autorización efectiva debe ser coherente con la transacción de escritura
+   D-19; no basta una observación previa desligada de esa operación.
+9. Antes de habilitar consumidores reales, verificar protección física instalada
+   y efectiva en la BD utilizada. **No se exige inspeccionar los nueve triggers
+   en cada concesión.** No se elige aquí un servicio concreto de verificación.
+10. Replay autorizado recupera la operación original sin exigir que su catálogo
+    histórico siga autorizado para nuevas concesiones.
+11. Identidad idempotente **(profile, operation_key)**, sin catálogo o versión,
+    conforme a [A2-IDEM-01](ecomotor-target-xp-v1.md#4-identidad-y-replay-entre-versiones--a2-idem-01).
+
+**Frontera de replay:** sigue requiriendo validación inicial de identidad, acceso
+e integridad del historial. No elimina controles de seguridad ni autoriza recuperar
+operaciones ajenas. No se recalculan resultados históricos desde el catálogo
+actual ni se sustituye la operación original por una concesión nueva. Un importe
+incompatible sigue siendo conflicto. Se conserva únicamente la evidencia realmente
+persistida, sin inventar snapshots ausentes, como dispone A2-IDEM-01.
+
+**A3-CAT-USE-01B pendiente, no implementada:** fuente física de aprobación funcional,
+mecanismos de publicación o selección, configuración autorizada y vinculación con
+valores de Óscar, integración de permisos/Core/futuros consumidores, servicios y
+diseño físico de autorización. No campos approved/published/active, tablas ni
+endpoints de autorización elegidos o implementados en este incremento.
+
+Las identidades y separación de [PHYS-01](#a3-cat-phys-01--catálogo-objetivo-mínimo-candidato)
+y [EVENT-01](#a3-cat-event-01--separación-de-eventos-objetivo) se conservan;
+[A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01)
+no se altera. [PREVIEW-01](#a3-xp-preview-01--simulación-interna-de-xp-objetivo)
+puede simular un catálogo preparatorio: ello no satisface ni evita estas puertas
+para concesiones reales. S3 V1 sigue único escritor activo.
+
+### A3-CAT-TRACE-01A · Procedencia y trazabilidad causal del catálogo objetivo
+
+Aprobada internamente por Equipo 5 en **02C-2 el 21/10/2026**; conciliación sobre
+b60b59b tras #91. No requisito técnico literal DAR3 ni ratificación de Óscar,
+Core/Equipo 0 o Henry. **Garantías conceptuales, sin diseño físico de procedencia aprobado.**
+
+1. Toda nueva concesión XP objetivo conserva procedencia persistente, inequívoca
+   e inmutable de la versión usada, **incluso sin cambio de época**.
+2. La procedencia identifica una versión exacta, no solo su nombre textual.
+3. Cada evolución objetivo mantiene causa XP verificable, perfil correspondiente
+   y correspondencia histórica de época y catálogo.
+4. Si una concesión cruza varias épocas, registrar cada cruce sin omisiones ni
+   duplicados, según [A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01).
+5. Nivel 8 no crea octava época ni evolución ficticia; solo desbloquea elección.
+6. XP, procedencia, progreso y eventos causales objetivo se confirman o revierten
+   conjuntamente bajo D-19. No se afirma atomicidad entre sistemas o BD distintos.
+7. Replay conserva operación y procedencia originales, sin sumar XP, duplicar
+   evoluciones o sustituir catálogo histórico por otro actual; conserva la frontera
+   de identidad/acceso/integridad de USE-01A y la identidad de A2-IDEM-01.
+8. Ausencia de procedencia objetivo **no demuestra V1** ni autoriza reconstruir
+   datos inexistentes o atribuir versiones históricas por inferencia.
+9. XPEvent y EvolutionEvent V1 conservan sus modelos, registros y semántica histórica.
+
+**Preferencia conceptual aprobada:** registro de procedencia separado para
+concesiones objetivo. No es aprobación de una tabla física, modelo o relación.
+Se conserva [A3-CAT-EVENT-01](#a3-cat-event-01--separación-de-eventos-objetivo):
+los futuros eventos de evolución objetivo son separados de EvolutionEvent V1,
+aunque el diseño físico no esté fijado. FREEZE-01 protege contenido marcado, no
+crea por sí mismo esta procedencia; PREVIEW-01 no crea concesiones ni registros.
+
+**A3-CAT-TRACE-01B pendiente, no implementada:** modelo y tabla de procedencia,
+campos y tipos, referencias/FKs al catálogo, perfil y causa XP, constraints,
+unicidades e índices; on_delete, privacidad, conservación y ciclo de vida con
+Core/A3.5; eventos físicos de evolución objetivo; consulta histórica conjunta
+V1/objetivo; integración transaccional y tests de idempotencia/concurrencia.
+No se eligen estas características por inferencia ni se generan eventos retroactivos.
+
+Estas decisiones no habilitan escritor objetivo, publicación, autorización real,
+migración de perfiles o activación. Se mantienen los acuerdos pendientes de
+Óscar (configuración funcional), Core/Equipo 0/A3.5 y Henry, así como los demás
+contratos necesarios. S3 V1 permanece como único escritor XP activo.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 

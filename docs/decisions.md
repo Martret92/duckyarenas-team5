@@ -1752,11 +1752,14 @@ exclusivamente informativos: sin perfiles, eventos, elecciones o efectos de nego
 No congela, publica, autoriza ni genera trazabilidad persistente de uso real.
 S3 V1 permanece único escritor XP activo.
 
-El traspaso menciona A3-CAT-USE-01A y A3-CAT-TRACE-01A, identificadores sin articulado
-aportado en los documentos revisados. Solo se registran los límites suministrados:
-la simulación no acredita autorización de uso ni genera trazabilidad persistente
-real. Su detalle documental adicional sigue pendiente de 02C-2; no se infieren
-obligaciones, esquemas, permisos o mecanismos nuevos a partir de sus nombres.
+En el corte documental de PR #91, el traspaso mencionaba A3-CAT-USE-01A y
+A3-CAT-TRACE-01A sin aportar su articulado en los documentos revisados. Se
+registraron correctamente solo los límites suministrados: la simulación no acredita
+autorización de uso ni genera trazabilidad persistente real. La conciliación
+posterior completa ese articulado aprobado internamente en 02C-2 mediante
+[USE-01A](#a3-cat-use-01a--condiciones-de-uso-autorizado-del-catálogo-objetivo--21102026)
+y [TRACE-01A](#a3-cat-trace-01a--procedencia-y-trazabilidad-causal-del-catálogo-objetivo--21102026),
+sin cambiar el alcance ni las garantías de PREVIEW-01.
 
 Concreción técnica menor del simulador: preview_target_xp(catalog_version_id, *,
 using, xp_before, amount), resultado compuesto por PK y TargetXPPlan; frontera
@@ -1766,5 +1769,65 @@ salida de consola dentro del bloqueo y muestra un aviso inequívoco de simulaci�
 No son contratos definitivos de autorización o consumidores externos.
 
 [Contrato, API y límites](contracts/ecomotor-transition-target-v1.md#a3-xp-preview-01--simulación-interna-de-xp-objetivo).
-Implementación para revisión en PR, no integrada hasta merge autorizado. Su merge
-no autoriza activación ni uso real.
+En el corte de #91 se entregó implementación para revisión; después quedó
+integrada mediante #91 en b60b59b. Su merge no autoriza activación ni uso real.
+
+
+## A3-CAT-USE-01A · Condiciones de uso autorizado del catálogo objetivo · 21/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C-2 el 21/10/2026**. Conciliación
+sobre develop `b60b59b72cae54ddda748bc2a79728eadcffc52e`, tras #91. No requisito
+técnico literal DAR3 ni ratificación externa de Óscar, Core/Equipo 0 o Henry.
+
+Toda nueva concesión XP objetivo exige catálogo completo/coherente A1.1 y versión
+congelada con protección física FREEZE-01 efectiva. Identidad confiable: alias de
+BD, PK técnica exacta y comprobación de catalog_id/version. Ni fecha, PK o versión
+textual acreditan aprobación funcional. Una fuente confiable del servidor deberá
+acreditar contenido y aplicabilidad de la configuración autorizada; el servidor
+resuelve la versión, no el cliente como autoridad. Si falta alguna garantía,
+rechazar sin efectos; autorización efectiva coherente con la escritura D-19.
+Antes de habilitar consumidores reales se verifica protección instalada/efectiva
+en la BD utilizada, sin exigir inspeccionar los nueve triggers en cada concesión.
+
+Replay autorizado conserva la operación original sin exigir que su catálogo siga
+autorizado para nuevas concesiones; no recalcula con el catálogo actual. Mantiene
+validación inicial de identidad, acceso e integridad histórica: no elimina controles
+de seguridad ni permite recuperar operaciones ajenas. Importe incompatible sigue
+siendo conflicto. Identidad idempotente **(profile, operation_key)** sin catálogo
+ni versión, conforme a A2-IDEM-01; A2-EVO-01 y EVENT/PHYS/FREEZE/PREVIEW se conservan.
+
+[Invariantes completas y fronteras](contracts/ecomotor-transition-target-v1.md#a3-cat-use-01a--condiciones-de-uso-autorizado-del-catálogo-objetivo).
+**USE-01B pendiente:** fuente física de aprobación funcional, publicación/selección,
+configuración autorizada y vínculo con valores de Óscar, permisos/Core/consumidores,
+servicios y diseño físico de autorización. Sin approved/published/active, tablas o
+endpoints nuevos. Decisión conceptual documentada, sin implementación ni activación.
+
+## A3-CAT-TRACE-01A · Procedencia y trazabilidad causal del catálogo objetivo · 21/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C-2 el 21/10/2026**. Conciliación
+sobre develop `b60b59b72cae54ddda748bc2a79728eadcffc52e`; no requisito técnico
+literal DAR3 ni ratificación externa de Óscar, Core/Equipo 0 o Henry.
+
+Cada nueva concesión XP objetivo conserva procedencia persistente, inequívoca e
+inmutable de la versión exacta utilizada, incluso sin cambio de época; un nombre
+textual no basta. Cada evolución objetivo mantiene causa XP verificable, perfil y
+correspondencia histórica de época/catálogo. Todos los cruces se registran sin
+omisiones ni duplicados; nivel 8 no añade octava época ni evolución ficticia.
+XP, procedencia, progreso y eventos causales objetivo se confirman o revierten
+juntos bajo D-19. Replay conserva operación/procedencia originales, sin XP o
+evoluciones adicionales ni sustitución de catálogo histórico por uno actual.
+
+Ausencia de procedencia objetivo no demuestra pertenencia V1 ni permite reconstruir
+datos inexistentes. XPEvent/EvolutionEvent V1 conservan modelos, registros y
+semántica histórica. A3-CAT-EVENT-01 mantiene evoluciones objetivo separadas de
+EvolutionEvent V1. **Preferencia conceptual aprobada:** registro de procedencia
+separado para concesiones objetivo; no aprueba tabla, modelo o relación concreta.
+
+[Garantías y diseño pendiente](contracts/ecomotor-transition-target-v1.md#a3-cat-trace-01a--procedencia-y-trazabilidad-causal-del-catálogo-objetivo).
+**TRACE-01B pendiente:** modelo/tabla, campos/tipos, referencias/FKs a catálogo,
+perfil y causa XP, constraints/unicidades/índices, on_delete, privacidad,
+conservación/ciclo de vida, eventos físicos objetivo, consulta conjunta V1/objetivo
+e integración transaccional y tests de idempotencia/concurrencia. Sin diseño físico
+inferido. El simulador no crea concesiones ni procedencia. S3 V1 sigue único
+escritor XP activo; activación pendiente de fuentes oficiales, Core/A3.5, Henry
+y los demás contratos necesarios.
