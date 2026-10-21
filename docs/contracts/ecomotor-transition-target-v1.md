@@ -519,6 +519,87 @@ migración de perfiles o activación. Se mantienen los acuerdos pendientes de
 Óscar (configuración funcional), Core/Equipo 0/A3.5 y Henry, así como los demás
 contratos necesarios. S3 V1 permanece como único escritor XP activo.
 
+### A3-CAT-AUDIT-01 · Auditoría técnica del catálogo objetivo
+
+Aprobación interna Equipo 5 en **02C-2 el 21/10/2026**, base aabf646 tras #92.
+Implementación para revisión; no autorización funcional ni habilitación de XP.
+Sin dependencias externas nuevas para implementar este diagnóstico técnico.
+
+API interna: audit_target_catalog(catalog_version_id, *, using). Exige PK entera
+exacta positiva representable y alias configurado explícito. InvalidTargetCatalogAuditInputError
+rechaza entradas inválidas; TargetCatalogAuditTransactionError indica frontera
+incompatible. SQLite IMMEDIATE/timeout=5 y transacción exterior atomic antes de
+consultar registro de migraciones, esquema, triggers o catálogo. Rechaza atomic
+exterior y autocommit manual incompatible; no BEGIN manual ni select_for_update.
+Solo SELECT y PRAGMA de introspección de lectura dentro del bloqueo; sin DML,
+DDL, probes de escritura, reparaciones, logs persistentes o salida de consola.
+
+Comprobaciones en la misma fotografía:
+
+- Existencia no destructiva de django_migrations y de sus columnas app/name;
+  registro ecomotor.0007_target_catalog_freeze. Sin usar ejecutores/recorders que
+  puedan crear esa tabla. Registro aplicado no acredita protección instalada.
+- Tres tablas objetivo, columnas requeridas (incluida frozen_at), tipos declarados,
+  nulabilidad, PK simple y referencias catálogo de los hijos, derivados de los
+  modelos existentes. Si faltan o son incompatibles, no se invoca el ORM/lector
+  sobre esa estructura. No es un verificador general de todos los constraints o
+  del DDL de la BD; su conformidad se refiere a las comprobaciones enumeradas.
+- Nueve triggers y tabla de destino, consultados en sqlite_master. Referencia
+  única importada mediante import_module de la lista TRIGGERS de
+  0007_target_catalog_freeze, sin copiar las reglas. Comparación de SQL completo:
+  solo se toleran espacios extremos y un delimitador final; **no se normalizan
+  operadores, literales, comentarios, espacios internos, condiciones OLD/NEW,
+  nombres, referencias a frozen_at o cuerpos RAISE(ABORT)**. Diferencias incluso
+  de formato interno se rechazan conservadoramente. Triggers adicionales sobre
+  esas tablas tampoco obtienen conformidad: podrían interferir en la protección.
+- Con estructura suficiente, identidad exacta de la fila, catalog_id/version y
+  frozen_at (texto observado SQLite), más validación completa por
+  validate_target_catalog_version/A1.1, sin duplicar reglas de umbrales. Fecha
+  observada ilegible o identidad no representable producen CATALOG_INVALID.
+  Ninguna marca demuestra que la congelación pasó por el servicio autorizado.
+
+TargetCatalogAuditResult (frozen/slots) conserva using, catalog_version_id,
+catalog_id, version, frozen_at, state y tupla defensiva checks. Estados:
+PREPARATORY (marca NULL, **no congelada**), FROZEN (marca presente) y UNOBSERVED
+(estructura insuficiente/versión ausente). Cada CatalogAuditCheck tiene name,
+subject e issue_code opcional; passed indica comprobación superada. issues reúne
+incumplimientos; technically_conformant exige comprobaciones completas favorables
+y estado observado. Todos son datos informativos inmutables, no certificados.
+
+Códigos: MIGRATION_0007_MISSING, SCHEMA_INCOMPLETE, TRIGGER_MISSING,
+TRIGGER_SQL_MISMATCH, CATALOG_INVALID y CATALOG_NOT_FOUND. Se conservan incidencias
+independientes y detalles de objeto/columna cuando corresponda. Un preparatorio
+válido con protección correcta puede tener conformidad técnica observada, pero
+no cumple por ello los requisitos de concesión real. Un congelado inválido según
+A1.1 nunca obtiene conformidad global. Errores de conexión/permisos, SQL inesperado,
+lock y timeout se propagan como DatabaseError: no se transforman en incumplimiento
+funcional ni éxito. No capturas generales de errores de programación ni retries.
+
+Comando audit_target_catalog, argumentos obligatorios --catalog-version-id y
+--database. BaseCommand/CommandError; imprime identidad, estado, comprobaciones
+e incumplimientos fuera de atomic. Entrada inválida: código 2. Diagnóstico
+completado con incumplimientos: código 2; fallo operativo/frontera incompatible:
+código 3 sin resumen favorable; éxito: código 0 y mensaje exacto:
+**CONFORMIDAD TÉCNICA OBSERVADA — No constituye autorización funcional ni habilita concesiones XP.**
+No instala fixtures, catálogos, triggers ni otras configuraciones.
+
+Tests sintéticos en SQLite temporal: esquema 0006 sin frozen_at, registro ausente,
+tablas/columnas/tipos/PK/FKs incompletos, nueve definiciones correctas y ausentes o
+alteradas, estados preparatorio/congelado e invalidez A1.1; inmutabilidad, ausencia
+de DML/DDL, delegación al lector y códigos 0/2/3. Concurrencia TransactionTestCase
+file-backed y conexiones independientes: cambios de catálogo y retirada de trigger
+antes/después de obtener la transacción, timeout real y nueva auditoría tras fallo.
+Solo las fixtures temporales manipulan esquema y triggers; nunca la BD habitual.
+Resultados reales de ejecuciones en PR; sin modelos o migraciones nuevos.
+
+**Límites:** observación puntual; puede bloquear escritores mientras dura y perder
+vigencia después. No prueba autorización funcional, publicación, procedencia
+persistente ni seguridad frente a administradores que alteren el esquema. No
+sustituye [USE-01A](#a3-cat-use-01a--condiciones-de-uso-autorizado-del-catálogo-objetivo)
+ni completa USE-01B/TRACE-01B. No llama a congelación, PREVIEW-01, S3 o Rewards ni
+conecta un escritor XP objetivo. Óscar (configuración oficial), Core/A3.5, Henry y
+consumidores mantienen sus pendientes. S3 V1 sigue único escritor XP activo.
+
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 
 Inventariar perfiles, XP, niveles, épocas, XPEvent/EvolutionEvent, estadísticas y
