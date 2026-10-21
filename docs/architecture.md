@@ -927,6 +927,11 @@ Lector interno específico como dirección para comprobaciones en transacción;
 no invocar A3.2 anidado ni quitar sus protecciones. Actualidad no es suficiencia:
 cobertura por transición y dependencias fuera de A3.1/A3.2 aún por especificar.
 
+**Actualización A3.5 · 21/10/2026:** [cinco preferencias internas E5](contracts/ecomotor-classification-core-boundary-v1.md#6-a35--respuestas-preferidas-del-equipo-5--21102026)
+listas para contrastar con Core, sin respuestas externas confirmadas ni permiso
+físico. Preguntas originales intactas; [bloqueos compartidos](pending-decisions.md#30-a35--preferencias-internas-y-acuerdos-externos-pendientes)
+conservados, sin cambios de idempotencia/replay o activación.
+
 [Consulta Core/P5](contracts/ecomotor-classification-core-boundary-v1.md) no ratificada:
 identidad/operador, autorización, ciclo de vida, retención y privacidad. Tipos,
 longitudes, nulidad, colaciones, FKs, constraints y on_delete quedan abiertos;

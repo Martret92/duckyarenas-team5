@@ -1,5 +1,10 @@
 # A3.4 · Frontera de clasificación con Core/P5 · Propuesta de consulta v1
 
+**Actualización A3.5 · 21/10/2026:** [§6](#6-a35--respuestas-preferidas-del-equipo-5--21102026)
+registra propuestas aprobadas internamente por Equipo 5, pendientes de compatibilidad/
+confirmación Core. Las cinco preguntas originales de §2 se conservan sin cambios;
+no se han recibido por esta actualización respuestas externas ni autorización física.
+
 ## 1. Estado y autoridad
 
 **Propuesta para consulta, no contrato ratificado.** Documento del Equipo 5
@@ -73,3 +78,41 @@ requerirán autorización posterior; la secuencia no es calendario aprobado.
 No se modifica Core/User, autenticación, A3.1/A3.2, reglas puras A3.3, S3 V1,
 Duckies, Bank/Shop o Rewards. No clasificar perfiles, reparar historia o activar
 XP objetivo por esta consulta. No se ejecutan tests Django en esta PR documental.
+
+## 6. A3.5 · Respuestas preferidas del Equipo 5 · 21/10/2026
+
+**Cada propuesta siguiente está aprobada internamente por Equipo 5 en 02C,
+pendiente de compatibilidad/confirmación Core.** Registro comunicado por Jaime,
+sobre develop `3f140da0f53596fff429553641ac81b5f82ce6de`. DAR3 conserva autoridad
+funcional; estas direcciones técnicas no son requisitos literales de DAR3 ni
+respuestas confirmadas por Óscar/Core. No se afirma nueva consulta externa.
+[Registro interno](../decisions.md#a35--propuestas-internas-para-core--21102026)
+y [bloqueos residuales](../pending-decisions.md#30-a35--preferencias-internas-y-acuerdos-externos-pendientes).
+
+| Pregunta original (§2) | Respuesta preferida, aprobada internamente por Equipo 5 | Pendiente de compatibilidad/confirmación Core |
+| --- | --- | --- |
+| CORE-A3.3-IDENTITY | Diferenciar perfil afectado y operador ejecutor. Obtener operador de contexto confiable del servidor y preservar atribución histórica original. | Representación canónica, identidad de procesos internos y participación exacta del operador en comparación histórica. No elegir campos o FK ni modificar la API pura. |
+| CORE-A3.3-AUTH | Clasificaciones iniciales, transiciones, bloqueos, recuperaciones y replays solo para administradores o procesos internos expresamente autorizados según cada operación. Conocer operation_key no autoriza replay; ser administrador tampoco sustituye la autorización exigible a esa operación. | Permisos concretos, alcance por perfil/alias e integración con autenticación Core. No habilitar operaciones reales sin acuerdos. |
+| CORE-A3.3-LIFECYCLE | Evitar destrucción silenciosa de evidencia histórica necesaria por bajas/eliminaciones. Diseñar conjuntamente con Core conservación, anonimización o supresión que proceda. | Ciclo de vida y tratamiento definitivo de relaciones/evidencia. Sin aprobar CASCADE, PROTECT, SET_NULL u otro on_delete. |
+| CORE-A3.3-RETENTION | No implementar limpieza automática de eventos de clasificación en primera versión; mantener evidencia suficiente mientras sea legítimamente necesaria. | Plazos y tratamiento definitivo con Core; sin plazos ficticios, conservación perpetua o impedimento a políticas de eliminación. La dirección interna no elige una retención física definitiva. |
+| CORE-A3.3-PRIVACY | Acceso mínimo según identidad/autorización; no exponer claves/referencias sensibles innecesarias; proteger atribución histórica. Reconocer explícitamente si anonimización/supresión impide reconstrucción o replay exactos. | Integración con mecanismos Core, privacidad y representación histórica; sin inferir igualdad del contenido cuando falte evidencia ni fabricar historia. |
+
+### Alcance y garantías conservadas
+
+Las cinco preguntas de §2 siguen abiertas a Core; ahora existe una solución
+preferida interna para contrastarlas, no un acuerdo compartido cerrado. §3 mantiene
+alternativas sin elección y §4 conserva las puertas de modelos/migraciones y servicio.
+Operador canónico, permisos, eliminación, conservación, privacidad, on_delete y
+representación física requieren acuerdos antes de implementar lo condicionado.
+
+A3.3, A3.4 y A3.6 mantienen sus garantías: identidad por perfil/operation_key,
+comparación del contenido original, evento histórico primero, replay autorizado
+sin mutar estado actual ni revalidar elegibilidad nueva, y confirmación conjunta
+bajo D-19 para operaciones nuevas con evidencia vigente/suficiente. No se cambia
+la participación del operador en comparación por inferencia. Si una supresión
+hace imposible reconstruir/comparar, reconocer el límite; no prometer replay exacto.
+
+No se aprueban modelos, migraciones, campos, FKs, backfill, clasificación real o
+activación objetivo. S3 V1 sigue único escritor XP activo. Sin código, nuevos tests
+Django ejecutados o cambios de Core, Henry u otros equipos. Próximo paso: contrastar
+las preferencias con Core mediante coordinación autorizada; no contacto automático.

@@ -577,6 +577,9 @@ Se mantiene ATR-OBJ-01: ATK, DEF, VEL, INT, LOG y CUACK, sin reinterpretar V1.
 [contrato candidato](contracts/ecomotor-classification-persistence-v1.md) y
 [consulta Core/P5 no ratificada](contracts/ecomotor-classification-core-boundary-v1.md).
 Reglas puras #66 integradas; políticas/eventos persistentes y servicio no implementados.
+Actualización del 21/10: [A3.5, §30](#30-a35--preferencias-internas-y-acuerdos-externos-pendientes)
+registra preferencias internas para las cinco preguntas; las puertas externas
+siguientes permanecen abiertas, sin aprobación de esquema o permisos.
 
 **Dirección aprobada:** modelos candidatos E5/apps.ecomotor, política por perfil
 con revisión positiva y evento inmutable reconstruible; identidad por operación,
@@ -838,3 +841,28 @@ APIs A4.1/A4.2.1/A4.3.1 intactas; A4.3.1 integrada por #78. Pendientes P1–P8,
 Core/Henry y demás contratos no se cierran en bloque. Sin nuevos valores oficiales,
 fuentes publicadas, código, modelos, migraciones o tests ejecutados aquí. V1 sin
 reinterpretación; S3 único escritor activo, sin A2 ni Ecomotor objetivo activados.
+
+## 30. A3.5 · Preferencias internas y acuerdos externos pendientes
+
+[Decisión interna del 21/10/2026](decisions.md#a35--propuestas-internas-para-core--21102026)
+y [cinco respuestas preferidas](contracts/ecomotor-classification-core-boundary-v1.md#6-a35--respuestas-preferidas-del-equipo-5--21102026),
+sobre 3f140da. Resuelto: Equipo 5 tiene una dirección preferida para identidad,
+autorización, ciclo de vida, retención y privacidad. **Pendiente de compatibilidad/
+confirmación Core**, sin respuestas externas atribuidas ni contrato ratificado.
+Las notas previas de consulta intacta conservan su corte histórico: las preguntas
+originales siguen sin cambios, ahora acompañadas de nuestra postura interna.
+
+| Acuerdo compartido pendiente | Bloqueo que permanece |
+| --- | --- |
+| IDENTITY | Operador canónico, procesos y participación exacta en comparación histórica; condiciona representación persistente y atribución/replay del servicio. |
+| AUTH | Permisos concretos por operación/perfil/alias e integración Core; no habilitar inicial/transición/bloqueo/recuperación/replay por rol genérico o clave conocida. Si exige representación nueva, revisar esquema. |
+| LIFECYCLE | Eliminación, anonimización/supresión y relaciones/on_delete definitivos con Core; bloquea modelos/migraciones y garantías históricas. Ninguna política física elegida. |
+| RETENTION | Plazos y tratamiento legítimo de evidencia; ausencia de limpieza automática V1 no significa conservación perpetua ni bloqueo de eliminación Core. Condiciona persistencia/replay. |
+| PRIVACY | Mecanismos Core, acceso mínimo, conservación de atribución y delimitación de reconstrucción/replay tras supresión; sin exponer claves/referencias sensibles o asumir evidencia inexistente. |
+
+Representación física, datos/relaciones y puertas A3.4 siguen pendientes. A3.6
+mantiene cobertura suficiente y evidencia vigente exigibles; no se alteran A3.3,
+D-19, idempotencia o replay. No clasificación real, modelos, migraciones, campos,
+FKs, backfill o activación autorizados por estas preferencias. S3 V1 intacto y único
+escritor XP. Coordinación Core/P5 y consumidores/Henry pendiente; no cierre global
+de P1–P8 ni otros contratos. Sin tests Django ejecutados en este incremento documental.
