@@ -716,7 +716,9 @@ Versión completa utilizada inmutable; cambios requieren nueva versión. Protecc
 no implementada: [A3-CAT-IMMUT-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-immut-01--protección-progresiva-del-catálogo-objetivo)
 permite persistencia preparatoria sin uso real y exige protección antes del primer
 uso real; sustituye únicamente la condición temporal PHYS-01 anterior. Sin estados
-de publicación, triggers, permisos o políticas de mantenimiento elegidos. No se
+de publicación ni permisos elegidos. Precisión posterior: [A3-CAT-FREEZE-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-freeze-01--congelación-del-catálogo-objetivo)
+aprueba conceptualmente frozen_at y triggers SQLite, todavía sin implementación
+ni SQL definitivo; no añade tablas o campos físicos en esta PR. No se
 añaden relaciones de eventos objetivo. PROTECT es protección local padre-hijo,
 no congelación histórica. full_clean valida longitudes ORM; SQLite no impone
 max_length ni los checks vacíos rechazan todo texto de solo espacios. El lector
