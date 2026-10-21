@@ -825,21 +825,25 @@ modelos o tests; S3 V1 intacto y único escritor, sin A2 ni sistema objetivo act
 y [contrato central](contracts/ecomotor-target-stats-resolution-v1.md), del
 21/10/2026 sobre 529e6a0. Cerrado arquitectónicamente: fuente frente a estructura,
 autoridad de entradas servidor, comprobaciones de resolución, conservación/vigencia
-diferenciada por operación y rechazo sin efectos. No resolutor implementado.
+diferenciada por operación y rechazo sin efectos. El corte #80 no implementaba
+resolutor. A4.4.1 está ahora implementada para revisión en PR desde 706181d:
+frontera pública siempre cerrada, no resolución autorizada efectiva ni integración
+antes del merge autorizado.
 
 | Pendiente | Propietario y alcance |
 | --- | --- |
 | Fuentes y publicación | Parte A/A3 con propietarios: fuente real y autoridad de publicación acordadas; alternativa física/versionado/aplicabilidad pendientes. Datos en servidor no equivalen a oficiales; fixtures sintéticos solo pruebas. |
 | Parámetros | Óscar: bases oficiales, presupuesto definitivo y posibles reglas adicionales. 45 por opción sigue provisional interno según §28; no publicación ni permiso por utilizarlo, sin defaults. |
 | Ciclo de definiciones | Retiradas/sustituidas/incompatibles/antiguas: concretar reglas por operación. Redistribución conserva bases snapshot; no recálculo silencioso de confirmadas. |
-| Resolución y confirmación | Firma/API y mecanismo confiable pendientes; frontera transaccional definitiva con servicios persistentes/A3/Core. Resolver/preparar no confirma ni crea configuración persistente. |
-| A4.4.1 candidato | Frontera cerrada por defecto, rechazar sin fuentes y probar proveedores sintéticos sin convertirlos en oficiales; revisar garantía útil en 01B antes de implementar. No clases/certificados/adaptadores físicos elegidos. |
+| Resolución y confirmación | Mecanismo confiable y futura API de resolución autorizada efectiva pendientes; frontera transaccional definitiva con servicios persistentes/A3/Core. La API mínima cerrada A4.4.1 no confirma ni crea configuración persistente. |
+| A4.4.1 · implementada para revisión | resolve_target_stats_configuration(*, option_code, increments) siempre lanza TargetStatsSourceUnavailableError, sin inspeccionar datos, I/O, BD o preparación. Ensayo privado separado con datos sintéticos explícitos: delegación A4.3.1 y comparación exacta de opción, solo propuesta sin autoridad. Sin proveedores de producción, flags de confianza o fallback a demo/45/bases cero. [Concreción](contracts/ecomotor-target-stats-resolution-v1.md#9-a441--frontera-mínima-y-ensayo-estructural). |
 | A3/Core/Henry/consumidores | Catálogo objetivo/procedencia/compatibilidad/migración; identidad/permisos/ciclo de vida/conservación A3.5; opción frente a Ducky físico; contrato de lectura. Ninguno ratificado por este incremento. |
-| Pruebas futuras | Fuente no configurada, opción desconocida, catálogo/versiones incompatibles, definición ausente/ambigua/sustituida/retirada, presupuesto ausente/inválido, sustitución cliente, proveedor fallido, reutilización A4.3.1, cero efectos, independencia, snapshots intactos y regresión V1. Permisos reales/concurrencia/transacciones/idempotencia/persistencia en servicios futuros. |
+| Pruebas A4.4.1 y pendientes | 25 tests sintéticos de rechazo, firma, composición privada A4.3.1, contradicciones estructurales, presupuesto, errores, inmutabilidad, independencia y aislamiento. Ejecuciones reales en PR. Fuentes/proveedores reales, publicación/pertenencia/ambigüedad/retirada/vigencia, elegibilidad, permisos Core, concurrencia/transacciones/idempotencia/persistencia siguen pendientes; no se afirma haberlos probado. |
 
 APIs A4.1/A4.2.1/A4.3.1 intactas; A4.3.1 integrada por #78. Pendientes P1–P8,
 Core/Henry y demás contratos no se cierran en bloque. Sin nuevos valores oficiales,
-fuentes publicadas, código, modelos, migraciones o tests ejecutados aquí. V1 sin
+fuentes publicadas, modelos o migraciones. El corte documental no ejecutaba tests;
+la PR A4.4.1 registra únicamente sus verificaciones técnicas reales. V1 sin
 reinterpretación; S3 único escritor activo, sin A2 ni Ecomotor objetivo activados.
 
 ## 30. A3.5 · Preferencias internas y acuerdos externos pendientes

@@ -18,7 +18,8 @@ y [pendientes](../pending-decisions.md#29-a44--resolución-confiable-y-dependenc
 | [A4.2.1](ecomotor-target-stats-config-v1.md#9-a421--api-pura-concretada-en-01b) · #76 | Definición estructural validada; comparación opcional de catálogo, sin certificar confianza. |
 | [A4.3.1](ecomotor-target-stats-preparation-v1.md#7-a431--api-pura-concretada-en-01b) · #78 | Preparador puro integrado; propuesta completa, no confirmación autorizada. |
 | #79 · A4-PRESUPUESTO-PROV-01 | 45 puntos provisionales por opción, por decisión interna; no presupuesto definitivo ni autorización de una configuración real. |
-| A4.4 / A4.4.1 | Arquitectura documentada; resolutor no implementado. A4.4.1 es candidato sujeto a revisión previa en 01B. |
+| A4.4 · #80 | Arquitectura conceptual integrada; antecedentes conservados. |
+| A4.4.1 | Frontera mínima implementada para revisión en PR sobre 706181d1201ffc677f10230aca321c472d222190; entrada real siempre cerrada, sin fuente autorizada integrada. No integrada hasta merge autorizado. |
 
 Se mantienen las APIs validate_target_stats(bases, increments, *, budget),
 validate_target_stats_definition(...) y prepare_target_stats_configuration(*,
@@ -54,8 +55,9 @@ La petición conceptual podrá incluir opción solicitada y seis incrementos.
 Identidad del jugador, permisos, contexto confiable, definición, bases, presupuesto
 y versiones aplicables deben obtenerse o verificarse en servidor y fuentes autorizadas.
 El cliente no impone bases, presupuesto, versión publicada arbitraria, pertenencia
-a catálogo ni autorización mediante booleanos. No se fijan firmas Python, endpoints,
-credenciales, certificados, tokens o mecanismos definitivos de autenticación.
+a catálogo ni autorización mediante booleanos. El corte conceptual no fijaba firmas
+Python; §9 concreta ahora únicamente la API interna mínima cerrada de A4.4.1.
+No endpoints, credenciales, certificados, tokens o autenticación definitiva.
 
 ## 5. Resolución · A4.4-RESOLVE-01
 
@@ -110,15 +112,64 @@ ATK/DEF/VEL/INT/LOG/CUACK y sus garantías puras se conservan. V1 no se reinterp
 log_stat sigue Logística y spe Especial / Especialización; S3 V1 único escritor
 XP activo. No activar A2, Ecomotor objetivo, integraciones económicas o gráficas.
 
-## 9. A4.4.1 candidato y dependencias
+## 9. A4.4.1 · Frontera mínima y ensayo estructural
 
-**Frontera de resolución cerrada por defecto**, candidata, no implementación
-automáticamente aprobada. Posible mínimo: separar contrato de resolución de
-validadores; rechazar sin fuentes autorizadas configuradas; pruebas con proveedores
-sintéticos identificados que no se confundan con fuentes oficiales; ausencia de
-efectos persistentes. En 01B deberá comprobarse antes de implementar que aporta
-una garantía útil sin simular autorización. Sin clases, adaptadores físicos,
-certificados o API definitiva elegidos por este documento.
+El corte conceptual de #80 presentaba A4.4.1 como candidata sujeta a revisión.
+El traspaso posterior de 02C aprueba esta concreción interna mínima, sin reabrir
+las cinco decisiones A4.4 ni aprobar fuentes o reglas externas.
+
+```python
+resolve_target_stats_configuration(
+    *, option_code: str, increments,
+) -> PreparedTargetStatsConfiguration
+```
+
+En este incremento **siempre lanza TargetStatsSourceUnavailableError**: no hay
+fuente confiable integrada/aprobada y nunca devuelve una configuración resuelta.
+La anotación de retorno no acredita una salida disponible actualmente. No inspecciona
+opción ni incrementos para fingir validación de catálogo, publicación o elegibilidad;
+también ante entradas mal formadas prevalece la indisponibilidad de fuente.
+Los dos argumentos son obligatorios y keyword-only. No acepta proveedor/source,
+definición/bases, presupuesto/versiones, flags de confianza, jugador, rol o permisos;
+argumentos ajenos producen TypeError de firma, no configuran una fuente.
+Sin I/O, BD, mutación, configuración global o llamadas a preparación. No fallback
+a la demo, sus etiquetas, 45 puntos o bases cero. No proveedor por defecto ni
+registro inyectable de proveedores. La entrada real no llama al ensayo privado.
+
+Ensayo privado, separado y sin autoridad:
+
+```python
+_prepare_untrusted_resolution_candidate(
+    *, option_code: str, definition: TargetStatsDefinitionSnapshot,
+    increments, budget: int,
+    expected_catalog: TargetStatsCatalogContext | None = None,
+) -> PreparedTargetStatsConfiguration
+```
+
+Exige opción str exacto no vacía ni compuesta solo de espacios; no normaliza
+su identidad ni impone máximos físicos. Delega definición, incrementos, presupuesto
+y contexto explícitos en prepare_target_stats_configuration de A4.3.1, que revalida
+con A4.2.1 y calcula mediante A4.1. Compara la opción solicitada exactamente con
+la definición revalidada de la propuesta. Solo devuelve PreparedTargetStatsConfiguration,
+con sus copias defensivas y garantías inmutables; no certificado o dataclass de
+confianza. Versiones de catálogo/definición distintas son válidas; expected_catalog
+sigue siendo comparación estructural, sin autoridad. Presupuesto obligatorio,
+sin 45 predeterminado; omitirlo produce TypeError y un valor inválido conserva
+el error numérico A4.1. No se replica validación de atributos ni aritmética.
+
+Jerarquía mínima, derivada de ValueError:
+
+- TargetStatsResolutionError: base.
+- TargetStatsSourceUnavailableError: rechazo incondicional de la entrada real.
+- InvalidTargetStatsResolutionRequestError: identidad solicitada inválida en el ensayo.
+- TargetStatsResolutionOptionMismatchError: opción solicitada distinta de la definición validada.
+
+Errores de A4.1/A4.2.1/A4.3.1 se propagan sin envolver ni perder significado.
+Mensajes propios sin identidades opacas, datos privados o detalles de proveedores.
+Sin errores HTTP, autenticación o publicación simulada. Un ensayo exitoso nunca
+autoriza ni confirma una configuración real.
+
+### Dependencias abiertas
 
 | Propietario | Pendiente |
 | --- | --- |
@@ -128,17 +179,23 @@ certificados o API definitiva elegidos por este documento.
 | Henry | Relación opción jugable / Ducky físico. |
 | Consumidores | Contrato de lectura de estadísticas desde Ecomotor. |
 
-Ninguna dependencia queda cerrada por esta arquitectura. Resolutor real y servicios
-persistentes continúan sin implementación; no se crean fuentes oficiales ni permisos.
+Ninguna dependencia queda cerrada. La resolución autorizada efectiva y los servicios
+persistentes siguen sin implementar; solo existe la frontera que rechaza. No se
+crean fuentes oficiales, proveedores sintéticos de producción ni permisos.
 
-## 10. Pruebas futuras
+## 10. Pruebas de A4.4.1 y pruebas pendientes
 
-Fuente autorizada no configurada; opción desconocida; catálogo/versión incompatibles;
-definición ausente/ambigua/sustituida/retirada; presupuesto ausente/inválido; intento
-de sustituir bases/presupuesto desde cliente; fallo de proveedor; reutilización
-coherente A4.3.1; ausencia de escrituras/efectos; independencia de configuraciones;
-no reinterpretación de snapshots históricos; regresión V1.
+25 tests sintéticos unittest.TestCase cubren rechazo incondicional, firma cerrada,
+ausencia de preparación durante rechazo, datos hostiles no inspeccionados, errores
+seguros, composición privada con A4.3.1, opción y contexto discordantes, definición
+ausente/manipulada, incrementos/duplicados, presupuesto obligatorio/inválido/excedido,
+gasto completo/parcial/cero, errores originales, inmutabilidad, copias, entradas
+intactas, determinismo/independencia y ejecución aislada sin Django/demo/servicios.
+Ejecuciones de tests nuevos mediante Django y unittest, regresiones y suite completa
+registradas con resultados reales en la PR de implementación; no atribuidas a #80.
 
-Permisos reales, concurrencia, transacciones, idempotencia y persistencia se probarán
-en servicios integrados posteriores. No se crean ni ejecutan tests Django en esta
-PR exclusivamente documental.
+Siguen pendientes pruebas de fuentes reales, fallo de proveedor aprobado,
+publicación/pertenencia, ambigüedad, retirada/sustitución/vigencia y elegibilidad.
+Sin fuente aprobada no pueden clasificarse esos casos en la entrada real: todos
+se rechazan por indisponibilidad, sin fingir garantías. Permisos Core, concurrencia,
+transacciones, idempotencia y persistencia se probarán en servicios futuros.

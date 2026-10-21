@@ -1583,3 +1583,26 @@ selección real, autorización, sesión de jugador o activación del objetivo.
 Sin cambios V1, Core, Duckies, modelos/migraciones, configuración global o
 INITIAL_CONFIGURATION. Bases oficiales, resolución confiable y Core/A3.5 siguen
 pendientes. [Contrato local](contracts/ecomotor-target-stats-demo-v1.md).
+
+## A4.4.1 · Concreción interna de frontera cerrada · 21/10/2026
+
+Traspaso aprobado internamente en 02C, comunicado por Jaime; concreta el mínimo
+de A4.4, sin reabrir ni duplicar SOURCE/INPUT/RESOLVE/LIFECYCLE/FAIL-01. Implementación
+en PR para revisión sobre 706181d; no integrada antes del merge autorizado.
+
+resolve_target_stats_configuration(*, option_code, increments) siempre rechaza
+con TargetStatsSourceUnavailableError mientras no exista fuente confiable integrada
+y aprobada. Ningún proveedor inyectable, flag, presupuesto, bases o versión del
+llamador suplanta esa autoridad. Sin I/O, BD o llamada al preparador en el rechazo.
+
+Ensayo privado _prepare_untrusted_resolution_candidate, no conectado a la entrada
+real: recibe definición/incrementos/presupuesto sintéticos explícitos, delega en
+A4.3.1 y compara la opción exacta; devuelve solo propuesta pura sin autorización.
+Sin proveedores ficticios de producción, nuevas dataclasses de confianza, fallback
+a A4-DEMO-01, presupuesto 45 o bases cero. Errores originales preservados.
+
+DAR3 mantiene autoridad funcional; no aprobación adicional de Óscar/Core/Henry.
+Fuente real, publicación/vigencia/elegibilidad, parámetros oficiales, Core/A3.5,
+Henry, consumidores y confirmación persistente siguen pendientes. APIs anteriores,
+demo y S3 V1 intactos; sin migraciones, persistencia o activación.
+[API, errores y límites](contracts/ecomotor-target-stats-resolution-v1.md#9-a441--frontera-mínima-y-ensayo-estructural).
