@@ -660,7 +660,7 @@ histórico de ocho y el diagrama conceptual 02C; ninguna tabla se añade aquí.
 | --- | --- |
 | Política de progresión por perfil | Registro persistente unívoco asociado a UserProfileEcomotor, con procedencia y estado de transición separados. Campos Django, tipos, restricciones y relaciones definitivos pendientes; auditoría antes de clasificar existentes. No es UserPlayableState ni permiso de XP. |
 | Catálogo objetivo | Separado, versionado e inmutable una vez usado, conservando identidades/referencias EvolutionStage V1. No se aprueba nombre de modelo, campos, claves o migración; A1.1 solo valida snapshots puros. |
-| Nuevas evoluciones causales | EvolutionEvent.stage apunta físicamente a EvolutionStage V1. Cómo referenciar nuevas épocas sin perder causalidad/historia es bloqueo obligatorio; no escoger otra FK o reescribir eventos por inferencia. |
+| Nuevas evoluciones causales | A3-CAT-EVENT-01 decide eventos objetivo separados de EvolutionEvent V1. Causa XP verificable, perfil y época/versiones históricas requeridos conceptualmente; nombre/campos/claves/restricciones, relaciones con XPEvent/catálogo/perfiles y consulta conjunta pendientes. EvolutionEvent.stage sigue apuntando a EvolutionStage V1, sin reescritura ni migración implícita. |
 | PlayableOption histórico | La relación EvolutionStage de §14 es el diseño conceptual 02C anterior a esta precisión. Debe adaptarse al catálogo separado con integridad histórica; A3 no aprueba la solución física ni descarta la aprobación provisional ARQ-OP-02 de campos/restricciones. |
 | Procedencia de XP objetivo | Nuevas operaciones requieren procedencia persistente e inmutable; representación pendiente, sin añadir campos/tablas aquí. UNIQUE(profile, operation_key) se conserva entre versiones. |
 
@@ -669,6 +669,11 @@ no guarda los atributos históricos originales de la etapa. No completar histori
 con catálogos actuales ni renombrar filas V1 para representar épocas objetivo.
 Tres cortes: nueve épocas DAR3, siete etapas V1 terminadas en Actual y siete
 épocas objetivo terminadas en Siglo XX; nivel 8 no añade época.
+
+[A3-CAT-EVENT-01](../contracts/ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo)
+es una separación conceptual interna: no añade entidades al inventario ORM ni
+diagramas físicos. Conservación/supresión/on_delete con Core/A3.5, integración
+EvolutionItem/vestimentas con Henry, publicación/umbrales y activación pendientes.
 
 **Dependencia física externa existente:** en [Duckies](../../apps/duckies/models.py),
 EvolutionItem.stage es OneToOne a EvolutionStage con PROTECT. Sus

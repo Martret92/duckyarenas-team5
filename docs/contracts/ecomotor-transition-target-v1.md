@@ -57,7 +57,8 @@ precondiciones de una concesión nueva. No se crea aquí un registro ni backfill
 
 ## 3. Catálogos e integridad histórica · A3-CAT-01
 
-Conservar identidades y referencias EvolutionStage V1. Dirección aprobada:
+Conservar EvolutionStage y EvolutionEvent V1, sus identidades, referencias
+existentes y comportamientos actuales. Dirección aprobada:
 **catálogo objetivo separado, versionado e inmutable una vez utilizado**.
 Su esquema físico y la relación entre versiones y filas no están aprobados.
 TargetCatalogSnapshot A1.1 es un valor puro validado, no ese catálogo persistente
@@ -69,12 +70,34 @@ Renacentista, Revolución Industrial y Siglo XX. Nivel 8 abre elección, no épo
 adicional; niveles posteriores continúan. No renombrar filas V1 para reinterpretar
 EvolutionEvent ni cambiar sus atributos históricos por inferencia.
 
-**Bloqueo físico obligatorio:** EvolutionEvent.stage hoy refiere a EvolutionStage;
-debe diseñarse cómo identificar nuevas épocas y conservar causalidad/referencias
-sin mezclar identidades históricas. PlayableOption histórico fue diseñado en 02C
-con relación conceptual EvolutionStage; su adaptación al catálogo separado requiere
-validación adicional. No se elige una FK alternativa, tabla, relación polimórfica,
-reescritura de eventos o migración para resolverlo en esta documentación.
+### A3-CAT-EVENT-01 · Separación de eventos objetivo
+
+Decisión técnica interna aprobada por Equipo 5 en 02C, registrada el 21/10/2026;
+no requisito literal de DAR3 ni confirmación de Óscar, Core o Henry.
+Los eventos de evolución objetivo serán **separados de la tabla EvolutionEvent V1**,
+en correspondencia con el catálogo objetivo separado, versionado e inmutable tras
+uso. Cada evolución objetivo conservará causa XP verificable, correspondencia de
+perfil e identidad histórica de época y versiones. No reconstruir esa identidad
+con un catálogo vigente distinto del utilizado.
+
+Una concesión que cruce varias épocas registrará un evento objetivo por cada época
+cruzada, sin omisiones ni duplicados. Replay de una concesión existente no concede
+XP ni crea evoluciones adicionales. Nivel 8 desbloquea elección, no octava época.
+Se conserva la identidad (profile, operation_key) de
+[A2-IDEM-01](ecomotor-target-xp-v1.md#4-identidad-y-replay-entre-versiones--a2-idem-01)
+y las garantías [A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01),
+sin reinterpretar, renombrar o migrar silenciosamente etapas/eventos V1.
+
+**Diseño físico pendiente:** modelo concreto del catálogo, nombre/campos/claves/
+restricciones de eventos objetivo, relaciones con perfiles, épocas/versiones y
+XPEvent, y consulta histórica conjunta. La separación conceptual no selecciona
+FKs, on_delete, índices o migraciones ni copia restricciones físicas V1.
+EvolutionEvent.stage sigue refiriendo a EvolutionStage V1. PlayableOption histórico
+fue diseñado en 02C con relación conceptual EvolutionStage; su adaptación y la
+integración con EvolutionItem/vestimentas requieren acuerdo con Henry.
+Conservación/supresión y relaciones siguen con Core/A3.5. Publicación oficial,
+umbrales XP autorizados, migración y activación coordinada permanecen pendientes.
+No existe aún servicio objetivo persistente por aprobar esta separación.
 
 ## 4. Inventario, diagnóstico y migración · A3-MIG-01
 

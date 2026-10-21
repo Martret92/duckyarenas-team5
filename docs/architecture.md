@@ -746,8 +746,13 @@ auditoría A3.1 **no están implementados**.
 La dirección objetivo separa procedencia del perfil y transición en un registro
 persistente unívoco por perfil; no clasifica por nivel/época/stats o ausencia de
 estado jugable. Clasificar no autoriza XP. Preserva EvolutionStage V1 y propone
-catálogo objetivo separado/versionado/inmutable tras uso. EvolutionEvent y la
-relación histórica de PlayableOption requieren resolver identidad/causalidad física:
+catálogo objetivo separado/versionado/inmutable tras uso. La precisión interna
+[A3-CAT-EVENT-01](contracts/ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo)
+separa también los eventos de evolución objetivo de EvolutionEvent V1, conservando
+causa XP verificable, perfil y época/versiones históricas. Todas las épocas cruzadas
+se registran sin duplicados; replay no añade XP/evoluciones y nivel 8 no añade época.
+V1 permanece intacto. Diseño físico, relación con XPEvent, consulta conjunta y
+adaptación histórica de PlayableOption siguen pendientes:
 [frontera de esquema pendiente](erd/ecomotor.md#15-a3--frontera-física-de-la-transición).
 No renombrar filas V1 para simular las épocas nuevas.
 

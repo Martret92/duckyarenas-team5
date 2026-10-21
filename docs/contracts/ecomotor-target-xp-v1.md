@@ -83,16 +83,24 @@ anterior/posterior, nivel, época y todas las transiciones cruzadas. Comprobar q
 el estado anterior calculado corresponde al perfil según su clasificación activa.
 No invocar el cálculo V1 para obtener puntos ni sumar los puntos de sus definiciones.
 
-La futura escritura crea exactamente un XPEvent para la concesión y un
-EvolutionEvent por cada época realmente cruzada, con el mismo perfil y la causa
-XP correspondiente. Ninguna evolución inicial ficticia, transiciones omitidas,
+La futura escritura crea exactamente un XPEvent para la concesión y un evento
+de evolución objetivo por cada época realmente cruzada, **separado de la tabla
+EvolutionEvent V1**, con el mismo perfil y la causa XP verificable correspondiente.
+Esta precisión posterior de
+[A3-CAT-EVENT-01](ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo)
+conserva la obligación conceptual A2-EVO-01 de registrar todos los cruces, sin
+imponer el modelo V1 al objetivo. Identidad histórica de época/versiones y catálogo
+objetivo separado se preservan; relaciones físicas con XPEvent/perfil/catálogo
+siguen pendientes. Ninguna evolución inicial ficticia, transiciones omitidas,
 duplicadas o de otra causa. Nivel 8 desbloquea elección, **no crea octava época**;
 Siglo XX sigue siendo última época histórica aunque aumente el nivel.
 
 Validar correspondencia estable de códigos/filas y ausencia de transiciones ya
-registradas incompatibles; rechazar incoherencia sin reparar. A3 debe asegurar
-identidad histórica de catálogos/migración: no renombrar etapas referenciadas para
-reinterpretar EvolutionEvent ni suponer que unicidad perfil/etapa resuelve legacy.
+registradas incompatibles; rechazar incoherencia sin reparar. Replay de concesión
+existente no añade XP ni eventos de evolución. A3 debe asegurar identidad histórica
+de catálogos/migración: no renombrar etapas referenciadas para reinterpretar
+EvolutionEvent V1 ni trasladar automáticamente su unicidad perfil/etapa al esquema
+objetivo pendiente. Se mantiene conceptualmente la prevención de duplicados.
 
 ## 6. Resultados sin puntos por nivel · A2-RES-01
 
@@ -143,14 +151,18 @@ Orden conceptual de recuperación y futura escritura:
 5. Si no existe, resolver la clasificación persistente y el escritor autorizado
    conforme a A3.
 6. Solo entonces validar catálogos/progreso y confirmar conjuntamente los efectos
-   de la concesión nueva sobre perfil, XPEvent y EvolutionEvent.
+   de la concesión nueva sobre perfil, XPEvent y eventos de evolución objetivo
+   separados de EvolutionEvent V1, conforme a §5. Sus relaciones físicas no se
+   aprueban mediante este orden conceptual.
 
 La autorización inicial sigue siendo obligatoria también para el replay; este
 orden no crea una ruta alternativa sin autorización, no modifica S3 V1 ni
 implementa un dispatcher o resuelve el esquema pendiente de A3.
 
 SQLite BEGIN IMMEDIATE, timeout cinco segundos, unicidad persistente perfil/clave
-y perfil/etapa como defensas complementarias; no depender de select_for_update
+y prevención de evoluciones duplicadas como defensas complementarias; las claves
+y restricciones físicas objetivo siguen pendientes, sin copiar automáticamente
+UNIQUE(profile, stage) de EvolutionEvent V1. No depender de select_for_update
 como bloqueo de fila. Todo confirma o revierte conjuntamente, sin dobles premios
 por concurrencia entre rutas/versiones. Timeout/fallo produce rollback; retry
 explícito en nueva transacción con la misma identidad. Sin I/O externo o retries

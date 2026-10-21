@@ -452,11 +452,16 @@ auditoría sin migración automática; escritor único y preferencia de corte gl
 replay histórico primero y resultados sin puntos solo para nuevas concesiones
 objetivo. La implementación y sus puertas siguen abiertas:
 
+Precisión posterior [A3-CAT-EVENT-01](contracts/ecomotor-transition-target-v1.md#a3-cat-event-01--separación-de-eventos-objetivo):
+separación conceptual de eventos objetivo respecto a EvolutionEvent V1 decidida
+internamente en 02C. V1 intacto; no diseño físico ni activación aprobados.
+
 | Bloqueo / siguiente validación | Responsable y límite |
 | --- | --- |
 | Clasificación física | Parte A con Core/P5: campos/tipos/constraints del registro de política, identidad/procedencia y transición persistentes; auditoría previa de existentes. No inferir clasificación ni autorización por nivel/época/stats/estado ausente. |
-| Catálogo objetivo físico | Parte A: diseño separado, versionado e inmutable tras uso; catálogos/valores autorizados. No renombrar EvolutionStage V1 ni tratar snapshot A1.1 como permiso de producción. |
-| Causalidad y PlayableOption | Parte A/Core con Henry: identificar nuevas épocas en EvolutionEvent y adaptar relación histórica de PlayableOption sin perder integridad/historia. Bloqueo físico explícito; sin FK, tabla o migración seleccionada. |
+| Catálogo objetivo físico | Parte A: modelo concreto del catálogo separado/versionado/inmutable tras uso pendiente; publicación oficial y umbrales XP autorizados pendientes. No renombrar EvolutionStage V1 ni tratar snapshot A1.1 como permiso de producción. |
+| Eventos objetivo y consulta conjunta | Parte A/Core: nombre, campos, claves, restricciones y relaciones con XPEvent/perfiles/catálogo/épocas/versiones pendientes, así como consulta de historia conjunta. Separados de EvolutionEvent V1 según A3-CAT-EVENT-01; no FK, on_delete, índice, tabla o migración elegidos ni copia automática de restricciones V1. |
+| Causalidad y PlayableOption | Parte A/Core con Henry: causa XP verificable y correspondencia histórica de perfil/época/versiones en eventos objetivo separados, sin alterar referencias V1. Adaptación PlayableOption, EvolutionItem y vestimentas pendiente con Henry. |
 | Procedencia de concesiones nuevas | Parte A/Core: representación persistente inmutable sin cambiar identidad (profile, operation_key). No atribuir versión retrospectiva a XPEvent V1 ni reconstruir snapshots ausentes. |
 | Datos y transformación | Equipo 5: inventario de perfiles/XP/niveles/épocas/eventos/stats/especializaciones/Duckies, diagnósticos compatibles/decisión/incoherentes y política autorizada. Diagnóstico no permite migrar ni recalcular/reasignar por inferencia. |
 | Core/P5 | Conservación, anonimización/eliminación y on_delete de registros/relaciones; retención y legacy siguen pendientes, sin copiar políticas provisionales o aprobar modelos. |
