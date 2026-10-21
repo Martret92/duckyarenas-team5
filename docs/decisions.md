@@ -1736,3 +1736,35 @@ verificable a la versión usada. frozen_at no basta. Sin tablas de uso ficticias
 eventos objetivo, publicación o activación; S3 V1 sigue único escritor XP activo.
 Implementación, pruebas de concurrencia y acuerdos Core/A3.5/Henry/consumidores,
 valores oficiales y permisos continúan pendientes. Este registro solo documenta.
+
+
+## A3-XP-PREVIEW-01 · Simulación interna de XP objetivo · 21/10/2026
+
+Aprobada **internamente por Equipo 5 en 02C-2 el 21/10/2026**, sobre develop
+`68b85872f4f53dc575130622f507da5a55656048`, tras #90. No requisito técnico literal
+DAR3 ni ratificación de Óscar/Core/Henry. Simular no concede XP ni activa el objetivo.
+
+Se permite simular progresión sobre una versión persistida, preparatoria o
+congelada, identificada por PK técnica y alias explícitos. Una lectura coherente
+bajo SQLite/D-19 obtiene un catálogo completo validado por A1.1; el cálculo se
+delega al planificador puro A2.1. El resultado inmutable conserva PK y plan,
+exclusivamente informativos: sin perfiles, eventos, elecciones o efectos de negocio.
+No congela, publica, autoriza ni genera trazabilidad persistente de uso real.
+S3 V1 permanece único escritor XP activo.
+
+El traspaso menciona A3-CAT-USE-01A y A3-CAT-TRACE-01A, identificadores sin articulado
+aportado en los documentos revisados. Solo se registran los límites suministrados:
+la simulación no acredita autorización de uso ni genera trazabilidad persistente
+real. Su detalle documental adicional sigue pendiente de 02C-2; no se infieren
+obligaciones, esquemas, permisos o mecanismos nuevos a partir de sus nombres.
+
+Concreción técnica menor del simulador: preview_target_xp(catalog_version_id, *,
+using, xp_before, amount), resultado compuesto por PK y TargetXPPlan; frontera
+exterior atomic IMMEDIATE y rechazo explícito de transacciones ya activas. El
+comando preview_target_xp solicita cuatro argumentos obligatorios, calcula sin
+salida de consola dentro del bloqueo y muestra un aviso inequívoco de simulación.
+No son contratos definitivos de autorización o consumidores externos.
+
+[Contrato, API y límites](contracts/ecomotor-transition-target-v1.md#a3-xp-preview-01--simulación-interna-de-xp-objetivo).
+Implementación para revisión en PR, no integrada hasta merge autorizado. Su merge
+no autoriza activación ni uso real.
