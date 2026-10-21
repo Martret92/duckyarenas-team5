@@ -128,6 +128,13 @@ class ShopPurchaseTests(TestCase):
             1,
         )
 
+        inventory = InventoryItem.objects.get(
+            ducky=self.ducky,
+            item=self.attack,
+            item_level=self.attack_level,
+        )
+        self.assertEqual(inventory.quantity, self.offer.included_quantity)
+
     def test_reusing_key_with_different_quantity_conflicts(self):
         purchase_item(
             self.user,
