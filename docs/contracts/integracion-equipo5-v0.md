@@ -1,6 +1,6 @@
 > **Lectura vigente · conciliación 20/10/2026:** §0.2 registra aclaraciones
 > funcionales de Óscar confirmadas por Jaime. Las matrices DOC-2/DOC-5 siguientes
-> conservan su corte histórico, sin prevalecer sobre esas aclaraciones ni cerrar
+> conservan su corte histórico; §0.3 añade precisiones posteriores sin cerrar
 > contratos técnicos. Documento candidato, sin cambio de firmas o implementación.
 
 > **Estado al 16/10/2026.** H01–H08 son interfaces candidatas y base documental interna de trabajo, no APIs aprobadas ni implementadas. D-20/D-21 están ratificados por Jaime, Henry y Fernando. R-05/R-08 tienen conformidad conceptual Jaime–Henry, sin ratificación física global. R-12 permite avanzar con la inicialización local de Ecomotor (S2-A1/S2-A2 intactas); el alta global, identidad y permisos siguen pendientes de Core. Las firmas siguientes son ejemplos, no autorización de ORM, migraciones ni transacciones compartidas.
@@ -134,6 +134,25 @@ sus dependencias. No se ratifican R1–R8/T1–T8 como contratos externos por es
 | Juegos → Duckies     | Crear `consume_item()` para validar y descontar objetos utilizados en partidas.                          | Evita consumos duplicados, controla cantidades y registra el historial de uso.                               | Henry implementa; equipos de juegos integran.        |
 
 **En las siguientes soluciones propuestas para cada contrato que queda por resolver para el equipo 5. Los códigos que se muestran en cada solución son solo ejemplos de lo que debería implementar el miembro al que le corresponda.**
+
+## 0.3. Precisiones posteriores · Presupuesto, recursos y membresías
+
+Registro del 21/10/2026 comunicado por Jaime en 02C tras revisar aclaraciones de
+Óscar del 20/10, sin afirmar nueva consulta directa del documento compartido.
+[Decisiones y autoridad](../decisions.md#doc-aclaraciones-2010--presupuesto-vestimentas-y-membresías--21102026)
+y [pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).
+Las matrices anteriores conservan su corte histórico; se aplica esta precisión posterior.
+
+| Ámbito | Precisión y límite |
+| --- | --- |
+| Presupuesto · decisión interna | A4-PRESUPUESTO-PROV-01 adopta 45 puntos iniciales provisionales por opción, iguales e independientes; gasto completo/parcial/cero. No saldo global ni cifra de Óscar/DAR3; las notas previas donde era ilustrativo son antecedentes. Revisable; bases y reglas adicionales pendientes. Sin defaults/API nueva o autorización por usar 45. Cambios futuros de presupuesto persistido exigen política expresa de versionado y tratamiento, sin recálculo silencioso. |
+| Vestimentas · aclaración y recursos | Óscar confirmó imagen completa por época; imágenes definitivas aún no entregadas al Equipo 5 según información actual de 02C. Los materiales Classroom previos no acreditan esa entrega. Dependencia gráfica, sin detener evolución/stats puras; integración visual no completada por esta evidencia. Henry conserva avatar/apariencia. Uso vigente durante progresión y anteriores desbloqueadas tras especialización, sin ampliar reglas de adquisición/equipamiento. |
+| Membresías · funcional frente a implementación | User funcional es acceso visual previo a entrar; distinto del modelo User estándar Django utilizado en el repositorio. Free/Plus/Pro están confirmadas funcionalmente pero no implementadas aquí como niveles de membresía. Disponer del User Django no implementa las cuatro categorías. Core debe acordar representación, asignación/cambios, permisos y acceso. |
+| Training y economía | Permanece discrepancia 2 XP Free / 5 XP Plus-Pro frente a igualdad de XP por misma actividad elegible confirmada por Óscar. Training/E5/Core deben conciliarla. DuckyCoins adicionales por pago contempladas sin cantidades/fórmulas aprobadas; sin nuevas reglas ni suscripciones/auth/monedas implementadas. |
+
+El contrato sigue candidato. No nuevas firmas, rutas gráficas, archivos oficiales,
+modelos o relaciones físicas. A4.1/A4.2.1/A4.3.1 y S3 V1 no cambian; sin activación
+A2 o del Ecomotor objetivo. A4.4 se documentará por separado.
 
 ## Contrato 1. Ecomotor → Duckies
 
