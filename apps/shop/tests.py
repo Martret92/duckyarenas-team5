@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.bank.models import Transaction, TransactionType, Wallet
@@ -202,6 +203,38 @@ class ShopPurchaseTests(TestCase):
             purchase_item(self.user, offer.code, operation_key="historical-order")
 
         self.assertEqual(Wallet.objects.get(user=self.user).available_balance, 100)
+
+    def test_specialization_items_cannot_be_offered_or_purchased(self):
+        with patch.object(Item, "SPECIALIZATION", "SPECIALIZATION", create=True):
+            specialization = Item.objects.create(
+                code="specialization-cyber",
+                name="Cyber specialization",
+                category=Item.SPECIALIZATION,
+                consumable=False,
+                is_active=True,
+            )
+            offer = ShopItem.objects.create(
+                code="specialization-cyber-sku",
+                item=specialization,
+                name="Cyber specialization",
+                price_coins=10,
+            )
+
+            with self.assertRaises(ValidationError):
+                offer.full_clean()
+
+            with self.assertRaises(InvalidProductConfiguration):
+                purchase_item(
+                    self.user,
+                    offer.code,
+                    operation_key="specialization-order",
+                )
+
+            self.assertEqual(
+                Wallet.objects.get(user=self.user).available_balance,
+                100,
+            )
+            self.assertFalse(Purchase.objects.filter(shop_item=offer).exists())
 
     def test_invalid_item_level_for_another_item_is_rejected(self):
         other = Item.objects.create(

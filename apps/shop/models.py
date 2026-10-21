@@ -54,6 +54,18 @@ class ShopItem(models.Model):
         category = self.item.category
         if category == Item.HISTORICAL:
             raise ValidationError({"item": "Historical items are not sold in Shop V1."})
+
+        supported_categories = (
+            Item.COSMETIC,
+            Item.ATTACK,
+            Item.DEFENSE,
+            Item.HINT,
+        )
+        if category not in supported_categories:
+            raise ValidationError(
+                {"item": "This item category is not supported by Shop V1."}
+            )
+
         if category in (Item.ATTACK, Item.DEFENSE) and not self.item_level_id:
             raise ValidationError({
                 "item_level": "Attack and defense offers require an item level."
