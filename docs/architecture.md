@@ -1089,3 +1089,41 @@ ni borrado. La validación usa una copia desechable poblada con el código previ
 replay API/HTTP y reapertura, además de instalación limpia y regresiones del runner
 de dos fases. No cambia reglas ni responsabilidades de los Pasos 2–4; mantiene
 pendientes todos los acuerdos productivos y no afecta a la demo #94.
+
+## REW-MULTI-01 · Ampliación Rewards y Bank prevista
+
+Decisión interna 02C-2 del **23/10/2026**, en fase exclusivamente documental para
+revisión 01B-2. El laboratorio consolidado de los Pasos 1–4 se conserva. Se prevé
+una actividad de **5 DuckyCoins ficticias** acreditadas mediante la API existente
+`apps.bank.services.credit_coins()`; no se crean modelos Wallet/Transaction
+alternativos ni se atribuye aprobación externa de Fernando o Core.
+
+User/Wallet serán propios de cada partida ficticia, sin datos personales ni login,
+aprovisionados transaccionalmente solo cuando sean necesarios. La sesión conserva
+la autorización local de acceso; no se aceptan IDs de usuario/cuenta ni importes
+del cliente como autoridad. Partidas antiguas pueden seguir sin usuario vinculado.
+
+Bank usa implícitamente **default**. Rewards debe poseer el único atomic exterior
+IMMEDIATE/5 segundos sobre el default protegido de
+`instance/target_persistent_demo.sqlite3`; el atomic interno Bank es un savepoint,
+sin commit independiente. Crédito, ledger, evento Rewards y comprobación causal
+se confirman o revierten conjuntamente. Replay usa las causas/snapshots originales
+sin volver a llamar a credit_coins; saldo histórico no equivale al saldo actual.
+
+La futura migración 0004 extenderá la app de demo sin modificar Bank ni 0001–0003.
+El [contrato REW-MULTI-01](contracts/ecomotor-target-demo-rewards-bank-v1.md)
+propone los campos nullable compatibles, causas XP/Bank excluyentes, clave causal
+versionada y snapshots V2 para nuevas recompensas, conservando V1 exacto.
+Esas concreciones físicas están para revisión, no implementadas. La regla de
+5 monedas no habilita automáticamente recompensas combinadas XP + monedas.
+
+Condición previa de implementación: nuevo fixture temporal file-backed donde
+Rewards y Bank usen realmente default, con identidad nativa de conexión comprobada,
+una sola transacción exterior, concurrencia y rollback demostrables y restauración
+íntegra de configuración/conexiones. El actual persistent_fixture no basta y no se
+debilita el backend ni el runner de dos fases para salvar esa diferencia.
+
+Las exclusiones XP-only del Paso 4 describen su corte histórico, no se reescriben.
+La ampliación sigue pendiente de implementación y no altera demo #94, V1/S3,
+Duckies, Shop, Core o contratos propietarios Bank. No cierra F2-A productivo,
+USE-01B/TRACE-01B ni integración global; DAR3 conserva autoridad funcional.
