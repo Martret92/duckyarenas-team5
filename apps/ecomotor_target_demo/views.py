@@ -16,8 +16,11 @@ from apps.ecomotor.target_catalog_validation import InvalidTargetCatalogError
 
 from .catalog import DemoCatalogError
 from .data import NAMES, CODES, OPTIONS, OPTION_CHOICES, VERSION
-from .forms import PersistentDemoForm, PlayableForm
+from .forms import PersistentDemoForm, PlayableForm, RewardDemoForm
 from . import playable_services as playable
+from . import reward_demo_services as rewards
+from .reward_demo_rules import ACTIVITIES
+from apps.ecomotor.reward_types import InvalidRewardRuleSetError, AmbiguousRewardRulesError
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES, InvalidTargetStatsError
 from .isolation import demo_connection
 from .services import (DemoAccessError, DemoInputError, DemoConflictError, DemoIntegrityError,
@@ -40,7 +43,8 @@ def home(request):
         if request.method == "POST":
             actions = request.POST.getlist("action")
             action = actions[0] if len(actions) == 1 else "grant"
-            bound = (PlayableForm(request.POST, action=action, auto_id="invalid_%s") if action in playable.ACTIONS
+            bound = (RewardDemoForm(request.POST) if action == "reward" else
+                     PlayableForm(request.POST, action=action, auto_id="invalid_%s") if action in playable.ACTIONS
                      else PersistentDemoForm(request.POST, action="start" if action == "start" else "grant"))
             if bound.is_valid():
                 if action == "start":
@@ -51,6 +55,23 @@ def home(request):
                     for key in ("demo_operation", "demo_last", "demo_replay"):
                         request.session.pop(key, None)
                     request.session.pop("playable_last", None)
+                    for key in ("reward_tokens", "reward_last", "reward_notice"):
+                        request.session.pop(key, None)
+                elif action == "reward":
+                    if not secret or pk is None:
+                        raise DemoAccessError("Inicia primero una partida de esta sesión.")
+                    progress, _, _ = read_demo_progress(pk, session_token=secret)
+                    values = bound.cleaned_data
+                    result = rewards.apply_demo_reward(progress, activity=values["activity"],
+                        fact_token=values["fact_token"], session_token=secret)
+                    request.session["reward_last"] = {"action": "reward", "activity": values["activity"], "fact_token": values["fact_token"]}
+                    request.session["reward_notice"] = ("Replay Rewards histórico: sin nuevas concesiones." if result.replay
+                        else "APPLIED: XP sintética y recompensa confirmadas juntas." if result.status == "APPLIED"
+                        else "NO_REWARD: visita válida registrada, sin XP ni evoluciones.")
+                    tokens = dict(request.session.get("reward_tokens", {}))
+                    if tokens.get(values["activity"]) == values["fact_token"]:
+                        tokens.pop(values["activity"])
+                    request.session["reward_tokens"] = tokens
                 elif action in playable.ACTIONS:
                     if not secret or pk is None:
                         raise DemoAccessError("Inicia primero una partida de esta sesión.")
@@ -125,6 +146,22 @@ def home(request):
             if request.session.get("playable_last"):
                 saved = request.session["playable_last"]
                 context["playable_replay_form"] = PlayableForm(action=saved["action"], initial=saved, auto_id="replay_%s")
+            context["reward_history"] = rewards.read_demo_rewards(progress, session_token=secret)
+            context["reward_notice"] = request.session.get("reward_notice")
+            tokens = dict(request.session.get("reward_tokens", {}))
+            missing = False
+            reward_forms = []
+            for activity, label in ACTIVITIES:
+                if activity not in tokens:
+                    tokens[activity] = rewards.issue_reward_fact(progress, activity=activity, session_token=secret)
+                    missing = True
+                reward_forms.append({"label": label, "form": RewardDemoForm(auto_id=f"reward_{activity}_%s",
+                    initial={"action": "reward", "activity": activity, "fact_token": tokens[activity]})})
+            if missing:
+                request.session["reward_tokens"] = tokens
+            context["reward_forms"] = reward_forms
+            if request.session.get("reward_last"):
+                context["reward_replay_form"] = RewardDemoForm(initial=request.session["reward_last"], auto_id="reward_replay_%s")
         context["start_form"] = PersistentDemoForm(action="start", initial={"action": "start"})
         if bound is not None:
             context["errors"] = bound.errors
@@ -145,6 +182,7 @@ def home(request):
         context["unavailable"] = "Reparto inválido. Usa seis enteros no negativos y hasta 45 puntos provisionales. Sin cambios."
         status = 400
     except (ImproperlyConfigured, DatabaseError, DemoDatabaseError, DemoTransactionError,
+            rewards.DemoRewardConfigurationError, InvalidRewardRuleSetError, AmbiguousRewardRulesError,
             DemoCatalogError, InvalidTargetCatalogError, TargetCatalogVersion.DoesNotExist):
         context["unavailable"] = "Demo no disponible. Revisa la SQLite aislada, migrate y seed; no se ha confirmado esta operación."
         status = 503

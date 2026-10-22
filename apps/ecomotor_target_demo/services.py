@@ -1,12 +1,14 @@
 """Local fictitious grants; not the productive A2 writer or Core authorization."""
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from hashlib import sha256
 import re
 from secrets import compare_digest, token_hex
 
 from django.core import signing
-from django.db import DatabaseError, IntegrityError, OperationalError, transaction
+from django.db import DatabaseError, IntegrityError, OperationalError, connections, transaction
 
 from apps.ecomotor.models import TargetCatalogVersion, TargetEpoch
 from apps.ecomotor.target_progression import TargetProgressionResult, calculate_target_progression
@@ -164,50 +166,47 @@ def _history(current, alias):
     return events, evolutions
 
 
-def grant_demo_target_xp(progress, *, amount, operation_token, session_token):
-    """Atomic fictitious grant. Same key/amount recovers history before new-use checks."""
+@dataclass(frozen=True, slots=True)
+class _XPTransaction:
+    db: object
+    connection: object
+    boundary: object
+    progress_id: int
+    owner: str
+
+
+_active_xp_transaction = ContextVar("demo_owned_xp_transaction", default=None)
+
+
+def _check_xp_transaction(context):
+    if type(context) is not _XPTransaction or _active_xp_transaction.get() is not context:
+        raise DemoTransactionError("Núcleo XP sin contexto transaccional controlado.")
+    db = context.db
+    if (connections[db.alias] is not db or not db.in_atomic_block or db.get_autocommit() or db.transaction_mode != "IMMEDIATE"
+            or db.connection is not context.connection or not db.connection.in_transaction
+            or len(db.atomic_blocks) != 1 or db.atomic_blocks[0] is not context.boundary):
+        raise DemoTransactionError("Frontera XP incompatible o finalizada.")
+    return _progress(context.progress_id, context.owner, db.alias), db.alias
+
+
+@contextmanager
+def _xp_transaction(progress, *, session_token):
+    """Private owner of one outer IMMEDIATE boundary, shared only by this demo."""
     if type(progress) is not DemoTargetProgress or progress.pk is None or progress._state.adding:
         raise DemoInputError("Se requiere una partida ficticia persistida.")
-    _integer(amount, positive=True)
     owner = _owner(session_token)
-    key = _key(operation_token, progress.pk, owner)
     try:
         db = _connection()
         if progress._state.db != db.alias:
             raise DemoAccessError("La partida pertenece a otra base.")
         with transaction.atomic(using=db.alias):
             current = _progress(progress.pk, owner, db.alias)
-            event = DemoTargetXPEvent.objects.using(db.alias).filter(progress=current, operation_key=key).first()
-            if event is not None:
-                if event.amount != amount:
-                    raise DemoConflictError("La identidad ya corresponde a otro importe.")
-                return _historical(event, current, db.alias, replay=True)
-            _, snapshot = exact_catalog(current.catalog_id, db.alias)
-            _integer(current.xp_total)
-            if current.xp_total > MAX_XP - amount:
-                raise DemoInputError("El total excedería el entero SQLite de 64 bits.")
-            actual = calculate_target_progression(current.xp_total, current.xp_total, snapshot)
-            if (current.current_level != actual.level_after
-                    or current.current_epoch.catalog_id != current.catalog_id
-                    or current.current_epoch.code != actual.epoch_after_code):
-                raise DemoIntegrityError("Progreso incoherente con su catálogo congelado.")
-            _history(current, db.alias)
-            plan = plan_target_xp_grant(current.xp_total, amount, snapshot)
-            p = plan.progression
-            epochs = {e.code: e for e in TargetEpoch.objects.using(db.alias).filter(catalog_id=current.catalog_id)}
-            event = DemoTargetXPEvent.objects.using(db.alias).create(
-                progress=current, operation_key=key, amount=amount, xp_before=p.xp_before, xp_after=p.xp_after,
-                level_before=p.level_before, level_after=p.level_after,
-                epoch_before=epochs[p.epoch_before_code], epoch_after=epochs[p.epoch_after_code],
-                catalog_id=current.catalog_id, crossed_levels=list(p.crossed_levels),
-                crossed_epoch_codes=list(p.crossed_epoch_codes))
-            for code in p.crossed_epoch_codes:
-                epoch = epochs[code]
-                DemoTargetEvolutionEvent.objects.using(db.alias).create(
-                    progress=current, xp_event=event, epoch=epoch, ordinal=epoch.ordinal, catalog_id=current.catalog_id)
-            current.xp_total, current.current_level, current.current_epoch = p.xp_after, p.level_after, epochs[p.epoch_after_code]
-            current.save(using=db.alias, update_fields=["xp_total", "current_level", "current_epoch"])
-            return _historical(event, current, db.alias, replay=False)
+            context = _XPTransaction(db, db.connection, db.atomic_blocks[0], current.pk, owner)
+            token = _active_xp_transaction.set(context)
+            try:
+                yield context
+            finally:
+                _active_xp_transaction.reset(token)
     except IntegrityError as error:
         raise DemoIntegrityError("Restricción de integridad de la demo; operación revertida.") from error
     except OperationalError as error:
@@ -217,6 +216,57 @@ def grant_demo_target_xp(progress, *, amount, operation_token, session_token):
         raise DemoDatabaseError("Fallo operativo SQLite; operación no confirmada.") from error
     except DatabaseError as error:
         raise DemoDatabaseError("Fallo de base de datos; operación no confirmada.") from error
+
+
+def _grant_xp_in_transaction(context, *, amount, operation_key):
+    """No begin/commit. Requires the exact live context issued by our owner above."""
+    current, alias = _check_xp_transaction(context)
+    _integer(amount, positive=True)
+    if type(operation_key) is not str or re.fullmatch(r"(?:[0-9a-f]{32}|rx1:[0-9a-f]{28})", operation_key) is None:
+        raise DemoInputError("Clave causal XP incompatible.")
+    key = operation_key
+    event = DemoTargetXPEvent.objects.using(alias).filter(progress=current, operation_key=key).first()
+    if event is not None:
+        if event.amount != amount:
+            raise DemoConflictError("La identidad ya corresponde a otro importe.")
+        return _historical(event, current, alias, replay=True)
+    _, snapshot = exact_catalog(current.catalog_id, alias)
+    _integer(current.xp_total)
+    if current.xp_total > MAX_XP - amount:
+        raise DemoInputError("El total excedería el entero SQLite de 64 bits.")
+    actual = calculate_target_progression(current.xp_total, current.xp_total, snapshot)
+    if (current.current_level != actual.level_after
+            or current.current_epoch.catalog_id != current.catalog_id
+            or current.current_epoch.code != actual.epoch_after_code):
+        raise DemoIntegrityError("Progreso incoherente con su catálogo congelado.")
+    _history(current, alias)
+    plan = plan_target_xp_grant(current.xp_total, amount, snapshot)
+    p = plan.progression
+    epochs = {e.code: e for e in TargetEpoch.objects.using(alias).filter(catalog_id=current.catalog_id)}
+    event = DemoTargetXPEvent.objects.using(alias).create(
+        progress=current, operation_key=key, amount=amount, xp_before=p.xp_before, xp_after=p.xp_after,
+        level_before=p.level_before, level_after=p.level_after,
+        epoch_before=epochs[p.epoch_before_code], epoch_after=epochs[p.epoch_after_code],
+        catalog_id=current.catalog_id, crossed_levels=list(p.crossed_levels),
+        crossed_epoch_codes=list(p.crossed_epoch_codes))
+    for code in p.crossed_epoch_codes:
+        epoch = epochs[code]
+        DemoTargetEvolutionEvent.objects.using(alias).create(
+            progress=current, xp_event=event, epoch=epoch, ordinal=epoch.ordinal, catalog_id=current.catalog_id)
+    current.xp_total, current.current_level, current.current_epoch = p.xp_after, p.level_after, epochs[p.epoch_after_code]
+    current.save(using=alias, update_fields=["xp_total", "current_level", "current_epoch"])
+    return _historical(event, current, alias, replay=False)
+
+
+def grant_demo_target_xp(progress, *, amount, operation_token, session_token):
+    """Unchanged public XP-token interface and historical replay semantics."""
+    if type(progress) is not DemoTargetProgress or progress.pk is None or progress._state.adding:
+        raise DemoInputError("Se requiere una partida ficticia persistida.")
+    _integer(amount, positive=True)
+    owner = _owner(session_token)
+    key = _key(operation_token, progress.pk, owner)
+    with _xp_transaction(progress, session_token=session_token) as context:
+        return _grant_xp_in_transaction(context, amount=amount, operation_key=key)
 
 
 def read_demo_progress(pk, *, session_token):

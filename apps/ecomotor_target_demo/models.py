@@ -111,3 +111,37 @@ class DemoTargetPlayableEvent(models.Model):
             models.CheckConstraint(condition=~models.Q(operation_key="") & ~models.Q(option_code=""), name="demo_playable_identity_present"),
             models.CheckConstraint(condition=models.Q(action__in=("configure", "switch", "redistribute")), name="demo_playable_action_valid"),
         ]
+
+
+class DemoTargetRewardEvent(models.Model):
+    """Confirmed synthetic outcome only; never the productive F2-A RewardEvent."""
+
+    progress = models.ForeignKey(DemoTargetProgress, on_delete=models.PROTECT)
+    origin_code = models.CharField(max_length=64)
+    fact_id = models.CharField(max_length=32)
+    recipient_id = models.CharField(max_length=64)
+    activity_type = models.CharField(max_length=32)
+    occurred_at = models.DateTimeField()
+    fingerprint_version = models.CharField(max_length=32)
+    fingerprint = models.CharField(max_length=64)
+    rule_set_version = models.CharField(max_length=64)
+    matched_rule_id = models.CharField(max_length=64, null=True, blank=True)
+    status = models.CharField(max_length=16)
+    reason_codes = models.JSONField()
+    xp_amount = models.PositiveBigIntegerField()
+    xp_event = models.OneToOneField(DemoTargetXPEvent, on_delete=models.PROTECT, null=True, blank=True)
+    snapshot = models.JSONField()
+    confirmed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("progress", "origin_code", "fact_id"), name="demo_reward_identity_unique"),
+            models.CheckConstraint(condition=(models.Q(status="APPLIED", xp_amount__gt=0, xp_event__isnull=False)
+                | models.Q(status="NO_REWARD", xp_amount=0, xp_event__isnull=True)), name="demo_reward_outcome_valid"),
+            models.CheckConstraint(condition=models.Q(xp_amount__lte=MAX_XP), name="demo_reward_xp_range"),
+            models.CheckConstraint(condition=models.Q(fact_id__regex=r"^[0-9a-f]{32}\Z",
+                fingerprint__regex=r"^[0-9a-f]{64}\Z"), name="demo_reward_hash_format"),
+            models.CheckConstraint(condition=(~models.Q(origin_code="") & ~models.Q(recipient_id="")
+                & ~models.Q(activity_type="") & ~models.Q(fingerprint_version="") & ~models.Q(rule_set_version="")
+                & (~models.Q(matched_rule_id="") | models.Q(matched_rule_id__isnull=True))), name="demo_reward_text_present"),
+        ]
