@@ -2,7 +2,7 @@
 from django.db import transaction
 from apps.users.models import UserProfileEcomotor
 from apps.ecomotor.models import EvolutionStage
-from .models import Ducky,Item,ItemLevel,InventoryItem,ItemGrant,ItemUsage,EquippedItem,EquipmentHistory,EvolutionItem
+from .models import Ducky,Item,ItemLevel,InventoryItem,ItemGrant,ItemUsage,EquippedItem,EquipmentHistory,EvolutionItem,SpecializationItem
 
 def _positive(q):
     if type(q) is not int or q<=0: raise ValueError('Cantidad positiva requerida')
@@ -19,7 +19,7 @@ def initialize_ducky(user,sex):
             if existing.sex!=sex: raise ValueError('Sexo de alta incompatible con Ducky existente')
             return existing
         outfit=EvolutionItem.objects.select_related('item').get(stage__code=profile.current_stage_code)
-        return Ducky.objects.create(user=user,sex=sex,selected_historical_item=outfit.item)
+        return Ducky.objects.create(user=user,sex=sex,selected_outfit=outfit.item)
 
 def sync_historical_outfit(user,stage=None,operation_key=None):
     """Se basa en el estado actual, nunca en un evento atrasado."""
@@ -33,9 +33,9 @@ def sync_historical_outfit(user,stage=None,operation_key=None):
         if profile.active_specialization_code:
             # Una selección histórica manual válida no debe sobrescribirse por un replay.
             return ducky
-        if ducky.selected_historical_item_id!=latest.item_id:
-            ducky.selected_historical_item_id=latest.item_id
-            ducky.save(update_fields=['selected_historical_item'])
+        if ducky.selected_outfit_id !=latest.item_id:
+            ducky.selected_outfit_id=latest.item_id
+            ducky.save(update_fields=['selected_outfit'])
         return ducky
 
 def select_historical_outfit(user,item):
@@ -47,8 +47,77 @@ def select_historical_outfit(user,item):
         if association.stage.ordinal>current.ordinal: raise ValueError('Vestimenta futura bloqueada')
         if not profile.active_specialization_code and association.stage_id!=current.pk:
             raise ValueError('Antes de especializarse solo puede vestir la época actual')
-        ducky.selected_historical_item=item;ducky.save(update_fields=['selected_historical_item'])
+        ducky.selected_outfit=item;ducky.save(update_fields=['selected_outfit'])
         return ducky
+
+def select_specialization_outfit(user, item):
+    """
+    Permite vestir únicamente la especialización
+    activa del usuario.
+    """
+    with transaction.atomic():
+        ducky = Ducky.objects.select_for_update().get(
+            user=user
+        )
+
+        profile = UserProfileEcomotor.objects.get(
+            user=user
+        )
+
+        active_code = profile.active_specialization_code
+
+        if not active_code:
+            raise ValueError(
+                "El usuario todavía no tiene especialización."
+            )
+
+        if item.category != Item.SPECIALIZATION:
+            raise ValueError(
+                "El objeto no es una vestimenta de especialización."
+            )
+
+        association = (
+            SpecializationItem.objects
+            .select_related("specialization")
+            .filter(item=item)
+            .first()
+        )
+
+        if association is None:
+            raise ValueError(
+                "La vestimenta no tiene especialización asociada."
+            )
+
+        if association.specialization.code != active_code:
+            raise ValueError(
+                "No puedes utilizar una vestimenta "
+                "de otra especialización."
+            )
+
+        if not item.is_active:
+            raise ValueError(
+                "La vestimenta está desactivada."
+            )
+
+        ducky.selected_outfit = item
+        ducky.save(update_fields=["selected_outfit"])
+
+        return ducky
+
+def select_outfit(user, item):
+    """
+    Selecciona una vestimenta histórica o
+    de especialización.
+    """
+    if item.category == Item.HISTORICAL:
+        return select_historical_outfit(user, item)
+
+    if item.category == Item.SPECIALIZATION:
+        return select_specialization_outfit(user, item)
+
+    raise ValueError(
+        "Este objeto no es una vestimenta seleccionable."
+    )
 
 def get_item_ownership(user,item,item_level=None):
     _variant(item,item_level)
@@ -59,7 +128,14 @@ def get_item_ownership(user,item,item_level=None):
 def grant_item(user,item,quantity,operation_key,*,item_level=None,reference_type='',reference_id=''):
     _positive(quantity);_variant(item,item_level)
     if not operation_key: raise ValueError('Clave obligatoria')
-    if item.category==Item.HISTORICAL: raise ValueError('Las vestimentas se obtienen por evolución')
+    if item.category in (
+    Item.HISTORICAL,
+    Item.SPECIALIZATION,
+    ):
+        raise ValueError(
+            "Las vestimentas se desbloquean por progresión "
+            "o especialización, no mediante entregas de inventario."
+            )
     if not item.is_active: raise ValueError('Objeto inactivo')
     with transaction.atomic():
         ducky=Ducky.objects.select_for_update().get(user=user)
@@ -77,7 +153,16 @@ def grant_item(user,item,quantity,operation_key,*,item_level=None,reference_type
 
 def equip_item(user,item,item_level=None):
     _variant(item,item_level)
-    if item.category==Item.HISTORICAL: return select_historical_outfit(user,item)
+    if item.category in (
+        Item.HISTORICAL,
+        Item.SPECIALIZATION,
+    ):
+        if item_level is not None:
+            raise ValueError(
+                "Las vestimentas no tienen nivel táctico."
+            )
+
+        return select_outfit(user, item)
     if not item.slot_id: raise ValueError('Objeto sin ranura equipable')
     with transaction.atomic():
         ducky=Ducky.objects.select_for_update().get(user=user)
