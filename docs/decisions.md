@@ -1963,3 +1963,46 @@ Los resultados de las suites se comunican en la PR, sin sustituirlos por recuent
 Es una reorganización estructural, no una aprobación externa de DAR3, Óscar o Core.
 No cierra USE-01B, TRACE-01B ni contratos productivos. No altera V1/S3, Duckies,
 Bank, Shop, Rewards F1-A ni la demo #94.
+
+## REW-MULTI-01 · Rewards y DuckyBank demostrativos · 23/10/2026
+
+**Aprobada internamente por Equipo 5 / 02C-2. Fase 1 documental, sin implementación.**
+DAR3 conserva autoridad funcional; la decisión no es una obligación técnica literal
+de DAR3 ni una aprobación externa de Fernando, Óscar o Core.
+
+Se conserva la app consolidada `apps/ecomotor/ecomotor_target_demo/` y los Pasos
+1–4. La ampliación concederá **5 DuckyCoins ficticias** mediante exclusivamente
+`apps.bank.services.credit_coins()`, sobre User, Wallet y Transaction existentes
+en `instance/target_persistent_demo.sqlite3`, sin duplicar modelos económicos.
+Cada partida tendrá un usuario sintético propio, sin información personal ni
+credenciales funcionales, aislado por la sesión propietaria. User/Wallet se
+aprovisionarán bajo transacción controlada cuando se necesiten por primera vez.
+
+Se aprueba incorporar la futura `ecomotor_target_demo.0004` con compatibilidad
+histórica: preservar filas y lectura exacta de snapshots `demo-reward-result-v1`,
+introducir V2 para nuevas recompensas y mantener 0001–0003 sin reescribirlas.
+La clave Bank será estable, versionada y derivada de la identidad Rewards original,
+independiente de su huella semántica y separada de claves XP. Replay recuperará
+el resultado confirmado sin acreditar otra vez; contenido incompatible con una
+identidad reutilizada será conflicto. No se admiten causas cruzadas ni reparaciones
+silenciosas de historia incoherente.
+
+Rewards controlará un único exterior SQLite IMMEDIATE: crédito, Transaction,
+RewardEvent y referencias causales se confirman o revierten juntos ante fallos
+de Bank, Rewards o verificación causal. Bank opera implícitamente sobre default;
+la integración queda restringida a ese mismo alias/conexión protegidos. El fixture
+actual persistent_fixture no demuestra esa garantía: el nuevo arnés file-backed
+default deberá verificarse antes del flujo, conservando aislamiento y runner.
+
+[Contrato técnico de demo](contracts/ecomotor-target-demo-rewards-bank-v1.md)
+concreta como **propuestas técnicas para revisión 01B-2** campos/relaciones/checks
+de 0004, aprovisionamiento perezoso, metadatos/clave Bank, esquema V2 y estrategia
+del fixture. No se presentan como diseño físico ya implementado ni ratificación
+externa; un cambio de alcance debe volver a 02C-2 antes de generar implementación.
+No se amplía automáticamente a XP y monedas combinadas: una actividad admite
+un solo efecto soportado o ausencia de premio.
+
+El corte XP-only de DEMO-REWARDS-XP-01 se conserva como antecedente íntegro.
+No F2-A productivo, autenticación Core, juegos reales, monedas oficiales,
+USE-01B/TRACE-01B, cambios a Bank/Shop/Duckies o activación del escritor objetivo.
+La fase siguiente requiere revisión documental; esta PR no la inicia.
