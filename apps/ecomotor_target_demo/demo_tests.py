@@ -980,12 +980,402 @@ class PlayableConcurrencyTests(PlayableTests):
         self.assertEqual(Configuration.objects.using(self.alias).count(), 0)
         self.assertTrue(self.configure(progress, token=token).changed)
 
+
+from datetime import timedelta
+from . import reward_demo_services as rewards, reward_demo_rules as reward_rules
+from .models import DemoTargetRewardEvent as RewardEvent
+from apps.ecomotor.reward_types import RewardDecision, RewardRuleSet, ProposedEffect
+
+
+class RewardTests(PlayableTests):
+    def fact_token(self, progress, activity="challenge", secret=SECRET):
+        return rewards.issue_reward_fact(progress, activity=activity, session_token=secret)
+
+    def reward(self, progress, activity="challenge", token=None, secret=SECRET):
+        return rewards.apply_demo_reward(progress, activity=activity,
+            fact_token=token or self.fact_token(progress, activity, secret), session_token=secret)
+
+    def incompatible(self, token, **changes):
+        payload = signing.loads(token, salt=rewards.SALT)
+        payload.update(changes)
+        return signing.dumps(payload, salt=rewards.SALT)
+
+    def test_f1_applied_seven_hundred_six_causal_evolutions(self):
+        progress = self.new()
+        with patch.object(rewards, "evaluate_reward", wraps=rewards.evaluate_reward) as evaluate, patch.object(rewards, "semantic_fingerprint", wraps=rewards.semantic_fingerprint) as fingerprint:
+            result = self.reward(progress)
+        self.assertTrue(evaluate.called)
+        self.assertTrue(fingerprint.called)
+        self.assertIsInstance(result.decision, RewardDecision)
+        self.assertEqual((result.status, result.xp_amount, result.progression.xp_before, result.progression.xp_after), ("APPLIED", 700, 0, 700))
+        self.assertEqual(result.progression.level_after, 8)
+        self.assertEqual(len(result.evolution_ids), 6)
+        self.assertTrue(result.progression.choice_newly_unlocked)
+        row = RewardEvent.objects.using(self.alias).get()
+        self.assertEqual(row.xp_event_id, result.xp_event_id)
+        event = DemoTargetXPEvent.objects.using(self.alias).get()
+        self.assertEqual(event.operation_key, rewards._xp_key(result.identity))
+        self.assertEqual(len(event.operation_key), 32)
+        self.assertTrue(event.operation_key.startswith("rx1:"))
+        self.assertEqual(PlayableState.objects.using(self.alias).count(), 0)
+
+    def test_visit_no_reward_without_xp_core_or_evolutions(self):
+        progress = self.new()
+        with patch.object(services, "_grant_xp_in_transaction", side_effect=AssertionError("visit cannot grant")):
+            result = self.reward(progress, "visit")
+        self.assertEqual((result.status, result.xp_amount, result.xp_event_id, result.evolution_ids), ("NO_REWARD", 0, None, ()))
+        self.assertEqual(result.decision.reason_codes, ("NO_MATCHING_RULE",))
+        self.assertEqual(DemoTargetXPEvent.objects.using(self.alias).count(), 0)
+        self.assertEqual(DemoTargetEvolutionEvent.objects.using(self.alias).count(), 0)
+        self.assertEqual(RewardEvent.objects.using(self.alias).count(), 1)
+
+    def test_replay_preserves_instant_and_snapshots_without_current_rules(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        first = self.reward(progress, token=token)
+        self.grant(progress, 200)
+        before = self.rows()
+        with patch.object(rewards, "evaluate_reward", side_effect=AssertionError("historical")), patch.object(reward_rules, "RULE_SET", RewardRuleSet("future-empty", ())), patch.object(services, "plan_target_xp_grant", side_effect=AssertionError("no recalculation")), CaptureQueriesContext(self.db) as queries:
+            replay = self.reward(progress, token=token)
+        self.assertTrue(replay.replay)
+        self.assertEqual(replay.occurred_at, first.occurred_at)
+        self.assertEqual(replay.progression, first.progression)
+        self.assertEqual(replay.fingerprint, first.fingerprint)
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].upper().lstrip().startswith(("INSERT", "UPDATE", "DELETE")) for q in queries))
+
+    def test_no_reward_replay_after_later_xp_uses_original_anchor(self):
+        progress = self.new()
+        for initial in (0, 100):
+            if initial: self.grant(progress, initial)
+            token = self.fact_token(progress, "visit")
+            first = self.reward(progress, "visit", token)
+            self.grant(progress, 200)
+            before = self.rows()
+            with patch.object(rewards, "evaluate_reward", side_effect=AssertionError("no evaluation")):
+                replay = self.reward(progress, "visit", token)
+            self.assertEqual(replay.progression, first.progression)
+            self.assertEqual(self.rows(), before)
+            self.assertTrue(replay.replay)
+
+    def test_same_identity_changed_instant_or_activity_is_conflict(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        first = self.reward(progress, token=token)
+        changed = self.incompatible(token, occurred_at=(first.occurred_at + timedelta(seconds=1)).isoformat(timespec="microseconds"))
+        before = self.rows()
+        with self.assertRaises(services.DemoConflictError): self.reward(progress, token=changed)
+        with self.assertRaises(services.DemoConflictError): self.reward(progress, "visit", self.incompatible(token, activity="visit"))
+        self.assertEqual(self.rows(), before)
+
+    def test_unsupported_effects_reject_entire_proposal(self):
+        progress = self.new()
+        for effects in ((ProposedEffect("COINS", 1),), (ProposedEffect("XP", 700), ProposedEffect("ITEM", 1))):
+            before = self.rows()
+            decision = RewardDecision("synthetic-unsupported", "rule", True, effects, ())
+            with patch.object(rewards, "evaluate_reward", return_value=decision):
+                with self.assertRaises(rewards.DemoRewardConfigurationError): self.reward(progress)
+            self.assertEqual(self.rows(), before)
+
+    def test_mixed_direct_and_rewards_history_and_playable_unchanged(self):
+        progress = self.new()
+        direct = self.operation(progress)
+        self.grant(progress, 100, direct)
+        self.reward(progress)
+        self.configure(progress)
+        before = tuple(Configuration.objects.using(self.alias).values()), tuple(PlayableState.objects.using(self.alias).values()), tuple(PlayableEvent.objects.using(self.alias).values())
+        self.reward(progress)
+        self.assertTrue(self.grant(progress, 100, direct).replay)
+        progress.refresh_from_db(using=self.alias)
+        self.assertEqual(progress.xp_total, 1500)
+        services.read_demo_progress(progress.pk, session_token=SECRET)
+        self.assertEqual(before, (tuple(Configuration.objects.using(self.alias).values()), tuple(PlayableState.objects.using(self.alias).values()), tuple(PlayableEvent.objects.using(self.alias).values())))
+        self.assertEqual(RewardEvent.objects.using(self.alias).count(), 2)
+
+    def test_single_immediate_boundary_and_no_core_without_context(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        with CaptureQueriesContext(self.db) as queries:
+            self.reward(progress, token=token)
+        sql = [q["sql"].upper() for q in queries]
+        self.assertEqual(sql.count("BEGIN IMMEDIATE"), 1)
+        self.assertEqual(sql.count("COMMIT"), 1)
+        self.assertFalse(any(q.startswith("SAVEPOINT") for q in sql))
+        self.assertLess(sql.index("BEGIN IMMEDIATE"), next(i for i,q in enumerate(sql) if q.startswith("SELECT")))
+        with self.assertRaises(services.DemoTransactionError): services._grant_xp_in_transaction(None, amount=1, operation_key="1"*32)
+        with transaction.atomic(using=self.alias):
+            with self.assertRaises(services.DemoTransactionError): self.reward(progress, token=token)
+            with self.assertRaises(services.DemoTransactionError): services._grant_xp_in_transaction(object(), amount=1, operation_key="1"*32)
+        with services._xp_transaction(progress, session_token=SECRET) as context:
+            with transaction.atomic(using=self.alias):
+                with self.assertRaises(services.DemoTransactionError): services._grant_xp_in_transaction(context, amount=1, operation_key="1"*32)
+        with self.assertRaises(services.DemoTransactionError): services._grant_xp_in_transaction(context, amount=1, operation_key="1"*32)
+
+    def test_rollback_xp_evolution_reward_and_final_verification(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        before = self.rows()
+        for model in (DemoTargetXPEvent, DemoTargetEvolutionEvent, DemoTargetProgress, RewardEvent):
+            with self.subTest(model=model), patch.object(model, "save", side_effect=IntegrityError("synthetic")):
+                with self.assertRaises(services.DemoIntegrityError): self.reward(progress, token=token)
+            self.assertEqual(self.rows(), before)
+        original = rewards._history
+        def fail_after_create(current, alias):
+            if RewardEvent.objects.using(alias).exists(): raise services.DemoIntegrityError("synthetic final verification")
+            return original(current, alias)
+        with patch.object(rewards, "_history", fail_after_create):
+            with self.assertRaises(services.DemoIntegrityError): self.reward(progress, token=token)
+        self.assertEqual(self.rows(), before)
+
+    def test_rollback_after_third_evolution(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        before = self.rows()
+        from django.db.models.query import QuerySet
+        original = QuerySet.create
+        count = 0
+        def fail(query, **kwargs):
+            nonlocal count
+            if query.model is DemoTargetEvolutionEvent:
+                count += 1
+                if count == 3: raise OperationalError("synthetic evolution")
+            return original(query, **kwargs)
+        with patch.object(QuerySet, "create", fail):
+            with self.assertRaises(services.DemoDatabaseError): self.reward(progress, token=token)
+        self.assertEqual(self.rows(), before)
+
+    def test_corrupt_snapshot_or_causal_event_rejected(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        result = self.reward(progress, token=token)
+        row = RewardEvent.objects.using(self.alias).get()
+        original = row.snapshot
+        for changes in ({"xp_amount": 701}, {"evolution_ids": []}, {"eligible": False}, {"progression": {}}, {"schema": "unknown"}):
+            RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(snapshot={**original, **changes})
+            with self.assertRaises(services.DemoIntegrityError): self.reward(progress, token=token)
+        RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(snapshot=original)
+        DemoTargetEvolutionEvent.objects.using(self.alias).filter(xp_event_id=result.xp_event_id).first().delete(using=self.alias)
+        with self.assertRaises(services.DemoIntegrityError): self.reward(progress, token=token)
+
+    def test_orphan_reward_namespace_xp_never_reconstructed(self):
+        progress = self.new()
+        result = self.grant(progress)
+        token = self.fact_token(progress)
+        fact = rewards._fact(token, progress, services._owner(SECRET), "challenge")
+        DemoTargetXPEvent.objects.using(self.alias).filter(pk=result.event_id).update(operation_key=rewards._xp_key(fact.identity))
+        before = self.rows()
+        with self.assertRaises(services.DemoIntegrityError): self.reward(progress, token=token)
+        self.assertEqual(self.rows(), before)
+
+    def test_foreign_reward_cause_and_missing_cause_rejected(self):
+        progress = self.new()
+        first = self.reward(progress)
+        other = self.new(OTHER)
+        foreign = self.grant(other, secret=OTHER)
+        row = RewardEvent.objects.using(self.alias).get(progress=progress)
+        RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(xp_event_id=foreign.event_id)
+        with self.assertRaises(services.DemoIntegrityError): rewards.read_demo_rewards(progress, session_token=SECRET)
+        with self.assertRaises(services.DemoIntegrityError): rewards.read_demo_rewards(other, session_token=OTHER)
+        RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(xp_event_id=first.xp_event_id)
+        with self.db.constraint_checks_disabled():
+            RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(xp_event_id=999999)
+        with self.assertRaises(services.DemoIntegrityError): rewards.read_demo_rewards(progress, session_token=SECRET)
+        RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(xp_event_id=first.xp_event_id)
+
+    def test_session_signed_fact_and_purpose_isolation(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        for bad in (token+"x", "forged", self.operation(progress), self.token(progress), self.fact_token(progress, "visit")):
+            with self.subTest(token=bad), self.assertRaises(services.DemoAccessError): self.reward(progress, token=bad)
+        with self.assertRaises(services.DemoAccessError): self.reward(progress, token=token, secret=OTHER)
+        other = self.new(OTHER)
+        with self.assertRaises(services.DemoAccessError): self.reward(other, token=token, secret=OTHER)
+        with self.assertRaises(services.DemoAccessError): rewards.read_demo_rewards(progress, session_token=OTHER)
+        with self.assertRaises(services.DemoInputError): self.reward(progress, activity="real-game")
+
+    def test_model_migration_checks_uniqueness_and_protect(self):
+        progress = self.new()
+        result = self.reward(progress)
+        migration = import_module("apps.ecomotor_target_demo.migrations.0003_synthetic_rewards").Migration
+        self.assertEqual(migration.dependencies, [("ecomotor_target_demo", "0002_playable_configurations")])
+        self.assertEqual([type(op).__name__ for op in migration.operations], ["CreateModel"])
+        row = RewardEvent.objects.using(self.alias).get()
+        values = {f.attname:getattr(row,f.attname) for f in row._meta.fields if f.name not in ("id","confirmed_at")}
+        with self.assertRaises(IntegrityError): RewardEvent.objects.using(self.alias).create(**values)
+        with self.assertRaises(IntegrityError): RewardEvent.objects.using(self.alias).create(**{**values, "fact_id": "a"*32})
+        with self.assertRaises(IntegrityError): RewardEvent.objects.using(self.alias).create(**{**values,
+            "status": "NO_REWARD", "xp_amount": 0, "xp_event_id": None})
+        for changes in ({"status":"NO_REWARD"},{"xp_amount":0},{"fingerprint":"x"},{"fact_id":""},{"origin_code":""}):
+            with self.subTest(changes=changes), self.assertRaises(IntegrityError): RewardEvent.objects.using(self.alias).filter(pk=row.pk).update(**changes)
+        from django.db.models.deletion import ProtectedError
+        with self.assertRaises(ProtectedError): DemoTargetXPEvent.objects.using(self.alias).get(pk=result.xp_event_id).delete(using=self.alias)
+        self.assertTrue(all(f.remote_field.on_delete.__name__ == "PROTECT" for f in row._meta.fields if f.is_relation))
+
+    def test_catalog_or_rule_failure_never_becomes_no_reward(self):
+        progress = self.new()
+        token = self.fact_token(progress, "visit")
+        before = self.rows()
+        with patch.object(rewards, "exact_catalog", side_effect=catalog.DemoCatalogError("synthetic")):
+            with self.assertRaises(catalog.DemoCatalogError): self.reward(progress, "visit", token)
+        with patch.object(rewards, "evaluate_reward", side_effect=rewards.InvalidRewardRuleSetError("synthetic")):
+            with self.assertRaises(rewards.InvalidRewardRuleSetError): self.reward(progress, "visit", token)
+        self.assertEqual(self.rows(), before)
+
+    def test_reward_service_does_not_recreate_missing_sqlite(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        self.db.close()
+        self.path.unlink()  # Only this fixture's disposable SQLite.
+        with self.assertRaises(ImproperlyConfigured): self.reward(progress, token=token)
+        self.assertFalse(self.path.exists())
+
+    def test_reopen_preserves_reward_and_immutable_result(self):
+        progress = self.new()
+        token = self.fact_token(progress)
+        first = self.reward(progress, token=token)
+        visit = self.reward(progress, "visit")
+        self.configure(progress)
+        self.db.close()
+        history = rewards.read_demo_rewards(progress, session_token=SECRET)
+        self.assertEqual([r.status for r in history], ["APPLIED", "NO_REWARD"])
+        self.assertEqual(history[0], first)
+        self.assertEqual(history[1], visit)
+        self.assertTrue(self.reward(progress, token=token).replay)
+        with self.assertRaises(FrozenInstanceError): first.status="NO_REWARD"
+        self.assertFalse(hasattr(first,"__dict__"))
+
+    def test_reward_writes_only_demo_tables_no_v1_or_other_teams(self):
+        progress = self.new()
+        before = self.rows()
+        with patch("apps.ecomotor.xp_service.grant_historical_xp", side_effect=AssertionError("V1")):
+            self.reward(progress)
+            self.reward(progress,"visit")
+        after = self.rows()
+        self.assertTrue(all(rows == after[name] for name,rows in before.items() if not name.startswith("ecomotor_target_demo_")))
+
+    def reward_http(self, activity="challenge", client=None):
+        client = client or self.client
+        return {"action":"reward","activity":activity,"fact_token":client.session["reward_tokens"][activity]}
+
+    def test_http_rewards_then_gamer_replay_refresh_and_reopen(self):
+        self.http_start()
+        challenge = self.reward_http()
+        self.assertEqual(self.client.post(URL,challenge).status_code,302)
+        self.client.get(URL)
+        self.assertEqual(self.client.post(URL,challenge).status_code,302)
+        self.client.get(URL)
+        visit = self.reward_http("visit")
+        self.assertEqual(self.client.post(URL,visit).status_code,302)
+        self.assertEqual(self.client.post(URL,visit).status_code,302)
+        response=self.client.get(URL)
+        self.assertIn("NO_REWARD",response.content.decode())
+        self.assertIn("12 OPCIONES DESBLOQUEADAS",response.content.decode())
+        self.assertEqual(self.client.post(URL,self.playable_http()).status_code,302)
+        self.db.close()
+        self.assertEqual(self.client.get(URL).status_code,200)
+        self.assertEqual((RewardEvent.objects.using(self.alias).count(),DemoTargetXPEvent.objects.using(self.alias).count(),DemoTargetEvolutionEvent.objects.using(self.alias).count(),Configuration.objects.using(self.alias).count()),(2,1,6,1))
+        self.assertEqual(self.client.post(URL,{"action":"start"}).status_code,302)
+        self.assertEqual(RewardEvent.objects.using(self.alias).count(),2)
+        self.assertEqual(self.client.post(URL,challenge).status_code,403)
+
+    def test_http_reward_manipulation_duplicates_csrf_and_session(self):
+        self.http_start()
+        data=self.reward_http()
+        for key in ("amount","origin_code","recipient_id","user_id","progress","rule_set_version","occurred_at","budget"):
+            self.assertEqual(self.client.post(URL,{**data,key:"700"}).status_code,400)
+        for key,value in data.items():
+            self.assertEqual(self.client.post(URL,urlencode([*data.items(),(key,value)]),content_type="application/x-www-form-urlencoded").status_code,400)
+        invalid = self.client.post(URL,{**data,"activity":"<script>x</script>"})
+        self.assertEqual(invalid.status_code,400)
+        self.assertNotIn("<script>x</script>", invalid.content.decode())
+        guarded=Client(enforce_csrf_checks=True)
+        guarded.cookies=self.client.cookies.copy()
+        self.assertEqual(guarded.post(URL,data).status_code,403)
+        guarded.get(URL)
+        csrf=guarded.cookies[settings.CSRF_COOKIE_NAME].value
+        self.assertEqual(guarded.post(URL,{**data,"csrfmiddlewaretoken":csrf}).status_code,302)
+        other=Client()
+        self.http_start(other)
+        self.assertEqual(other.post(URL,data).status_code,403)
+        self.assertEqual(other.get(URL,{"fact_id":"foreign"}).status_code,400)
+
+
+class RewardConcurrencyTests(RewardTests):
+    def race_rewards(self, kind):
+        progress=self.ready() if kind=="playable" else self.new()
+        first=self.fact_token(progress)
+        second=first if kind=="same" else self.fact_token(progress)
+        if kind=="conflict":
+            self.reward(progress, token=first)  # Establish the confirmed original before the race.
+            payload=signing.loads(first,salt=rewards.SALT)
+            instant=rewards._instant(payload["occurred_at"])+timedelta(seconds=1)
+            second=self.incompatible(first,occurred_at=instant.isoformat(timespec="microseconds"))
+        xp_token=self.operation(progress)
+        playable_token=self.token(progress)
+        barrier=Barrier(2)
+        def worker(which):
+            db=connections[self.alias]
+            try:
+                barrier.wait(timeout=10)
+                if which==1 and kind=="direct": result=self.grant(progress,100,xp_token)
+                elif which==1 and kind=="playable": result=self.configure(progress,token=playable_token)
+                else:
+                    try: result=self.reward(progress,token=first if which==0 else second)
+                    except services.DemoConflictError as error: result=error
+                return result,id(db.connection)
+            finally: db.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            a,b=pool.submit(worker,0),pool.submit(worker,1)
+            results=a.result(timeout=20),b.result(timeout=20)
+        self.assertNotEqual(results[0][1],results[1][1])
+        progress.refresh_from_db(using=self.alias)
+        expected=1400 if kind in ("different","playable") else 800 if kind=="direct" else 700
+        self.assertEqual(progress.xp_total,expected)
+        self.assertEqual(RewardEvent.objects.using(self.alias).count(),2 if kind=="different" else 1)
+        if kind=="same": self.assertEqual(sum(r[0].replay for r in results),1)
+        if kind=="conflict":
+            self.assertEqual(sum(isinstance(r[0],services.DemoConflictError) for r in results),1)
+            self.assertEqual(sum(getattr(r[0], "replay", False) for r in results),1)
+        if kind=="playable": self.assertEqual(Configuration.objects.using(self.alias).count(),1)
+        rewards.read_demo_rewards(progress,session_token=SECRET)
+
+    def test_same_fact_real_concurrency(self): self.race_rewards("same")
+    def test_different_facts_real_concurrency(self): self.race_rewards("different")
+    def test_rewards_and_direct_xp_real_concurrency(self): self.race_rewards("direct")
+    def test_rewards_and_playable_real_concurrency(self): self.race_rewards("playable")
+    def test_same_identity_incompatible_facts_real_concurrency(self): self.race_rewards("conflict")
+
+    def test_real_reward_timeout_then_explicit_retry(self):
+        progress=self.new()
+        token=self.fact_token(progress)
+        held,release=Event(),Event()
+        def blocker():
+            db=connections[self.alias]
+            try:
+                with transaction.atomic(using=self.alias):
+                    held.set()
+                    if not release.wait(12): raise AssertionError("synchronization timeout")
+            finally: db.close()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future=pool.submit(blocker)
+            self.assertTrue(held.wait(5))
+            started=monotonic()
+            try:
+                with self.assertRaises(services.DemoBusyError): self.reward(progress,token=token)
+                self.assertGreaterEqual(monotonic()-started,4.5)
+            finally: release.set()
+            future.result(timeout=5)
+        self.assertFalse(self.db.in_atomic_block)
+        self.assertEqual(RewardEvent.objects.using(self.alias).count(),0)
+        self.assertEqual(DemoTargetXPEvent.objects.using(self.alias).count(),0)
+        self.assertEqual(self.reward(progress,token=token).xp_amount,700)
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

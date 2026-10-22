@@ -4,6 +4,7 @@ from django import forms
 
 from .data import MAX_XP
 from .data import OPTION_CHOICES
+from .reward_demo_rules import ACTIVITIES
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
 
 
@@ -66,4 +67,18 @@ class PlayableForm(forms.Form):
                 self.add_error(key, "Usa un entero ASCII representable, sin espacios ni signos.")
             else:
                 values[key] = int(text)
+        return values
+
+
+class RewardDemoForm(forms.Form):
+    action = forms.ChoiceField(choices=(("reward", "reward"),), widget=forms.HiddenInput)
+    activity = forms.ChoiceField(choices=ACTIVITIES, widget=forms.HiddenInput)
+    fact_token = forms.CharField(max_length=1536, strip=False, widget=forms.HiddenInput)
+
+    def clean(self):
+        values = super().clean()
+        if (not hasattr(self.data, "getlist") or set(self.data) - (set(self.fields) | {"csrfmiddlewaretoken"})
+                or any(len(self.data.getlist(key)) != 1 for key in self.fields)
+                or any(len(self.data.getlist(key)) > 1 for key in self.data)):
+            self.add_error(None, "Campos Rewards inesperados, ausentes o duplicados.")
         return values

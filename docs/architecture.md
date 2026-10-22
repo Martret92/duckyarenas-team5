@@ -1047,3 +1047,22 @@ separado de XP. Sin Duckies/User reales, Rewards ni activación productiva.
 La ausencia de selección/atributos descrita en el corte del Paso 2 queda como
 antecedente; este incremento los añade solo en la SQLite sintética. No cierra
 USE-01B/TRACE-01B ni contratos Core/A3.5, Henry y valores oficiales de Óscar.
+
+## DEMO-REWARDS-XP-01 · Coordinación sintética Rewards/XP
+
+Paso 4 interno del 22/10/2026, para revisión 01B. Amplía únicamente la app y SQLite
+persistentes de Pasos 2/3, sin otro entorno, backend, app ni ruta. F1-A calcula
+huella/propuesta pura; el servicio local confirma APPLIED o NO_REWARD. Migración
+0003 añade solo DemoTargetRewardEvent, con identidad lógica, versiones y snapshots,
+causa XP exclusiva y PROTECT como política local. No Rewards productivo.
+
+El núcleo XP privado extraído de services.py exige el contexto exacto de la
+transacción exterior IMMEDIATE controlada: no abre atomic ni confirma por sí solo.
+Entrada XP pública y coordinador Rewards lo reutilizan manteniendo tokens y
+responsabilidades separados. Progreso/XP/evoluciones/RewardEvent se confirman
+juntos; replay usa causas y snapshots originales. Instante firmado estable y clave
+XP de identidad, no de fingerprint. Errores no equivalen a NO_REWARD.
+
+[Contrato y pruebas](contracts/ecomotor-target-demo-rewards-xp-v1.md). Pasos 2/3 y
+demo #94 siguen disponibles; no escribe configuraciones jugables, otras apps o
+V1/S3. No desbloquea F2-A global, USE-01B, TRACE-01B, Core o valores oficiales.

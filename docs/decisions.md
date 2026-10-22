@@ -1920,3 +1920,22 @@ sin eventos. No relaciones Duckies/User ni modificaciones XP/evoluciones/V1.
 [Contrato y concreciones técnicas locales](contracts/ecomotor-target-playable-persistent-demo-v1.md).
 No cierra USE-01B, TRACE-01B ni acuerdos externos; no Rewards ni activación.
 DAR3 conserva autoridad funcional. La demo #94 permanece intacta.
+
+## DEMO-REWARDS-XP-01 · Rewards XP sintético persistente · 22/10/2026
+
+**Aprobado internamente por Equipo 5 / 02C-2**, implementado para revisión 01B.
+Paso 4 sobre app/SQLite/ruta del laboratorio persistente: desafío ficticio propone
+700 XP mediante F1-A y visita válida produce NO_REWARD. Nuevos hechos firmados,
+instante original estable, huella F1-A, identidad terna y clave causal XP derivada
+de identidad con namespace propio. Un único DemoTargetRewardEvent local conserva
+propuesta/snapshots/versiones y causas; no es RewardEvent productivo.
+
+Extracción mínima del núcleo XP privado sin abrir transacciones; propietario
+interno comprueba el contexto exterior IMMEDIATE. Entrada pública XP del Paso 2
+conserva su contrato; Rewards confirma XP/evoluciones/registro juntos o revierte
+todo. Replay no reevalúa reglas ni concede otra vez. No monedas, objetos o efectos
+no soportados. Sin cambios a F1-A, contrato global Rewards v0, V1 u otros equipos.
+
+[Contrato, esquema, seguridad y reproducción](contracts/ecomotor-target-demo-rewards-xp-v1.md).
+Los datos son sintéticos, no aprobación de Óscar/Core; DAR3 conserva autoridad.
+No F2-A productivo, USE-01B, TRACE-01B ni activación.
