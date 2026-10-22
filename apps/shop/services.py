@@ -139,7 +139,11 @@ def purchase_item(user, sku_code, *, operation_key, quantity=1):
             if existing.request_fingerprint != request_fingerprint:
                 raise PurchaseIdempotencyConflict(
                     "operation_key was already used with a different SKU or quantity."
-                )
+                    )
+            if existing.bank_transaction.wallet.user_id != user.pk:
+                raise ShopError(
+                    "The purchase is linked to another user's wallet."
+                      )
             return existing
 
         shop_item = (
