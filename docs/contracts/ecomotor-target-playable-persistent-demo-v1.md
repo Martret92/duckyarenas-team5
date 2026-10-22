@@ -148,7 +148,7 @@ explícitas. Resultados reales y comprobación
 visual/reinicio se entregan en la PR.
 
 ```powershell
-py manage.py test apps.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
+py manage.py test apps.ecomotor.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
 py manage.py test
 py manage.py test --settings=apps.ecomotor.target_persistent_demo_settings
 ```
@@ -156,3 +156,11 @@ py manage.py test --settings=apps.ecomotor.target_persistent_demo_settings
 No Rewards, producción, escritor objetivo definitivo, integración global, valores
 oficiales, migración legacy ni cierre de USE-01B/TRACE-01B. Pendientes Óscar,
 Core/A3.5, Henry y consumidores. S3 V1 sigue intacto y no interviene en la demo.
+
+## Consolidación física del laboratorio
+
+CONSOLIDACIÓN-A-01 conserva los contratos y datos de este paso. El paquete actual
+es `apps.ecomotor.ecomotor_target_demo`; settings, SQLite y URL no cambian.
+Las migraciones 0001–0003, tablas, ContentTypes, sesiones y tokens mantienen su
+identidad. No ejecutar fake, recrear tablas ni borrar bases para efectuar el traslado.
+[Decisión y alcance](../decisions.md#consolidación-a-01--reorganización-física-del-laboratorio).

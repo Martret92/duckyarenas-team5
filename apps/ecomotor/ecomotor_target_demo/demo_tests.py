@@ -19,7 +19,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.apps import apps
-if not apps.is_installed("apps.ecomotor_target_demo"):
+if not apps.is_installed("apps.ecomotor.ecomotor_target_demo"):
     raise SkipTest("La app persistente solo se prueba con sus settings exclusivos.")
 
 from django.conf import settings
@@ -52,13 +52,13 @@ class PersistentTests(TestCase):
         self.path = self.root / "instance" / "target_persistent_demo.sqlite3"
         self.alias = "persistent_fixture"
         config = {**connections["default"].settings_dict,
-                  "ENGINE": "apps.ecomotor_target_demo.db_backend", "NAME": self.path,
+                  "ENGINE": "apps.ecomotor.ecomotor_target_demo.db_backend", "NAME": self.path,
                   "OPTIONS": {"transaction_mode": "IMMEDIATE", "timeout": 5}}
         connections.databases[self.alias] = config
         self.db = connections[self.alias]
         self.addCleanup(self.close)
         context = override_settings(BASE_DIR=self.root, TARGET_PERSISTENT_DEMO_ALIAS=self.alias,
-            ROOT_URLCONF="apps.ecomotor_target_demo.urls")
+            ROOT_URLCONF="apps.ecomotor.ecomotor_target_demo.urls")
         context.enable()
         self.addCleanup(context.disable)
         self.migrate()
@@ -106,7 +106,7 @@ class PersistentTests(TestCase):
         return {"action": "grant", "operation": client.session["demo_operation"], "amount": amount}
 
     def test_initial_migration_only_demo_tables_and_constraints(self):
-        migration = import_module("apps.ecomotor_target_demo.migrations.0001_initial").Migration
+        migration = import_module("apps.ecomotor.ecomotor_target_demo.migrations.0001_initial").Migration
         self.assertEqual(migration.dependencies, [("ecomotor", "0007_target_catalog_freeze")])
         self.assertTrue(all(type(op).__name__ in ("CreateModel", "AddConstraint") for op in migration.operations))
         self.assertEqual(DemoTargetProgress.objects.using(self.alias).count(), 0)
@@ -616,7 +616,7 @@ class PlayableTests(PersistentTests):
         progress = self.ready()
         call_command("migrate", "ecomotor_target_demo", "0001", database=self.alias, verbosity=0, stdout=StringIO())
         self.migrate()
-        migration = import_module("apps.ecomotor_target_demo.migrations.0002_playable_configurations").Migration
+        migration = import_module("apps.ecomotor.ecomotor_target_demo.migrations.0002_playable_configurations").Migration
         self.assertEqual(migration.dependencies, [("ecomotor", "0007_target_catalog_freeze"),
                                                   ("ecomotor_target_demo", "0001_initial")])
         self.assertFalse(any(type(op).__name__ == "RunPython" for op in migration.operations))
@@ -1196,7 +1196,7 @@ class RewardTests(PlayableTests):
     def test_model_migration_checks_uniqueness_and_protect(self):
         progress = self.new()
         result = self.reward(progress)
-        migration = import_module("apps.ecomotor_target_demo.migrations.0003_synthetic_rewards").Migration
+        migration = import_module("apps.ecomotor.ecomotor_target_demo.migrations.0003_synthetic_rewards").Migration
         self.assertEqual(migration.dependencies, [("ecomotor_target_demo", "0002_playable_configurations")])
         self.assertEqual([type(op).__name__ for op in migration.operations], ["CreateModel"])
         row = RewardEvent.objects.using(self.alias).get()
@@ -1370,12 +1370,65 @@ class RewardConcurrencyTests(RewardTests):
         self.assertEqual(DemoTargetXPEvent.objects.using(self.alias).count(),0)
         self.assertEqual(self.reward(progress,token=token).xp_amount,700)
 
+
+class ConsolidationTests(PersistentTests):
+    def test_django_identity_graph_and_original_migrations(self):
+        import ast
+        from django.db.migrations.loader import MigrationLoader
+        config = apps.get_app_config("ecomotor_target_demo")
+        self.assertEqual((config.name, config.label), ("apps.ecomotor.ecomotor_target_demo", "ecomotor_target_demo"))
+        expected = {"DemoTargetProgress", "DemoTargetXPEvent", "DemoTargetEvolutionEvent",
+                    "DemoTargetOptionConfiguration", "DemoTargetPlayableState", "DemoTargetPlayableEvent", "DemoTargetRewardEvent"}
+        self.assertEqual({m.__name__ for m in config.get_models()}, expected)
+        for model in config.get_models():
+            self.assertEqual(model._meta.app_label, "ecomotor_target_demo")
+            self.assertEqual(model._meta.db_table, "ecomotor_target_demo_" + model.__name__.lower())
+            self.assertEqual(model.__module__, config.name + ".models")
+        hashes = {"0001_initial":"09f7eb21fb13aebfcb99dd7951d8c4a434db68e1775b07026edc679863246522",
+                  "0002_playable_configurations":"baf12dd0a66bd08416b5703fc4bb05758906a53fe74cc3a802f9f86376d83989",
+                  "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b"}
+        loader = MigrationLoader(self.db)
+        self.assertEqual({name for app,name in loader.disk_migrations if app==config.label}, set(hashes))
+        self.assertTrue({(config.label,name) for name in hashes} <= set(loader.applied_migrations))
+        for name,digest in hashes.items():
+            source = Path(import_module(config.name + ".migrations." + name).__file__).read_text(encoding="utf-8")
+            # AST hashing ignores CRLF/comments, but preserves every operation,
+            # dependency and constraint from the approved pre-move migrations.
+            observed = sha256(ast.dump(ast.parse(source),include_attributes=False).encode()).hexdigest()
+            self.assertEqual(observed,digest)
+        self.assertIn(("ecomotor","0007_target_catalog_freeze"),loader.disk_migrations[(config.label,"0001_initial")].dependencies)
+
+    def test_new_package_resources_backend_commands_and_url(self):
+        from django.core.management import get_commands
+        from django.template.loader import get_template
+        from django.contrib.staticfiles.finders import find
+        from django.urls import resolve
+        prefix="apps.ecomotor.ecomotor_target_demo"
+        self.assertEqual(type(self.db).__module__,prefix+".db_backend.base")
+        self.assertEqual(get_commands()["migrate"],prefix)
+        self.assertEqual(get_commands()["seed_persistent_target_demo"],prefix)
+        self.assertEqual(resolve(URL).func.__module__,prefix+".views")
+        root=Path(apps.get_app_config("ecomotor_target_demo").path)
+        self.assertEqual(Path(get_template("ecomotor_target_demo/home.html").origin.name),root/"templates"/"ecomotor_target_demo"/"home.html")
+        self.assertEqual(Path(find("ecomotor_target_demo/persistent.css")),root/"static"/"ecomotor_target_demo"/"persistent.css")
+
+    def test_repeated_migrate_preserves_rows_contenttypes_and_schema(self):
+        progress=self.new()
+        self.grant(progress)
+        before=self.rows()
+        with CaptureQueriesContext(self.db) as queries:
+            self.migrate()
+        self.assertEqual(self.rows(),before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("CREATE","ALTER","DROP","INSERT","UPDATE","DELETE","REPLACE")) for q in queries))
+        self.assertEqual(len([row for row in before["django_content_type"] if row[1]=="ecomotor_target_demo"]),7)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

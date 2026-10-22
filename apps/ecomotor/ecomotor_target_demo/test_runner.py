@@ -31,8 +31,8 @@ class DemoRunner(DiscoverRunner):
             # the explicit new suite with the actual persistent app installed.
             # Discover every ordinary app test, including Bank/Shop added to
             # develop after Step 2. Explicit labels still retain their scope.
-            labels = list(test_labels or ["apps", "apps.ecomotor_target_demo.demo_tests"])
-            new = [label for label in labels if label.startswith("apps.ecomotor_target_demo.demo_tests")]
+            labels = list(test_labels or ["apps", "apps.ecomotor.ecomotor_target_demo.demo_tests"])
+            new = [label for label in labels if label.startswith("apps.ecomotor.ecomotor_target_demo.demo_tests")]
             legacy = [label for label in labels if label not in new]
             failures = 0
             if legacy:
