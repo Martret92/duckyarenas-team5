@@ -6,7 +6,9 @@ una aprobación de valores de Óscar ni una integración de usuarios Core.
 
 ## Entorno y separación
 
-La app `apps.ecomotor_target_demo` solo se instala mediante
+La app se creó en `apps.ecomotor_target_demo` (ruta histórica del Paso 2).
+CONSOLIDACIÓN-A-01 la traslada a `apps.ecomotor.ecomotor_target_demo`, conservando
+el label Django `ecomotor_target_demo`. Solo se instala mediante
 `apps.ecomotor.target_persistent_demo_settings`. URLconf independiente, sin admin,
 Core o V1, y SQLite exclusiva `instance/target_persistent_demo.sqlite3`.
 La [demo #94](ecomotor-target-demo-v1.md) conserva código, datos y configuración.
@@ -168,9 +170,9 @@ Nueva suite explícita (nombre `demo_tests.py` evita importar modelos no instala
 durante el descubrimiento normal):
 
 ```powershell
-py manage.py test apps.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
+py manage.py test apps.ecomotor.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
 py manage.py test
-py manage.py test apps.ecomotor apps.users apps.duckies apps.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
+py manage.py test apps.ecomotor apps.users apps.duckies apps.ecomotor.ecomotor_target_demo.demo_tests --settings=apps.ecomotor.target_persistent_demo_settings
 ```
 
 El runner exclusivo ejecuta dos fases y comunica cifras separadas: registro de
@@ -191,3 +193,11 @@ Sin escritor productivo, Core/User, Rewards, Bank/Shop, selección persistente,
 estadísticas persistentes, migración legacy, USE-01B o TRACE-01B productivos.
 Faltan acuerdos externos, valores oficiales y activación coordinada; esta demo
 no los resuelve. [Contrato A3](ecomotor-transition-target-v1.md) permanece vigente.
+
+## Consolidación física del laboratorio
+
+CONSOLIDACIÓN-A-01 conserva los contratos y datos de este paso. El paquete actual
+es `apps.ecomotor.ecomotor_target_demo`; settings, SQLite y URL no cambian.
+Las migraciones 0001–0003, tablas, ContentTypes, sesiones y tokens mantienen su
+identidad. No ejecutar fake, recrear tablas ni borrar bases para efectuar el traslado.
+[Decisión y alcance](../decisions.md#consolidación-a-01--reorganización-física-del-laboratorio).

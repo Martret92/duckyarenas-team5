@@ -1066,3 +1066,26 @@ XP de identidad, no de fingerprint. Errores no equivalen a NO_REWARD.
 [Contrato y pruebas](contracts/ecomotor-target-demo-rewards-xp-v1.md). Pasos 2/3 y
 demo #94 siguen disponibles; no escribe configuraciones jugables, otras apps o
 V1/S3. No desbloquea F2-A global, USE-01B, TRACE-01B, Core o valores oficiales.
+
+## CONSOLIDACIÓN-A-01 · Ubicación física del laboratorio persistente
+
+El laboratorio se creó en `apps/ecomotor_target_demo/`. La consolidación interna
+aprobada el 22/10/2026 lo ubica en `apps/ecomotor/ecomotor_target_demo/`, bajo Parte A.
+Es una app Django auxiliar independiente: name `apps.ecomotor.ecomotor_target_demo`,
+label `ecomotor_target_demo`. La app de dominio `apps.ecomotor` y su registro normal
+no incorporan modelos ficticios.
+
+Solo los settings `apps.ecomotor.target_persistent_demo_settings` instalan el
+laboratorio; backend, router, URLconf y runner usan el nuevo paquete. Se conservan
+`instance/target_persistent_demo.sqlite3`, `/demo/objetivo-persistente/`, sesiones,
+firmas y apertura protegida IMMEDIATE/timeout cinco segundos. Los comandos PowerShell
+de migrate, seed y runserver del [Paso 2](contracts/ecomotor-target-persistent-demo-v1.md)
+no cambian; la etiqueta de tests es
+`apps.ecomotor.ecomotor_target_demo.demo_tests`.
+
+Las tres migraciones y las siete tablas conservan su identidad. Una base anterior
+se abre sin reaplicar migraciones ni crear nuevos ContentTypes; no se requiere fake
+ni borrado. La validación usa una copia desechable poblada con el código previo,
+replay API/HTTP y reapertura, además de instalación limpia y regresiones del runner
+de dos fases. No cambia reglas ni responsabilidades de los Pasos 2–4; mantiene
+pendientes todos los acuerdos productivos y no afecta a la demo #94.

@@ -7,7 +7,10 @@ USE-01B, procedencia productiva TRACE-01B ni integración Core/juegos.
 
 ## Alcance y datos ficticios
 
-Se amplía exclusivamente `apps.ecomotor_target_demo` y su SQLite
+En el Paso 4 se amplió `apps.ecomotor_target_demo` (ruta histórica).
+CONSOLIDACIÓN-A-01 sitúa ahora el paquete en
+`apps.ecomotor.ecomotor_target_demo`, sin cambiar el label Django
+`ecomotor_target_demo`, sus migraciones ni los contratos Rewards. Se conserva su SQLite
 `instance/target_persistent_demo.sqlite3`, en la misma ruta y entorno de los
 [Pasos 2](ecomotor-target-persistent-demo-v1.md) y
 [3](ecomotor-target-playable-persistent-demo-v1.md). Demo #94, backend/settings,

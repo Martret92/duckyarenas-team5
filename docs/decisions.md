@@ -1939,3 +1939,27 @@ no soportados. Sin cambios a F1-A, contrato global Rewards v0, V1 u otros equipo
 [Contrato, esquema, seguridad y reproducción](contracts/ecomotor-target-demo-rewards-xp-v1.md).
 Los datos son sintéticos, no aprobación de Óscar/Core; DAR3 conserva autoridad.
 No F2-A productivo, USE-01B, TRACE-01B ni activación.
+
+## CONSOLIDACIÓN-A-01 · Reorganización física del laboratorio
+
+Aprobada internamente por Equipo 5 en 02C-2 el **22/10/2026**, conforme a D-18 y
+D-21. El laboratorio de los Pasos 2–4 se mueve de `apps/ecomotor_target_demo/`
+a `apps/ecomotor/ecomotor_target_demo/`. La ruta anterior se conserva en los
+antecedentes como ubicación histórica; no se mantiene un paquete de compatibilidad.
+
+`AppConfig.name` pasa a `apps.ecomotor.ecomotor_target_demo` y su label explícito
+sigue siendo `ecomotor_target_demo`. Sigue siendo una app auxiliar independiente,
+instalada exclusivamente en los settings de demo. No se fusiona con Ecomotor.
+Las migraciones 0001, 0002 y 0003 conservan contenido, dependencias, identidades y
+tablas. No hay nueva migración ni transformación de datos o ContentTypes.
+
+Se actualizan rutas Python y descubrimiento, manteniendo el runner de dos fases.
+Settings, SQLite, URL, cookies, tokens, reglas, transacciones y aislamiento no cambian.
+Una copia desechable creada antes del movimiento permite comprobar migraciones ya
+aplicadas, datos completos y replay histórico con sesiones y tokens anteriores;
+una SQLite nueva comprueba instalación y flujo completo desde la nueva ubicación.
+Los resultados de las suites se comunican en la PR, sin sustituirlos por recuentos históricos.
+
+Es una reorganización estructural, no una aprobación externa de DAR3, Óscar o Core.
+No cierra USE-01B, TRACE-01B ni contratos productivos. No altera V1/S3, Duckies,
+Bank, Shop, Rewards F1-A ni la demo #94.
