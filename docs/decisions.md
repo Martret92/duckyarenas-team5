@@ -1905,3 +1905,18 @@ protegen separación física y apertura no creadora de las operaciones normales.
 No aprobación de valores por Óscar, autorización Core, escritor productivo o
 implementación USE-01B/TRACE-01B. DAR3 conserva autoridad funcional. La demo guarda
 datos ficticios reales; no se presenta como una simulación sin persistencia.
+
+## A4-TARGET-PERSIST-DEMO-01 · Opciones y atributos persistentes de demo · 22/10/2026
+
+**Aprobada internamente por Equipo 5 / 02C-2**, implementada para revisión en 01B.
+Extiende únicamente la app/SQLite aisladas del Paso 2 con configuración por opción,
+estado activo e historial de selección/redistribución. Doce códigos sintéticos,
+seis bases cero y presupuesto provisional independiente de 45, sin aprobación
+funcional de esos valores por Óscar. Composición A4.2.1/A4.3.1/A4.1, transacciones
+IMMEDIATE, sesión y claves firmadas con propósito propio, revisiones explícitas,
+replay histórico y rollback íntegro. Redistribución gratuita para la demo; no-op
+sin eventos. No relaciones Duckies/User ni modificaciones XP/evoluciones/V1.
+
+[Contrato y concreciones técnicas locales](contracts/ecomotor-target-playable-persistent-demo-v1.md).
+No cierra USE-01B, TRACE-01B ni acuerdos externos; no Rewards ni activación.
+DAR3 conserva autoridad funcional. La demo #94 permanece intacta.

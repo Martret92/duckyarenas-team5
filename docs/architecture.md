@@ -1029,3 +1029,21 @@ otra transacción; un preparatorio no admite nuevas concesiones.
 No selección/atributos persistentes, integración global, autorización funcional o
 trazabilidad productiva. S3 V1 permanece único escritor XP del sistema vigente;
 esta entrada solo escribe datos ficticios en su base exclusiva.
+
+## A4-TARGET-PERSIST-DEMO-01 · Configuraciones locales sintéticas
+
+Paso 3 interno del 22/10/2026, para revisión: extiende el Paso 2 mediante su
+migración 0002, sin tocar escritor XP, settings/backend ni demo #94. El runner
+conserva dos fases; su descubrimiento heredado incluye ahora todas las apps,
+también Bank/Shop ya presentes en develop, sin cambiar sus tests.
+Tres tablas locales (configuración por opción, estado activo e historial jugable)
+usan PROTECT como política exclusiva de demo. Composición pública A4 conserva
+bases/versiones/presupuesto históricos. La transacción exterior IMMEDIATE une
+configuración, estado y evento; revisión global más revisión por configuración,
+replay desde snapshots y no-op sin escrituras. Sesión local y firma con propósito
+separado de XP. Sin Duckies/User reales, Rewards ni activación productiva.
+
+[Esquema, revisiones, seguridad, tests y reproducción](contracts/ecomotor-target-playable-persistent-demo-v1.md).
+La ausencia de selección/atributos descrita en el corte del Paso 2 queda como
+antecedente; este incremento los añade solo en la SQLite sintética. No cierra
+USE-01B/TRACE-01B ni contratos Core/A3.5, Henry y valores oficiales de Óscar.
