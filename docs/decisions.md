@@ -1885,3 +1885,23 @@ No altera APIs existentes, rutas Core, modelos, migraciones o V1/S3.
 [Contrato y ejecución reproducible](contracts/ecomotor-target-demo-v1.md).
 Siguen pendientes valores oficiales, Core/A3.5, Henry, USE-01B/TRACE-01B y
 activación coordinada. La demo no acredita publicación, autorización ni integración global.
+
+## A3-TARGET-PERSIST-DEMO-01 · XP y evoluciones ficticias guardadas · 22/10/2026
+
+**Aprobación interna Equipo 5 / 02C-2**, implementada para revisión en PR. App y
+SQLite exclusivas de demo, sin alterar A3-TARGET-DEMO-01, V1/S3 o usuarios reales.
+Catálogo sintético distinto, validación A1.1 y congelación FREEZE-01; preparación
+y congelación tienen transacciones exteriores separadas. Si falla la segunda,
+seed puede reintentarse y el estado preparatorio bloquea concesiones.
+
+Tres tablas locales (partida, concesión XP y evolución causal), FKs PROTECT como
+concreción exclusiva de demo, snapshots históricos y unicidad por partida/operación.
+Concesión sintética atómica IMMEDIATE mediante A2.1/A1.2; replay sin nuevos efectos,
+seis cruces para 0→700 y ninguna octava época. Sesión local y operación firmada
+por servidor, sin IDs del navegador como autorización. Backend y migrate locales
+protegen separación física y apertura no creadora de las operaciones normales.
+
+[Diseño, ejecución y límites](contracts/ecomotor-target-persistent-demo-v1.md).
+No aprobación de valores por Óscar, autorización Core, escritor productivo o
+implementación USE-01B/TRACE-01B. DAR3 conserva autoridad funcional. La demo guarda
+datos ficticios reales; no se presenta como una simulación sin persistencia.
