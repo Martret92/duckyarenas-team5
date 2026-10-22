@@ -4,6 +4,7 @@ from secrets import token_hex
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db import DatabaseError
+from django.forms import HiddenInput
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -14,8 +15,10 @@ from apps.ecomotor.models import TargetCatalogVersion
 from apps.ecomotor.target_catalog_validation import InvalidTargetCatalogError
 
 from .catalog import DemoCatalogError
-from .data import NAMES, CODES, OPTIONS, VERSION
-from .forms import PersistentDemoForm
+from .data import NAMES, CODES, OPTIONS, OPTION_CHOICES, VERSION
+from .forms import PersistentDemoForm, PlayableForm
+from . import playable_services as playable
+from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES, InvalidTargetStatsError
 from .isolation import demo_connection
 from .services import (DemoAccessError, DemoInputError, DemoConflictError, DemoIntegrityError,
     DemoTransactionError, DemoDatabaseError, create_demo_progress, grant_demo_target_xp,
@@ -36,8 +39,9 @@ def home(request):
         pk = request.session.get("demo_progress")
         if request.method == "POST":
             actions = request.POST.getlist("action")
-            action = actions[0] if len(actions) == 1 and actions[0] == "start" else "grant"
-            bound = PersistentDemoForm(request.POST, action=action)
+            action = actions[0] if len(actions) == 1 else "grant"
+            bound = (PlayableForm(request.POST, action=action, auto_id="invalid_%s") if action in playable.ACTIONS
+                     else PersistentDemoForm(request.POST, action="start" if action == "start" else "grant"))
             if bound.is_valid():
                 if action == "start":
                     secret = secret or token_hex(32)
@@ -46,6 +50,26 @@ def home(request):
                     request.session["demo_progress"] = progress.pk
                     for key in ("demo_operation", "demo_last", "demo_replay"):
                         request.session.pop(key, None)
+                    request.session.pop("playable_last", None)
+                elif action in playable.ACTIONS:
+                    if not secret or pk is None:
+                        raise DemoAccessError("Inicia primero una partida de esta sesión.")
+                    progress, _, _ = read_demo_progress(pk, session_token=secret)
+                    values = bound.cleaned_data
+                    arguments = {"option_code": values["option_code"], "operation_token": values["operation"],
+                        "session_token": secret, "expected_revision": values["expected_revision"]}
+                    if action != "switch":
+                        arguments["increments"] = tuple((code, values[code]) for code in TARGET_STAT_CODES)
+                    if action == "redistribute":
+                        arguments["configuration_revision"] = values["configuration_revision"]
+                    function = {"configure": playable.configure_demo_option, "switch": playable.switch_demo_option,
+                                "redistribute": playable.redistribute_demo_option}[action]
+                    result = function(progress, **arguments)
+                    request.session["playable_notice"] = ("Replay jugable histórico: sin escrituras." if result.replay else
+                        "Sin cambios: la revisión sigue vigente." if not result.changed else "Configuración jugable sintética guardada.")
+                    if result.changed and action != "switch":
+                        request.session["playable_last"] = request.POST.dict()
+                        request.session["playable_last"].pop("csrfmiddlewaretoken", None)
                 else:
                     if not secret or pk is None:
                         raise DemoAccessError("Inicia primero una partida de esta sesión.")
@@ -74,11 +98,40 @@ def home(request):
             if last:
                 context["replay_form"] = PersistentDemoForm(initial={"action": "grant", **last})
                 context["was_replay"] = request.session.get("demo_replay", False)
+            state, history = playable.read_demo_playable(progress, session_token=secret)
+            context.update(playable_state=state, playable_history=history,
+                           active_option_label=dict(OPTION_CHOICES).get(state.active_option),
+                           playable_notice=request.session.get("playable_notice"))
+            if progress.current_level >= 8:
+                def initial(kind, **extra):
+                    return {"action": kind, "operation": playable.issue_playable_operation(progress, action=kind, session_token=secret),
+                            "expected_revision": state.revision or "", **extra}
+                context["configure_form"] = PlayableForm(initial=initial("configure"), auto_id="configure_%s")
+                configured = {c.prepared.definition.option_code for c in state.configurations}
+                context["configure_form"].fields["option_code"].choices = tuple(p for p in OPTION_CHOICES if p[0] not in configured)
+                cards = []
+                for config in state.configurations:
+                    code = config.prepared.definition.option_code
+                    cards.append({"config": config, "label": dict(OPTION_CHOICES)[code],
+                        "rows": tuple((code, increment, effective) for (code, increment), (_, effective)
+                                      in zip(config.prepared.calculation.increments, config.prepared.calculation.effective)),
+                        "switch_form": PlayableForm(action="switch", auto_id=f"switch_{config.id}_%s", initial=initial("switch", option_code=code)),
+                        "redistribute_form": PlayableForm(action="redistribute", initial=initial("redistribute",
+                            option_code=code, configuration_revision=config.revision,
+                            **dict(config.prepared.calculation.increments)), auto_id=f"redistribute_{config.id}_%s")})
+                    for kind in ("switch_form", "redistribute_form"):
+                        cards[-1][kind].fields["option_code"].widget = HiddenInput()
+                context["configuration_cards"] = cards
+            if request.session.get("playable_last"):
+                saved = request.session["playable_last"]
+                context["playable_replay_form"] = PlayableForm(action=saved["action"], initial=saved, auto_id="replay_%s")
         context["start_form"] = PersistentDemoForm(action="start", initial={"action": "start"})
         if bound is not None:
             context["errors"] = bound.errors
             if "amount" in bound.fields:
                 context["grant_form"] = bound
+            elif isinstance(bound, PlayableForm):
+                context["invalid_playable_form"] = bound
     except DemoAccessError:
         context["unavailable"] = "Partida u operación no disponible para esta sesión. No se ha concedido XP."
         status = 403
@@ -87,6 +140,9 @@ def home(request):
         status = 409
     except DemoInputError as error:
         context["unavailable"] = str(error)
+        status = 400
+    except InvalidTargetStatsError:
+        context["unavailable"] = "Reparto inválido. Usa seis enteros no negativos y hasta 45 puntos provisionales. Sin cambios."
         status = 400
     except (ImproperlyConfigured, DatabaseError, DemoDatabaseError, DemoTransactionError,
             DemoCatalogError, InvalidTargetCatalogError, TargetCatalogVersion.DoesNotExist):

@@ -7,4 +7,7 @@ NAMES = ("Prehistórico", "Griego", "Romano", "Medieval", "Renacentista",
          "Revolución Industrial", "Siglo XX")
 CODES = tuple(f"persist-demo-epoch-{n}" for n in range(1, 8))
 OPTIONS = NAMES + ("Developer", "Ciber", "Sistemas", "Data IA", "Gamer")
+OPTION_CODES = CODES + tuple("persist-demo-tech-" + suffix for suffix in
+                            ("developer", "ciber", "sistemas", "data-ia", "gamer"))
+OPTION_CHOICES = tuple(zip(OPTION_CODES, OPTIONS))
 MAX_XP = 2**63 - 1  # SQLite signed INTEGER storage bound, not a game rule.

@@ -62,3 +62,52 @@ class DemoTargetEvolutionEvent(models.Model):
             models.UniqueConstraint(fields=["progress", "ordinal"], name="demo_evolution_ordinal_unique"),
             models.CheckConstraint(condition=models.Q(ordinal__gte=1, ordinal__lte=7), name="demo_evolution_ordinal_range"),
         ]
+
+
+class DemoTargetOptionConfiguration(models.Model):
+    """Synthetic per-option allocation; no relationship to real Duckies."""
+
+    progress = models.ForeignKey("DemoTargetProgress", on_delete=models.PROTECT)
+    option_code = models.CharField(max_length=64)
+    catalog = models.ForeignKey("ecomotor.TargetCatalogVersion", on_delete=models.PROTECT)
+    definition_version = models.CharField(max_length=64)
+    bases = models.JSONField()
+    increments = models.JSONField()
+    budget = models.PositiveBigIntegerField()
+    revision = models.PositiveBigIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("progress", "option_code"), name="demo_option_configuration_unique"),
+            models.CheckConstraint(condition=~models.Q(option_code="") & ~models.Q(definition_version=""), name="demo_config_identity_present"),
+            models.CheckConstraint(condition=models.Q(budget__gte=0, budget__lte=2**63-1, revision__gte=1, revision__lte=2**63-1), name="demo_config_numeric_range"),
+        ]
+
+
+class DemoTargetPlayableState(models.Model):
+    progress = models.OneToOneField("DemoTargetProgress", on_delete=models.PROTECT)
+    active_configuration = models.ForeignKey(DemoTargetOptionConfiguration, on_delete=models.PROTECT)
+    revision = models.PositiveBigIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(revision__gte=1, revision__lte=2**63-1), name="demo_playable_revision_range")]
+
+
+class DemoTargetPlayableEvent(models.Model):
+    progress = models.ForeignKey("DemoTargetProgress", on_delete=models.PROTECT)
+    operation_key = models.CharField(max_length=32)
+    action = models.CharField(max_length=16)
+    option_code = models.CharField(max_length=64)
+    original_request = models.JSONField()
+    before = models.JSONField()
+    after = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("progress", "operation_key"), name="demo_playable_operation_unique"),
+            models.CheckConstraint(condition=~models.Q(operation_key="") & ~models.Q(option_code=""), name="demo_playable_identity_present"),
+            models.CheckConstraint(condition=models.Q(action__in=("configure", "switch", "redistribute")), name="demo_playable_action_valid"),
+        ]

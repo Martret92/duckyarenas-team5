@@ -574,12 +574,419 @@ class PersistentConcurrencyTests(PersistentTests):
         self.assertLess(sql.index("BEGIN IMMEDIATE"), first)
 
 
+
+from dataclasses import FrozenInstanceError
+from decimal import Decimal
+from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES, InvalidTargetStatsError
+from . import playable_services as playable
+from .models import DemoTargetOptionConfiguration as Configuration, DemoTargetPlayableState as PlayableState, DemoTargetPlayableEvent as PlayableEvent
+from .data import OPTION_CODES
+
+GAMER = OPTION_CODES[-1]
+ROMAN = OPTION_CODES[2]
+
+
+def allocation(points=45):
+    return tuple((code, points if code == "ATK" else 0) for code in TARGET_STAT_CODES)
+
+
+class PlayableTests(PersistentTests):
+    def ready(self):
+        progress = self.new()
+        self.grant(progress)
+        return progress
+
+    def token(self, progress, action="configure", secret=SECRET):
+        return playable.issue_playable_operation(progress, action=action, session_token=secret)
+
+    def configure(self, progress, code=GAMER, points=45, revision=None, token=None, secret=SECRET):
+        return playable.configure_demo_option(progress, option_code=code, increments=allocation(points),
+            expected_revision=revision, operation_token=token or self.token(progress, secret=secret), session_token=secret)
+
+    def switch(self, progress, code, revision, token=None):
+        return playable.switch_demo_option(progress, option_code=code, expected_revision=revision,
+            operation_token=token or self.token(progress, "switch"), session_token=SECRET)
+
+    def redistribute(self, progress, points=20, revision=1, config_revision=1, token=None):
+        return playable.redistribute_demo_option(progress, option_code=GAMER, increments=allocation(points),
+            expected_revision=revision, configuration_revision=config_revision,
+            operation_token=token or self.token(progress, "redistribute"), session_token=SECRET)
+
+    def test_migration_two_dependency_and_existing_xp_preserved(self):
+        progress = self.ready()
+        call_command("migrate", "ecomotor_target_demo", "0001", database=self.alias, verbosity=0, stdout=StringIO())
+        self.migrate()
+        migration = import_module("apps.ecomotor_target_demo.migrations.0002_playable_configurations").Migration
+        self.assertEqual(migration.dependencies, [("ecomotor", "0007_target_catalog_freeze"),
+                                                  ("ecomotor_target_demo", "0001_initial")])
+        self.assertFalse(any(type(op).__name__ == "RunPython" for op in migration.operations))
+        observed, xp_events, evolutions = services.read_demo_progress(progress.pk, session_token=SECRET)
+        self.assertEqual((observed.xp_total, len(xp_events), len(evolutions)), (700, 1, 6))
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 0)
+
+    def test_selection_blocked_before_eight_without_writes(self):
+        progress = self.new()
+        token = self.token(progress)
+        before = self.rows()
+        with self.assertRaises(services.DemoInputError): self.configure(progress, token=token)
+        self.assertEqual(before, self.rows())
+
+    def test_twelve_options_and_full_partial_zero_independent(self):
+        progress = self.ready()
+        self.assertEqual(len(OPTION_CODES), 12)
+        for n, code in enumerate(OPTION_CODES):
+            result = self.configure(progress, code, (45, 13, 0)[n % 3], revision=n or None)
+            self.assertEqual(result.after.revision, n + 1)
+            self.assertEqual(result.after.active_option, code)
+            config = next(c for c in result.after.configurations if c.prepared.definition.option_code == code)
+            self.assertEqual(config.prepared.calculation.points_used, (45, 13, 0)[n % 3])
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 12)
+        self.assertEqual(PlayableState.objects.using(self.alias).count(), 1)
+
+    def test_main_gamer_roman_switch_redistribute_reopen(self):
+        progress = self.ready()
+        first = self.configure(progress)
+        second = self.configure(progress, ROMAN, 10, revision=1)
+        switched = self.switch(progress, GAMER, 2)
+        updated = self.redistribute(progress, 24, revision=3)
+        self.assertEqual((first.after.revision, second.after.revision, switched.after.revision, updated.after.revision), (1, 2, 3, 4))
+        self.db.close()
+        state, history = playable.read_demo_playable(progress, session_token=SECRET)
+        gamer = playable._find(state, GAMER)
+        roman = playable._find(state, ROMAN)
+        self.assertEqual((state.active_option, gamer.revision, roman.revision), (GAMER, 2, 1))
+        self.assertEqual((gamer.prepared.calculation.points_used, roman.prepared.calculation.points_used), (24, 10))
+        self.assertEqual((gamer.prepared.definition, gamer.prepared.calculation.budget),
+                         (first.after.configurations[0].prepared.definition, 45))
+        self.assertEqual(len(history), 4)
+        progress.refresh_from_db(using=self.alias)
+        self.assertEqual((progress.xp_total, DemoTargetXPEvent.objects.using(self.alias).count(), DemoTargetEvolutionEvent.objects.using(self.alias).count()), (700, 1, 6))
+
+    def test_invalid_allocations_and_overflow_leave_no_partial_state(self):
+        progress = self.ready()
+        token = self.token(progress)
+        invalid = [allocation(46), allocation(-1), allocation(True), allocation(1.0), allocation(Decimal(1)),
+                   allocation("1"), allocation(MAX_XP+1), allocation()[:-1], allocation()+(("SPE", 0),), allocation()+(("ATK", 0),)]
+        for pairs in invalid:
+            before = self.rows()
+            with self.subTest(pairs=pairs), self.assertRaises(InvalidTargetStatsError):
+                playable.configure_demo_option(progress, option_code=GAMER, increments=pairs, operation_token=token, session_token=SECRET)
+            self.assertEqual(self.rows(), before)
+
+    def test_revision_first_even_active_target_and_noop_no_writes(self):
+        progress = self.ready()
+        self.configure(progress)
+        before = self.rows()
+        for revision in (None, 0, True, "1", 2):
+            with self.subTest(revision=revision), self.assertRaises((services.DemoInputError, playable.DemoRevisionError)):
+                self.switch(progress, GAMER, revision)
+        with CaptureQueriesContext(self.db) as queries:
+            result = self.switch(progress, GAMER, 1)
+            same = self.redistribute(progress, 45)
+        self.assertFalse(result.changed)
+        self.assertFalse(same.changed)
+        self.assertIsNone(result.event_id)
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE")) for q in queries))
+
+    def test_old_configuration_and_state_revisions_rejected(self):
+        progress = self.ready()
+        self.configure(progress)
+        self.redistribute(progress)
+        before = self.rows()
+        with self.assertRaises(playable.DemoRevisionError): self.redistribute(progress, revision=1)
+        with self.assertRaises(playable.DemoRevisionError): self.redistribute(progress, revision=2, config_revision=1)
+        self.assertEqual(self.rows(), before)
+
+    def test_replay_create_after_later_operations_and_conflict(self):
+        progress = self.ready()
+        token = self.token(progress)
+        first = self.configure(progress, token=token)
+        self.configure(progress, ROMAN, 0, revision=1)
+        before = self.rows()
+        with patch.object(playable, "synthetic_definition", side_effect=AssertionError("future definitions are irrelevant")):
+            replay = self.configure(progress, token=token)
+        self.assertTrue(replay.replay)
+        self.assertEqual((replay.before, replay.after), (first.before, first.after))
+        self.assertFalse(replay.changed)
+        for code, points, revision in ((ROMAN, 45, None), (GAMER, 44, None), (GAMER, 45, 2)):
+            with self.assertRaises(services.DemoConflictError): self.configure(progress, code, points, revision, token)
+        self.assertEqual(self.rows(), before)
+
+    def test_redistribution_historical_replay_after_later_change(self):
+        progress = self.ready()
+        self.configure(progress)
+        token = self.token(progress, "redistribute")
+        first = self.redistribute(progress, 12, token=token)
+        self.redistribute(progress, 30, revision=2, config_revision=2)
+        before = self.rows()
+        replay = self.redistribute(progress, 12, token=token)
+        self.assertTrue(replay.replay)
+        self.assertEqual(replay.after, first.after)
+        with self.assertRaises(services.DemoConflictError): self.redistribute(progress, 13, token=token)
+        self.assertEqual(before, self.rows())
+
+    def test_old_switch_form_is_stale_not_historical_change(self):
+        progress = self.ready()
+        self.configure(progress)
+        self.configure(progress, ROMAN, revision=1)
+        token = self.token(progress, "switch")
+        self.switch(progress, GAMER, 2, token)
+        before = self.rows()
+        with self.assertRaises(playable.DemoRevisionError): self.switch(progress, GAMER, 2, token)
+        self.assertEqual(before, self.rows())
+
+    def test_existing_configuration_never_overwritten_by_configure(self):
+        progress = self.ready()
+        self.configure(progress)
+        before = self.rows()
+        with self.assertRaises(services.DemoConflictError): self.configure(progress, points=0, revision=1)
+        self.assertEqual(self.rows(), before)
+
+    def test_missing_config_cannot_switch_or_redistribute(self):
+        progress = self.ready()
+        self.configure(progress, ROMAN)
+        with self.assertRaises(services.DemoInputError): self.switch(progress, GAMER, 1)
+        with self.assertRaises(services.DemoInputError): self.redistribute(progress)
+
+    def test_session_and_purpose_isolation(self):
+        progress = self.ready()
+        token = self.token(progress)
+        with self.assertRaises(services.DemoAccessError): self.configure(progress, token=token, secret=OTHER)
+        with self.assertRaises(services.DemoAccessError): self.configure(progress, token=self.operation(progress))
+        with self.assertRaises(services.DemoAccessError): self.configure(progress, token=self.token(progress, "switch"))
+        with self.assertRaises(services.DemoAccessError): playable.read_demo_playable(progress, session_token=OTHER)
+        other = self.new(OTHER)
+        with self.assertRaises(services.DemoAccessError): self.configure(other, token=token, secret=OTHER)
+
+    def test_rollback_on_each_partial_write(self):
+        progress = self.ready()
+        token = self.token(progress)
+        before = self.rows()
+        for model in (Configuration, PlayableState, PlayableEvent):
+            with self.subTest(model=model), patch.object(model, "save", side_effect=IntegrityError("synthetic")):
+                with self.assertRaises(services.DemoIntegrityError): self.configure(progress, token=token)
+            self.assertEqual(self.rows(), before)
+        self.configure(progress, token=token)
+        before = self.rows()
+        with patch.object(PlayableEvent, "save", side_effect=OperationalError("synthetic")):
+            with self.assertRaises(services.DemoDatabaseError): self.redistribute(progress)
+        self.assertEqual(self.rows(), before)
+
+    def test_corrupt_history_and_current_config_rejected(self):
+        progress = self.ready()
+        token = self.token(progress)
+        self.configure(progress, token=token)
+        event = PlayableEvent.objects.using(self.alias).get()
+        original = event.after
+        bad = {**original, "revision": 2}
+        PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=bad)
+        with self.assertRaises(services.DemoIntegrityError): self.configure(progress, token=token)
+        PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=original)
+        Configuration.objects.using(self.alias).filter(progress=progress).update(increments=[["ATK", True]])
+        with self.assertRaises(services.DemoIntegrityError): playable.read_demo_playable(progress, session_token=SECRET)
+
+    def test_foreign_active_config_detected(self):
+        own = self.ready()
+        self.configure(own)
+        foreign = self.ready()
+        self.configure(foreign)
+        other_config = Configuration.objects.using(self.alias).get(progress=foreign)
+        PlayableState.objects.using(self.alias).filter(progress=own).update(active_configuration=other_config)
+        with self.assertRaises(services.DemoIntegrityError): playable.read_demo_playable(own, session_token=SECRET)
+
+    def test_models_constraints_and_no_user_ducky_relations(self):
+        progress = self.ready()
+        self.configure(progress)
+        config = Configuration.objects.using(self.alias).get()
+        values = {f.attname: getattr(config, f.attname) for f in config._meta.fields if f.name not in ("id", "created_at", "updated_at")}
+        with self.assertRaises(IntegrityError): Configuration.objects.using(self.alias).create(**values)
+        for changes in ({"revision": 0}, {"budget": -1}, {"option_code": ""}, {"definition_version": ""}):
+            with self.assertRaises(IntegrityError): Configuration.objects.using(self.alias).filter(pk=config.pk).update(**changes)
+        for model in (Configuration, PlayableState, PlayableEvent):
+            for field in model._meta.fields:
+                if field.is_relation:
+                    self.assertIn(field.related_model._meta.app_label, ("ecomotor", "ecomotor_target_demo"))
+                    self.assertEqual(field.remote_field.on_delete.__name__, "PROTECT")
+        from django.db.models.deletion import ProtectedError
+        with self.assertRaises(ProtectedError): config.delete(using=self.alias)
+
+    def test_immutable_result_and_input_copies(self):
+        progress = self.ready()
+        pairs = [list(p) for p in allocation()]
+        result = playable.configure_demo_option(progress, option_code=GAMER, increments=pairs,
+            operation_token=self.token(progress), session_token=SECRET)
+        pairs[0][1] = 0
+        self.assertEqual(result.after.configurations[0].prepared.calculation.points_used, 45)
+        for obj, key in ((result, "action"), (result.after, "revision"), (result.after.configurations[0], "revision")):
+            with self.assertRaises((FrozenInstanceError, AttributeError)): setattr(obj, key, 0)
+            self.assertFalse(hasattr(obj, "__dict__"))
+
+    def test_xp_and_foreign_apps_unchanged_and_public_a4_used(self):
+        progress = self.ready()
+        before = self.rows()
+        from . import stats_definitions
+        import apps.ecomotor.target_stats_preparation as preparation
+        with patch.object(playable, "prepare_target_stats_configuration", wraps=preparation.prepare_target_stats_configuration) as prepare, patch.object(stats_definitions, "validate_target_stats_definition", wraps=stats_definitions.validate_target_stats_definition) as definition, patch("apps.ecomotor.xp_service.grant_historical_xp", side_effect=AssertionError("V1")):
+            self.configure(progress)
+            self.redistribute(progress)
+        self.assertTrue(prepare.called)
+        self.assertTrue(definition.called)
+        after = self.rows()
+        allowed = {Configuration._meta.db_table, PlayableState._meta.db_table, PlayableEvent._meta.db_table}
+        self.assertTrue(all(rows == after[table] for table, rows in before.items() if table not in allowed))
+
+    def test_outer_transaction_and_cached_progress_rejected_or_reloaded(self):
+        progress = self.ready()
+        token = self.token(progress)
+        with transaction.atomic(using=self.alias):
+            with self.assertRaises(services.DemoTransactionError): self.configure(progress, token=token)
+        progress.current_level = 1
+        self.assertTrue(self.configure(progress, token=token).changed)
+
+    def playable_http(self, *, action="configure", option=GAMER, revision="", config_revision="1", points="45"):
+        progress = DemoTargetProgress.objects.using(self.alias).get(pk=self.client.session["demo_progress"])
+        secret = self.client.session["demo_secret"]
+        data = {"action": action, "operation": self.token(progress, action, secret), "option_code": option, "expected_revision": revision}
+        if action != "switch": data.update({code: points if code == "ATK" else "0" for code in TARGET_STAT_CODES})
+        if action == "redistribute": data["configuration_revision"] = config_revision
+        return data
+
+    def http_ready(self):
+        self.http_start()
+        self.assertEqual(self.client.post(URL, self.http_data()).status_code, 302)
+
+    def test_http_main_workflow_persistence_and_historical_replay(self):
+        self.http_ready()
+        gamer = self.playable_http()
+        self.assertEqual(self.client.post(URL, gamer).status_code, 302)
+        self.assertEqual(self.client.post(URL, self.playable_http(option=ROMAN, revision="1", points="12")).status_code, 302)
+        self.assertEqual(self.client.post(URL, self.playable_http(action="switch", revision="2")).status_code, 302)
+        self.assertEqual(self.client.post(URL, self.playable_http(action="redistribute", revision="3", points="23")).status_code, 302)
+        self.db.close()
+        response = self.client.get(URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("23 usados / 22 restantes", response.content.decode())
+        self.assertIn("45 puntos provisionales", response.content.decode())
+        self.assertEqual(self.client.post(URL, gamer).status_code, 302)
+        self.assertEqual(PlayableEvent.objects.using(self.alias).count(), 4)
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 2)
+        self.assertEqual(DemoTargetEvolutionEvent.objects.using(self.alias).count(), 6)
+
+    def test_http_strict_fields_duplicates_ascii_and_escape(self):
+        self.http_ready()
+        data = self.playable_http()
+        for invalid in ("-1", "1.0", "+1", " 1", "1 ", "١", "1e2", "1"*20, "", "<script>x</script>"):
+            response = self.client.post(URL, {**data, "ATK": invalid})
+            self.assertEqual(response.status_code, 400, invalid)
+            self.assertNotIn("<script>x</script>", response.content.decode())
+        for key in ("budget", "bases", "profile_id", "catalog", "level", "SPE", "authorized"):
+            self.assertEqual(self.client.post(URL, {**data, key: "1"}).status_code, 400)
+        for key, value in data.items():
+            self.assertEqual(self.client.post(URL, urlencode([*data.items(), (key, value)]), content_type="application/x-www-form-urlencoded").status_code, 400)
+        missing = dict(data)
+        missing.pop("VEL")
+        self.assertEqual(self.client.post(URL, missing).status_code, 400)
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 0)
+
+    def test_http_csrf_another_session_and_get_no_configuration_write(self):
+        self.http_ready()
+        data = self.playable_http()
+        guarded = Client(enforce_csrf_checks=True)
+        guarded.cookies = self.client.cookies.copy()
+        self.assertEqual(guarded.post(URL, data).status_code, 403)
+        response = guarded.get(URL)
+        csrf = guarded.cookies[settings.CSRF_COOKIE_NAME].value
+        self.assertEqual(guarded.post(URL, {**data, "csrfmiddlewaretoken": csrf}).status_code, 302)
+        other = Client()
+        self.http_start(other)
+        self.assertEqual(other.post(URL, data).status_code, 403)
+        before = self.rows()
+        self.assertEqual(guarded.get(URL).status_code, 200)
+        self.assertEqual(self.rows(), before)
+
+
+class PlayableConcurrencyTests(PlayableTests):
+    def race_playable(self, same):
+        progress = self.ready()
+        token = self.token(progress)
+        other = token if same else self.token(progress)
+        barrier = Barrier(2)
+        def worker(key, code):
+            db = connections[self.alias]
+            try:
+                barrier.wait(timeout=10)
+                try:
+                    result = self.configure(progress, code, token=key)
+                except playable.DemoRevisionError as error:
+                    result = error
+                return result, id(db.connection)
+            finally: db.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            a = pool.submit(worker, token, GAMER)
+            b = pool.submit(worker, other, GAMER if same else ROMAN)
+            results = (a.result(timeout=20), b.result(timeout=20))
+        self.assertNotEqual(results[0][1], results[1][1])
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 1)
+        self.assertEqual(PlayableEvent.objects.using(self.alias).count(), 1)
+        if same: self.assertEqual(sum(r[0].replay for r in results), 1)
+        else: self.assertEqual(sum(isinstance(r[0], playable.DemoRevisionError) for r in results), 1)
+
+    def test_concurrent_same_playable_identity(self): self.race_playable(True)
+    def test_concurrent_different_options_revision_serialization(self): self.race_playable(False)
+
+    def test_xp_and_selection_concurrent_independent_histories(self):
+        progress = self.ready()
+        token = self.token(progress)
+        xp_token = self.operation(progress)
+        barrier = Barrier(2)
+        def worker(kind):
+            db = connections[self.alias]
+            try:
+                barrier.wait(timeout=10)
+                if kind == "xp": return self.grant(progress, 200, xp_token)
+                return self.configure(progress, token=token)
+            finally: db.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            a, b = pool.submit(worker, "xp"), pool.submit(worker, "playable")
+            a.result(timeout=20)
+            b.result(timeout=20)
+        progress.refresh_from_db(using=self.alias)
+        self.assertEqual(progress.xp_total, 900)
+        self.assertEqual((Configuration.objects.using(self.alias).count(), DemoTargetEvolutionEvent.objects.using(self.alias).count()), (1, 6))
+        playable.read_demo_playable(progress, session_token=SECRET)
+
+    def test_playable_timeout_no_partial_write_then_explicit_retry(self):
+        progress = self.ready()
+        token = self.token(progress)
+        held, release = Event(), Event()
+        def blocker():
+            db = connections[self.alias]
+            try:
+                with transaction.atomic(using=self.alias):
+                    held.set()
+                    if not release.wait(12): raise AssertionError("synchronization timeout")
+            finally: db.close()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(blocker)
+            self.assertTrue(held.wait(5))
+            try:
+                started = monotonic()
+                with self.assertRaises(services.DemoBusyError): self.configure(progress, token=token)
+                self.assertGreaterEqual(monotonic() - started, 4.5)
+            finally: release.set()
+            future.result(timeout=5)
+        self.assertFalse(self.db.in_atomic_block)
+        self.assertEqual(Configuration.objects.using(self.alias).count(), 0)
+        self.assertTrue(self.configure(progress, token=token).changed)
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for name in PersistentConcurrencyTests.__dict__:
-        if name.startswith("test_"):
-            selected.addTest(PersistentConcurrencyTests(name))
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests):
+        for name in case.__dict__:
+            if name.startswith("test_"):
+                selected.addTest(case(name))
     return selected
