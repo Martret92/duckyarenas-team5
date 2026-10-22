@@ -1008,3 +1008,24 @@ alcance declarado. Replay A3.3 se resuelve primero sin elegibilidad nueva del le
 [Pendientes](pending-decisions.md#22-a362--detalle-del-lector-y-dependencias): API,
 contexto confiable, formato, suficiencia V1_VERIFIED, procedencia y Core/Henry.
 A3.5 sigue abierto; S3 V1 sigue único escritor. Sin código o cambios físicos.
+
+## A3-TARGET-PERSIST-DEMO-01 · Persistencia local sintética separada
+
+Paso 2 aprobado internamente en 02C-2 el 22/10/2026, para revisión en PR. App
+`ecomotor_target_demo` instalada solo por `target_persistent_demo_settings`, SQLite
+`instance/target_persistent_demo.sqlite3` y URLconf exclusivos. La demo #94 continúa
+intacta. No es la implementación física productiva del Ecomotor objetivo.
+
+Reutiliza catálogo objetivo 0006/0007, A1.1, FREEZE-01 y A2.1/A1.2. Añade únicamente
+tres tablas de demo mediante su migración 0001: progreso ficticio, XPEvent sintético
+y evoluciones causales separadas de V1. PROTECT y snapshots/JSON son decisiones
+internas para esta demo, sin extrapolación Core. Sesión local aislada identifica
+la partida; transacción IMMEDIATE confirma progreso, concesión y cruces juntos.
+El backend protege también aperturas de sesiones y migrate; solo migrate puede
+crear inicialmente el archivo. Seed confirma preparación antes de congelar en
+otra transacción; un preparatorio no admite nuevas concesiones.
+
+[Contrato, esquema, arnés de tests y reproducción](contracts/ecomotor-target-persistent-demo-v1.md).
+No selección/atributos persistentes, integración global, autorización funcional o
+trazabilidad productiva. S3 V1 permanece único escritor XP del sistema vigente;
+esta entrada solo escribe datos ficticios en su base exclusiva.
