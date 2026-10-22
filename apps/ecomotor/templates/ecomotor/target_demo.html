@@ -1,0 +1,163 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorio de evolución · DuckyArenas</title>
+  <link rel="stylesheet" href="{% static 'ecomotor/target_demo.css' %}">
+</head>
+<body>
+<header class="topbar">
+<a class="brand" href="{% url 'target-demo' %}">
+<span class="brand-icon" aria-hidden="true">◒</span> DUCKY<span>ARENAS</span>
+</a>
+<span class="pill">LAB / EQUIPO 5</span>
+<a href="{% url 'target-demo' %}">Empezar de cero ↗</a>
+</header>
+<main>
+  <div class="intro">
+<p class="eyebrow">ECOMOTOR OBJETIVO · DEMO INTERNA</p>
+<h1>Un viaje de siete épocas.<br>
+<em>Doce formas de continuar.</em>
+</h1>
+<p>Explora la progresión corregida, desbloquea opciones y ensaya tu reparto. Todo ocurre en una simulación local.</p>
+</div>
+  <aside class="disclaimer">
+<strong>Demostración local: no se guardan datos de jugadores.</strong> No se concede XP real ni se activa el Ecomotor objetivo. Catálogo y umbrales sintéticos, sin aprobación funcional. <strong>45 puntos es un presupuesto provisional del Equipo 5.</strong> Las estadísticas base y la selección definitiva todavía no están disponibles.</aside>
+  {% if unavailable %}<section class="panel error" role="alert">
+<h2>Necesitamos preparar el laboratorio</h2>
+<p>{{ unavailable }}</p>
+</section>{% else %}
+  <nav class="section-nav" aria-label="Secciones de la demo">
+<a href="#progresion">01 Progresión</a>
+<a href="#opciones">02 Opciones</a>
+<a href="#reparto">03 Reparto</a>
+</nav>
+  {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+  {% if request_errors %}<div class="error" role="alert"><strong>Revisa la petición.</strong>{{ request_errors }}</div>{% endif %}
+  <section id="progresion" class="journey">
+    <div class="specimen costume-{{ outfit_number }}">
+<div class="specimen-top">
+<span class="eyebrow">VESTIMENTA CONCEPTUAL</span>
+<span>0{{ outfit_number }} / 07</span>
+</div>
+<div class="duck-scene" aria-hidden="true">
+<span class="orbit one">
+</span>
+<span class="orbit two">
+</span>
+<span class="duck">🦆</span>
+<span class="pedestal">
+</span>
+</div>
+<h2>{{ outfit_name }}</h2>
+<p>Placeholder local · no es un diseño final de Duckies</p>
+<div class="specimen-bottom">
+<span>OPCIÓN VISUALIZADA</span>
+<strong>{{ option_name }}</strong>
+</div>
+</div>
+    <div class="panel progress-panel">
+<p class="eyebrow">01 / PROGRESIÓN HISTÓRICA</p>
+<h2>Tu siguiente salto</h2>
+<div class="metrics">
+<div>
+<span>XP simulada</span>
+<strong id="xp-total">{{ progression.xp_after }}</strong>
+</div>
+<div>
+<span>Nivel</span>
+<strong id="level">{{ progression.level_after }}</strong>
+</div>
+<div>
+<span>Época actual</span>
+<strong class="epoch-title">{{ epoch_name }}</strong>
+</div>
+</div>
+      <form method="post" action="#progresion" class="xp-form">{% csrf_token %}{{ forms.xp.action }}{{ forms.xp.state }}<label for="{{ forms.xp.amount.id_for_label }}">{{ forms.xp.amount.label }}</label>
+<div class="input-row">{{ forms.xp.amount }}<button type="submit">Simular incremento <span aria-hidden="true">↗</span>
+</button>
+</div>
+<small>Prueba 700 XP desde cero para llegar al nivel 8. Umbrales ficticios de este ejercicio.</small>
+</form>
+      {% if transition %}<div class="transition" aria-live="polite">
+<h3>Lo que acaba de cambiar</h3>
+<p>XP {{ transition.xp_before }} → {{ transition.xp_after }} · Nivel {{ transition.level_before }} → {{ transition.level_after }}</p>
+<p>Época {{ epoch_before_name }} → {{ epoch_after_name }}</p>
+<p>Niveles cruzados: {{ transition.crossed_levels|join:", "|default:"ninguno" }}</p>
+<p>Épocas cruzadas: {{ crossed_epochs|join:" → "|default:"ninguna" }}</p>{% if transition.choice_newly_unlocked %}<strong>¡Elección desbloqueada! Ahora puedes explorar doce opciones.</strong>{% endif %}</div>{% endif %}
+      <form method="post" action="#progresion" class="reset-form">{% csrf_token %}{{ forms.reset.action }}{{ forms.reset.state }}<button class="text-button" type="submit">↺ Reiniciar simulación</button>
+</form>
+    </div>
+  </section>
+  <section class="timeline-section">
+<div class="section-heading">
+<h2>Siete épocas. Ninguna de más.</h2>
+<span>UMBRALES SINTÉTICOS</span>
+</div>
+<ol class="timeline">{% for epoch in epochs %}<li class="{% if epoch.current %}current{% elif epoch.reached %}reached{% endif %}" {% if epoch.current %}aria-current="step"{% endif %}>
+<span class="costume-swatch swatch-{{ epoch.number }}" aria-hidden="true">🦆</span>
+<span class="epoch-number">0{{ epoch.number }} · VESTIMENTA CONCEPTUAL</span>
+<strong>{{ epoch.name }}</strong>
+<span>{{ epoch.xp }} XP</span>{% if epoch.current %}<small>ESTÁS AQUÍ</small>{% endif %}</li>{% endfor %}</ol>
+<p class="footnote">El nivel 8 desbloquea la elección, no una octava época. Siglo XX sigue siendo la última época histórica, también en el nivel 9.</p>
+</section>
+  <section id="opciones" class="panel options-panel">
+<div class="section-heading">
+<div>
+<p class="eyebrow">02 / ELIGE QUÉ EXPLORAR</p>
+<h2>Tu historia sigue por aquí.</h2>
+</div>
+<span class="pill {% if progression.choice_unlocked_after %}unlocked{% endif %}">{% if progression.choice_unlocked_after %}12 OPCIONES DESBLOQUEADAS{% else %}BLOQUEADAS HASTA NIVEL 8{% endif %}</span>
+</div>
+<p>Las siete históricas son opciones jugables, no solo vestimentas. Elegir aquí sirve únicamente para visualizar; los identificadores son locales y provisionales.</p>
+    <h3 class="group-label">07 / Históricas</h3>
+<div class="option-grid historical">{% for code, name in history_options %}<form method="post" action="#opciones">{% csrf_token %}{{ forms.choose.action }}{{ forms.choose.state }}<button name="option" value="{{ code }}" class="option {% if selected == code %}selected{% endif %}" {% if not progression.choice_unlocked_after %}disabled{% endif %}>
+<span>HISTÓRICA</span>
+<strong>{{ name }}</strong>
+<span>{% if selected == code %}Visualizando ✓{% else %}Explorar ↗{% endif %}</span>
+</button>
+</form>{% endfor %}</div>
+    <h3 class="group-label">05 / Tecnológicas</h3>
+<div class="option-grid technological">{% for code, name in tech_options %}<form method="post" action="#opciones">{% csrf_token %}{{ forms.choose.action }}{{ forms.choose.state }}<button name="option" value="{{ code }}" class="option {% if selected == code %}selected{% endif %}" {% if not progression.choice_unlocked_after %}disabled{% endif %}>
+<span>TECNOLÓGICA</span>
+<strong>{{ name }}</strong>
+<span>{% if selected == code %}Visualizando ✓{% else %}Explorar ↗{% endif %}</span>
+</button>
+</form>{% endfor %}</div>
+    <div class="wardrobe">
+<h3>Un recorrido también para vestir</h3>
+<p>Durante la progresión corresponde la vestimenta de la época vigente. Tras visualizar una especialización tecnológica puedes volver a las vestimentas históricas ya desbloqueadas. Sin inventario, propiedad ni equipamiento real.</p>{% if show_outfits %}<form method="post" action="#progresion">{% csrf_token %}{{ forms.outfit.as_p }}<button class="secondary" type="submit">Visualizar vestimenta</button>
+</form>{% endif %}</div>
+  </section>
+  <section id="reparto" class="panel stats-panel">
+<div class="stats-intro">
+<p class="eyebrow">03 / ENSAYA TU CONFIGURACIÓN</p>
+<h2>Seis atributos.<br>Tu reparto provisional.</h2>
+<p>Hasta <strong>45 puntos provisionales por opción</strong>. Puedes gastar todos, algunos o ninguno. Se muestran incrementos, no estadísticas efectivas oficiales.</p>
+<span class="pill">{{ option_name }}</span>
+<p class="footnote">A4.1 valida el reparto con bases cero exclusivamente sintéticas. No se resuelve una configuración autorizada ni se guarda una asignación.</p>
+</div>
+<div>{% if selected and progression.choice_unlocked_after %}<form method="post" action="#reparto" class="stats-form">{% csrf_token %}{{ forms.stats.action }}{{ forms.stats.state }}<div class="stat-grid">{% for field in forms.stats.visible_fields %}<div>
+<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}</div>
+<button type="submit">Comprobar reparto ↗</button>
+</form>{% else %}<div class="locked">
+<span aria-hidden="true">◇</span>
+<h3>Primero, una nueva posibilidad.</h3>
+<p>Alcanza el nivel 8 y visualiza una de las doce opciones para ensayar su reparto.</p>
+</div>{% endif %}{% if calculation %}<div class="stats-result" role="status">
+<strong>Reparto válido</strong>
+<p>
+<b>{{ calculation.points_used }}</b> puntos gastados · <b>{{ calculation.points_remaining }}</b> puntos restantes</p>
+<p>{% for code, value in calculation.increments %}{{ code }} +{{ value }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+</div>{% endif %}</div>
+</section>
+  {% endif %}
+</main>
+<footer>
+<span>DUCKYARENAS / EQUIPO 5</span>
+<p>Demo A3-TARGET-DEMO-01 · Aprobación interna 22/10/2026 · DAR3 mantiene su autoridad funcional.<br>Sin integración global Core, sin diseños finales de Henry y sin valores oficiales. S3 V1 permanece intacto.</p>
+</footer>
+</body>
+</html>

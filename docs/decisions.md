@@ -1862,3 +1862,26 @@ Implementación para revisión en PR; no modelos/migraciones, cambios FREEZE/PRE
 publicación, procedencia persistente o escritor objetivo. USE-01B, TRACE-01B,
 Core/A3.5, Henry y valores funcionales oficiales siguen pendientes. S3 V1 conserva
 su condición de único escritor XP activo.
+
+## A3-TARGET-DEMO-01 · Demo navegable del Ecomotor objetivo · 22/10/2026
+
+**Aprobada internamente por Equipo 5 en 02C-2.** No es una aprobación externa
+de valores por Óscar ni un contrato de integración Core/Henry. DAR3 conserva
+su autoridad funcional. Implementación en PR para revisión técnica en 01B.
+
+Demo Django independiente de A4-DEMO-01, con settings/URLconf propios y SQLite
+exclusiva en `instance/target_demo.sqlite3`. Instalación explícita de un catálogo
+sintético preparatorio, reproducible y validado A1.1; no se instala durante HTTP.
+PREVIEW-01/A2.1/A1.2 calculan incrementos y todos los cruces de siete épocas;
+nivel 8 desbloquea doce opciones visuales (siete históricas y cinco tecnológicas),
+sin octava época. Estado efímero firmado, sin sesiones o escrituras de jugador.
+
+Reparto mediante A4.1 con seis bases cero sintéticas y presupuesto interno
+provisional de 45, separado de cualquier fuente autorizada de estadísticas.
+Placeholders locales de vestimenta, sin equipamiento ni diseños finales Duckies.
+HTTP estricto y CSRF, sin escritor XP, elección definitiva o persistencia de puntos.
+No altera APIs existentes, rutas Core, modelos, migraciones o V1/S3.
+
+[Contrato y ejecución reproducible](contracts/ecomotor-target-demo-v1.md).
+Siguen pendientes valores oficiales, Core/A3.5, Henry, USE-01B/TRACE-01B y
+activación coordinada. La demo no acredita publicación, autorización ni integración global.

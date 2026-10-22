@@ -891,3 +891,17 @@ D-19, idempotencia o replay. No clasificación real, modelos, migraciones, campo
 FKs, backfill o activación autorizados por estas preferencias. S3 V1 intacto y único
 escritor XP. Coordinación Core/P5 y consumidores/Henry pendiente; no cierre global
 de P1–P8 ni otros contratos. Sin tests Django ejecutados en este incremento documental.
+
+## 31. A3-TARGET-DEMO-01 · Demostración local objetivo
+
+Decisión interna de 02C-2 del 22/10/2026; [implementación en PR para revisión](contracts/ecomotor-target-demo-v1.md).
+Resuelto para la demo: entorno y SQLite aislados, catálogo sintético explícito,
+siete épocas, doce opciones visuales desde nivel 8, simulación PREVIEW/A1/A2,
+reparto provisional A4.1 y estado firmado sin persistencia de jugador.
+A4-DEMO-01 y S3 V1 permanecen intactos; no hay activación objetivo.
+
+Permanecen abiertos valores/bases/umbrales oficiales de Óscar, diseños y acuerdos
+de vestimentas con Henry, Core/A3.5, autorización USE-01B, procedencia TRACE-01B,
+selección y estadísticas persistentes, consumidores y activación coordinada.
+Los 45 puntos y códigos `demo-*` no son oficiales. La demo operativa no supone
+integración funcional global ni cierre de esas dependencias.
