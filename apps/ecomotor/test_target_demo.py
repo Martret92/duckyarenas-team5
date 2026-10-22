@@ -1,9 +1,13 @@
 """Synthetic fixtures only; every database here is a disposable isolated file."""
 
 from html import unescape
+from hashlib import sha256
 from io import StringIO
 from pathlib import Path
+import os
 import re
+from shutil import copyfile
+import subprocess
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
@@ -155,6 +159,146 @@ class TargetDemoTests(TestCase):
             self.assertEqual(self.client.get(URL).status_code, 404)
             with self.assertRaises(CommandError): self.seed()
         self.assertFalse((self.root / "missing-root").exists())
+
+    def assert_isolation_rejected(self):
+        configuration = self.db.settings_dict
+        options = configuration["OPTIONS"]
+        original_name = configuration["NAME"]
+        with patch.object(self.db, "get_new_connection", wraps=self.db.get_new_connection) as opener:
+            self.assertEqual(self.client.get(URL).status_code, 404)
+            self.assertEqual(self.post(amount="1").status_code, 404)
+            with self.assertRaises(CommandError): self.seed()
+            opener.assert_not_called()
+        self.assertIs(self.db.settings_dict, configuration)
+        self.assertIs(configuration["OPTIONS"], options)
+        self.assertEqual(configuration["NAME"], original_name)
+        self.assertIs(connections.databases[self.alias], configuration)
+
+    def test_file_symlink_to_habitual_database_is_rejected_without_changes(self):
+        self.db.close()
+        habitual = self.root / "db.sqlite3"
+        self.path.rename(habitual)
+        before = sha256(habitual.read_bytes()).hexdigest()
+        try:
+            self.path.symlink_to(habitual)
+        except (OSError, NotImplementedError) as error:
+            self.skipTest(f"La plataforma no permite crear symlinks de prueba: {error}")
+        self.assert_isolation_rejected()
+        self.assertTrue(self.path.is_symlink())
+        self.assertEqual(self.path.readlink(), habitual)
+        self.assertEqual(sha256(habitual.read_bytes()).hexdigest(), before)
+
+    def test_directory_symlink_cannot_hide_shared_database(self):
+        self.db.close()
+        store = self.root / "synthetic-store"
+        self.path.parent.rename(store)
+        try:
+            (self.root / "instance").symlink_to(store, target_is_directory=True)
+        except (OSError, NotImplementedError) as error:
+            self.skipTest(f"La plataforma no permite crear symlinks de prueba: {error}")
+        before = sha256((store / "target_demo.sqlite3").read_bytes()).hexdigest()
+        self.assert_isolation_rejected()
+        self.assertTrue((self.root / "instance").is_symlink())
+        self.assertEqual(sha256((store / "target_demo.sqlite3").read_bytes()).hexdigest(), before)
+
+    def test_hardlink_to_habitual_database_is_rejected_without_changes(self):
+        self.db.close()
+        habitual = self.root / "db.sqlite3"
+        self.path.rename(habitual)
+        before = sha256(habitual.read_bytes()).hexdigest()
+        try:
+            self.path.hardlink_to(habitual)
+        except (OSError, NotImplementedError) as error:
+            self.skipTest(f"La plataforma no permite crear hardlinks de prueba: {error}")
+        self.assertTrue(self.path.samefile(habitual))
+        self.assert_isolation_rejected()
+        self.assertTrue(self.path.samefile(habitual))
+        self.assertEqual(sha256(habitual.read_bytes()).hexdigest(), before)
+
+    def test_symlink_detection_rejects_before_open_without_platform_privileges(self):
+        # Complements the real symlink tests when Windows denies their creation.
+        self.db.close()
+        before = sha256(self.path.read_bytes()).hexdigest()
+        original = Path.is_symlink
+        with patch.object(Path, "is_symlink", lambda path: path == self.path or original(path)):
+            self.assert_isolation_rejected()
+        self.assertEqual(sha256(self.path.read_bytes()).hexdigest(), before)
+
+    def test_windows_directory_junction_is_rejected_without_changes(self):
+        if os.name != "nt":
+            self.skipTest("Las junctions solo corresponden a Windows.")
+        self.db.close()
+        store = self.root / "synthetic-store"
+        instance = self.root / "instance"
+        instance.rename(store)
+        # Only disposable paths under TemporaryDirectory; no production shell
+        # commands, configuration changes or administrator privileges required.
+        result = subprocess.run(["cmd.exe", "/d", "/c", "mklink", "/J", str(instance), str(store)],
+                                capture_output=True, check=False)
+        if result.returncode:
+            self.skipTest("Este entorno no permite crear junctions temporales.")
+        self.assertTrue(instance.is_junction())
+        before = sha256((store / "target_demo.sqlite3").read_bytes()).hexdigest()
+        self.assert_isolation_rejected()
+        self.assertTrue(instance.is_junction())
+        self.assertEqual(sha256((store / "target_demo.sqlite3").read_bytes()).hexdigest(), before)
+
+    def test_disappearing_file_not_recreated_by_get_post_or_seed(self):
+        self.db.close()
+        backup = self.root / "synthetic-backup.sqlite3"
+        copyfile(self.path, backup)
+        configuration = self.db.settings_dict
+        options = configuration["OPTIONS"]
+        original = self.db.get_new_connection
+
+        def disappear(params):
+            self.assertTrue(str(params["database"]).endswith("?mode=rw"))
+            self.path.unlink()  # Race after inspection, immediately before SQLite opens.
+            return original(params)
+
+        for operation in ("GET", "POST", "seed"):
+            with self.subTest(operation=operation):
+                if not self.path.exists(): copyfile(backup, self.path)
+                with patch.object(self.db, "get_new_connection", side_effect=disappear):
+                    if operation == "seed":
+                        with self.assertRaises(CommandError): self.seed()
+                    else:
+                        response = self.client.get(URL) if operation == "GET" else self.post(amount="1")
+                        self.assertEqual(response.status_code, 503)
+                        self.assertNotIn("Reparto válido", self.text(response))
+                self.assertFalse(self.path.exists())
+                self.assertIsNone(self.db.connection)
+                self.assertIs(self.db.settings_dict, configuration)
+                self.assertIs(configuration["OPTIONS"], options)
+                self.assertEqual(configuration["NAME"], self.path)
+                self.assertNotIn("database", options)
+                self.assertIs(connections.databases[self.alias], configuration)
+
+    def test_existing_isolated_file_opens_rw_without_mutating_configuration(self):
+        before = self.rows()
+        self.db.close()
+        configuration = self.db.settings_dict
+        options = configuration["OPTIONS"]
+        with patch.object(self.db, "get_new_connection", wraps=self.db.get_new_connection) as opener:
+            response = self.client.get(URL)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(opener.call_count, 1)
+            self.assertEqual(opener.call_args.args[0]["database"], self.path.as_uri() + "?mode=rw")
+        self.assertEqual(self.post(amount="700").status_code, 200)
+        self.seed()
+        self.assertIs(self.db.settings_dict, configuration)
+        self.assertIs(configuration["OPTIONS"], options)
+        self.assertEqual(configuration["NAME"], self.path)
+        self.assertNotIn("database", options)
+        self.assertEqual(self.rows(), before)
+
+    def test_unrelated_open_connection_cannot_be_relabelled_as_demo(self):
+        self.db.close()
+        other = self.root / "unrelated-synthetic.sqlite3"
+        copyfile(self.path, other)
+        with patch.dict(self.db.settings_dict, NAME=other):
+            self.db.ensure_connection()
+        self.assert_isolation_rejected()
 
     def test_get_initial_screen_seven_epochs_twelve_options_and_warnings(self):
         response = self.client.get(URL)

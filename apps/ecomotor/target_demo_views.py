@@ -52,6 +52,10 @@ def target_demo(request):
         alias = demo_database()
     except ImproperlyConfigured as error:
         raise Http404("La demo requiere su entorno aislado y una base migrada.") from error
+    except DatabaseError:
+        return render(request, "ecomotor/target_demo.html", {
+            "unavailable": "No se pudo abrir la SQLite aislada existente. Revisa el entorno de demo."
+        }, status=503)
     payload = {"xp": 0, "option": "", "outfit": ""}
     bound = None
     calculation = None

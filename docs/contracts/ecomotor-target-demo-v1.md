@@ -52,6 +52,16 @@ migrar. Sin archivo migrado, la vista rechaza el entorno; con catálogo ausente
 o incompatible devuelve 503 sin instalarlo. No se exponen admin, Core o V1.
 A4-DEMO-01, su URLconf y sus settings permanecen independientes e intactos.
 
+Vista y seed rechazan symlinks/junctions de la ruta y comprueban identidad física
+frente a la base habitual, incluidos enlaces duros detectables mediante `samefile`.
+La apertura reutiliza el mecanismo `mode=rw` de AUDIT-01: un archivo eliminado
+entre comprobación y conexión no se recrea. Se comprueba también la ruta de la
+conexión abierta, sin modificar `NAME`/`OPTIONS` originales. No se reparan ni
+eliminan archivos ante un rechazo. La vista devuelve 404 por aislamiento inválido
+y 503 por error de apertura; seed devuelve `CommandError`. Esto no sustituye
+permisos del sistema de archivos frente a un administrador capaz de reemplazar
+archivos o conexiones. La creación inicial mediante `migrate` sigue siendo explícita.
+
 El comando es el único componente de la demo que inserta el catálogo: dentro
 de una transacción instala o comprueba exactamente las mismas filas y valida
 mediante el lector ORM/A1.1. Es idempotente para ese catálogo preparatorio exacto;
