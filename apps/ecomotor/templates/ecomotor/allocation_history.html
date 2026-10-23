@@ -7,7 +7,7 @@
     <div><p class="eyebrow">TU PERSONAJE / HISTORIAL</p>
       <h1>Historial de asignaciones<span class="heading-dot">.</span></h1>
       <p class="intro">Consulta los valores registrados en cada asignación de puntos.</p></div>
-    <a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos</a>
+    {% if not ecomotor_alpha_mode %}<a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos</a>{% endif %}
   </header>
   <section class="section-block" aria-labelledby="allocations">
     <div class="section-heading"><h2 id="allocations">Tus asignaciones</h2><span class="section-tag">REGISTROS HISTÓRICOS</span></div>
@@ -32,7 +32,7 @@
       </ol>
     {% else %}
       <div class="panel"><p>Todavía no has realizado asignaciones de puntos.</p>
-        <a href="{% url 'ecomotor:allocate-points' %}">Ir a asignar puntos</a></div>
+        {% if not ecomotor_alpha_mode %}<a href="{% url 'ecomotor:allocate-points' %}">Ir a asignar puntos</a>{% endif %}</div>
     {% endif %}
     <nav class="history-pagination" aria-label="Páginas del historial de asignaciones">
       <a href="{% url 'ecomotor:allocation-history' %}">Volver al inicio del historial</a>

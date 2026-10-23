@@ -2,15 +2,20 @@
 
 ## 1. Estado, autoridad y objetivo
 
+**Estado actual: ALFA-A-01 implementa el URLconf y la adaptación de navegación
+para revisión técnica.** El corte ALFA-A-DOC-01 de los párrafos siguientes se
+conserva como antecedente de PR #107; su implementación pendiente se concreta
+ahora en la sección 10. No existe todavía montaje global ni login propio.
+
 ALFA-A-ARQ-01 está **aprobada internamente por Equipo 5 en 02C-2**: preparar
 para Óscar una primera alfa básica, funcional y navegable de Ecomotor V1.
 DAR3 conserva autoridad funcional. Esta aprobación no es ratificación de Óscar
 ni de Core sobre el montaje, login o navegación global.
 
-Esta PR, ALFA-A-DOC-01, solo registra arquitectura y contrato. La implementación
-está **pendiente de ALFA-A-01**, tras revisión y fusión documental. Tampoco existe
-todavía `apps/ecomotor/alpha_urls.py`. El README útil y actualizado se preparará
-en ALFA-A-01; no se modifica en este incremento.
+En PR #107, ALFA-A-DOC-01 solo registró arquitectura y contrato. La implementación
+quedó **pendiente de ALFA-A-01**, tras revisión y fusión documental; entonces no
+existía `apps/ecomotor/alpha_urls.py`. El README operativo quedó reservado para
+ALFA-A-01. Ese antecedente se distingue del estado actual de la sección 10.
 
 ## 2. Baseline inspeccionada y reutilización
 
@@ -152,7 +157,8 @@ autenticación o servidor independiente ya disponible.
 
 ## 8. Plan de validación para ALFA-A-01
 
-Estos son tests **pendientes**, no ejecuciones de esta PR documental:
+Este fue el plan de tests **pendientes en ALFA-A-DOC-01**, no ejecuciones de esa
+PR documental. La sección 10 distingue la implementación y su evidencia posterior:
 
 - URLconf con exactamente tres patrones; resolve/reverse bajo prefijo de prueba;
   ausencia de asignación y de montaje nuevo en config.urls.
@@ -190,3 +196,25 @@ sintéticos o éxito técnico no autorizan operaciones reales ni alimentan esta 
 Quedan por acordar con Core prefijo/namespace, login/retorno, menú global y montaje
 efectivo, además del aprovisionamiento autorizado del perfil V1. No existe aún
 evidencia de navegación global funcional con Core ni aceptación externa de Óscar.
+
+## 10. ALFA-A-01 · Implementación local para revisión
+
+Sobre develop `9c90020002d5fc23384377dd588cea1776c83df8`, alpha_urls declara
+exactamente las tres rutas y nombres de sección 3, con las mismas vistas V1.
+Cada patrón pasa alpha_mode=True como argumento fijo del servidor. Las vistas
+de lectura aceptan ese argumento keyword-only, False por defecto, y lo trasladan
+al contexto ecomotor_alpha_mode. GET/POST no seleccionan el modo. Las consultas,
+decoradores de autenticación/métodos y errores no cambian.
+
+base.html, progress.html y allocation_history.html solo invierten y muestran
+asignación cuando no están en modo alfa, incluido el estado vacío. V1 completa
+mantiene las cuatro rutas y el formulario con CSRF/POST/replay. No hay ruta raíz
+adicional, nuevos settings, login o cambios config.urls. README describe el estado
+operativo, pruebas y montaje orientativo; no anuncia URL pública confirmada.
+
+test_alpha_views.py monta las tres rutas bajo un prefijo exclusivo de prueba y
+verifica navegación, identidad, métodos/errores, paginación/snapshots, ausencia de
+escrituras y compatibilidad V1 completa, incluida asignación con CSRF real.
+Los resultados de las ejecuciones nuevas se entregan en la PR; el plan de sección
+8 no se convierte en evidencia por sí solo. Las dependencias Core y exclusiones
+de sección 9 permanecen abiertas. No se considera implementada integración global.

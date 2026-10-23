@@ -6,7 +6,7 @@
   <header class="page-heading">
     <div><p class="eyebrow">TU PERSONAJE / VISIÓN GENERAL</p><h1>Mi progreso<span class="heading-dot">.</span></h1>
       <p class="intro">Cada avance cuenta. Descubre dónde estás y cuál es tu próximo objetivo.</p></div>
-    <a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos estadísticos <span aria-hidden="true">↗</span></a>
+    {% if not ecomotor_alpha_mode %}<a class="button button-primary" href="{% url 'ecomotor:allocate-points' %}">Asignar puntos estadísticos <span aria-hidden="true">↗</span></a>{% endif %}
   </header>
   <section aria-labelledby="summary">
     <h2 id="summary" class="sr-only">Progreso actual</h2>

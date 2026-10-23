@@ -22,9 +22,9 @@
         <a class="nav-link {% block progress_class %}{% endblock %}" {% block progress_current %}{% endblock %} href="{% url 'ecomotor:progress' %}">
           <span class="nav-icon" aria-hidden="true">◈</span> Mi progreso
         </a>
-        <a class="nav-link {% block allocation_class %}{% endblock %}" {% block allocation_current %}{% endblock %} href="{% url 'ecomotor:allocate-points' %}">
+        {% if not ecomotor_alpha_mode %}<a class="nav-link {% block allocation_class %}{% endblock %}" {% block allocation_current %}{% endblock %} href="{% url 'ecomotor:allocate-points' %}">
           <span class="nav-icon" aria-hidden="true">＋</span> Asignar puntos
-        </a>
+        </a>{% endif %}
         <a class="nav-link {% block history_class %}{% endblock %}" {% block history_current %}{% endblock %} href="{% url 'ecomotor:allocation-history' %}">
           <span class="nav-icon" aria-hidden="true">≡</span> Historial de asignaciones
         </a>
