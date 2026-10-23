@@ -2006,3 +2006,27 @@ El corte XP-only de DEMO-REWARDS-XP-01 se conserva como antecedente íntegro.
 No F2-A productivo, autenticación Core, juegos reales, monedas oficiales,
 USE-01B/TRACE-01B, cambios a Bank/Shop/Duckies o activación del escritor objetivo.
 La fase siguiente requiere revisión documental; esta PR no la inicia.
+
+## ALFA-A-ARQ-01 · Primera alfa básica y navegable de Ecomotor V1
+
+**Aprobada internamente por Equipo 5 en 02C-2.** DAR3 conserva autoridad funcional.
+Preparar la alfa para Óscar no equivale a aceptación de Óscar ni ratificación del
+montaje por Core, propietario de User, autenticación e integración global.
+
+Se aprueba reutilizar las vistas y consultas V1 existentes mediante un URLconf
+autónomo `apps/ecomotor/alpha_urls.py` con exactamente tres páginas: progreso,
+historial XP/evolución e historial de asignaciones. Identidad exclusivamente desde
+request.user y login_required. Asignar puntos queda fuera de la alfa, incluidos
+sus POST y accesos de navegación; la V1 completa conserva su comportamiento.
+No cambios en config/urls.py, Core/User/auth, modelos o migraciones, ni cifras
+funcionales oficiales inventadas. S3 V1 sigue como único escritor XP activo.
+La demo persistente Rewards–Bank y sus settings permanecen separados.
+
+[ALFA-A-DOC-01](contracts/ecomotor-alpha-v1.md) registra el alcance y el contrato
+de montaje para revisión; **ALFA-A-01 está pendiente de implementación posterior**.
+La adaptación de navegación debe evitar reversos a asignación ausentes en el
+montaje alfa, sin romper rutas ni plantillas de la V1 completa. Nombres internos
+propuestos no fijan prefijo, login o menú global, que requieren acuerdo Core.
+El README funcional se actualizará en ALFA-A-01, no en esta PR documental.
+No se cierran A3.5, USE-01B, TRACE-01B ni Rewards F2-A productivo, ni se activa
+el Ecomotor objetivo o se integran Duckies, Bank y Shop.

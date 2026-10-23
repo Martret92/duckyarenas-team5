@@ -1127,3 +1127,36 @@ Las exclusiones XP-only del Paso 4 describen su corte histórico, no se reescrib
 La ampliación sigue pendiente de implementación y no altera demo #94, V1/S3,
 Duckies, Shop, Core o contratos propietarios Bank. No cierra F2-A productivo,
 USE-01B/TRACE-01B ni integración global; DAR3 conserva autoridad funcional.
+
+## ALFA-A-ARQ-01 · Alfa de consulta Ecomotor V1
+
+Arquitectura aprobada internamente por Equipo 5 en 02C-2 para preparar una primera
+alfa navegable para Óscar. **ALFA-A-DOC-01 es documental; ALFA-A-01 todavía no está
+implementada.** No es ratificación externa de Óscar/Core ni requisito literal
+nuevo de DAR3. [Contrato de alfa](contracts/ecomotor-alpha-v1.md).
+
+El futuro apps.ecomotor.alpha_urls expondrá solo progreso, historial XP/evolución
+e historial de asignaciones, reutilizando progress_view, xp_history_view y
+allocation_history_view y las consultas S4-A/S9-A. Todas mantienen login_required,
+request.user como única identidad, GET/HEAD y errores controlados sin escrituras
+de negocio. No inicialización ni asignación/XP por POST; S3 V1 sigue único escritor.
+Se conserva la ausencia de snapshot transaccional conjunto de las lecturas V1.
+
+En la baseline e7277aba, apps.ecomotor.urls incluye además allocate_points_view;
+la base, progreso y asignaciones enlazan a esa ruta. ALFA-A-01 deberá adaptar la
+navegación desde el servidor para no evaluar esos reversos en modo alfa, incluidos
+estados vacíos, y conservar íntegro el montaje V1 completo. No basta quitar el
+patrón de asignación. No se implementa esa adaptación en esta documentación.
+
+config.urls no monta Ecomotor. Prefijo/namespace de instancia, login y retorno,
+menú y montaje global siguen pendientes de Core. URLconf autónomo no supone
+servidor o login propios; no nuevos settings ni cambios de Core/User/auth por
+esta decisión. Los nombres reversibles locales del contrato son propuestas
+técnicas, no URLs públicas confirmadas. README actualizado y pruebas funcionales
+quedan para ALFA-A-01 tras revisión/fusión documental.
+
+La alfa no activa Ecomotor objetivo ni modifica sus modelos, fuentes, catálogos o
+datos legacy. Mantiene abiertos A3.5, USE-01B, TRACE-01B y F2-A productivo.
+La demo Rewards–Bank conserva app auxiliar, settings y SQLite separados; sus
+datos ficticios no son el origen de la alfa V1. Sin nuevas cifras oficiales ni
+funciones Duckies, Bank o Shop.
