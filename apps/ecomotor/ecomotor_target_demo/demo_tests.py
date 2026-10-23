@@ -994,6 +994,17 @@ from apps.ecomotor.reward_types import RewardDecision, RewardRuleSet, ProposedEf
 
 
 class RewardTests(PlayableTests):
+    def test_coin_alias_rejected_before_writes_and_bank(self):
+        progress = self.new()
+        token = self.fact_token(progress, "coin_challenge")
+        before = self.rows()
+        with patch.object(rewards.bank_service, "credit_coins", side_effect=AssertionError("wrong alias")) as credit, CaptureQueriesContext(self.db) as queries:
+            with self.assertRaises(services.DemoTransactionError):
+                self.reward(progress, "coin_challenge", token)
+        credit.assert_not_called()
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE", "REPLACE")) for q in queries))
+
     def fact_token(self, progress, activity="challenge", secret=SECRET):
         return rewards.issue_reward_fact(progress, activity=activity, session_token=secret)
 
@@ -1560,12 +1571,28 @@ class Schema0004Tests(TestCase):
         self.child("historical", module="apps.ecomotor.ecomotor_target_demo.schema_0004_fixture")
 
 
+class RewardsBankSubprocessTests(TestCase):
+    child = BankDefaultSubprocessTests.child
+
+    def test_real_rewards_bank_functional_and_replay(self):
+        self.assertEqual(self.child("functional", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 6)
+
+    def test_real_rewards_bank_single_transaction_and_rollback(self):
+        self.assertEqual(self.child("atomicity", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 4)
+
+    def test_real_rewards_bank_historical_integrity(self):
+        self.assertEqual(self.child("integrity", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 4)
+
+    def test_real_rewards_bank_concurrency_and_timeout(self):
+        self.assertEqual(self.child("concurrency", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 6)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

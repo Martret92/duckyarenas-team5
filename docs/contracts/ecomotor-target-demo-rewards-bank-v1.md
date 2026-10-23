@@ -8,7 +8,9 @@ La Fase 2A demuestra únicamente el arnés de tests de default protegido (secci�
 no implementa funcionalidad monetaria, modelos ni migración 0004.
 La Fase 2B incorpora únicamente el esquema de la sección 6 mediante 0004 y
 pruebas de compatibilidad histórica (sección 12); la concesión monetaria y V2
-siguen pendientes. La limitación anterior conserva el alcance histórico de 2A.
+quedaron pendientes en ese corte. La Fase 2C implementa el servicio interno y
+los snapshots V2 (sección 13), sin interfaz. Las limitaciones anteriores conservan
+el alcance histórico de 2A/2B.
 DAR3 mantiene su autoridad funcional. No es una obligación técnica literal de
 DAR3 ni una ratificación de Fernando, Óscar o Core.
 
@@ -24,8 +26,8 @@ Fuentes: [decisión REW-MULTI-01](../decisions.md#rew-multi-01--rewards-y-duckyb
 [Paso 4 y snapshots V1](ecomotor-target-demo-rewards-xp-v1.md),
 [Rewards F1-A](rewards-v0.md). Los cortes históricos conservan su alcance:
 la prohibición de monedas del Paso 4 describe ese incremento; REW-MULTI-01
-autoriza una ampliación posterior exclusivamente demostrativa, cuya funcionalidad
-monetaria aún no está implementada.
+autoriza una ampliación posterior exclusivamente demostrativa. Su servicio
+monetario interno se incorpora en 2C; la interfaz queda para 2D.
 
 ## 2. Alcance aprobado y concreciones propuestas
 
@@ -191,8 +193,8 @@ metadatos y FK, sin asumir que el digest por sí solo certifica su origen.
 
 ## 6. Propuesta física mínima para la futura 0004
 
-**Diseño de Fase 1; esquema implementado en Fase 2B (sección 12).** La funcionalidad
-monetaria sigue pendiente. Se extienden únicamente dos modelos de la app de demo:
+**Diseño de Fase 1; esquema implementado en Fase 2B (sección 12).** La lógica
+monetaria se incorpora en 2C, sin ampliar el esquema. Se extienden únicamente dos modelos de la app de demo:
 
 | Modelo/campo | Tipo y nulabilidad propuestos | Garantía local |
 | --- | --- | --- |
@@ -416,7 +418,8 @@ seeds, migrate o escrituras sobre SQLite personal.
 
 Al cierre de Fase 1 quedaban para 01B-2 las concreciones físicas y V2, la evidencia
 del arnés default y el prompt de implementación separado. Las secciones 11–12
-registran los avances de 2A y 2B; V2 y la funcionalidad monetaria siguen pendientes.
+registran los avances de 2A y 2B; la sección 13 añade V2 y la funcionalidad monetaria
+interna de 2C. La interfaz sigue pendiente.
 Si se necesita cambiar
 Bank, el aislamiento o la arquitectura, detener esa parte y devolverla a 02C-2.
 Permanecen abiertos Fernando/Core y contratos propietarios, F2-A productivo,
@@ -512,8 +515,114 @@ No modifica backend, settings oficiales ni runner.
   Reapertura, migrate sin operaciones pendientes, check y makemigrations --check
   se ejecutan exclusivamente sobre el archivo temporal.
 
-Las pruebas no certifican aún snapshots V2, aprovisionamiento desde Rewards ni
+En el corte de Fase 2B las pruebas no certificaban snapshots V2, aprovisionamiento desde Rewards ni
 créditos monetarios causales. No hay actividad coin_challenge, cambio HTTP ni
 interfaz nueva. Fase 2C, F2-A productivo, USE-01B, TRACE-01B y acuerdos externos
 permanecen fuera de este incremento. Las ejecuciones y recuentos reales de las
 suites se entregan en la PR de 2B, sin reutilizar cifras históricas.
+
+## 13. Fase 2C · Servicio interno y snapshots V2
+
+Implementación para revisión desde develop `ddaae6898607cd1361c07ea7a0caa5a019df155a`.
+Se conservan las firmas `issue_reward_fact`, `apply_demo_reward` y
+`read_demo_rewards` de [reward_demo_services.py](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py).
+No hay migraciones nuevas ni cambios en Bank, modelos, settings, backend, runner,
+vistas, formularios o templates. La referencia de esquema sigue siendo 0004.
+
+### Compatibilidad y frontera de alias
+
+La restricción default de la sección 8 se aplica al **flujo monetario**. XP,
+NO_REWARD y sus replays V1/V2 conservan el alias histórico del laboratorio,
+incluido persistent_fixture en tests, sin consultar Bank cuando la partida no
+tiene vinculación monetaria. coin_challenge exige default protegido antes de
+cualquier escritura o llamada Bank. Una historia con User/causa bancaria requiere
+esa misma conexión; no se mueve Bank a otro alias ni se comparten conexiones.
+Esto concreta la compatibilidad con el Paso 4 y la frontera monetaria de 2C.
+
+[reward_demo_rules.py](../../apps/ecomotor/ecomotor_target_demo/reward_demo_rules.py)
+incorpora la regla `demo-coin-challenge-5-v2` en `demo-rewards-rules-v2` y el hecho
+coin_challenge/demo-fact-v2 con el contexto de sección 5. challenge y visit
+conservan exactamente su constructor V1, contexto, instante, firma y huella.
+ACTIVITIES permanece con las dos opciones HTTP anteriores; la actividad nueva
+solo figura en la lista interna del servicio. La Fase 2D no se implementa aquí.
+
+### Confirmación y lectura histórica
+
+Solo una recompensa monetaria nueva, válida y de cinco monedas puede aprovisionar
+User/Wallet: usuario `rew-demo-<32 hex>`, inactivo, sin privilegios ni credenciales
+utilizables o información personal. Una vinculación existente incompatible se
+rechaza sin recrearla. El crédito utiliza credit_coins con los metadatos y clave
+rb1 completos de sección 5. Se comprueba LedgerResult, su conexión, el movimiento
+real, Wallet/User y la huella bancaria según la codificación pública documentada;
+no se importa un helper privado de Bank.
+
+El exterior es el contexto IMMEDIATE existente de Rewards/XP. Bank abre únicamente
+su savepoint; tras retornar, se verifica de nuevo la frontera exterior. Antes de
+confirmar se relee RewardEvent y se contrasta el snapshot con sus causas reales.
+Errores Bank, catálogo, acceso, integridad y bloqueo conservan su significado;
+ninguno se transforma en NO_REWARD. No se reintenta automáticamente.
+
+Cada recompensa nueva guarda demo-reward-result-v2, con coin_amount y bank incluso
+en XP/NO_REWARD (cero/NULL). DemoRewardResult y el nuevo DemoBankSnapshot son
+frozen/slots; la evidencia bancaria contiene únicamente escalares inmutables.
+El lector despacha por V1/V2 y compara exactamente la estructura canónica de su
+versión contra columnas, identidad semántica, propuesta y causas verificadas.
+No acepta claves adicionales, bool como entero ni saldos históricos sustituidos
+por el saldo actual. El lector V1 no añade claves ni reescribe sus JSON.
+
+Replay se resuelve antes de evaluar reglas o aprovisionar; devuelve el resultado
+original sin llamar a Bank. Se detectan causas ausentes/cruzadas, metadatos
+alterados y movimientos rb1 huérfanos de la Wallet vinculada. Una clave derivada
+ya existente para un hecho nuevo se rechaza, aunque no haya User vinculado a esa
+partida; nunca se adopta como premio. No es una garantía frente a un administrador
+capaz de reescribir coordinadamente toda la base.
+
+### Evidencia de pruebas
+
+El auxiliar exclusivo
+[reward_bank_fixture.py](../../apps/ecomotor/ecomotor_target_demo/reward_bank_fixture.py)
+reutiliza el patrón de subproceso/default protegido de 2A, con audit hook que solo
+admite la SQLite temporal canónica y configuración anterior a django.setup().
+Cuatro tests padre ejecutan **20 casos monetarios reales** en los hijos. Junto
+con el rechazo de alias y la copia histórica ampliada, la ejecución focalizada
+completó **6 tests padre, sin fallos ni omisiones, en 35,111 s**:
+
+- Crédito de cinco monedas, User/Wallet/Transaction REWARD/RewardEvent y V2
+  enlazados; XP, seis evoluciones y configuraciones Gamer/Romano intactos.
+- SQL real: un BEGIN IMMEDIATE, savepoint Bank y un COMMIT sobre la misma conexión
+  nativa default. Un observador independiente no ve aprovisionamiento ni crédito
+  antes de confirmar. Fallos después del crédito, al guardar Rewards o al verificar
+  la causa revierten conjuntamente User/Wallet/Transaction/RewardEvent.
+- Replay sin Bank ni evaluación actual, saldo original cinco frente a saldo actual
+  diez, ancla XP intacta y recuperación tras reabrir. Dos partidas tienen usuarios
+  distintos; tokens ajenos, alterados o cruzados se rechazan sin efectos.
+- Conexiones independientes: mismo hecho, hechos distintos, monedas frente a XP
+  directa y configuración jugable, e identidad incompatible concurrente. Timeout
+  real observado de **5,453 s**, seguido de reintento explícito sin duplicación.
+- Corrupción controlada de V2, tipos, causa ausente, Wallet/User cruzados, importe,
+  referencia y huella Bank, estados y namespace huérfano: error sin reparación.
+
+La prueba histórica de 2B ahora construye explícitamente V1 en el estado ORM 0003
+(reglas V1, serialización V1 y omisión de las columnas todavía inexistentes), sin
+sustituir los algoritmos XP, identidad o fingerprint. Después de copiar/migrar
+verifica todos los datos originales, añade monedas V2 a la misma partida y vuelve
+a ejecutar los tokens V1 tras el aprovisionamiento. No se desactiva ningún test
+heredado ni se cambia el runner. Los recuentos de la regresión completa se entregan
+en la PR de 2C como ejecuciones nuevas.
+
+El runner completo de dos fases se ejecutó con
+`python manage.py test --settings=apps.ecomotor.target_persistent_demo_settings`:
+**1297 tests habituales en 174,559 s, sin fallos y con dos omisiones heredadas por
+symlinks de Windows**, seguidos de **110 tests persistentes en 386,207 s, sin fallos
+ni omisiones**. Los casos hijos monetarios anteriores están incluidos mediante
+sus cuatro tests padre, sin sumarlos artificialmente al recuento del runner.
+En esa ejecución el timeout monetario real fue de **5,594 s**, con reintento sin
+duplicación. Check normal/exclusivo y makemigrations --check --dry-run no detectan
+incidencias ni cambios; las comprobaciones de migraciones usan SQLite temporales
+(la exclusiva ya migrada por el fixture), nunca las bases personales.
+Se verifican enlaces/anclas, git diff --check y hashes SHA-256 intactos de los siete
+archivos protegidos del laboratorio.
+
+Este incremento no implementa interfaz, juegos, autenticación Core, compras,
+F2-A productivo, USE-01B ni TRACE-01B. Los cinco DuckyCoins, usuarios y reglas son
+sintéticos: no hay ratificación económica externa ni autorización funcional.

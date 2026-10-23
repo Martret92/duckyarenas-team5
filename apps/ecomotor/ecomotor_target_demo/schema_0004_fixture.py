@@ -59,7 +59,7 @@ def run(root, scenario):
     from django.db.models.deletion import ProtectedError
     from django.db.migrations.executor import MigrationExecutor
     from django.test.utils import CaptureQueriesContext
-    from . import services, playable_services as playable, reward_demo_services as rewards
+    from . import services, playable_services as playable, reward_demo_services as rewards, reward_demo_rules
     from . import models
     from apps.bank.models import Wallet, Transaction
     from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
@@ -111,6 +111,25 @@ def run(root, scenario):
         command("seed_persistent_target_demo")
         get = lambda name: old_apps.get_model("ecomotor_target_demo", name)
         with ExitStack() as stack:
+            # This fixture deliberately writes the pre-0004/V1 format. Today's
+            # writer uses V2; adapt only schema/ORM bindings, never progression,
+            # identity, fingerprint, effects, transaction or replay algorithms.
+            original_snapshot = rewards._snapshot
+            def v1_snapshot(*args, **kwargs):
+                return original_snapshot(*args, **{**kwargs, "schema": rewards.V1_SNAPSHOT_VERSION})
+            stack.enter_context(patch.object(rewards, "_snapshot", side_effect=v1_snapshot))
+            from apps.ecomotor.reward_types import RewardRuleSet, RewardRule, ProposedEffect
+            stack.enter_context(patch.object(reward_demo_rules, "RULE_SET", RewardRuleSet("demo-rewards-rules-v1", (
+                RewardRule("demo-challenge-700-v1", "challenge", {"completed": True}, (ProposedEffect("XP", 700),)),
+            ))))
+            manager_type = type(get("DemoTargetRewardEvent").objects.using("default"))
+            original_create = manager_type.create
+            def historical_create(manager, **kwargs):
+                if manager.model is get("DemoTargetRewardEvent"):
+                    assert kwargs.pop("coin_amount", 0) == 0
+                    assert kwargs.pop("bank_transaction_id", None) is None
+                return original_create(manager, **kwargs)
+            stack.enter_context(patch.object(manager_type, "create", historical_create))
             stack.enter_context(patch.multiple(services,
                 DemoTargetProgress=get("DemoTargetProgress"),
                 DemoTargetXPEvent=get("DemoTargetXPEvent"),
@@ -207,7 +226,26 @@ def run(root, scenario):
             db.close()
             self.assertEqual(rows(), before_replay)
             self.repeat_migrate()
+            # Fase 2C: the same migrated party now acquires a real monetary V2
+            # outcome. Its V1 tokens/JSON must survive lazy User provisioning.
+            v1_rows = list(models.DemoTargetRewardEvent.objects.values_list("pk", "snapshot"))
+            token = rewards.issue_reward_fact(progress, activity="coin_challenge", session_token=secret)
+            coins = rewards.apply_demo_reward(progress, activity="coin_challenge", fact_token=token, session_token=secret)
+            self.assertEqual(coins.coin_amount, 5)
+            self.assertEqual(coins.bank.balance_after, 5)
+            table = models.DemoTargetRewardEvent._meta.db_table
+            original_rows = before_replay[table]["rows"]
+            ids = {row[0] for row in original_rows}
+            self.assertEqual([row for row in rows()[table]["rows"] if row[0] in ids], original_rows)
+            for pk, snapshot in v1_rows:
+                self.assertEqual(models.DemoTargetRewardEvent.objects.get(pk=pk).snapshot, snapshot)
+            for call in old["calls"]:
+                result = functions[call["kind"]](progress, **call["args"], session_token=secret)
+                self.assertTrue(result.replay)
+                self.assertEqual(normalized(result), call["result"])
+            self.assertEqual(len(rewards.read_demo_rewards(progress, session_token=secret)), 3)
             evidence["observations"].append("Physical 0003 copy: all rows/raw JSON/identities and unrelated schema identical; actual V1 replays read-only after 0004 and reopen")
+            evidence["observations"].append("V1 and monetary V2 coexist on the same migrated party; old tokens/results survive User provisioning")
 
         def repeat_migrate(self):
             with CaptureQueriesContext(db) as queries:
