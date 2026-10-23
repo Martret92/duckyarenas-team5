@@ -905,3 +905,21 @@ de vestimentas con Henry, Core/A3.5, autorización USE-01B, procedencia TRACE-01
 selección y estadísticas persistentes, consumidores y activación coordinada.
 Los 45 puntos y códigos `demo-*` no son oficiales. La demo operativa no supone
 integración funcional global ni cierre de esas dependencias.
+
+## 32. ALFA-A-ARQ-01 · Montaje de la primera alfa V1
+
+[Contrato ALFA-A-DOC-01](contracts/ecomotor-alpha-v1.md): arquitectura de tres
+páginas de consulta aprobada internamente por Equipo 5 en 02C-2 y documentada;
+implementación y README pendientes de ALFA-A-01, tras revisión/fusión de esta PR.
+La aprobación interna no confirma integración global ni aceptación de Óscar/Core.
+
+| Pendiente de Core | Alcance que sigue abierto |
+| --- | --- |
+| Prefijo y namespace de instancia | URL pública definitiva y convivencia sin reversos ambiguos si se montan alfa y V1 completa. Los nombres internos del contrato son propuestas. |
+| Login y retorno | LOGIN_URL efectivo, sesión/autenticación existentes y retorno next; no login propio ni cambios User desde Parte A. |
+| Menú y montaje | Include de apps.ecomotor.alpha_urls y entrada global a progreso bajo propiedad Core, después de ALFA-A-01; config.urls permanece intacto. |
+| Datos de acceso para revisión | Usuario/perfil V1 y CharacterStats preparados por proceso autorizado; ausencia de perfil produce 404, sin aprovisionamiento desde la alfa ni cifras ficticias instaladas como oficiales. |
+
+No se cierra A3.5, USE-01B, TRACE-01B o Rewards F2-A productivo. S3 V1 sigue único
+escritor XP activo; la demo persistente Rewards–Bank y sus settings continúan
+separados. Esta PR no implementa rutas, plantillas, tests, configuración o README.
