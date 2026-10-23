@@ -1160,3 +1160,47 @@ datos legacy. Mantiene abiertos A3.5, USE-01B, TRACE-01B y F2-A productivo.
 La demo Rewards–Bank conserva app auxiliar, settings y SQLite separados; sus
 datos ficticios no son el origen de la alfa V1. Sin nuevas cifras oficiales ni
 funciones Duckies, Bank o Shop.
+
+## REW-MULTI-02-ARQ-01 · Extensión documental Rewards → Duckies
+
+Sobre develop 74ba7560, con ALFA-A-01 integrada por #108, se documenta una futura
+extensión de `apps/ecomotor/ecomotor_target_demo/` y su única SQLite
+`instance/target_persistent_demo.sqlite3`. No modifica alfa/V1, otros dominios,
+settings o backend. **Arquitectura interna cerrada en 02C-2; implementación y
+viabilidad transaccional Duckies pendientes.** Los cortes anteriores de alfa y
+Rewards conservan su contexto histórico.
+
+Según el traspaso del Equipo 5, Henry dio conformidad el 23/10/2026 al uso de
+grant_item y al Ducky mínimo. Esta procedencia comunicada no acredita acta,
+aprobación productiva, otras interfaces o modificaciones a sus modelos.
+
+El coordinador actual del laboratorio solo admite XP/DUCKYCOINS. La futura rama
+de objeto usará exclusivamente grant_item público, con un HINT consumible activo,
+cantidad 1 e ItemLevel=None, resuelto por mapeo sintético versionado del servidor.
+No se mezclan efectos. F1-A mantiene responsabilidad pura; Duckies conserva
+inventario e ItemGrant y no concede XP ni monedas.
+
+La identidad local de sesión/partida se vincula al synthetic_user existente,
+Wallet compatible y Ducky mínimo del mismo User, sin perfil Ecomotor V1,
+inicializador productivo ni equipamiento. Aprovisionamiento perezoso solo para
+premio nuevo válido, nunca durante lectura/replay. Misma terna Rewards y solicitud
+compatible recupera la causa original; ri1 distingue la entrega de rx1 y rb1.
+No se adoptan causas huérfanas ni se exige posesión actual tras consumir el objeto.
+
+grant_item usa atomic y ORM sobre default implícito. Rewards debe conservar el
+exterior IMMEDIATE/5 s en ese mismo default protegido; conexión nativa compartida,
+savepoint, rollback, concurrencia y timeout requieren la prueba empírica 2A.
+La evidencia Bank previa no demuestra aún esas garantías para Duckies.
+
+El [contrato específico](contracts/ecomotor-target-demo-rewards-duckies-v1.md)
+recoge los hechos verificados y las concreciones propuestas para revisión:
+clave/metadatos, futura 0005 con OneToOne nullable/PROTECT a ItemGrant,
+constraints exclusivos y V3 de objeto con causalidad comprobada. V1/V2 y todas
+las filas anteriores se conservan sin backfill o reinterpretación. No nuevas
+tablas/modelos económicos ni cambios a migraciones Duckies.
+
+Secuencia obligatoria de PR: 2A arnés temporal real → 2B esquema/compatibilidad
+→ 2C servicio/V3 → 2D interfaz local, cada una después de revisar/fusionar la
+anterior. No integración en la interfaz compartida de Henry. DAR3 mantiene
+autoridad; F2-A productivo, Core/A3.5, USE-01B y TRACE-01B siguen abiertos.
+Este incremento solo documenta; no ejecuta pruebas Django ni entrega objetos.
