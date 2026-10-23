@@ -1,5 +1,6 @@
 """Fictitious local history only. These deletion choices are not Core policy."""
 
+from django.conf import settings
 from django.db import models
 
 from .data import MAX_XP
@@ -7,6 +8,7 @@ from .data import MAX_XP
 
 class DemoTargetProgress(models.Model):
     session_owner = models.CharField(max_length=64)  # SHA256 of a server session secret.
+    synthetic_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
     catalog = models.ForeignKey("ecomotor.TargetCatalogVersion", on_delete=models.PROTECT)
     xp_total = models.PositiveBigIntegerField(default=0)
     current_level = models.PositiveIntegerField(default=1)
@@ -130,15 +132,22 @@ class DemoTargetRewardEvent(models.Model):
     reason_codes = models.JSONField()
     xp_amount = models.PositiveBigIntegerField()
     xp_event = models.OneToOneField(DemoTargetXPEvent, on_delete=models.PROTECT, null=True, blank=True)
+    coin_amount = models.PositiveBigIntegerField(default=0)
+    bank_transaction = models.OneToOneField("bank.Transaction", on_delete=models.PROTECT, null=True, blank=True)
     snapshot = models.JSONField()
     confirmed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=("progress", "origin_code", "fact_id"), name="demo_reward_identity_unique"),
-            models.CheckConstraint(condition=(models.Q(status="APPLIED", xp_amount__gt=0, xp_event__isnull=False)
-                | models.Q(status="NO_REWARD", xp_amount=0, xp_event__isnull=True)), name="demo_reward_outcome_valid"),
+            models.CheckConstraint(condition=(models.Q(status="APPLIED", xp_amount__gt=0, xp_event__isnull=False,
+                coin_amount=0, bank_transaction__isnull=True)
+                | models.Q(status="APPLIED", xp_amount=0, xp_event__isnull=True,
+                    coin_amount__gt=0, bank_transaction__isnull=False)
+                | models.Q(status="NO_REWARD", xp_amount=0, xp_event__isnull=True,
+                    coin_amount=0, bank_transaction__isnull=True)), name="demo_reward_outcome_valid"),
             models.CheckConstraint(condition=models.Q(xp_amount__lte=MAX_XP), name="demo_reward_xp_range"),
+            models.CheckConstraint(condition=models.Q(coin_amount__gte=0, coin_amount__lte=MAX_XP), name="demo_reward_coin_range"),
             models.CheckConstraint(condition=models.Q(fact_id__regex=r"^[0-9a-f]{32}\Z",
                 fingerprint__regex=r"^[0-9a-f]{64}\Z"), name="demo_reward_hash_format"),
             models.CheckConstraint(condition=(~models.Q(origin_code="") & ~models.Q(recipient_id="")

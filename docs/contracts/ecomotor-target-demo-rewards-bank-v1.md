@@ -6,6 +6,9 @@ Decisión **aprobada internamente por Equipo 5 / 02C-2 el 23/10/2026**.
 La Fase 1 documentó arquitectura y contrato para revisión de **01B-2**.
 La Fase 2A demuestra únicamente el arnés de tests de default protegido (sección 11);
 no implementa funcionalidad monetaria, modelos ni migración 0004.
+La Fase 2B incorpora únicamente el esquema de la sección 6 mediante 0004 y
+pruebas de compatibilidad histórica (sección 12); la concesión monetaria y V2
+siguen pendientes. La limitación anterior conserva el alcance histórico de 2A.
 DAR3 mantiene su autoridad funcional. No es una obligación técnica literal de
 DAR3 ni una ratificación de Fernando, Óscar o Core.
 
@@ -21,7 +24,8 @@ Fuentes: [decisión REW-MULTI-01](../decisions.md#rew-multi-01--rewards-y-duckyb
 [Paso 4 y snapshots V1](ecomotor-target-demo-rewards-xp-v1.md),
 [Rewards F1-A](rewards-v0.md). Los cortes históricos conservan su alcance:
 la prohibición de monedas del Paso 4 describe ese incremento; REW-MULTI-01
-autoriza una ampliación posterior exclusivamente demostrativa, aún no implementada.
+autoriza una ampliación posterior exclusivamente demostrativa, cuya funcionalidad
+monetaria aún no está implementada.
 
 ## 2. Alcance aprobado y concreciones propuestas
 
@@ -187,7 +191,8 @@ metadatos y FK, sin asumir que el digest por sí solo certifica su origen.
 
 ## 6. Propuesta física mínima para la futura 0004
 
-**No implementada.** Se extienden únicamente dos modelos de la app de demo:
+**Diseño de Fase 1; esquema implementado en Fase 2B (sección 12).** La funcionalidad
+monetaria sigue pendiente. Se extienden únicamente dos modelos de la app de demo:
 
 | Modelo/campo | Tipo y nulabilidad propuestos | Garantía local |
 | --- | --- | --- |
@@ -223,8 +228,8 @@ Dependencias propuestas: `ecomotor_target_demo.0003_synthetic_rewards`,
 `bank.0001_initial` y `migrations.swappable_dependency(settings.AUTH_USER_MODEL)`.
 Bank ya depende del User y no del laboratorio: este grafo no introduce un ciclo
 en las dependencias revisadas. Los campos y checks son representables con los
-tipos existentes de Django 5.2/SQLite; su generación y prueba efectiva se reservan
-a implementación, no se afirman como ejecutadas en esta fase.
+tipos existentes de Django 5.2/SQLite. En Fase 1 su generación y prueba efectiva
+quedaban reservadas a implementación; la evidencia de Fase 2B consta en sección 12.
 
 0004 será estructural, sin RunPython, datos oficiales o backfill de usuarios,
 Wallet, Transaction o causas. Las filas antiguas reciben únicamente ausencia
@@ -409,8 +414,10 @@ Esas pruebas funcionales no se ejecutaron en la PR documental de Fase 1.
 La evidencia limitada de Fase 2A se registra en la sección 11. Ninguna fase ejecuta
 seeds, migrate o escrituras sobre SQLite personal.
 
-Pendientes para 01B-2: ratificar las concreciones físicas y V2, revisar la evidencia
-del arnés default y preparar el prompt de implementación separado. Si se necesita cambiar
+Al cierre de Fase 1 quedaban para 01B-2 las concreciones físicas y V2, la evidencia
+del arnés default y el prompt de implementación separado. Las secciones 11–12
+registran los avances de 2A y 2B; V2 y la funcionalidad monetaria siguen pendientes.
+Si se necesita cambiar
 Bank, el aislamiento o la arquitectura, detener esa parte y devolverla a 02C-2.
 Permanecen abiertos Fernando/Core y contratos propietarios, F2-A productivo,
 USE-01B, TRACE-01B, fuentes funcionales oficiales e integración con juegos reales.
@@ -461,3 +468,52 @@ causalidad RewardEvent→Transaction, vinculación persistente User/partida o
 migración 0004. Esas funcionalidades siguen fuera de Fase 2A. Los resultados de
 regresiones y del runner completo se entregan con esta PR de pruebas, distinguiendo
 los cuatro tests padre de los seis casos positivos ejecutados dentro de los hijos.
+
+## 12. Fase 2B · Esquema 0004 y compatibilidad histórica
+
+[0004_rewards_bank_schema](../../apps/ecomotor/ecomotor_target_demo/migrations/0004_rewards_bank_schema.py)
+depende de 0003, `bank.0001_initial` y la dependencia intercambiable de
+`AUTH_USER_MODEL`. Añade `DemoTargetProgress.synthetic_user` OneToOne nullable
+con PROTECT, `DemoTargetRewardEvent.coin_amount` PositiveBigInteger con default
+cero y `bank_transaction` OneToOne nullable con PROTECT. No crea usuarios,
+Wallets ni movimientos y no modifica 0001–0003 ni snapshots V1.
+
+La constraint `demo_reward_outcome_valid` admite exclusivamente APPLIED XP,
+APPLIED monedas o NO_REWARD, sin efectos combinados. Se conserva el resto de
+restricciones anteriores y se añade el rango explícito de monedas 0–2^63−1.
+La integridad local no demuestra correspondencia causal entre partida, User,
+Wallet y Transaction: su validación queda para servicios futuros.
+
+Los dos tests padre `Schema0004Tests` reutilizan la protección y limpieza del
+arnés de 2A y ejecutan el auxiliar exclusivo
+[schema_0004_fixture.py](../../apps/ecomotor/ecomotor_target_demo/schema_0004_fixture.py).
+Cada proceso configura default protegido antes de django.setup(), conserva
+IMMEDIATE/5 y solo permite conexiones SQLite al archivo temporal canónico.
+No modifica backend, settings oficiales ni runner.
+
+- Instalación nueva mediante migrate real: campos, defaults, unicidades, PROTECT,
+  tres ramas válidas, rechazos estructurales, rango SQLite y migrate repetido.
+  Las filas Bank de esta prueba son fixtures ORM para comprobar FKs/constraints;
+  no se invoca credit_coins ni se implementa una actividad monetaria.
+- Instalación histórica real hasta 0003: se usan los modelos históricos renderizados
+  por Django y las reglas/servicios V1 intactos, vinculando únicamente sus referencias
+  ORM al estado histórico. Se generan XP, seis evoluciones, configuraciones Gamer y
+  Romano, APPLIED XP, NO_REWARD y tokens firmados reales. Tras cerrar ese proceso,
+  el padre copia físicamente la SQLite; otro proceso aplica 0004 sobre la copia.
+- Comparación de todas las columnas previas y filas, incluidos JSON V1 sin
+  deserializarlos, huellas, identidades y fechas. Se comprueba NULL/cero/NULL en
+  los nuevos campos históricos, esquema ajeno idéntico (incluidos triggers),
+  conservación de constraints anteriores y ausencia de aprovisionamiento.
+- Los tests heredados conservan las huellas AST de 0001–0003. Se amplía el grafo
+  esperado con 0004 y se concreta la antigua prohibición general de relaciones
+  User: únicamente synthetic_user, nullable y PROTECT, queda admitida por 2B.
+- Replays mediante los servicios V1 actuales, sin sustituir reglas ni cálculos:
+  resultados históricos idénticos, sin DML/DDL y con tokens previos válidos.
+  Reapertura, migrate sin operaciones pendientes, check y makemigrations --check
+  se ejecutan exclusivamente sobre el archivo temporal.
+
+Las pruebas no certifican aún snapshots V2, aprovisionamiento desde Rewards ni
+créditos monetarios causales. No hay actividad coin_challenge, cambio HTTP ni
+interfaz nueva. Fase 2C, F2-A productivo, USE-01B, TRACE-01B y acuerdos externos
+permanecen fuera de este incremento. Las ejecuciones y recuentos reales de las
+suites se entregan en la PR de 2B, sin reutilizar cifras históricas.
