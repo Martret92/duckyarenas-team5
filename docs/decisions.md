@@ -2030,3 +2030,42 @@ propuestos no fijan prefijo, login o menú global, que requieren acuerdo Core.
 El README funcional se actualizará en ALFA-A-01, no en esta PR documental.
 No se cierran A3.5, USE-01B, TRACE-01B ni Rewards F2-A productivo, ni se activa
 el Ecomotor objetivo o se integran Duckies, Bank y Shop.
+
+## REW-MULTI-02-ARQ-01 · Rewards y Duckies en el laboratorio persistente
+
+Arquitectura cerrada internamente en **02C-2** para documentación y futura
+verificación técnica. DAR3 conserva autoridad funcional; no es aprobación de
+Rewards productivo, de valores oficiales ni de integración Core.
+Según el traspaso del Equipo 5, **Henry dio su conformidad el 23/10/2026** sobre
+el uso de grant_item y el Ducky mínimo. Se registra como información transmitida
+por el equipo, sin inventar actas, citas ni ratificaciones adicionales de Henry.
+
+Se aprueba ampliar solo el laboratorio consolidado y su SQLite exclusiva para
+conceder un único HINT sintético, consumible, cantidad 1, sin ItemLevel ni
+vestimentas, mediante la API pública existente apps.duckies.services.grant_item.
+Cada recompensa sigue siendo exclusivamente XP, monedas, objeto o NO_REWARD,
+sin combinaciones. User sintético de la partida y Wallet compatible se reutilizan
+o aprovisionan para un objeto nuevo válido; Ducky mínimo del mismo User con sexo
+válido y selected_outfit=None, sin perfil V1 o inicializador productivo Duckies.
+GET, consulta y replay no aprovisionan ni entregan. Inconsistencias no se reparan.
+
+La identidad Rewards conserva origen/hecho/destinatario y huella independiente.
+Clave causal ri1 determinista/versionada, separada de rx1/rb1; causa huérfana o
+contenido incompatible se rechazan. Rewards controla un único exterior IMMEDIATE
+compartido con el atomic interior Duckies, cuya viabilidad real **aún debe probarse
+en 2A** sobre default protegido temporal. select_for_update no acredita bloqueo
+por fila SQLite. Fallos revierten entrega/inventario, aprovisionamiento y Rewards.
+
+Futura 0005 posterior a 0004: OneToOne nullable/PROTECT de DemoTargetRewardEvent
+a ItemGrant y cuatro resultados excluyentes. Preservar filas y lectores V1/V2;
+V3 para objetos conserva causa histórica suficiente, sin reentrega ni posesión
+actual como condición de replay. Consumo posterior no invalida una entrega.
+
+[Contrato REW-MULTI-02-DOC-01](contracts/ecomotor-target-demo-rewards-duckies-v1.md)
+separa código observado, diseño aprobado y propuestas técnicas (codificación
+exacta ri1/metadatos, nombres de actividad/campo y estructura JSON). No altera
+contratos físicos propietarios. Orden obligatorio: documentación → 2A viabilidad
+→ 2B esquema → 2C servicio/V3 → 2D HTTP; PR separada revisada/fusionada antes de
+continuar. Esta PR no implementa ni ensaya 2A. V1/S3, alfa, Bank, Shop, Duckies,
+Core, backend/settings y migraciones anteriores intactos. No interfaz compartida
+de Henry, F2-A productivo, USE-01B, TRACE-01B o activación del escritor objetivo.
