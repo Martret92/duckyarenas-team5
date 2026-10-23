@@ -3,8 +3,9 @@
 ## 1. Estado y autoridad
 
 Decisión **aprobada internamente por Equipo 5 / 02C-2 el 23/10/2026**.
-Esta fase solo documenta arquitectura y contrato para revisión de **01B-2**;
-no implementa monedas, modelos, migración 0004 ni pruebas nuevas.
+La Fase 1 documentó arquitectura y contrato para revisión de **01B-2**.
+La Fase 2A demuestra únicamente el arnés de tests de default protegido (sección 11);
+no implementa funcionalidad monetaria, modelos ni migración 0004.
 DAR3 mantiene su autoridad funcional. No es una obligación técnica literal de
 DAR3 ni una ratificación de Fernando, Óscar o Core.
 
@@ -376,8 +377,8 @@ de demo instalado ni un cambio a la API Bank.
 Se conserva el runner de dos fases y descubrimiento explícito
 `apps.ecomotor.ecomotor_target_demo.demo_tests`, junto con todos los fixtures
 históricos. No se añaden bypasses de checked_path/MIGRATING ni se parchea Bank
-para aceptar using. La verificación real del arnés, aún no ejecutada, es puerta
-de entrada a implementación, no una garantía ya obtenida por este documento.
+para aceptar using. La Fase 2A demuestra la viabilidad del arnés según la sección
+11; no implementa ni autoriza por sí sola el flujo monetario de las fases siguientes.
 
 ## 10. Plan de aceptación futuro y pendientes
 
@@ -404,14 +405,59 @@ Antes de dar por implementado REW-MULTI-01 se exigirán pruebas reales de:
   la prueba Bank; regresiones Bank, Pasos 1–4, F1-A y suites completas habituales
   y exclusivas, checks/migraciones e integridad de archivos protegidos.
 
-No se ejecutan ni se atribuyen esas pruebas a esta PR documental. Tampoco seeds,
-migrate o escrituras sobre SQLite personal. Solo se verifican referencias, diff,
-alcance documental y hashes.
+Esas pruebas funcionales no se ejecutaron en la PR documental de Fase 1.
+La evidencia limitada de Fase 2A se registra en la sección 11. Ninguna fase ejecuta
+seeds, migrate o escrituras sobre SQLite personal.
 
-Pendientes para 01B-2: ratificar las concreciones físicas y V2, demostrar el arnés
-default real y preparar el prompt de implementación separado. Si se necesita cambiar
+Pendientes para 01B-2: ratificar las concreciones físicas y V2, revisar la evidencia
+del arnés default y preparar el prompt de implementación separado. Si se necesita cambiar
 Bank, el aislamiento o la arquitectura, detener esa parte y devolverla a 02C-2.
 Permanecen abiertos Fernando/Core y contratos propietarios, F2-A productivo,
 USE-01B, TRACE-01B, fuentes funcionales oficiales e integración con juegos reales.
 No Wallet global, monedas oficiales, Shop, objetos, autenticación Core ni activación.
 S3 V1 y los datos de otras aplicaciones permanecen fuera de este incremento.
+
+## 11. Fase 2A · Evidencia ejecutable del fixture Bank/default
+
+El auxiliar exclusivo de tests
+[bank_default_fixture.py](../../apps/ecomotor/ecomotor_target_demo/bank_default_fixture.py)
+se ejecuta por subproceso desde BankDefaultSubprocessTests de
+[demo_tests.py](../../apps/ecomotor/ecomotor_target_demo/demo_tests.py). No lo importa
+ningún servicio ni se descubre con los tests habituales. No invoca el runner
+recursivamente ni cambia sus dos fases.
+
+Cada hijo configura default antes de django.setup(), manteniendo backend protegido,
+IMMEDIATE/5 y router oficiales, con BASE_DIR temporal y el nombre de archivo exacto
+instance/target_persistent_demo.sqlite3. Un audit hook de Python rechaza cualquier
+intento de conexión SQLite fuera de ese archivo; no sustituye sqlite3.connect.
+La apertura normal previa a migrate se rechaza sin crear archivo. Solo el comando
+migrate real crea la base; migrate/seed posteriores afectan únicamente al temporal,
+sin manipular MIGRATING ni otras protecciones.
+
+Cuatro tests padre ejecutan seis casos positivos en hijos, más un fallo deliberado
+para probar propagación/limpieza. La primera ejecución específica completó los
+cuatro sin fallos ni omisiones en 18,834 s y obtuvo:
+
+- Crédito Bank real de **17 monedas de prueba**, sin actividad ni regla Rewards
+  nueva. User/Wallet/Transaction usan default y el mismo archivo/conexión nativa
+  del propietario transaccional existente `_xp_transaction`, usado por Rewards.
+- SQL nativo: un BEGIN IMMEDIATE, savepoint Bank liberado, dos escrituras Bank en
+  esa misma conexión y un único COMMIT exterior. Un observador independiente
+  mode=ro ve saldo cero y ninguna Transaction antes de confirmar; después ve 17.
+- Fallo tras crédito exitoso: ROLLBACK sin COMMIT, Wallet previa intacta y ninguna
+  Transaction. Con aprovisionamiento dentro del exterior, tampoco quedan User/Wallet.
+- Misma clave/parámetros: un movimiento; cambiar importe o referencia produce
+  IdempotencyConflict. Dos escritores simultáneos con conexiones independientes
+  serializan tanto una clave compartida (un crédito) como claves distintas (dos).
+- Bloqueo real con otro escritor IMMEDIATE: DemoBusyError tras **5,547 s** en esa
+  ejecución, ningún movimiento parcial y reintento explícito compatible sin duplicar.
+- Cierre de conexiones/hijos y eliminación del directorio temporal, también ante
+  el fallo deliberado. El padre comprueba identidad de su wrapper/conexión default,
+  configuración, autocommit, registry y flags intactos, además de hashes protegidos.
+
+Se verifica ausencia de nuevos XPEvent, evoluciones o RewardEvent por el crédito.
+No se ha creado una recompensa monetaria ni demostrado todavía su snapshot V2,
+causalidad RewardEvent→Transaction, vinculación persistente User/partida o
+migración 0004. Esas funcionalidades siguen fuera de Fase 2A. Los resultados de
+regresiones y del runner completo se entregan con esta PR de pruebas, distinguiendo
+los cuatro tests padre de los seis casos positivos ejecutados dentro de los hijos.
