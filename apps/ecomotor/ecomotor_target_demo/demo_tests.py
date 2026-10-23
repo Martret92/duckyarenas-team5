@@ -1667,12 +1667,46 @@ class RewardsDuckiesSubprocessTests(TestCase):
             self.child("failure")
 
 
+class RewardsDuckiesServiceSubprocessTests(TestCase):
+    """Five parent scenarios; the 19 real child cases have separate counts."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_item_coordinator_consumption_and_historical_replay(self):
+        report = self.child("service-functional")
+        self.assertEqual(report["tests"], 5)
+        self.assertTrue(report["checks_and_no_model_changes"])
+        self.assertTrue(report["observations"][1]["real_equip_and_consume"])
+        self.assertTrue(report["observations"][1]["replay_without_inventory_query_or_dml"])
+
+    def test_closed_mapping_strict_facts_and_overflow(self):
+        self.assertEqual(self.child("service-validation")["tests"], 4)
+
+    def test_causal_integrity_and_orphan_rejection(self):
+        self.assertEqual(self.child("service-integrity")["tests"], 3)
+
+    def test_single_outer_commit_and_full_rollback(self):
+        report = self.child("service-atomicity")
+        self.assertEqual(report["tests"], 2)
+        for key in ("shared_native_connection", "single_begin_immediate", "single_commit", "inner_savepoint"):
+            self.assertTrue(report["observations"][0][key])
+        self.assertEqual(report["observations"][1]["rollback_stages"], 5)
+
+    def test_real_concurrency_timeout_and_explicit_recovery(self):
+        report = self.child("service-concurrency")
+        self.assertEqual(report["tests"], 5)
+        self.assertGreaterEqual(report["observations"][-1]["real_timeout_seconds"], 4.5)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, Schema0005Tests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, Schema0005Tests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

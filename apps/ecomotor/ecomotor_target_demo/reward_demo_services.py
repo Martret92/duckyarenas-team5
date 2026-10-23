@@ -13,6 +13,8 @@ from django.utils.timezone import now
 
 from apps.bank import services as bank_service
 from apps.bank.models import Wallet, Transaction
+from apps.duckies import services as duckies_service
+from apps.duckies.models import Ducky, Item, ItemLevel, ItemGrant, InventoryItem
 
 from apps.ecomotor.reward_identity import semantic_fingerprint
 from apps.ecomotor.reward_rules import evaluate_reward
@@ -26,6 +28,7 @@ from .models import DemoTargetRewardEvent as Reward, DemoTargetXPEvent as XPEven
 SALT = "ecomotor.persistent-demo.reward-fact.v1"
 V1_SNAPSHOT_VERSION = "demo-reward-result-v1"
 SNAPSHOT_VERSION = "demo-reward-result-v2"
+ITEM_SNAPSHOT_VERSION = "demo-reward-result-v3"
 
 
 class DemoRewardConfigurationError(ValueError):
@@ -51,6 +54,24 @@ class DemoBankSnapshot:
 
 
 @dataclass(frozen=True, slots=True)
+class DemoItemSnapshot:
+    mapping_version: str
+    item_code: str
+    user_id: int
+    ducky_id: int
+    item_id: int
+    item_grant_id: int
+    item_level_id: None
+    category: str
+    consumable: bool
+    quantity: int
+    operation_key: str
+    reference_type: str
+    reference_id: str
+    created_at: str
+
+
+@dataclass(frozen=True, slots=True)
 class DemoRewardResult:
     event_id: int
     identity: RewardIdentity
@@ -67,6 +88,7 @@ class DemoRewardResult:
     replay: bool = False
     coin_amount: int = 0
     bank: DemoBankSnapshot | None = None
+    item: DemoItemSnapshot | None = None
 
 
 def _json(value):
@@ -95,9 +117,13 @@ def _activity(value):
 def issue_reward_fact(progress, *, activity, session_token):
     _activity(activity)
     with xp._xp_transaction(progress, session_token=session_token) as context:
-        return signing.dumps({"progress": context.progress_id, "owner": context.owner,
+        payload = {"progress": context.progress_id, "owner": context.owner,
             "activity": activity, "fact_id": token_hex(16), "fact_version": rules.fact_version(activity),
-            "occurred_at": now().astimezone(timezone.utc).isoformat(timespec="microseconds")}, salt=SALT)
+            "occurred_at": now().astimezone(timezone.utc).isoformat(timespec="microseconds")}
+        if activity == "item_challenge":
+            mapping = _new_item_mapping()
+            payload.update(mapping_version=mapping.mapping_version, item_code=mapping.item_code)
+        return signing.dumps(payload, salt=SALT)
 
 
 def _fact(token, progress, owner, activity):
@@ -106,12 +132,19 @@ def _fact(token, progress, owner, activity):
         if type(token) is not str or len(token) > 1536:
             raise signing.BadSignature
         value = signing.loads(token, salt=SALT)
-        if (type(value) is not dict or set(value) != {"progress", "owner", "activity", "fact_id", "fact_version", "occurred_at"}
+        expected = {"progress", "owner", "activity", "fact_id", "fact_version", "occurred_at"}
+        if activity == "item_challenge":
+            expected |= {"mapping_version", "item_code"}
+        if (type(value) is not dict or set(value) != expected
                 or type(value["progress"]) is not int or value["progress"] != progress.pk
                 or type(value["owner"]) is not str or not compare_digest(value["owner"], owner)
                 or value["activity"] != activity or value["fact_version"] != rules.fact_version(activity)
                 or type(value["fact_id"]) is not str or re.fullmatch("[0-9a-f]{32}", value["fact_id"]) is None):
             raise signing.BadSignature
+        if activity == "item_challenge":
+            mapping = rules.ITEM_MAPPINGS["demo-item-map-v1"]
+            if value["mapping_version"] != mapping.mapping_version or value["item_code"] != mapping.item_code:
+                raise signing.BadSignature
         instant = _instant(value["occurred_at"])
         return rules.synthetic_fact(progress.pk, value["fact_id"], instant, activity)
     except signing.BadSignature:
@@ -127,6 +160,97 @@ def _xp_key(identity):
 def _bank_key(identity):
     encoded = _json(["demo-reward-bank-key-v1", identity.origin_code, identity.fact_id, identity.recipient_id])
     return "rb1:" + sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _item_key(identity):
+    # Deliberately separate from _json: the ratified encoding is UTF-8,
+    # ensure_ascii=False, compact array order, no Unicode normalization.
+    encoded = json.dumps(["demo-reward-item-key-v1", identity.origin_code,
+        identity.fact_id, identity.recipient_id], separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    return "ri1:" + sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _new_item_mapping():
+    mapping = rules.ITEM_MAPPING
+    historical = rules.ITEM_MAPPINGS["demo-item-map-v1"]
+    try:
+        compatible = type(mapping) is rules.DemoItemMapping and _json(asdict(mapping)) == _json(asdict(historical))
+    except (TypeError, ValueError):
+        compatible = False
+    if not compatible:
+        raise DemoRewardConfigurationError("Mapeo sintético de objeto no admitido.")
+    return mapping
+
+
+def _ducky(user, alias, *, provision=False):
+    ducky = Ducky.objects.using(alias).filter(user_id=user.pk).first()
+    if ducky is None and provision:
+        ducky = Ducky.objects.using(alias).create(user=user, sex=Ducky.SEX[0][0], selected_outfit=None)
+    if ducky is None or ducky.sex not in dict(Ducky.SEX) or ducky.selected_outfit_id is not None:
+        raise xp.DemoIntegrityError("Identidad Duckies sintética incompleta o incompatible.")
+    return ducky
+
+
+def _item_snapshot(entry, current, identity, alias):
+    user, _ = _wallet(current, alias)
+    ducky = _ducky(user, alias)
+    mapping = rules.ITEM_MAPPINGS["demo-item-map-v1"]
+    key = _item_key(identity)
+    if (type(entry) is not ItemGrant or entry._state.db != alias
+            or any(type(v) is not int or not 0 < v <= 2**63-1 for v in
+                   (entry.pk, entry.ducky_id, entry.item_id, user.pk, ducky.pk))
+            or entry.ducky_id != ducky.pk or entry.item.code != mapping.item_code
+            or entry.item_level_id is not None or type(entry.quantity) is not int or entry.quantity != 1
+            or entry.operation_key != key or entry.reference_id != key
+            or entry.reference_type != "demo_reward_item_v1" or type(entry.created_at) is not datetime):
+        raise xp.DemoIntegrityError("Causa Duckies incompatible con Rewards.")
+    if ItemGrant.objects.using(alias).filter(operation_key=key).exclude(pk=entry.pk).exists():
+        raise xp.DemoIntegrityError("Clave causal Duckies cruzada entre entregas.")
+    # Metadata comes from the immutable historical mapping, never today's
+    # mutable Item category/activity/description or inventory ownership.
+    return DemoItemSnapshot(mapping.mapping_version, mapping.item_code, user.pk, ducky.pk,
+        entry.item_id, entry.pk, None, mapping.category, mapping.consumable, 1, key,
+        "demo_reward_item_v1", key, entry.created_at.isoformat(timespec="microseconds"))
+
+
+def _grant_item(context, current, identity):
+    _, alias = xp._check_xp_transaction(context)
+    _bank_default(alias)
+    mapping = _new_item_mapping()
+    try:
+        item = Item.objects.using(alias).get(code=mapping.item_code)
+    except Item.DoesNotExist as error:
+        raise DemoRewardConfigurationError("Artículo sintético no preparado.") from error
+    if (item.category != mapping.category or item.is_active is not True or item.consumable is not True
+            or ItemLevel.objects.using(alias).filter(item=item).exists()):
+        raise DemoRewardConfigurationError("Artículo sintético incompatible con el mapeo.")
+    key = _item_key(identity)
+    if ItemGrant.objects.using(alias).filter(operation_key=key).exists():
+        raise xp.DemoIntegrityError("Causa Duckies previa sin recompensa; no se adopta.")
+    user, _ = _wallet(current, alias, provision=True)
+    ducky = _ducky(user, alias, provision=True)
+    inventory = list(InventoryItem.objects.using(alias).filter(ducky=ducky, item=item))
+    maximum = context.db.ops.integer_field_range(InventoryItem._meta.get_field("quantity").get_internal_type())[1]
+    if (len(inventory) > 1 or any(row.item_level_id is not None or type(row.quantity) is not int
+            or not 1 <= row.quantity < maximum for row in inventory)):
+        raise xp.DemoIntegrityError("Inventario sintético incoherente o no representable.")
+    before = inventory[0].quantity if inventory else 0
+    entry = duckies_service.grant_item(user, item, 1, key, item_level=None,
+        reference_type="demo_reward_item_v1", reference_id=key)
+    xp._check_xp_transaction(context)  # Duckies' inner savepoint is closed.
+    if type(entry) is not ItemGrant or entry._state.db != alias:
+        raise xp.DemoIntegrityError("Duckies no devolvió una entrega persistente.")
+    try:
+        stored = ItemGrant.objects.using(alias).select_related("item").get(pk=entry.pk)
+    except ItemGrant.DoesNotExist as error:
+        raise xp.DemoIntegrityError("Entrega Duckies ausente.") from error
+    result = _item_snapshot(stored, current, identity, alias)
+    inventory = list(InventoryItem.objects.using(alias).filter(ducky=ducky, item=item))
+    if (stored.item_id != item.pk or len(inventory) != 1 or inventory[0].item_level_id is not None
+            or type(inventory[0].quantity) is not int or inventory[0].quantity != before + 1
+            or _json(asdict(_item_snapshot(entry, current, identity, alias))) != _json(asdict(result))):
+        raise xp.DemoIntegrityError("Entrega e inventario Duckies no corresponden al incremento.")
+    return result
 
 
 def _bank_default(alias):
@@ -188,19 +312,24 @@ def _bank_snapshot(entry, current, identity, alias):
         entry.request_fingerprint, entry.created_at.isoformat(timespec="microseconds"))
 
 
-def _decision(value):
+def _decision(value, *, activity=None):
     if type(value) is not RewardDecision:
         raise DemoRewardConfigurationError("Se requiere propuesta F1-A válida.")
     checked = RewardDecision(value.rule_set_version, value.matched_rule_id, value.eligible,
                              value.proposed_effects, value.reason_codes)
     if (len(checked.rule_set_version) > 64 or (checked.matched_rule_id is not None and len(checked.matched_rule_id) > 64)
             or (checked.proposed_effects and (len(checked.proposed_effects) != 1
-                or checked.proposed_effects[0].effect_type not in ("XP", "DUCKYCOINS")))):
-        raise DemoRewardConfigurationError("Solo se admite un efecto XP o cinco monedas, sin combinarlos.")
+                or checked.proposed_effects[0].effect_type not in
+                    (("ITEM",) if activity == "item_challenge" else ("XP", "DUCKYCOINS"))))):
+        raise DemoRewardConfigurationError("La actividad solo admite su único efecto autorizado, sin combinarlos.")
     if checked.proposed_effects:
         xp._integer(checked.proposed_effects[0].quantity, positive=True)
         if checked.proposed_effects[0].effect_type == "DUCKYCOINS" and checked.proposed_effects[0].quantity != 5:
             raise DemoRewardConfigurationError("La actividad monetaria requiere exactamente cinco monedas.")
+    if activity == "item_challenge" and (checked.rule_set_version != "demo-rewards-rules-v3"
+            or checked.matched_rule_id != "demo-item-challenge-hint-v3" or checked.eligible is not True
+            or checked.proposed_effects != (ProposedEffect("ITEM", 1),) or checked.reason_codes != ()):
+        raise DemoRewardConfigurationError("La actividad de objeto exige su única regla y HINT unitario.")
     return checked
 
 
@@ -217,8 +346,10 @@ def _snapshot(result, current, *, anchor, schema=SNAPSHOT_VERSION):
         "catalog": {"pk": current.catalog_id, "catalog_id": current.catalog.catalog_id, "version": current.catalog.version},
         "anchor_xp_event_id": anchor,
         "progression": json.loads(_json(asdict(result.progression)))}
-    if schema == SNAPSHOT_VERSION:
+    if schema in (SNAPSHOT_VERSION, ITEM_SNAPSHOT_VERSION):
         value.update(coin_amount=result.coin_amount, bank=asdict(result.bank) if result.bank is not None else None)
+    if schema == ITEM_SNAPSHOT_VERSION:
+        value["item"] = asdict(result.item) if result.item is not None else None
     return value
 
 
@@ -246,6 +377,10 @@ def _initial_epoch(current, events):
 
 def _recorded(row, current, events, alias):
     """Cross-check JSON with stored identity, proposal, actual XP and causal rows."""
+    if type(row.snapshot) is dict and row.snapshot.get("schema") == ITEM_SNAPSHOT_VERSION:
+        return _recorded_item(row, current, events, alias)
+    if getattr(row, "item_grant_id", None) is not None or row.activity_type == "item_challenge":
+        raise xp.DemoIntegrityError("Causa Duckies sin snapshot histórico V3.")
     try:
         if (row.progress_id != current.pk or row.origin_code != rules.ORIGIN
                 or row.recipient_id != f"demo-progress:{current.pk}" or type(row.fact_id) is not str
@@ -313,6 +448,48 @@ def _recorded(row, current, events, alias):
         raise xp.DemoIntegrityError("Historia Rewards no representable.") from error
 
 
+def _recorded_item(row, current, events, alias):
+    """V3 only. No rule evaluation, grant API, current inventory or provisioning."""
+    try:
+        if (row.progress_id != current.pk or row.origin_code != rules.ORIGIN
+                or row.recipient_id != f"demo-progress:{current.pk}" or type(row.fact_id) is not str
+                or re.fullmatch("[0-9a-f]{32}", row.fact_id) is None
+                or row.fingerprint_version != rules.FINGERPRINT_VERSION or row.activity_type != "item_challenge"
+                or row.status != "APPLIED" or type(row.xp_amount) is not int or row.xp_amount != 0
+                or type(row.coin_amount) is not int or row.coin_amount != 0
+                or row.xp_event_id is not None or row.bank_transaction_id is not None
+                or type(row.item_grant_id) is not int or not 0 < row.item_grant_id <= 2**63-1
+                or type(row.reason_codes) is not list):
+            raise xp.DemoIntegrityError("Identidad o modalidad Duckies histórica incoherente.")
+        fact = rules.synthetic_fact(current.pk, row.fact_id, row.occurred_at, row.activity_type)
+        if semantic_fingerprint(fact) != row.fingerprint:
+            raise xp.DemoIntegrityError("Huella Duckies histórica incoherente.")
+        snap = row.snapshot
+        effects = snap.get("effects")
+        if type(effects) is not list or any(type(e) is not list or len(e) != 2 for e in effects):
+            raise xp.DemoIntegrityError("Propuesta Duckies histórica incompleta.")
+        decision = _decision(RewardDecision(row.rule_set_version, row.matched_rule_id, snap.get("eligible"),
+            tuple(ProposedEffect(*e) for e in effects), tuple(row.reason_codes)), activity="item_challenge")
+        try:
+            entry = ItemGrant.objects.using(alias).select_related("item").get(pk=row.item_grant_id)
+        except ItemGrant.DoesNotExist as error:
+            raise xp.DemoIntegrityError("Entrega Duckies histórica ausente.") from error
+        if Reward.objects.using(alias).filter(item_grant_id=entry.pk).exclude(pk=row.pk).exists():
+            raise xp.DemoIntegrityError("Entrega Duckies utilizada por otra recompensa.")
+        item = _item_snapshot(entry, current, fact.identity, alias)
+        anchor = snap.get("anchor_xp_event_id")
+        result = DemoRewardResult(row.pk, fact.identity, fact.activity_type, fact.occurred_at,
+            "APPLIED", row.fingerprint_version, row.fingerprint, decision, 0, None, (),
+            _stationary(current, events, anchor), item=item)
+        if _json(snap) != _json(_snapshot(result, current, anchor=anchor, schema=ITEM_SNAPSHOT_VERSION)):
+            raise xp.DemoIntegrityError("Snapshot Duckies no corresponde a su causa histórica.")
+        return result
+    except (ValueError, TypeError, OverflowError) as error:
+        if isinstance(error, xp.DemoIntegrityError):
+            raise
+        raise xp.DemoIntegrityError("Historia Duckies no representable.") from error
+
+
 def _history(current, alias):
     events, _ = xp._history(current, alias)
     if Reward.objects.using(alias).filter(xp_event__progress=current).exclude(progress=current).exists():
@@ -323,12 +500,21 @@ def _history(current, alias):
     if {e.pk for e in events if e.operation_key.startswith("rx1:")} != causes:
         raise xp.DemoIntegrityError("XP de namespace Rewards sin recompensa coherente; no se reconstruye.")
     if getattr(current, "synthetic_user_id", None) is not None:
-        _, wallet = _wallet(current, alias)
+        user, wallet = _wallet(current, alias)
         causes = {result.bank.transaction_id for result in results if result.bank is not None}
         if (set(Transaction.objects.using(alias).filter(wallet=wallet, operation_key__startswith="rb1:")
                 .values_list("pk", flat=True)) != causes
                 or Reward.objects.using(alias).filter(bank_transaction__wallet=wallet).exclude(progress=current).exists()):
             raise xp.DemoIntegrityError("Movimiento Bank Rewards huérfano o causa cruzada; no se adopta.")
+        # Historical migration fixtures bind the pre-0005 rendered Reward model.
+        # Its V1/V2 reader must not query a relation absent from that schema.
+        if hasattr(Reward, "item_grant"):
+            ducky = Ducky.objects.using(alias).filter(user_id=user.pk).first()
+            item_causes = {result.item.item_grant_id for result in results if result.item is not None}
+            if (set(ItemGrant.objects.using(alias).filter(ducky=ducky, operation_key__startswith="ri1:")
+                    .values_list("pk", flat=True)) != item_causes
+                    or Reward.objects.using(alias).filter(item_grant__ducky__user_id=user.pk).exclude(progress=current).exists()):
+                raise xp.DemoIntegrityError("Entrega Rewards huérfana o causa Duckies cruzada; no se adopta.")
     return results
 
 
@@ -337,7 +523,7 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
         raise xp.DemoInputError("Se requiere una partida persistida.")
     fact = _fact(fact_token, progress, xp._owner(session_token), activity)
     fingerprint = semantic_fingerprint(fact)
-    if activity == "coin_challenge":
+    if activity in ("coin_challenge", "item_challenge"):
         # Resolve the protected connection before any write. Historical XP-only
         # fixtures keep their own alias; Bank may never be routed to that alias.
         _bank_default(xp._connection().alias)
@@ -353,13 +539,15 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
         observation = calculate_target_progression(current.xp_total, current.xp_total, catalog)
         if (observation.level_after != current.current_level or observation.epoch_after_code != current.current_epoch.code):
             raise xp.DemoIntegrityError("Progreso Rewards incoherente con el catálogo.")
-        decision = _decision(evaluate_reward(fact, rules.RULE_SET))
+        decision = _decision(evaluate_reward(fact,
+            rules.ITEM_RULE_SET if activity == "item_challenge" else rules.RULE_SET), activity=activity)
         effect = decision.proposed_effects[0] if decision.proposed_effects else None
         coins = effect.quantity if effect is not None and effect.effect_type == "DUCKYCOINS" else 0
         amount = effect.quantity if effect is not None and effect.effect_type == "XP" else 0
-        if (bool(coins) != (activity == "coin_challenge")):
+        is_item = effect is not None and effect.effect_type == "ITEM"
+        if bool(coins) != (activity == "coin_challenge") or is_item != (activity == "item_challenge"):
             raise DemoRewardConfigurationError("Propuesta incompatible con la actividad sintética.")
-        bank = None
+        bank, item = None, None
         if amount:
             key = _xp_key(fact.identity)
             if XPEvent.objects.using(alias).filter(progress=current, operation_key=key).exists():
@@ -397,16 +585,20 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
             if (bank.balance_before != before_balance or bank.balance_after != wallet.available_balance
                     or ledger.transaction._state.db != alias or ledger.transaction.wallet_id != wallet.pk):
                 raise xp.DemoIntegrityError("Resultado Bank no corresponde al crédito confirmado.")
+        if is_item:
+            item = _grant_item(context, current, fact.identity)
         result = DemoRewardResult(0, fact.identity, fact.activity_type, fact.occurred_at,
-            "APPLIED" if amount or coins else "NO_REWARD", rules.FINGERPRINT_VERSION, fingerprint,
-            decision, amount, xp_id, causal, observation, coin_amount=coins, bank=bank)
+            "APPLIED" if amount or coins or is_item else "NO_REWARD", rules.FINGERPRINT_VERSION, fingerprint,
+            decision, amount, xp_id, causal, observation, coin_amount=coins, bank=bank, item=item)
+        cause = {"item_grant_id": item.item_grant_id} if item is not None else {}
         row = Reward.objects.using(alias).create(progress=current, origin_code=fact.identity.origin_code,
             fact_id=fact.identity.fact_id, recipient_id=fact.identity.recipient_id, activity_type=fact.activity_type,
             occurred_at=fact.occurred_at, fingerprint_version=rules.FINGERPRINT_VERSION, fingerprint=fingerprint,
             rule_set_version=decision.rule_set_version, matched_rule_id=decision.matched_rule_id,
             status=result.status, reason_codes=list(decision.reason_codes), xp_amount=amount, xp_event_id=xp_id,
             coin_amount=coins, bank_transaction_id=bank.transaction_id if bank is not None else None,
-            snapshot=_snapshot(result, current, anchor=anchor))
+            snapshot=_snapshot(result, current, anchor=anchor,
+                schema=ITEM_SNAPSHOT_VERSION if is_item else SNAPSHOT_VERSION), **cause)
         # Includes the new row and actual causal tables; any failure rolls back XP too.
         observed = next(r for r in _history(current, alias) if r.event_id == row.pk)
         return observed
