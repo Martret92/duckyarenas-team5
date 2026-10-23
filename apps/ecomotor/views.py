@@ -31,7 +31,7 @@ from .stat_allocation_queries import list_stat_allocation_history
 
 @login_required
 @require_safe
-def xp_history_view(request):
+def xp_history_view(request, *, alpha_mode=False):
     try:
         profile = UserProfileEcomotor.objects.get(user=request.user)
         cursors = request.GET.getlist("before_id")
@@ -58,12 +58,12 @@ def xp_history_view(request):
     except (DatabaseError, ProgressQueryDatabaseError):
         return HttpResponse("La consulta del historial no está disponible temporalmente.", status=503,
                             content_type="text/plain; charset=utf-8")
-    return render(request, "ecomotor/xp_history.html", {"history": history})
+    return render(request, "ecomotor/xp_history.html", {"history": history, "ecomotor_alpha_mode": alpha_mode})
 
 
 @login_required
 @require_safe
-def allocation_history_view(request):
+def allocation_history_view(request, *, alpha_mode=False):
     try:
         profile = UserProfileEcomotor.objects.get(user=request.user)
         cursors = request.GET.getlist("before_id")
@@ -89,12 +89,12 @@ def allocation_history_view(request):
     except (DatabaseError, ProgressQueryDatabaseError):
         return HttpResponse("La consulta del historial no está disponible temporalmente.", status=503,
                             content_type="text/plain; charset=utf-8")
-    return render(request, "ecomotor/allocation_history.html", {"history": history})
+    return render(request, "ecomotor/allocation_history.html", {"history": history, "ecomotor_alpha_mode": alpha_mode})
 
 
 @login_required
 @require_safe
-def progress_view(request):
+def progress_view(request, *, alpha_mode=False):
     try:
         profile = UserProfileEcomotor.objects.get(user=request.user)
         overview = get_progress_overview(profile)
@@ -107,7 +107,9 @@ def progress_view(request):
     except (DatabaseError, ProgressQueryDatabaseError):
         return HttpResponse("La consulta de progreso no está disponible temporalmente.", status=503,
                             content_type="text/plain; charset=utf-8")
-    return render(request, "ecomotor/progress.html", {"overview": overview, "history": history})
+    return render(request, "ecomotor/progress.html", {
+        "overview": overview, "history": history, "ecomotor_alpha_mode": alpha_mode,
+    })
 
 
 @login_required
