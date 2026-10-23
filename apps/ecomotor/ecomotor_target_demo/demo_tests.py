@@ -1453,7 +1453,8 @@ class ConsolidationTests(PersistentTests):
 class BankDefaultSubprocessTests(TestCase):
     """Do not inherit persistent_fixture or replace the parent's default."""
 
-    def child(self, scenario, *, module="apps.ecomotor.ecomotor_target_demo.bank_default_fixture"):
+    def child(self, scenario, *, module="apps.ecomotor.ecomotor_target_demo.bank_default_fixture",
+              prefix="ducky-bank-default-", marker="BANK_DEFAULT_EVIDENCE="):
         from copy import deepcopy
         import json
         import os
@@ -1481,7 +1482,7 @@ class BankDefaultSubprocessTests(TestCase):
         before = hashes()
         temporary_root = None
         try:
-            with TemporaryDirectory(prefix="ducky-bank-default-") as directory:
+            with TemporaryDirectory(prefix=prefix) as directory:
                 temporary_root = Path(directory)
                 (temporary_root / "instance").mkdir()
                 if scenario == "historical":
@@ -1509,8 +1510,8 @@ class BankDefaultSubprocessTests(TestCase):
                             process.communicate(timeout=5)
                 self.assertIsNotNone(process.returncode)
                 self.assertEqual(process.returncode, 0, output + "\n" + errors)
-                reports = [line.removeprefix("BANK_DEFAULT_EVIDENCE=") for line in output.splitlines()
-                           if line.startswith("BANK_DEFAULT_EVIDENCE=")]
+                reports = [line.removeprefix(marker) for line in output.splitlines()
+                           if line.startswith(marker)]
                 self.assertEqual(len(reports), 1, output + errors)
                 report = json.loads(reports[0])
                 self.assertTrue(report["success"])
@@ -1520,7 +1521,7 @@ class BankDefaultSubprocessTests(TestCase):
                 self.assertEqual(report["alias"], "default")
                 self.assertEqual(Path(report["file"]), temporary_root / "instance" / "target_persistent_demo.sqlite3")
                 self.assertNotEqual(report["pid"], os.getpid())
-                print("BANK_DEFAULT_CHILD=" + json.dumps(report, sort_keys=True))
+                print(marker.replace("EVIDENCE", "CHILD") + json.dumps(report, sort_keys=True))
                 return report
         finally:
             if temporary_root is not None:
@@ -1605,12 +1606,48 @@ class RewardsBankSubprocessTests(TestCase):
         self.assertEqual(self.child("http-errors", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
 
 
+class RewardsDuckiesSubprocessTests(TestCase):
+    """Only parent tests; child cases are reported separately, never rediscovered."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_real_rewards_boundary_savepoint_commit_and_rollback(self):
+        report = self.child("atomicity")
+        self.assertEqual(report["tests"], 4)
+        self.assertEqual(len(report["observations"]), 4)
+        first = report["observations"][0]
+        for name in ("shared_native_connection", "single_begin_immediate", "duckies_savepoint",
+                     "single_commit", "uncommitted_delivery_invisible"):
+            self.assertIs(first[name], True)
+
+    def test_duckies_idempotency_is_not_future_rewards_replay(self):
+        report = self.child("idempotency")
+        self.assertEqual(report["tests"], 1)
+        self.assertIs(report["observations"][0]["not_rewards_coordinator_replay"], True)
+
+    def test_independent_connections_conflicts_timeout_and_recovery(self):
+        report = self.child("concurrency")
+        self.assertEqual(report["tests"], 4)
+        self.assertEqual(len(report["observations"]), 4)
+        for observation in report["observations"][:3]:
+            self.assertIs(observation["independent_native_connections"], True)
+        self.assertGreaterEqual(report["observations"][3]["real_timeout_seconds"], 4.5)
+
+    def test_child_failure_propagates_and_releases_temporary_file(self):
+        with self.assertRaisesRegex(AssertionError,
+                "injected Duckies child failure after protected connection opened"):
+            self.child("failure")
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
