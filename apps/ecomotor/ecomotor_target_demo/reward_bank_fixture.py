@@ -60,6 +60,7 @@ def run(root, scenario):
     from django.core.management import call_command
     from django.db import connections, transaction
     from django.test.utils import CaptureQueriesContext
+    from django.test import Client
     from apps.bank import services as bank
     from apps.bank.models import Wallet, Transaction
     from apps.ecomotor.reward_types import RewardDecision, RewardRuleSet, ProposedEffect, RewardIdentity, ValidatedRewardFact
@@ -508,6 +509,317 @@ def run(root, scenario):
             self.assertEqual(Wallet.objects.get(pk=first.bank.wallet_id).available_balance, 5)
             evidence["observations"].append({"real_timeout_seconds": round(elapsed, 3), "retry_without_duplicate": True})
 
+        def http_start(self, client=None):
+            client = client or Client(HTTP_HOST="localhost")
+            self.assertEqual(client.post("/demo/objetivo-persistente/", {"action": "start"}).status_code, 302)
+            self.assertEqual(client.get("/demo/objetivo-persistente/").status_code, 200)
+            return client
+
+        def http_fact(self, client, activity="coin_challenge"):
+            return {"action": "reward", "activity": activity,
+                    "fact_token": client.session["reward_tokens"][activity]}
+
+        def economic_rows(self):
+            return {table: value for table, value in rows().items() if table != "django_session"}
+
+        def test_http_credit_replay_current_and_historical_balance(self):
+            url = "/demo/objetivo-persistente/"
+            client = Client(HTTP_HOST="localhost")
+            before = self.economic_rows()
+            self.assertEqual(client.get(url).status_code, 200)
+            self.assertEqual(self.economic_rows(), before)
+            self.http_start(client)
+            first = self.http_fact(client)
+            owner, pk = client.session["demo_secret"], client.session["demo_progress"]
+            self.assertIn(first["fact_token"], client.get(url).content.decode())
+            response = client.post(url, first)
+            self.assertEqual((response.status_code, response["Location"]), (302, url))
+            page = client.get(url).content.decode()
+            progress = Progress.objects.get(pk=pk)
+            reward = Reward.objects.get(progress=progress)
+            self.assertEqual((reward.status, reward.coin_amount, reward.snapshot["schema"]), ("APPLIED", 5, "demo-reward-result-v2"))
+            self.assertEqual(Transaction.objects.get(pk=reward.bank_transaction_id).amount, 5)
+            self.assertIn('id="bank-balance">5</strong>', page)
+            self.assertIn("+5 DuckyCoins", page)
+            self.assertIn("APPLIED: +5 DuckyCoins ficticias confirmadas.", page)
+            self.assertEqual((progress.xp_total, progress.current_level, XP.objects.filter(progress=progress).count(),
+                              Evolution.objects.filter(progress=progress).count(), Configuration.objects.filter(progress=progress).count()), (0, 1, 0, 0, 0))
+            self.assertEqual(client.post(url, first).status_code, 302)
+            self.assertIn("no se ha vuelto a acreditar", client.get(url).content.decode())
+            second = self.http_fact(client)
+            self.assertNotEqual(second["fact_token"], first["fact_token"])
+            self.assertEqual(client.post(url, second).status_code, 302)
+            self.assertEqual(client.get(url).status_code, 200)
+            self.assertEqual(client.post(url, first).status_code, 302)
+            page = client.get(url).content.decode()
+            self.assertIn('id="bank-balance">10</strong>', page)
+            self.assertIn("Saldo después de aquella recompensa: 5 DuckyCoins", page)
+            self.assertIn(f"Repetir hecho #{reward.pk}", page)
+            self.assertEqual(Reward.objects.filter(progress=progress).count(), 2)
+            self.assertEqual(Transaction.objects.filter(wallet__user=progress.synthetic_user).count(), 2)
+            entry = Transaction.objects.get(pk=reward.bank_transaction_id)
+            for private in (progress.synthetic_user.username, owner, entry.operation_key, str(path), "Traceback"):
+                self.assertNotIn(private, page)
+            overview = rewards.read_demo_bank(progress, session_token=owner)
+            self.assertEqual((overview.balance, len(overview.movements)), (10, 2))
+            reopened = Client(HTTP_HOST="localhost")
+            reopened.cookies = client.cookies.copy()
+            db.close()
+            self.assertIn('id="bank-balance">10</strong>', reopened.get(url).content.decode())
+            self.assertEqual(reopened.post(url, first).status_code, 302)
+            self.assertEqual(Transaction.objects.filter(wallet__user=progress.synthetic_user).count(), 2)
+            evidence["observations"].append("Real HTTP PRG credit 5, second fact balance 10, first-fact replay snapshot 5/no duplicate; owned session and SQLite reopen preserved")
+
+        def test_http_readonly_overview_and_bank_public_apis(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            progress = Progress.objects.get(pk=client.session["demo_progress"])
+            owner = client.session["demo_secret"]
+            before = self.economic_rows()
+            with patch.object(bank, "wallet_summary", side_effect=AssertionError("unprovisioned")), \
+                 patch.object(bank, "transaction_history", side_effect=AssertionError("unprovisioned")):
+                overview = rewards.read_demo_bank(progress, session_token=owner)
+                page = client.get(url).content.decode()
+            self.assertFalse(overview.provisioned)
+            self.assertIsNone(overview.balance)
+            self.assertEqual(overview.movements, ())
+            self.assertIn("Wallet no aprovisionada", page)
+            self.assertNotIn('id="bank-balance"', page)
+            self.assertEqual(self.economic_rows(), before)
+            self.assertEqual(client.post(url, self.http_fact(client)).status_code, 302)
+            progress.refresh_from_db()
+            before = self.economic_rows()
+            with patch.object(bank, "wallet_summary", wraps=bank.wallet_summary) as summary, \
+                 patch.object(bank, "transaction_history", wraps=bank.transaction_history) as history, CaptureQueriesContext(db) as queries:
+                overview = rewards.read_demo_bank(progress, session_token=owner)
+            self.assertEqual(summary.call_args.args[0].pk, progress.synthetic_user_id)
+            self.assertEqual(history.call_args.args[0].pk, progress.synthetic_user_id)
+            self.assertEqual(overview.balance, 5)
+            self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE", "REPLACE")) for q in queries))
+            self.assertEqual(self.economic_rows(), before)
+            with self.assertRaises(FrozenInstanceError): overview.balance = 999
+            with self.assertRaises(FrozenInstanceError): overview.movements[0].amount = 999
+            from dataclasses import fields
+            self.assertEqual({f.name for f in fields(overview.movements[0])},
+                             {"id", "created_at", "transaction_type", "amount", "balance_after"})
+            before = self.economic_rows()
+            for _ in range(2): self.assertEqual(client.get(url).status_code, 200)
+            self.assertEqual(self.economic_rows(), before)
+
+        def test_http_v1_v2_xp_visit_gamer_and_reopen(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            challenge = self.http_fact(client, "challenge")
+            original_snapshot = rewards._snapshot
+            from apps.ecomotor.reward_types import RewardRule
+            old_rules = RewardRuleSet("demo-rewards-rules-v1", (
+                RewardRule("demo-challenge-700-v1", "challenge", {"completed": True}, (ProposedEffect("XP", 700),)),))
+            def v1_snapshot(*args, **kwargs):
+                return original_snapshot(*args, **{**kwargs, "schema": rewards.V1_SNAPSHOT_VERSION})
+            # Historical-format fixture only; the actual grant/XP/reader are real.
+            with patch.object(rewards, "_snapshot", side_effect=v1_snapshot), patch.object(rules, "RULE_SET", old_rules):
+                self.assertEqual(client.post(url, challenge).status_code, 302)
+            progress = Progress.objects.get(pk=client.session["demo_progress"])
+            old = Reward.objects.get(progress=progress)
+            with db.cursor() as cursor:
+                cursor.execute("SELECT snapshot FROM ecomotor_target_demo_demotargetrewardevent WHERE id=%s", [old.pk])
+                raw = cursor.fetchone()[0]
+            page = client.get(url).content.decode()
+            self.assertIn("+700 XP sintéticas", page)
+            self.assertIn("12 OPCIONES DESBLOQUEADAS", page)
+            self.assertEqual(client.post(url, self.http_fact(client, "visit")).status_code, 302)
+            page = client.get(url).content.decode()
+            self.assertIn("NO_REWARD: visita válida registrada", page)
+            self.assertEqual(client.post(url, self.http_fact(client)).status_code, 302)
+            page = client.get(url).content.decode()
+            self.assertIn("+5 DuckyCoins", page)
+            self.assertIn("Sin concesión de XP ni monedas", page)
+            # Use the configure token emitted in the same rendered page.
+            import re
+            operation = re.search(r'name="operation" value="([^"]+)"[^>]*id="configure_operation"', page)
+            self.assertIsNotNone(operation)
+            data = {"action": "configure", "operation": operation.group(1), "option_code": "persist-demo-tech-gamer",
+                    "expected_revision": "", **dict(allocation(45))}
+            self.assertEqual(client.post(url, data).status_code, 302)
+            self.assertEqual(Configuration.objects.filter(progress=progress).count(), 1)
+            self.assertEqual(client.post(url, challenge).status_code, 302)
+            db.close()
+            self.assertEqual(client.get(url).status_code, 200)
+            progress.refresh_from_db()
+            self.assertEqual((progress.xp_total, Evolution.objects.filter(progress=progress).count()), (700, 6))
+            self.assertEqual(Reward.objects.filter(progress=progress).count(), 3)
+            with db.cursor() as cursor:
+                cursor.execute("SELECT snapshot FROM ecomotor_target_demo_demotargetrewardevent WHERE id=%s", [old.pk])
+                self.assertEqual(cursor.fetchone()[0], raw)
+
+        def test_http_real_csrf_and_methods(self):
+            url = "/demo/objetivo-persistente/"
+            client = Client(enforce_csrf_checks=True, HTTP_HOST="localhost")
+            self.assertEqual(client.get(url).status_code, 200)
+            self.assertEqual(client.post(url, {"action": "start"}).status_code, 403)
+            csrf = client.cookies[settings.CSRF_COOKIE_NAME].value
+            self.assertEqual(client.post(url, {"action": "start", "csrfmiddlewaretoken": csrf}).status_code, 302)
+            self.assertEqual(client.get(url).status_code, 200)
+            data = self.http_fact(client)
+            before = self.economic_rows()
+            self.assertEqual(client.post(url, data).status_code, 403)
+            self.assertEqual(self.economic_rows(), before)
+            csrf = client.cookies[settings.CSRF_COOKIE_NAME].value
+            self.assertEqual(client.post(url, {**data, "csrfmiddlewaretoken": csrf}).status_code, 302)
+            for method in ("put", "patch", "delete", "head", "options", "trace"):
+                self.assertEqual(getattr(client, method)(url, HTTP_X_CSRFTOKEN=csrf).status_code, 405)
+
+        def test_http_strict_fields_tokens_and_escape(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            data = self.http_fact(client)
+            before = self.economic_rows()
+            from urllib.parse import urlencode
+            for key in ("amount", "coin_amount", "user", "user_id", "wallet", "wallet_id", "transaction_id",
+                        "origin_code", "source", "recipient_id", "rule_set_version", "balance", "progress"):
+                self.assertEqual(client.post(url, {**data, key: "5"}).status_code, 400)
+            for key in data:
+                self.assertEqual(client.post(url, {k: v for k, v in data.items() if k != key}).status_code, 400)
+                self.assertEqual(client.post(url, urlencode([*data.items(), (key, data[key])]),
+                    content_type="application/x-www-form-urlencoded").status_code, 400)
+            bad = client.post(url, {**data, "activity": "<script>private</script>"})
+            self.assertEqual(bad.status_code, 400)
+            self.assertNotIn("<script>private</script>", bad.content.decode())
+            for token in ("forged", data["fact_token"] + "x", client.session["demo_operation"],
+                          client.session["reward_tokens"]["challenge"]):
+                self.assertEqual(client.post(url, {**data, "fact_token": token}).status_code, 403)
+            self.assertEqual(self.economic_rows(), before)
+            # Escape an otherwise valid historical rule label; no HTML is trusted.
+            self.assertEqual(client.post(url, data).status_code, 302)
+            invalid_after_success = client.post(url, {**data, "amount": "999"})
+            self.assertEqual(invalid_after_success.status_code, 400)
+            self.assertNotIn("APPLIED:", invalid_after_success.content.decode())
+            progress = Progress.objects.get(pk=client.session["demo_progress"])
+            reward = Reward.objects.get(progress=progress)
+            label = "<script>rule</script>"
+            snapshot = deepcopy(reward.snapshot)
+            snapshot["rule_set_version"] = label
+            Reward.objects.filter(pk=reward.pk).update(rule_set_version=label, snapshot=snapshot)
+            page = client.get(url).content.decode()
+            self.assertNotIn(label, page)
+            self.assertIn("&lt;script&gt;rule&lt;/script&gt;", page)
+
+        def test_http_sessions_reset_and_private_history(self):
+            url = "/demo/objetivo-persistente/"
+            a, b = self.http_start(), self.http_start()
+            first, second = self.http_fact(a), self.http_fact(b)
+            self.assertEqual(a.post(url, first).status_code, 302)
+            self.assertEqual(b.post(url, second).status_code, 302)
+            pa = Progress.objects.get(pk=a.session["demo_progress"])
+            pb = Progress.objects.get(pk=b.session["demo_progress"])
+            ta = Reward.objects.get(progress=pa).bank_transaction_id
+            tb = Reward.objects.get(progress=pb).bank_transaction_id
+            self.assertIn(f"Transaction #{ta}", a.get(url).content.decode())
+            self.assertNotIn(f"Transaction #{tb}", a.get(url).content.decode())
+            self.assertEqual(b.post(url, first).status_code, 403)
+            for key in ("user_id", "wallet_id", "progress", "transaction_id", "fact_id"):
+                response = b.get(url, {key: pa.pk})
+                self.assertEqual(response.status_code, 400)
+                self.assertNotIn(f"Transaction #{ta}", response.content.decode())
+            session = b.session
+            original = session["demo_progress"]
+            session["demo_progress"] = pa.pk
+            session.save()
+            self.assertEqual(b.get(url).status_code, 403)
+            session["demo_progress"] = original
+            session.save()
+            self.assertEqual(a.post(url, {"action": "start"}).status_code, 302)
+            page = a.get(url).content.decode()
+            self.assertIn("Wallet no aprovisionada", page)
+            self.assertNotIn(f"Transaction #{ta}", page)
+            self.assertEqual(a.post(url, first).status_code, 403)
+            self.assertEqual(Wallet.objects.get(user_id=pa.synthetic_user_id).available_balance, 5)
+            self.assertEqual(Wallet.objects.get(user_id=pb.synthetic_user_id).available_balance, 5)
+
+        def test_http_expected_errors_are_sanitized(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            data = self.http_fact(client)
+            before = self.economic_rows()
+            marker = "PRIVATE-SQLITE-PATH-<script>"
+            for error, status in ((bank.InvalidAmount(marker), 400), (bank.WalletNotProvisioned(marker), 409),
+                                  (bank.IdempotencyConflict(marker), 409), (bank.BankError(marker), 503)):
+                with patch.object(bank, "credit_coins", side_effect=error):
+                    response = client.post(url, data)
+                self.assertEqual(response.status_code, status)
+                page = response.content.decode()
+                self.assertNotIn(marker, page)
+                self.assertNotIn("APPLIED:", page)
+                self.assertNotIn("NO_REWARD:", page)
+                self.assertEqual(self.economic_rows(), before)
+            from django.db import OperationalError
+            for error in (ImproperlyConfigured(marker), OperationalError(marker)):
+                with patch.object(rewards, "read_demo_bank", side_effect=error):
+                    response = client.get(url)
+                self.assertEqual(response.status_code, 503)
+                self.assertNotIn(marker, response.content.decode())
+                self.assertEqual(self.economic_rows(), before)
+
+        def test_http_missing_wallet_and_causal_corruption(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            self.assertEqual(client.post(url, self.http_fact(client)).status_code, 302)
+            progress = Progress.objects.get(pk=client.session["demo_progress"])
+            entry = Transaction.objects.get(wallet__user_id=progress.synthetic_user_id)
+            Transaction.objects.filter(pk=entry.pk).update(reference_id="private-incompatible-reference")
+            before = self.economic_rows()
+            response = client.get(url)
+            self.assertEqual(response.status_code, 409)
+            self.assertNotIn("APPLIED:", response.content.decode())
+            self.assertNotIn("private-incompatible-reference", response.content.decode())
+            self.assertEqual(self.economic_rows(), before)
+            Transaction.objects.filter(pk=entry.pk).update(reference_id=entry.reference_id)
+            with db.constraint_checks_disabled(), db.cursor() as cursor:
+                cursor.execute("SELECT * FROM bank_wallet WHERE id=%s", [entry.wallet_id])
+                values = cursor.fetchone()
+                columns = ",".join(db.ops.quote_name(c[0]) for c in cursor.description)
+                cursor.execute("DELETE FROM bank_wallet WHERE id=%s", [entry.wallet_id])
+                try:
+                    before = self.economic_rows()
+                    self.assertEqual(client.get(url).status_code, 409)
+                    self.assertEqual(self.economic_rows(), before)
+                finally:
+                    cursor.execute(f"INSERT INTO bank_wallet ({columns}) VALUES ({','.join(['%s'] * len(values))})", values)
+            self.assertEqual(client.get(url).status_code, 200)
+
+        def test_http_real_timeout_then_explicit_retry(self):
+            url = "/demo/objetivo-persistente/"
+            client = self.http_start()
+            data = self.http_fact(client)
+            before = self.economic_rows()
+            held, release = Event(), Event()
+            def blocker():
+                try:
+                    with transaction.atomic():
+                        held.set()
+                        if not release.wait(15): raise AssertionError("HTTP blocker timeout")
+                finally:
+                    connections["default"].close()
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(blocker)
+                try:
+                    self.assertTrue(held.wait(10))
+                    started = monotonic()
+                    response = client.post(url, data)
+                    elapsed = monotonic() - started
+                    self.assertEqual(response.status_code, 503)
+                    self.assertGreaterEqual(elapsed, 4.5)
+                    self.assertNotIn("APPLIED:", response.content.decode())
+                finally:
+                    release.set()
+                    future.result(timeout=10)
+            self.assertEqual(self.economic_rows(), before)
+            self.assertEqual(client.post(url, data).status_code, 302)
+            self.assertEqual(client.post(url, data).status_code, 302)
+            progress = Progress.objects.get(pk=client.session["demo_progress"])
+            self.assertEqual(Wallet.objects.get(user_id=progress.synthetic_user_id).available_balance, 5)
+            evidence["observations"].append({"http_timeout_status": 503, "real_timeout_seconds": round(elapsed, 3), "retry_without_duplicate": True})
+
     groups = {
         "functional": ("test_primary_real_credit_and_stationary_progress", "test_lazy_provisioning_and_closed_facts",
             "test_replay_original_balance_rules_and_reopen", "test_sessions_tokens_and_parties",
@@ -518,6 +830,9 @@ def run(root, scenario):
             "test_crossed_wallet_user_and_missing_causes", "test_orphan_bank_namespace_and_existing_link_not_repaired"),
         "concurrency": ("test_same_fact_concurrency", "test_different_facts_concurrency", "test_direct_xp_concurrency",
             "test_playable_concurrency", "test_incompatible_fact_concurrency", "test_real_timeout_and_explicit_retry"),
+        "http-functional": ("test_http_credit_replay_current_and_historical_balance", "test_http_readonly_overview_and_bank_public_apis", "test_http_v1_v2_xp_visit_gamer_and_reopen"),
+        "http-security": ("test_http_real_csrf_and_methods", "test_http_strict_fields_tokens_and_escape", "test_http_sessions_reset_and_private_history"),
+        "http-errors": ("test_http_expected_errors_are_sanitized", "test_http_missing_wallet_and_causal_corruption", "test_http_real_timeout_then_explicit_retry"),
     }
     try:
         try:
