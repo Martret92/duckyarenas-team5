@@ -134,6 +134,7 @@ class DemoTargetRewardEvent(models.Model):
     xp_event = models.OneToOneField(DemoTargetXPEvent, on_delete=models.PROTECT, null=True, blank=True)
     coin_amount = models.PositiveBigIntegerField(default=0)
     bank_transaction = models.OneToOneField("bank.Transaction", on_delete=models.PROTECT, null=True, blank=True)
+    item_grant = models.OneToOneField("duckies.ItemGrant", on_delete=models.PROTECT, null=True, blank=True)
     snapshot = models.JSONField()
     confirmed_at = models.DateTimeField(auto_now_add=True)
 
@@ -141,11 +142,13 @@ class DemoTargetRewardEvent(models.Model):
         constraints = [
             models.UniqueConstraint(fields=("progress", "origin_code", "fact_id"), name="demo_reward_identity_unique"),
             models.CheckConstraint(condition=(models.Q(status="APPLIED", xp_amount__gt=0, xp_event__isnull=False,
-                coin_amount=0, bank_transaction__isnull=True)
+                coin_amount=0, bank_transaction__isnull=True, item_grant__isnull=True)
                 | models.Q(status="APPLIED", xp_amount=0, xp_event__isnull=True,
-                    coin_amount__gt=0, bank_transaction__isnull=False)
+                    coin_amount__gt=0, bank_transaction__isnull=False, item_grant__isnull=True)
+                | models.Q(status="APPLIED", xp_amount=0, xp_event__isnull=True,
+                    coin_amount=0, bank_transaction__isnull=True, item_grant__isnull=False)
                 | models.Q(status="NO_REWARD", xp_amount=0, xp_event__isnull=True,
-                    coin_amount=0, bank_transaction__isnull=True)), name="demo_reward_outcome_valid"),
+                    coin_amount=0, bank_transaction__isnull=True, item_grant__isnull=True)), name="demo_reward_outcome_valid"),
             models.CheckConstraint(condition=models.Q(xp_amount__lte=MAX_XP), name="demo_reward_xp_range"),
             models.CheckConstraint(condition=models.Q(coin_amount__gte=0, coin_amount__lte=MAX_XP), name="demo_reward_coin_range"),
             models.CheckConstraint(condition=models.Q(fact_id__regex=r"^[0-9a-f]{32}\Z",
