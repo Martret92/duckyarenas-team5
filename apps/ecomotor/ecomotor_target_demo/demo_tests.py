@@ -478,10 +478,16 @@ class PersistentTests(TestCase):
         with self.assertRaises(services.DemoIntegrityError): self.grant(progress, token=token)
         self.assertEqual(DemoTargetXPEvent.objects.using(self.alias).count(), 0)
 
-    def test_no_user_or_selection_relationships_in_demo_schema(self):
+    def test_only_explicit_nullable_synthetic_user_relationship_in_demo_schema(self):
+        from django.contrib.auth import get_user_model
         for model in (DemoTargetProgress, DemoTargetXPEvent, DemoTargetEvolutionEvent):
             for field in model._meta.fields:
                 if field.is_relation:
+                    if model is DemoTargetProgress and field.name == "synthetic_user":
+                        self.assertIs(field.related_model, get_user_model())
+                        self.assertTrue(field.one_to_one and field.null)
+                        self.assertEqual(field.remote_field.on_delete.__name__, "PROTECT")
+                        continue
                     self.assertIn(field.related_model._meta.app_label, ("ecomotor", "ecomotor_target_demo"))
         from apps.ecomotor import target_persistent_demo_settings as production
         self.assertEqual(production.SESSION_COOKIE_NAME, "target_persistent_demo_session")
@@ -1388,7 +1394,8 @@ class ConsolidationTests(PersistentTests):
                   "0002_playable_configurations":"baf12dd0a66bd08416b5703fc4bb05758906a53fe74cc3a802f9f86376d83989",
                   "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b"}
         loader = MigrationLoader(self.db)
-        self.assertEqual({name for app,name in loader.disk_migrations if app==config.label}, set(hashes))
+        self.assertEqual({name for app,name in loader.disk_migrations if app==config.label},
+                         set(hashes) | {"0004_rewards_bank_schema"})
         self.assertTrue({(config.label,name) for name in hashes} <= set(loader.applied_migrations))
         for name,digest in hashes.items():
             source = Path(import_module(config.name + ".migrations." + name).__file__).read_text(encoding="utf-8")
@@ -1426,7 +1433,7 @@ class ConsolidationTests(PersistentTests):
 class BankDefaultSubprocessTests(TestCase):
     """Do not inherit persistent_fixture or replace the parent's default."""
 
-    def child(self, scenario):
+    def child(self, scenario, *, module="apps.ecomotor.ecomotor_target_demo.bank_default_fixture"):
         from copy import deepcopy
         import json
         import os
@@ -1457,8 +1464,16 @@ class BankDefaultSubprocessTests(TestCase):
             with TemporaryDirectory(prefix="ducky-bank-default-") as directory:
                 temporary_root = Path(directory)
                 (temporary_root / "instance").mkdir()
+                if scenario == "historical":
+                    from shutil import copyfile
+                    source = temporary_root / "before"
+                    (source / "instance").mkdir(parents=True)
+                    self._schema_before(source, root_repo, module)
+                    copyfile(source / "instance" / "target_persistent_demo.sqlite3",
+                             temporary_root / "instance" / "target_persistent_demo.sqlite3")
+                    copyfile(source / "historical.json", temporary_root / "historical.json")
                 process = subprocess.Popen(
-                    [sys.executable, "-m", "apps.ecomotor.ecomotor_target_demo.bank_default_fixture",
+                    [sys.executable, "-m", module,
                      str(temporary_root), scenario], cwd=root_repo,
                     env={**os.environ, "PYTHONIOENCODING": "utf-8"},
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
@@ -1499,6 +1514,21 @@ class BankDefaultSubprocessTests(TestCase):
             self.assertEqual({key: id(value) for key, value in apps.app_configs.items()}, registry)
             self.assertEqual(hashes(), before)
 
+    def _schema_before(self, root, repo, module):
+        import os
+        import subprocess
+        import sys
+        process = subprocess.Popen([sys.executable, "-m", module, str(root), "before"],
+            cwd=repo, env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
+        try:
+            output, errors = process.communicate(timeout=90)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.communicate(timeout=5)
+        self.assertEqual(process.returncode, 0, output + errors)
+
     def test_shared_default_commit_and_rollback(self):
         report = self.child("atomicity")
         self.assertEqual(report["tests"], 3)
@@ -1517,12 +1547,25 @@ class BankDefaultSubprocessTests(TestCase):
             self.child("failure")
 
 
+class Schema0004Tests(TestCase):
+    """Separate processes preserve the parent's registry and protected default."""
+
+    child = BankDefaultSubprocessTests.child
+    _schema_before = BankDefaultSubprocessTests._schema_before
+
+    def test_new_sqlite_schema_and_constraints(self):
+        self.child("fresh", module="apps.ecomotor.ecomotor_target_demo.schema_0004_fixture")
+
+    def test_physical_pre_0004_copy_and_original_replays(self):
+        self.child("historical", module="apps.ecomotor.ecomotor_target_demo.schema_0004_fixture")
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
