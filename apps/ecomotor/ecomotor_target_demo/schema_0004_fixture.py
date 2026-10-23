@@ -191,7 +191,13 @@ def run(root, scenario):
                 indexes = [columns.index(c) for c in previous["columns"]]
                 actual = [[row[i] for i in indexes] for row in after[table]["rows"]]
                 if table == "django_migrations":
-                    actual = [row for row in actual if row[2] != "0004_rewards_bank_schema"]
+                    # Latest installation now also applies 0005. Exclude only
+                    # these two verified additions; keep every historical row.
+                    additions = {("ecomotor_target_demo", name) for name in
+                                 ("0004_rewards_bank_schema", "0005_rewards_duckies_schema")}
+                    previous_keys = {(row[1], row[2]) for row in previous["rows"]}
+                    self.assertEqual({(row[1], row[2]) for row in actual} - previous_keys, additions)
+                    actual = [row for row in actual if (row[1], row[2]) not in additions]
                 self.assertEqual(actual, previous["rows"], table)
             changed = {models.DemoTargetProgress._meta.db_table, models.DemoTargetRewardEvent._meta.db_table}
             self.assertEqual([r for r in schema() if r[2] not in changed],

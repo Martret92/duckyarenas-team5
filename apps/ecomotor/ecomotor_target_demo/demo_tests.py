@@ -1412,10 +1412,11 @@ class ConsolidationTests(PersistentTests):
             self.assertEqual(model.__module__, config.name + ".models")
         hashes = {"0001_initial":"09f7eb21fb13aebfcb99dd7951d8c4a434db68e1775b07026edc679863246522",
                   "0002_playable_configurations":"baf12dd0a66bd08416b5703fc4bb05758906a53fe74cc3a802f9f86376d83989",
-                  "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b"}
+                  "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b",
+                  "0004_rewards_bank_schema":"6f740210d76395e28ea3135cec1d3a569a26bd7197b92df5720f913f23434a27"}
         loader = MigrationLoader(self.db)
         self.assertEqual({name for app,name in loader.disk_migrations if app==config.label},
-                         set(hashes) | {"0004_rewards_bank_schema"})
+                         set(hashes) | {"0005_rewards_duckies_schema"})
         self.assertTrue({(config.label,name) for name in hashes} <= set(loader.applied_migrations))
         for name,digest in hashes.items():
             source = Path(import_module(config.name + ".migrations." + name).__file__).read_text(encoding="utf-8")
@@ -1606,6 +1607,30 @@ class RewardsBankSubprocessTests(TestCase):
         self.assertEqual(self.child("http-errors", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
 
 
+class Schema0005Tests(TestCase):
+    _schema_before = BankDefaultSubprocessTests._schema_before
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.schema_0005_fixture",
+            prefix="ducky-schema-0005-", marker="SCHEMA_0005_EVIDENCE=")
+
+    def test_fresh_schema_four_outcomes_and_physical_constraints(self):
+        report = self.child("fresh")
+        self.assertEqual(report["tests"], 4)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][2],
+                         {"update_combinations": 64, "accepted": 4, "rejected_by_named_check": 60})
+
+    def test_physical_0004_copy_raw_history_and_v1_v2_replays(self):
+        report = self.child("historical")
+        self.assertEqual(report["tests"], 1)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][0]["historical_calls_replayed"], 9)
+        self.assertTrue(report["observations"][0]["raw_v1_v2_json_unchanged"])
+        self.assertTrue(report["observations"][0]["replay_readonly"])
+
+
 class RewardsDuckiesSubprocessTests(TestCase):
     """Only parent tests; child cases are reported separately, never rediscovered."""
 
@@ -1647,7 +1672,7 @@ def load_tests(loader, suite, pattern):
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, Schema0005Tests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
