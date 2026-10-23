@@ -1423,12 +1423,106 @@ class ConsolidationTests(PersistentTests):
         self.assertEqual(len([row for row in before["django_content_type"] if row[1]=="ecomotor_target_demo"]),7)
 
 
+class BankDefaultSubprocessTests(TestCase):
+    """Do not inherit persistent_fixture or replace the parent's default."""
+
+    def child(self, scenario):
+        from copy import deepcopy
+        import json
+        import os
+        import subprocess
+        import sys
+        from .isolation import MIGRATING
+        from . import test_runner
+
+        root_repo = Path(__file__).resolve().parents[3]
+        protected = [root_repo / name for name in (
+            "db.sqlite3", "db_preview.sqlite3", "instance/target_demo.sqlite3",
+            "instance/target_persistent_demo.sqlite3", "local_settings.py",
+            "local_urls.py", "local_demo_seed.py")]
+
+        def hashes():
+            return {str(p): sha256(p.read_bytes()).hexdigest() if p.is_file() else None for p in protected}
+
+        parent = connections["default"]
+        original_native = parent.connection
+        original_config = deepcopy(connections.databases)
+        original_state = (parent.autocommit, parent.in_atomic_block, tuple(parent.atomic_blocks),
+                          settings.BASE_DIR, settings.TARGET_PERSISTENT_DEMO_ALIAS,
+                          settings.TARGET_PERSISTENT_DEMO, MIGRATING.get(), test_runner.running)
+        registry = {key: id(value) for key, value in apps.app_configs.items()}
+        before = hashes()
+        temporary_root = None
+        try:
+            with TemporaryDirectory(prefix="ducky-bank-default-") as directory:
+                temporary_root = Path(directory)
+                (temporary_root / "instance").mkdir()
+                process = subprocess.Popen(
+                    [sys.executable, "-m", "apps.ecomotor.ecomotor_target_demo.bank_default_fixture",
+                     str(temporary_root), scenario], cwd=root_repo,
+                    env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
+                try:
+                    output, errors = process.communicate(timeout=90)
+                finally:
+                    if process.poll() is None:
+                        process.terminate()
+                        try:
+                            process.communicate(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.communicate(timeout=5)
+                self.assertIsNotNone(process.returncode)
+                self.assertEqual(process.returncode, 0, output + "\n" + errors)
+                reports = [line.removeprefix("BANK_DEFAULT_EVIDENCE=") for line in output.splitlines()
+                           if line.startswith("BANK_DEFAULT_EVIDENCE=")]
+                self.assertEqual(len(reports), 1, output + errors)
+                report = json.loads(reports[0])
+                self.assertTrue(report["success"])
+                self.assertEqual((report["failures"], report["errors"], report["skipped"]), (0, 0, 0))
+                self.assertTrue(report["connections_closed"])
+                self.assertTrue(report["only_fixture_connections"])
+                self.assertEqual(report["alias"], "default")
+                self.assertEqual(Path(report["file"]), temporary_root / "instance" / "target_persistent_demo.sqlite3")
+                self.assertNotEqual(report["pid"], os.getpid())
+                print("BANK_DEFAULT_CHILD=" + json.dumps(report, sort_keys=True))
+                return report
+        finally:
+            if temporary_root is not None:
+                self.assertFalse(temporary_root.exists(), "Child file handles prevented fixture cleanup")
+            self.assertIs(connections["default"], parent)
+            self.assertIs(parent.connection, original_native)
+            self.assertEqual(connections.databases, original_config)
+            self.assertEqual((parent.autocommit, parent.in_atomic_block, tuple(parent.atomic_blocks),
+                              settings.BASE_DIR, settings.TARGET_PERSISTENT_DEMO_ALIAS,
+                              settings.TARGET_PERSISTENT_DEMO, MIGRATING.get(), test_runner.running), original_state)
+            self.assertEqual({key: id(value) for key, value in apps.app_configs.items()}, registry)
+            self.assertEqual(hashes(), before)
+
+    def test_shared_default_commit_and_rollback(self):
+        report = self.child("atomicity")
+        self.assertEqual(report["tests"], 3)
+        self.assertEqual(len(report["observations"]), 3)
+
+    def test_real_bank_idempotency_and_conflicts(self):
+        self.assertEqual(self.child("idempotency")["tests"], 1)
+
+    def test_file_backed_concurrency_and_timeout(self):
+        report = self.child("concurrency")
+        self.assertEqual(report["tests"], 2)
+        self.assertEqual(len(report["observations"]), 3)
+
+    def test_child_failure_propagates_and_cleans_up(self):
+        with self.assertRaisesRegex(AssertionError, "injected child failure after protected connection opened"):
+            self.child("failure")
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
