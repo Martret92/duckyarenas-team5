@@ -994,6 +994,15 @@ from apps.ecomotor.reward_types import RewardDecision, RewardRuleSet, ProposedEf
 
 
 class RewardTests(PlayableTests):
+    def test_unprovisioned_bank_read_keeps_historical_alias_and_no_writes(self):
+        progress = self.new()
+        before = self.rows()
+        with patch.object(rewards.bank_service, "wallet_summary", side_effect=AssertionError("no Wallet")), patch.object(rewards.bank_service, "transaction_history", side_effect=AssertionError("no Wallet")), CaptureQueriesContext(self.db) as queries:
+            overview = rewards.read_demo_bank(progress, session_token=SECRET)
+        self.assertEqual((overview.provisioned, overview.balance, overview.movements), (False, None, ()))
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE", "REPLACE")) for q in queries))
+
     def test_coin_alias_rejected_before_writes_and_bank(self):
         progress = self.new()
         token = self.fact_token(progress, "coin_challenge")
@@ -1585,6 +1594,15 @@ class RewardsBankSubprocessTests(TestCase):
 
     def test_real_rewards_bank_concurrency_and_timeout(self):
         self.assertEqual(self.child("concurrency", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 6)
+
+    def test_http_bank_credit_readonly_history_and_replay(self):
+        self.assertEqual(self.child("http-functional", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
+
+    def test_http_bank_csrf_sessions_tokens_and_fields(self):
+        self.assertEqual(self.child("http-security", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
+
+    def test_http_bank_controlled_errors_and_real_timeout(self):
+        self.assertEqual(self.child("http-errors", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
 
 
 def load_tests(loader, suite, pattern):

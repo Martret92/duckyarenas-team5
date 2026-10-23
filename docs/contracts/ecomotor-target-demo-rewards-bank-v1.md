@@ -9,8 +9,9 @@ no implementa funcionalidad monetaria, modelos ni migración 0004.
 La Fase 2B incorpora únicamente el esquema de la sección 6 mediante 0004 y
 pruebas de compatibilidad histórica (sección 12); la concesión monetaria y V2
 quedaron pendientes en ese corte. La Fase 2C implementa el servicio interno y
-los snapshots V2 (sección 13), sin interfaz. Las limitaciones anteriores conservan
-el alcance histórico de 2A/2B.
+los snapshots V2 (sección 13), sin interfaz en ese corte. La Fase 2D expone la
+interfaz HTTP y la consulta bancaria autorizada (sección 14). Las limitaciones
+anteriores conservan el alcance histórico de 2A/2B/2C.
 DAR3 mantiene su autoridad funcional. No es una obligación técnica literal de
 DAR3 ni una ratificación de Fernando, Óscar o Core.
 
@@ -27,7 +28,7 @@ Fuentes: [decisión REW-MULTI-01](../decisions.md#rew-multi-01--rewards-y-duckyb
 [Rewards F1-A](rewards-v0.md). Los cortes históricos conservan su alcance:
 la prohibición de monedas del Paso 4 describe ese incremento; REW-MULTI-01
 autoriza una ampliación posterior exclusivamente demostrativa. Su servicio
-monetario interno se incorpora en 2C; la interfaz queda para 2D.
+monetario interno se incorpora en 2C y su interfaz en 2D.
 
 ## 2. Alcance aprobado y concreciones propuestas
 
@@ -626,3 +627,100 @@ archivos protegidos del laboratorio.
 Este incremento no implementa interfaz, juegos, autenticación Core, compras,
 F2-A productivo, USE-01B ni TRACE-01B. Los cinco DuckyCoins, usuarios y reglas son
 sintéticos: no hay ratificación económica externa ni autorización funcional.
+
+## 14. Fase 2D · Interfaz HTTP y consulta bancaria
+
+La ruta persistente existente incorpora tres actividades cerradas: challenge
+(+700 XP), visit (NO_REWARD) y coin_challenge (+5 DuckyCoins ficticias). El
+formulario amplía explícitamente sus opciones sin cambiar ACTIVITIES ni los
+constructores de hechos V1. Usa issue_reward_fact y apply_demo_reward existentes:
+no acepta importes, origen, destinatario, User, Wallet o Transaction desde HTTP.
+No cambia el servicio de concesión aprobado en 2C ni crea migraciones o endpoints.
+
+### Lectura autorizada y representación histórica
+
+read_demo_bank valida contexto aislado y propiedad de sesión, recarga la partida
+y comprueba el historial Rewards/XP/Bank dentro de una transacción exterior
+IMMEDIATE. Si synthetic_user es NULL devuelve provisioned=False, balance=None
+y movimientos vacíos, sin consultar Bank ni aprovisionar nada. Así conserva
+también las lecturas XP/NO_REWARD del alias histórico de tests.
+
+Con vinculación bancaria exige default protegido y valida User/Wallet sintéticos.
+Reutiliza las APIs públicas wallet_summary(user) y transaction_history(user),
+materializando sus resultados dentro de la misma transacción. Contrasta el saldo
+con la Wallet validada y las filas con su propietario, tipos y rangos. Devuelve
+DemoBankOverview y DemoBankMovement frozen/slots, con escalares y tuplas; no
+entrega objetos ORM al template. La consulta no ejecuta DML ni DDL.
+
+La pantalla distingue **Saldo actual · Wallet validada** de **Saldo después de
+aquella recompensa**, tomado del snapshot V2 original. Los movimientos muestran
+solo identificador, fecha, tipo, importe y saldo histórico. La Wallet todavía no
+aprovisionada se identifica expresamente, sin mostrar cero como saldo confirmado.
+Se conservan XP, niveles, evoluciones, opciones y configuraciones anteriores.
+
+### HTTP, replay y errores
+
+Se mantiene CSRF real, GET/POST, rechazo de parámetros GET y campos POST extra,
+ausentes o duplicados, firmas por sesión/partida/actividad y POST/Redirect/GET.
+La sesión retiene los tokens originales de los hechos confirmados en esa sesión
+para repetir cada fila, además del replay del último hecho. No se vuelve a firmar
+una identidad histórica arbitraria; los tokens V1 originales siguen siendo
+válidos conforme a su política existente. Cambiar de partida limpia estas
+referencias de sesión, sin borrar el historial persistido de la anterior.
+
+Los mensajes distinguen XP, cinco monedas, NO_REWARD y replay sin nueva
+acreditación. Una respuesta POST inválida no muestra avisos anteriores de éxito.
+Errores de entrada/importe responden 400; acceso, 403; conflicto o integridad,
+409; configuración, Bank operativo, SQL o bloqueo, 503. Los mensajes esperados
+de Bank se traducen sin rutas, detalles privados ni trazas. Ningún error se
+convierte en NO_REWARD ni provoca reparación automática.
+
+GET no crea usuarios, Wallets, movimientos ni recompensas. Puede guardar en la
+sesión local las identidades de formularios que emite, como en los pasos previos;
+esto se distingue de las escrituras económicas. Los snapshots V1 no se reescriben.
+
+### Evidencia HTTP y reproducción
+
+Tres tests padre nuevos ejecutan nueve casos HTTP en subprocesos con SQLite
+temporal file-backed default, backend protegido y 0004 aplicada únicamente allí.
+Otro test padre comprueba lectura no aprovisionada sin escrituras ni llamadas
+Bank sobre persistent_fixture. La ejecución focalizada completó cuatro tests
+padre en 28,981 s, sin fallos ni omisiones; los nueve casos hijos se contabilizan
+separadamente, no se suman de nuevo como tests padre.
+
+Se prueban CSRF real, campos/token manipulados, dos sesiones y cambio de partida,
+escape HTML, ausencia de filtraciones, API Bank real, PRG, convivencia V1/V2,
+Gamer, reapertura de SQLite, errores Bank/configuración, Wallet ausente y causas
+alteradas. Un bloqueo real devuelve 503 tras 5,390 s; el reintento explícito y su
+replay dejan un solo crédito. Dos hechos distintos dejan saldo 10; repetir el
+primero conserva saldo histórico 5 y no crea un tercer movimiento.
+
+El runner completo de dos fases se ejecutó de nuevo con
+`python manage.py test --settings=apps.ecomotor.target_persistent_demo_settings`:
+**1297 tests habituales en 183,161 s, sin fallos y con dos omisiones heredadas
+por symlinks de Windows**, y **114 tests persistentes en 417,490 s, sin fallos
+ni omisiones**. Los tests padre persistentes incluyen seis casos hijos del
+arnés Bank/default, dos de esquema nuevo/histórico 0004, veinte del servicio
+monetario 2C y nueve HTTP 2D; estos recuentos hijos no se suman al del runner.
+En esa ejecución el timeout HTTP real fue de 5,469 s. Se conservan el runner y
+todos los tests heredados. Una ejecución inicial dentro del sandbox encontró
+permisos insuficientes en directorios temporales; se repitió con el acceso
+necesario, sin cambiar ni omitir pruebas para evitar esos errores.
+
+Check normal/exclusivo, makemigrations --check --dry-run en SQLite temporales
+(incluida la exclusiva ya migrada), los 16 enlaces/anclas del contrato y
+git diff --check pasan. Los siete hashes SHA-256 protegidos se conservan.
+
+La revisión visual real en Chrome, escritorio y viewport móvil de 390 × 844,
+utiliza exclusivamente un servidor y SQLite temporales. Confirma Wallet no
+aprovisionada, crédito, saldo acumulado, replay histórico y tablas con
+desplazamiento horizontal. No se migra ni prueba manualmente la SQLite personal.
+
+Para la revisión posterior en VS Code se mantienen settings, comando de arranque
+y URL de la sección 1. La aplicación de 0004 a una SQLite personal requiere antes
+copia de seguridad y validación controlada; esta PR no ejecuta ese procedimiento.
+Con el entorno preparado: iniciar partida, usar el tercer botón, consultar el
+apartado DuckyBank, generar otro hecho y repetir el primero desde su fila.
+Verificar saldo actual 10 y saldo histórico 5; probar challenge y visit sin
+cambiar reglas ni combinar efectos. Sigue siendo un laboratorio sintético,
+sin F2-A productivo, Core, juegos, USE-01B, TRACE-01B ni Rewards–Duckies.

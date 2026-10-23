@@ -10,16 +10,16 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
+from apps.bank.services import BankError, InvalidAmount, IdempotencyConflict, WalletNotProvisioned
 
 from apps.ecomotor.models import TargetCatalogVersion
 from apps.ecomotor.target_catalog_validation import InvalidTargetCatalogError
 
 from .catalog import DemoCatalogError
 from .data import NAMES, CODES, OPTIONS, OPTION_CHOICES, VERSION
-from .forms import PersistentDemoForm, PlayableForm, RewardDemoForm
+from .forms import PersistentDemoForm, PlayableForm, RewardDemoForm, REWARD_HTTP_ACTIVITIES
 from . import playable_services as playable
 from . import reward_demo_services as rewards
-from .reward_demo_rules import ACTIVITIES
 from apps.ecomotor.reward_types import InvalidRewardRuleSetError, AmbiguousRewardRulesError
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES, InvalidTargetStatsError
 from .isolation import demo_connection
@@ -55,7 +55,7 @@ def home(request):
                     for key in ("demo_operation", "demo_last", "demo_replay"):
                         request.session.pop(key, None)
                     request.session.pop("playable_last", None)
-                    for key in ("reward_tokens", "reward_last", "reward_notice"):
+                    for key in ("reward_tokens", "reward_last", "reward_notice", "reward_confirmed_tokens"):
                         request.session.pop(key, None)
                 elif action == "reward":
                     if not secret or pk is None:
@@ -65,9 +65,13 @@ def home(request):
                     result = rewards.apply_demo_reward(progress, activity=values["activity"],
                         fact_token=values["fact_token"], session_token=secret)
                     request.session["reward_last"] = {"action": "reward", "activity": values["activity"], "fact_token": values["fact_token"]}
-                    request.session["reward_notice"] = ("Replay Rewards histórico: sin nuevas concesiones." if result.replay
-                        else "APPLIED: XP sintética y recompensa confirmadas juntas." if result.status == "APPLIED"
-                        else "NO_REWARD: visita válida registrada, sin XP ni evoluciones.")
+                    confirmed = dict(request.session.get("reward_confirmed_tokens", {}))
+                    confirmed[str(result.event_id)] = request.session["reward_last"]
+                    request.session["reward_confirmed_tokens"] = confirmed
+                    request.session["reward_notice"] = ("Replay Rewards histórico: sin nuevas concesiones; no se ha vuelto a acreditar." if result.replay
+                        else "APPLIED: +5 DuckyCoins ficticias confirmadas." if result.coin_amount
+                        else f"APPLIED: +{result.xp_amount} XP sintéticas y recompensa confirmadas juntas." if result.status == "APPLIED"
+                        else "NO_REWARD: visita válida registrada, sin concesión de XP ni monedas.")
                     tokens = dict(request.session.get("reward_tokens", {}))
                     if tokens.get(values["activity"]) == values["fact_token"]:
                         tokens.pop(values["activity"])
@@ -122,7 +126,7 @@ def home(request):
             state, history = playable.read_demo_playable(progress, session_token=secret)
             context.update(playable_state=state, playable_history=history,
                            active_option_label=dict(OPTION_CHOICES).get(state.active_option),
-                           playable_notice=request.session.get("playable_notice"))
+                           playable_notice=request.session.get("playable_notice") if request.method == "GET" else None)
             if progress.current_level >= 8:
                 def initial(kind, **extra):
                     return {"action": kind, "operation": playable.issue_playable_operation(progress, action=kind, session_token=secret),
@@ -146,12 +150,17 @@ def home(request):
             if request.session.get("playable_last"):
                 saved = request.session["playable_last"]
                 context["playable_replay_form"] = PlayableForm(action=saved["action"], initial=saved, auto_id="replay_%s")
-            context["reward_history"] = rewards.read_demo_rewards(progress, session_token=secret)
-            context["reward_notice"] = request.session.get("reward_notice")
+            bank = rewards.read_demo_bank(progress, session_token=secret)
+            context.update(bank=bank, reward_history=bank.rewards)
+            confirmed = request.session.get("reward_confirmed_tokens", {})
+            context["reward_cards"] = tuple({"result": result, "replay": RewardDemoForm(
+                initial=confirmed[str(result.event_id)], auto_id=f"reward_history_{result.event_id}_%s")
+                if str(result.event_id) in confirmed else None} for result in bank.rewards)
+            context["reward_notice"] = request.session.get("reward_notice") if request.method == "GET" else None
             tokens = dict(request.session.get("reward_tokens", {}))
             missing = False
             reward_forms = []
-            for activity, label in ACTIVITIES:
+            for activity, label in REWARD_HTTP_ACTIVITIES:
                 if activity not in tokens:
                     tokens[activity] = rewards.issue_reward_fact(progress, activity=activity, session_token=secret)
                     missing = True
@@ -170,11 +179,17 @@ def home(request):
             elif isinstance(bound, PlayableForm):
                 context["invalid_playable_form"] = bound
     except DemoAccessError:
-        context["unavailable"] = "Partida u operación no disponible para esta sesión. No se ha concedido XP."
+        context["unavailable"] = "Partida u operación no disponible para esta sesión. Sin nuevas concesiones."
         status = 403
     except (DemoConflictError, DemoIntegrityError):
         context["unavailable"] = "Conflicto de operación o historial incoherente. Sin cambios; no se repara."
         status = 409
+    except (IdempotencyConflict, WalletNotProvisioned):
+        context["unavailable"] = "Conflicto o vinculación bancaria incoherente. Sin cambios; no se repara."
+        status = 409
+    except InvalidAmount:
+        context["unavailable"] = "La operación bancaria no admite ese importe o saldo. Sin nueva concesión."
+        status = 400
     except DemoInputError as error:
         context["unavailable"] = str(error)
         status = 400
@@ -183,7 +198,7 @@ def home(request):
         status = 400
     except (ImproperlyConfigured, DatabaseError, DemoDatabaseError, DemoTransactionError,
             rewards.DemoRewardConfigurationError, InvalidRewardRuleSetError, AmbiguousRewardRulesError,
-            DemoCatalogError, InvalidTargetCatalogError, TargetCatalogVersion.DoesNotExist):
+            DemoCatalogError, InvalidTargetCatalogError, TargetCatalogVersion.DoesNotExist, BankError):
         context["unavailable"] = "Demo no disponible. Revisa la SQLite aislada, migrate y seed; no se ha confirmado esta operación."
         status = 503
     return render(request, "ecomotor_target_demo/home.html", context, status=status)

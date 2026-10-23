@@ -416,3 +416,46 @@ def read_demo_rewards(progress, *, session_token):
     with xp._xp_transaction(progress, session_token=session_token) as context:
         current, alias = xp._check_xp_transaction(context)
         return _history(current, alias)
+
+
+@dataclass(frozen=True, slots=True)
+class DemoBankMovement:
+    id: int
+    created_at: datetime
+    transaction_type: str
+    amount: int
+    balance_after: int
+
+
+@dataclass(frozen=True, slots=True)
+class DemoBankOverview:
+    provisioned: bool
+    balance: int | None
+    movements: tuple[DemoBankMovement, ...]
+    rewards: tuple[DemoRewardResult, ...]
+
+
+def read_demo_bank(progress, *, session_token):
+    """One coherent, session-owned observation; never provision or return ORM rows."""
+    with xp._xp_transaction(progress, session_token=session_token) as context:
+        current, alias = xp._check_xp_transaction(context)
+        history = _history(current, alias)
+        if current.synthetic_user_id is None:
+            return DemoBankOverview(False, None, (), history)
+        user, wallet = _wallet(current, alias)  # Also requires protected default.
+        summary = bank_service.wallet_summary(user)
+        balance = summary["available_balance"]
+        if (type(balance) is not int or not 0 <= balance <= bank_service.MAX_BALANCE
+                or balance != wallet.available_balance):
+            raise xp.DemoIntegrityError("Saldo Bank incoherente con la Wallet de la partida.")
+        movements = []
+        for row in bank_service.transaction_history(user):
+            if (type(row) is not Transaction or row._state.db != alias or row.wallet_id != wallet.pk
+                    or type(row.pk) is not int or row.pk <= 0
+                    or type(row.amount) is not int or row.amount == 0 or not -(2**63) <= row.amount <= bank_service.MAX_BALANCE
+                    or type(row.balance_after) is not int or not 0 <= row.balance_after <= bank_service.MAX_BALANCE
+                    or row.transaction_type not in ("REWARD", "PURCHASE", "REFUND", "ADJUSTMENT")
+                    or type(row.created_at) is not datetime):
+                raise xp.DemoIntegrityError("Historial Bank ajeno o estructuralmente incoherente.")
+            movements.append(DemoBankMovement(row.pk, row.created_at, row.transaction_type, row.amount, row.balance_after))
+        return DemoBankOverview(True, balance, tuple(movements), history)
