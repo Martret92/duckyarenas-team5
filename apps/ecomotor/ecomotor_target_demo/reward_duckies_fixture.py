@@ -1,7 +1,8 @@
 """Test-only child: real Duckies API inside the existing Rewards boundary.
 
-No object reward coordinator, schema, rules or snapshots are implemented here.
-The parent owns and removes the directory after all child connections close.
+2A scenarios retain their original meaning. Separate 2C scenarios exercise the
+real coordinator/V3 and real consumption. Only this fixture prepares its Item.
+The parent removes the directory after all child connections close.
 """
 
 import json
@@ -37,9 +38,12 @@ def run(root, scenario):
     from concurrent.futures import ThreadPoolExecutor
     from contextlib import contextmanager
     from io import StringIO
+    from dataclasses import asdict, replace, FrozenInstanceError
+    from datetime import timedelta
     from threading import Barrier, Event
     from time import monotonic
     from uuid import uuid4
+    from unittest.mock import patch
     from django.conf import settings
     from apps.ecomotor import target_persistent_demo_settings as official
 
@@ -57,12 +61,17 @@ def run(root, scenario):
     from django.contrib.auth import get_user_model
     from django.core.exceptions import ImproperlyConfigured
     from django.core.management import call_command
-    from django.db import connections, IntegrityError
+    from django.db import connections, IntegrityError, transaction
+    from django.core import signing
+    from django.test.utils import CaptureQueriesContext
     from apps.bank.models import Wallet, Transaction
-    from apps.duckies.models import Ducky, Item, ItemLevel, ItemGrant, InventoryItem
+    from apps.duckies.models import Ducky, Item, ItemLevel, ItemGrant, InventoryItem, EquipmentSlot, ItemUsage
     from apps.duckies.services import grant_item
+    from apps.duckies import services as duckies
+    from apps.ecomotor.reward_types import RewardDecision, ProposedEffect, RewardIdentity, RewardRuleSet
+    from apps.ecomotor.reward_identity import semantic_fingerprint
     from apps.users.models import UserProfileEcomotor
-    from . import services
+    from . import services, reward_demo_services as rewards, reward_demo_rules as rules, playable_services as playable
     from .isolation import demo_connection, MIGRATING
     from .models import DemoTargetXPEvent, DemoTargetEvolutionEvent, DemoTargetRewardEvent
 
@@ -371,6 +380,544 @@ def run(root, scenario):
             self.assertIsNotNone(demo_connection().connection)
             self.fail("injected Duckies child failure after protected connection opened")
 
+    class RewardsItemServiceTests(unittest.TestCase):
+        """2C coordinator cases, independent of the retained 2A API cases."""
+
+        def setUp(self):
+            self.progress = services.create_demo_progress(session_token=secret)
+            slot, _ = EquipmentSlot.objects.get_or_create(code="fixture-hint-slot", defaults={"name": "Fixture HINT"})
+            self.item, _ = Item.objects.update_or_create(code=rules.ITEM_MAPPING.item_code, defaults={
+                "name": "Synthetic HINT", "category": Item.HINT, "consumable": True,
+                "is_active": True, "slot": slot})
+
+        def token(self, activity="item_challenge", progress=None):
+            return rewards.issue_reward_fact(progress or self.progress, activity=activity, session_token=secret)
+
+        def apply(self, token, activity="item_challenge", progress=None):
+            return rewards.apply_demo_reward(progress or self.progress, activity=activity,
+                fact_token=token, session_token=secret)
+
+        def rows(self):
+            with db.cursor() as cursor:
+                tables = db.introspection.table_names(cursor)
+                return {table: cursor.execute('SELECT * FROM "' + table + '" ORDER BY rowid').fetchall()
+                        for table in tables if table != "sqlite_sequence"}
+
+        def replay(self, token, original):
+            before = self.rows()
+
+            def no_inventory(execute, sql, params, many, context):
+                if "duckies_inventoryitem" in sql.lower():
+                    raise AssertionError("Historical replay queried current inventory")
+                return execute(sql, params, many, context)
+
+            with db.execute_wrapper(no_inventory), CaptureQueriesContext(db) as queries, \
+                    patch.object(duckies, "grant_item", side_effect=AssertionError("Replay delivered again")), \
+                    patch.object(rewards, "evaluate_reward", side_effect=AssertionError("Replay reevaluated rules")):
+                result = self.apply(token)
+            self.assertTrue(result.replay)
+            self.assertEqual(asdict(replace(result, replay=False)), asdict(original))
+            self.assertFalse(any(q["sql"].lstrip().upper().startswith(
+                ("INSERT", "UPDATE", "DELETE", "REPLACE", "CREATE", "DROP")) for q in queries))
+            self.assertEqual(self.rows(), before)
+            return result
+
+        def test_real_item_and_exact_key(self):
+            from hashlib import sha256
+            token = self.token()
+            before = {m: m.objects.count() for m in (Transaction, DemoTargetXPEvent, DemoTargetEvolutionEvent, UserProfileEcomotor)}
+            result = self.apply(token)
+            entry = ItemGrant.objects.get(pk=result.item.item_grant_id)
+            row = DemoTargetRewardEvent.objects.get(pk=result.event_id)
+            self.progress.refresh_from_db()
+            user = self.progress.synthetic_user
+            self.assertRegex(user.username, r"^rew-demo-[0-9a-f]{32}$")
+            self.assertFalse(user.is_active or user.is_staff or user.is_superuser or user.has_usable_password())
+            self.assertEqual(Wallet.objects.get(user=user).available_balance, 0)
+            self.assertEqual(InventoryItem.objects.get(ducky__user=user, item=self.item).quantity, 1)
+            self.assertEqual((row.item_grant_id, row.xp_event_id, row.bank_transaction_id,
+                row.xp_amount, row.coin_amount, row.snapshot["schema"]),
+                (entry.pk, None, None, 0, 0, "demo-reward-result-v3"))
+            self.assertEqual((entry.quantity, entry.item_level_id, entry.reference_type), (1, None, "demo_reward_item_v1"))
+            for identity in (result.identity, RewardIdentity("é", "ñ", "鸭")):
+                encoded = json.dumps(["demo-reward-item-key-v1", identity.origin_code, identity.fact_id,
+                    identity.recipient_id], ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+                self.assertEqual(rewards._item_key(identity), "ri1:" + sha256(encoded.encode("utf-8")).hexdigest())
+                self.assertEqual(len(rewards._item_key(identity)), 68)
+            self.assertEqual(entry.operation_key, rewards._item_key(result.identity))
+            self.assertEqual(entry.reference_id, entry.operation_key)
+            self.assertEqual({m: m.objects.count() for m in before}, before)
+            self.assertEqual((self.progress.xp_total, self.progress.current_level), (0, 1))
+            with self.assertRaises(FrozenInstanceError):
+                result.item.quantity = 2
+            self.replay(token, result)
+            evidence["observations"].append({"coordinator_item_grant": True, "exact_ri1_encoding": True,
+                "inventory_increment": 1, "xp_and_bank_unchanged": True})
+
+        def test_lazy_and_bank_compatibility(self):
+            item_token = self.token()
+            rewards.read_demo_rewards(self.progress, session_token=secret)
+            self.progress.refresh_from_db()
+            self.assertIsNone(self.progress.synthetic_user_id)
+            for activity in ("visit", "challenge"):
+                result = self.apply(self.token(activity), activity)
+                self.assertIsNone(result.item)
+                self.assertEqual(DemoTargetRewardEvent.objects.get(pk=result.event_id).snapshot["schema"], rewards.SNAPSHOT_VERSION)
+            self.progress.refresh_from_db()
+            self.assertIsNone(self.progress.synthetic_user_id)
+            bank = self.apply(self.token("coin_challenge"), "coin_challenge")
+            self.assertFalse(Ducky.objects.filter(user_id=bank.bank.user_id).exists())
+            original = self.apply(item_token)
+            self.assertEqual(original.item.user_id, bank.bank.user_id)
+            later = self.apply(self.token("coin_challenge"), "coin_challenge")
+            self.assertEqual(later.bank.balance_after, 10)
+            self.assertEqual(rewards.read_demo_bank(self.progress, session_token=secret).balance, 10)
+            self.assertEqual(original.progression.xp_after, 700)
+            self.assertEqual(DemoTargetEvolutionEvent.objects.filter(progress=self.progress).count(), 6)
+            self.replay(item_token, original)
+            from .forms import REWARD_HTTP_ACTIVITIES
+            self.assertNotIn("item_challenge", dict(REWARD_HTTP_ACTIVITIES))
+
+        def test_real_consumption_then_readonly_replay(self):
+            token = self.token()
+            original = self.apply(token)
+            user = User.objects.get(pk=original.item.user_id)
+            duckies.equip_item(user, self.item)
+            duckies.consume_item(user, self.item, 1, "fixture-consumption-" + uuid4().hex,
+                server_accepted=True, game_reference="synthetic-fixture-game")
+            self.assertFalse(InventoryItem.objects.filter(ducky_id=original.item.ducky_id, item=self.item).exists())
+            self.assertTrue(ItemUsage.objects.filter(ducky_id=original.item.ducky_id, item=self.item).exists())
+            self.assertTrue(ItemGrant.objects.filter(pk=original.item.item_grant_id).exists())
+            Item.objects.filter(pk=self.item.pk).update(is_active=False, category=Item.COSMETIC,
+                consumable=False, description="Changed after historical delivery")
+            self.replay(token, original)
+            evidence["observations"].append({"real_equip_and_consume": True,
+                "inventory_exhausted": True, "replay_without_inventory_query_or_dml": True})
+
+        def test_reopen_and_future_rules_do_not_reinterpret(self):
+            token = self.token()
+            original = self.apply(token)
+            self.apply(self.token())
+            self.apply(self.token("challenge"), "challenge")
+            db.close()
+            demo_connection()
+            with patch.object(rules, "ITEM_RULE_SET", RewardRuleSet("future", ())), \
+                    patch.object(rules, "ITEM_MAPPING", replace(rules.ITEM_MAPPING, mapping_version="future")):
+                self.replay(token, original)
+
+        def test_existing_playable_configuration_is_unchanged(self):
+            self.apply(self.token("challenge"), "challenge")
+            from .models import DemoTargetOptionConfiguration, DemoTargetPlayableState, DemoTargetPlayableEvent
+            revision = None
+            for option in ("persist-demo-tech-gamer", "persist-demo-epoch-3"):
+                configured = playable.configure_demo_option(self.progress, option_code=option,
+                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                    operation_token=playable.issue_playable_operation(self.progress, action="configure", session_token=secret),
+                    session_token=secret, expected_revision=revision)
+                revision = configured.after.revision
+            models = (DemoTargetOptionConfiguration, DemoTargetPlayableState, DemoTargetPlayableEvent,
+                DemoTargetXPEvent, DemoTargetEvolutionEvent)
+            before = {m: list(m.objects.filter(progress=self.progress).values()) for m in models}
+            self.apply(self.token())
+            self.assertEqual({m: list(m.objects.filter(progress=self.progress).values()) for m in models}, before)
+
+        def test_invalid_item_configuration(self):
+            token = self.token()
+            for fields in ({"code": "wrong-code"}, {"is_active": False}, {"category": Item.ATTACK}, {"consumable": False}):
+                with self.subTest(fields=fields):
+                    Item.objects.filter(pk=self.item.pk).update(**fields)
+                    before = self.rows()
+                    with self.assertRaises(rewards.DemoRewardConfigurationError):
+                        self.apply(token)
+                    self.assertEqual(self.rows(), before)
+                    Item.objects.filter(pk=self.item.pk).update(code=rules.ITEM_MAPPING.item_code,
+                        category=Item.HINT, is_active=True, consumable=True)
+            level = ItemLevel.objects.create(item=self.item, level=1)
+            with self.assertRaises(rewards.DemoRewardConfigurationError):
+                self.apply(token)
+            level.delete()
+            self.progress.refresh_from_db()
+            self.assertIsNone(self.progress.synthetic_user_id)
+
+        def test_mapping_and_exclusive_proposal(self):
+            token = self.token()
+            for changes in ({"mapping_version": "bad"}, {"quantity": 2}, {"quantity": True}, {"item_level": 1}):
+                with self.subTest(changes=changes), patch.object(rules, "ITEM_MAPPING", replace(rules.ITEM_MAPPING, **changes)):
+                    before = self.rows()
+                    with self.assertRaises(rewards.DemoRewardConfigurationError):
+                        self.apply(token)
+                    self.assertEqual(self.rows(), before)
+            for effects in ((), (ProposedEffect("ITEM", 2),), (ProposedEffect("XP", 700),),
+                    (ProposedEffect("DUCKYCOINS", 5),), (ProposedEffect("ITEM", 1), ProposedEffect("XP", 1))):
+                decision = RewardDecision("demo-rewards-rules-v3", "demo-item-challenge-hint-v3", True,
+                    effects, () if effects else ("MATCHED_NO_EFFECT",))
+                with self.subTest(effects=effects), patch.object(rewards, "evaluate_reward", return_value=decision):
+                    before = self.rows()
+                    with self.assertRaises(rewards.DemoRewardConfigurationError):
+                        self.apply(token)
+                    self.assertEqual(self.rows(), before)
+
+        def test_overflow_and_inconsistent_inventory(self):
+            original = self.apply(self.token())
+            inventory = InventoryItem.objects.get(ducky_id=original.item.ducky_id, item=self.item)
+            maximum = db.ops.integer_field_range("PositiveIntegerField")[1]
+            InventoryItem.objects.filter(pk=inventory.pk).update(quantity=maximum)
+            before = self.rows()
+            with self.assertRaises(services.DemoIntegrityError):
+                self.apply(self.token())
+            self.assertEqual(self.rows(), before)
+            InventoryItem.objects.filter(pk=inventory.pk).update(quantity=maximum - 1)
+            self.apply(self.token())
+            self.assertEqual(InventoryItem.objects.get(pk=inventory.pk).quantity, maximum)
+            InventoryItem.objects.filter(pk=inventory.pk).update(quantity=1)
+            level = ItemLevel.objects.create(item=self.item, level=1)
+            InventoryItem.objects.filter(pk=inventory.pk).update(item_level=level)
+            before = self.rows()
+            with self.assertRaises((services.DemoIntegrityError, rewards.DemoRewardConfigurationError)):
+                self.apply(self.token())
+            self.assertEqual(self.rows(), before)
+            InventoryItem.objects.filter(pk=inventory.pk).update(item_level=None)
+            level.delete()
+
+        def test_signed_identity_and_session_validation(self):
+            token = self.token()
+            payload = signing.loads(token, salt=rewards.SALT)
+            for change in ({"fact_version": "demo-fact-v2"}, {"mapping_version": "future"},
+                    {"item_code": "other"}, {"occurred_at": "not-an-instant"}, {"quantity": 1}):
+                altered = signing.dumps({**payload, **change}, salt=rewards.SALT)
+                with self.subTest(change=change), self.assertRaises((services.DemoInputError, services.DemoAccessError)):
+                    self.apply(altered)
+            with self.assertRaises(services.DemoAccessError):
+                rewards.apply_demo_reward(self.progress, activity="item_challenge", fact_token=token, session_token="f" * 64)
+            other = services.create_demo_progress(session_token=secret)
+            with self.assertRaises(services.DemoAccessError):
+                self.apply(token, progress=other)
+            with self.assertRaises(services.DemoAccessError):
+                self.apply(token, "coin_challenge")
+            for invalid in (token + "x", "forged", services.issue_demo_operation(self.progress, session_token=secret)):
+                with self.subTest(invalid=invalid), self.assertRaises(services.DemoAccessError):
+                    self.apply(invalid)
+            original = self.apply(token)
+            payload["occurred_at"] = (original.occurred_at + timedelta(seconds=1)).isoformat(timespec="microseconds")
+            changed = signing.dumps(payload, salt=rewards.SALT)
+            before = self.rows()
+            with self.assertRaises(services.DemoConflictError):
+                self.apply(changed)
+            self.assertEqual(self.rows(), before)
+
+        def test_strict_snapshot_corruption(self):
+            original = self.apply(self.token())
+            row = DemoTargetRewardEvent.objects.get(pk=original.event_id)
+            pristine = deepcopy(row.snapshot)
+            variants = []
+            for key, value in (("quantity", True), ("item_id", True), ("user_id", 1.0),
+                    ("mapping_version", "future"), ("reference_id", "wrong"), ("category", "ATTACK"),
+                    ("item_level_id", 1), ("consumable", 1), ("created_at", "bad")):
+                changed = deepcopy(pristine)
+                changed["item"][key] = value
+                variants.append(changed)
+            changed = deepcopy(pristine)
+            del changed["item"]["quantity"]
+            variants.append(changed)
+            changed = deepcopy(pristine)
+            changed["item"]["extra"] = 1
+            variants.append(changed)
+            for key, value in (("coin_amount", 5), ("schema", "unknown"), ("xp_amount", 1), ("extra", True)):
+                variants.append({**deepcopy(pristine), key: value})
+            for changed in variants:
+                with self.subTest(snapshot=changed):
+                    DemoTargetRewardEvent.objects.filter(pk=row.pk).update(snapshot=changed)
+                    before = self.rows()
+                    with self.assertRaises(services.DemoIntegrityError):
+                        rewards.read_demo_rewards(self.progress, session_token=secret)
+                    self.assertEqual(self.rows(), before)
+            DemoTargetRewardEvent.objects.filter(pk=row.pk).update(snapshot=pristine)
+            # Missing physical cause is not inferred from the JSON or inventory.
+            with db.constraint_checks_disabled():
+                DemoTargetRewardEvent.objects.filter(pk=row.pk).update(item_grant_id=2**62)
+                with self.assertRaises(services.DemoIntegrityError):
+                    rewards.read_demo_rewards(self.progress, session_token=secret)
+                DemoTargetRewardEvent.objects.filter(pk=row.pk).update(item_grant_id=original.item.item_grant_id)
+
+        def test_real_cause_corruption_and_foreign_key(self):
+            original = self.apply(self.token())
+            grant = ItemGrant.objects.get(pk=original.item.item_grant_id)
+            other_user, _, other_ducky = provision()
+            other_item = Item.objects.create(code="fixture-foreign-" + uuid4().hex, name="Foreign", category=Item.HINT, consumable=True)
+            variant = ItemLevel.objects.create(item=self.item, level=1)
+            for changes in ({"quantity": 2}, {"operation_key": "ri1:wrong"}, {"reference_id": "wrong"},
+                    {"reference_type": "wrong"}, {"ducky_id": other_ducky.pk}, {"item_id": other_item.pk},
+                    {"item_level_id": variant.pk}, {"created_at": grant.created_at + timedelta(seconds=1)}):
+                previous = {key: getattr(grant, key) for key in changes}
+                with self.subTest(changes=changes):
+                    ItemGrant.objects.filter(pk=grant.pk).update(**changes)
+                    before = self.rows()
+                    with self.assertRaises(services.DemoIntegrityError):
+                        rewards.read_demo_rewards(self.progress, session_token=secret)
+                    self.assertEqual(self.rows(), before)
+                    ItemGrant.objects.filter(pk=grant.pk).update(**previous)
+            variant.delete()
+            user = User.objects.get(pk=original.item.user_id)
+            User.objects.filter(pk=user.pk).update(is_active=True)
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            User.objects.filter(pk=user.pk).update(is_active=False)
+            ducky = Ducky.objects.get(pk=original.item.ducky_id)
+            Ducky.objects.filter(pk=ducky.pk).update(sex="bad")
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            Ducky.objects.filter(pk=ducky.pk).update(sex=ducky.sex)
+            spare = User(username="fixture-spare-" + uuid4().hex, is_active=False)
+            spare.set_unusable_password()
+            spare.save()
+            Ducky.objects.filter(pk=ducky.pk).update(user=spare)
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            Ducky.objects.filter(pk=ducky.pk).update(user=user)
+            Wallet.objects.filter(user=user).delete()
+            before = self.rows()
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            self.assertEqual(self.rows(), before)
+            Wallet.objects.create(user=user)
+            with self.assertRaises(IntegrityError), transaction.atomic():
+                DemoTargetRewardEvent.objects.filter(pk=original.event_id).update(coin_amount=5)
+            self.assertFalse(db.in_atomic_block)
+
+        def test_orphan_and_crossed_namespace(self):
+            token = self.token()
+            fact = rewards._fact(token, self.progress, services._owner(secret), "item_challenge")
+            user, _, ducky = provision()
+            orphan = grant_item(user, self.item, 1, rewards._item_key(fact.identity),
+                reference_type="demo_reward_item_v1", reference_id=rewards._item_key(fact.identity))
+            before = self.rows()
+            with self.assertRaises(services.DemoIntegrityError):
+                self.apply(token)
+            self.assertEqual(self.rows(), before)
+            ItemGrant.objects.filter(pk=orphan.pk).update(operation_key="foreign-non-rewards")
+            original = self.apply(token)
+            duplicate = grant_item(user, self.item, 1, original.item.operation_key,
+                reference_type="demo_reward_item_v1", reference_id=original.item.operation_key)
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            ItemGrant.objects.filter(pk=duplicate.pk).update(operation_key="foreign-other")
+            self.replay(token, original)
+            owner = User.objects.get(pk=original.item.user_id)
+            orphan = grant_item(owner, self.item, 1, "ri1:" + "f" * 64,
+                reference_type="demo_reward_item_v1", reference_id="ri1:" + "f" * 64)
+            before = self.rows()
+            with self.assertRaises(services.DemoIntegrityError):
+                rewards.read_demo_rewards(self.progress, session_token=secret)
+            self.assertEqual(self.rows(), before)
+            orphan.delete()
+
+        def test_shared_connection_single_commit(self):
+            token = self.token()
+            native = db.connection
+            statements, writes = [], []
+
+            def inspect(execute, sql, params, many, context):
+                if sql.startswith(('INSERT INTO "duckies_itemgrant"', 'INSERT INTO "duckies_inventoryitem"', 'UPDATE "duckies_inventoryitem"')):
+                    self.assertIs(context["connection"], db)
+                    self.assertIs(db.connection, native)
+                    self.assertEqual(len(db.atomic_blocks), 2)
+                    self.assertTrue(native.in_transaction)
+                    writes.append(sql)
+                    result = execute(sql, params, many, context)
+                    self.assertEqual(observe("SELECT COUNT(*) FROM duckies_itemgrant WHERE operation_key LIKE 'ri1:%'"), [(0,)])
+                    return result
+                return execute(sql, params, many, context)
+
+            native.set_trace_callback(statements.append)
+            try:
+                with db.execute_wrapper(inspect):
+                    result = self.apply(token)
+            finally:
+                native.set_trace_callback(None)
+            self.assertEqual(statements.count("BEGIN IMMEDIATE"), 1)
+            self.assertEqual(statements.count("COMMIT"), 1)
+            self.assertTrue(any(sql.startswith("SAVEPOINT") for sql in statements))
+            self.assertTrue(any(sql.startswith("RELEASE SAVEPOINT") for sql in statements))
+            self.assertEqual(len(writes), 2)
+            self.assertEqual(observe("SELECT COUNT(*) FROM duckies_itemgrant WHERE id=?", (result.item.item_grant_id,)), [(1,)])
+            evidence["observations"].append({"shared_native_connection": True, "single_begin_immediate": True,
+                "single_commit": True, "inner_savepoint": True, "uncommitted_grant_invisible": True,
+                "transaction_sql": [sql for sql in statements if sql.startswith(
+                    ("BEGIN", "SAVEPOINT", "RELEASE", "COMMIT", "ROLLBACK"))]})
+
+        def test_complete_rollback_matrix(self):
+            token = self.token()
+            from django.db.models.query import QuerySet
+            original_create = QuerySet.create
+
+            def fail_reward(query, **kwargs):
+                if query.model is DemoTargetRewardEvent:
+                    raise RuntimeError("injected reward persistence failure")
+                return original_create(query, **kwargs)
+
+            def fail_after(function):
+                def wrapped(*args, **kwargs):
+                    function(*args, **kwargs)
+                    raise RuntimeError("injected after real work")
+                return wrapped
+
+            for target, name, replacement in (
+                    (rewards, "_ducky", fail_after(rewards._ducky)),
+                    (duckies, "grant_item", fail_after(duckies.grant_item)),
+                    (QuerySet, "create", fail_reward),
+                    (rewards, "_recorded_item", fail_after(rewards._recorded_item))):
+                before = self.rows()
+                with self.subTest(stage=name), patch.object(target, name, replacement), self.assertRaisesRegex(RuntimeError, "injected"):
+                    self.apply(token)
+                self.assertEqual(self.rows(), before)
+                self.assertFalse(db.in_atomic_block or db.connection.in_transaction)
+            real_grant = duckies.grant_item
+
+            def corrupt_real_cause(*args, **kwargs):
+                grant = real_grant(*args, **kwargs)
+                ItemGrant.objects.filter(pk=grant.pk).update(reference_id="incompatible-cause")
+                return grant
+
+            before = self.rows()
+            with patch.object(duckies, "grant_item", corrupt_real_cause), self.assertRaises(services.DemoIntegrityError):
+                self.apply(token)
+            self.assertEqual(self.rows(), before)
+            evidence["observations"].append({"rollback_stages": 5, "no_partial_provisioning_or_causes": True})
+
+        def concurrent(self, mode):
+            tokens = [self.token(), self.token()]
+            if mode != "distinct":
+                tokens[1] = tokens[0]
+            if mode == "conflict":
+                payload = signing.loads(tokens[1], salt=rewards.SALT)
+                instant = rewards._instant(payload["occurred_at"]) + timedelta(seconds=1)
+                tokens[1] = signing.dumps({**payload, "occurred_at": instant.isoformat(timespec="microseconds")}, salt=rewards.SALT)
+            barrier = Barrier(2)
+
+            def worker(index):
+                connection = connections["default"]
+                try:
+                    connection.ensure_connection()
+                    native = connection.connection
+                    barrier.wait(timeout=10)
+                    try:
+                        result = self.apply(tokens[index])
+                        return "ok", result.replay, id(native)
+                    except services.DemoConflictError:
+                        return "conflict", False, id(native)
+                finally:
+                    connection.close()
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = [pool.submit(worker, index) for index in range(2)]
+                results = [future.result(timeout=20) for future in futures]
+            self.assertNotEqual(results[0][2], results[1][2])
+            self.assertEqual(sorted(r[0] for r in results), ["conflict", "ok"] if mode == "conflict" else ["ok", "ok"])
+            count = 2 if mode == "distinct" else 1
+            self.assertEqual(DemoTargetRewardEvent.objects.filter(progress=self.progress).count(), count)
+            self.progress.refresh_from_db()
+            self.assertEqual(ItemGrant.objects.filter(ducky__user_id=self.progress.synthetic_user_id).count(), count)
+            self.assertEqual(InventoryItem.objects.get(ducky__user_id=self.progress.synthetic_user_id, item=self.item).quantity, count)
+            if mode == "same":
+                self.assertEqual(sum(r[1] for r in results), 1)
+            evidence["observations"].append({"mode": mode, "independent_native_connections": True,
+                "outcomes": [r[0] for r in results], "rewards": count})
+
+        def test_concurrent_same(self):
+            self.concurrent("same")
+
+        def test_concurrent_conflict(self):
+            self.concurrent("conflict")
+
+        def test_concurrent_distinct(self):
+            self.concurrent("distinct")
+
+        def test_concurrent_item_with_bank_and_direct_xp(self):
+            for mode in ("bank", "xp", "playable"):
+                progress = services.create_demo_progress(session_token=secret)
+                if mode == "playable":
+                    self.apply(self.token("challenge", progress), "challenge", progress)
+                item_token = self.token(progress=progress)
+                if mode == "bank":
+                    second_token = self.token("coin_challenge", progress)
+                elif mode == "playable":
+                    second_token = playable.issue_playable_operation(progress, action="configure", session_token=secret)
+                else:
+                    second_token = services.issue_demo_operation(progress, session_token=secret)
+                barrier = Barrier(2)
+
+                def worker(index):
+                    connection = connections["default"]
+                    try:
+                        connection.ensure_connection()
+                        native = connection.connection
+                        barrier.wait(timeout=10)
+                        if index == 0:
+                            self.apply(item_token, progress=progress)
+                        elif mode == "bank":
+                            self.apply(second_token, "coin_challenge", progress)
+                        elif mode == "playable":
+                            playable.configure_demo_option(progress, option_code="persist-demo-tech-gamer",
+                                increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                                operation_token=second_token, session_token=secret)
+                        else:
+                            services.grant_demo_target_xp(progress, amount=700,
+                                operation_token=second_token, session_token=secret)
+                        return id(native)
+                    finally:
+                        connection.close()
+
+                with self.subTest(mode=mode), ThreadPoolExecutor(max_workers=2) as pool:
+                    futures = [pool.submit(worker, index) for index in range(2)]
+                    natives = [f.result(timeout=20) for f in futures]
+                self.assertNotEqual(*natives)
+                progress.refresh_from_db()
+                self.assertEqual(progress.xp_total, 0 if mode == "bank" else 700)
+                self.assertEqual(Wallet.objects.get(user_id=progress.synthetic_user_id).available_balance,
+                    5 if mode == "bank" else 0)
+                self.assertEqual(InventoryItem.objects.get(ducky__user_id=progress.synthetic_user_id, item=self.item).quantity, 1)
+                rewards.read_demo_rewards(progress, session_token=secret)
+                if mode == "playable":
+                    state, _ = playable.read_demo_playable(progress, session_token=secret)
+                    self.assertEqual(state.active_option, "persist-demo-tech-gamer")
+                evidence["observations"].append({"mixed_with": mode,
+                    "independent_native_connections": True, "causal_history_valid": True})
+
+        def test_timeout_explicit_retry(self):
+            token = self.token()
+            held, release = Event(), Event()
+
+            def blocker():
+                connection = connections["default"]
+                try:
+                    with services._xp_transaction(self.progress, session_token=secret):
+                        held.set()
+                        if not release.wait(timeout=15):
+                            raise AssertionError("Blocker was not released")
+                finally:
+                    connection.close()
+
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(blocker)
+                self.assertTrue(held.wait(timeout=10))
+                started = monotonic()
+                try:
+                    with self.assertRaises(services.DemoBusyError):
+                        self.apply(token)
+                    elapsed = monotonic() - started
+                    self.assertGreaterEqual(elapsed, 4.5)
+                    self.assertFalse(db.in_atomic_block or db.connection.in_transaction)
+                finally:
+                    release.set()
+                future.result(timeout=10)
+            self.assertFalse(DemoTargetRewardEvent.objects.filter(progress=self.progress).exists())
+            self.progress.refresh_from_db()
+            self.assertIsNone(self.progress.synthetic_user_id)
+            original = self.apply(token)
+            self.replay(token, original)
+            evidence["observations"].append({"real_timeout_seconds": elapsed, "explicit_retry_only": True,
+                "no_partial_effects": True})
+
     groups = {
         "atomicity": ("test_shared_default_savepoint_commit", "test_rollback_existing_inventory",
                       "test_rollback_new_provisioning", "test_inner_failure_rolls_back_savepoint"),
@@ -378,6 +925,16 @@ def run(root, scenario):
         "concurrency": ("test_concurrent_compatible", "test_concurrent_incompatible",
                         "test_concurrent_distinct", "test_timeout_and_explicit_recovery"),
         "failure": ("test_injected_child_failure",),
+        "service-functional": ("test_real_item_and_exact_key", "test_lazy_and_bank_compatibility",
+            "test_real_consumption_then_readonly_replay", "test_reopen_and_future_rules_do_not_reinterpret",
+            "test_existing_playable_configuration_is_unchanged"),
+        "service-validation": ("test_invalid_item_configuration", "test_mapping_and_exclusive_proposal",
+            "test_overflow_and_inconsistent_inventory", "test_signed_identity_and_session_validation"),
+        "service-integrity": ("test_strict_snapshot_corruption", "test_real_cause_corruption_and_foreign_key",
+            "test_orphan_and_crossed_namespace"),
+        "service-atomicity": ("test_shared_connection_single_commit", "test_complete_rollback_matrix"),
+        "service-concurrency": ("test_concurrent_same", "test_concurrent_conflict", "test_concurrent_distinct",
+            "test_concurrent_item_with_bank_and_direct_xp", "test_timeout_explicit_retry"),
     }
     try:
         try:
@@ -393,10 +950,15 @@ def run(root, scenario):
             raise AssertionError("Migration creation context leaked")
         call_command("seed_persistent_target_demo", stdout=StringIO())
         db = demo_connection()
-        suite = unittest.TestSuite(RewardsDuckiesTests(name) for name in groups[scenario])
+        case = RewardsItemServiceTests if scenario.startswith("service-") else RewardsDuckiesTests
+        suite = unittest.TestSuite(case(name) for name in groups[scenario])
         result = unittest.TextTestRunner(stream=sys.stderr, verbosity=2).run(suite)
         evidence.update(tests=result.testsRun, failures=len(result.failures), errors=len(result.errors),
                         skipped=len(result.skipped), success=result.wasSuccessful())
+        if scenario == "service-functional" and result.wasSuccessful():
+            call_command("check", databases=["default"], stdout=StringIO())
+            call_command("makemigrations", check=True, dry_run=True, verbosity=0, stdout=StringIO())
+            evidence["checks_and_no_model_changes"] = True
     finally:
         connections.close_all()
     evidence["connections_closed"] = all(c.connection is None for c in connections.all())

@@ -1,5 +1,8 @@
 # REW-MULTI-02-DOC-01 · Rewards → Duckies en el laboratorio persistente
 
+Las secciones 1–10 registran el corte documental original de #109. El estado
+posterior implementado en 2C y sus evidencias se describen en la sección 11.
+
 ## 1. Estado, autoridad y alcance
 
 Baseline inspeccionada: develop `74ba7560e1373091163a15caa878ffd56c8bdc34`,
@@ -314,3 +317,155 @@ es 2A: demostrar transacción compartida sin tocar servicios propietarios; si fa
 volver a 02C-2. La conformidad transmitida de Henry no certifica esas pruebas ni
 autoriza cambios ajenos. Esta PR solo comprueba texto, referencias y diff: **no
 se han ejecutado tests Django ni ensayos Rewards–Duckies**.
+
+## 11. Corte 2C · Servicio y V3 ratificados en 02C-2
+
+Las secciones 1–10 conservan el registro documental de #109, incluida su condición
+de propuestas y pruebas entonces pendientes. Después se integraron #110 (2A,
+viabilidad real) y #111 (2B, esquema 0005). Sobre develop
+`da35461ed5b6fe66c583f406fb7a9a7326c94f52`, **2C implementa el servicio interno**
+con las concreciones ratificadas por el Equipo 5 en 02C-2. Esta aprobación no
+añade ratificación externa de Henry/Core ni autorización productiva de DAR3.
+HTTP 2D sigue pendiente: no cambia formularios, vistas, templates o rutas.
+
+### 11.1. Actividad, mapeo y causa exacta
+
+`item_challenge` existe únicamente en las actividades internas. Su hecho
+`demo-fact-v3` contiene contexto `demo=REW-MULTI-02`, `mapping_version` e
+`item_code`, además de `fact_version`; resultado `completed=true`. La huella
+continúa siendo `rewards-semantic-v1`, con instante original firmado y estable.
+La selección por actividad usa `demo-rewards-rules-v3`, regla
+`demo-item-challenge-hint-v3`, con un solo `ProposedEffect("ITEM", 1)`.
+Challenge/visit/coin_challenge conservan constructores, contexto, tokens y
+selección de reglas V2 anteriores; propuestas ITEM sobre esas actividades siguen
+rechazadas. Ninguna nueva recompensa XP/Bank se convierte en V3.
+
+El mapeo inmutable `demo-item-map-v1` declara `demo-reward-hint-v1`, categoría
+HINT, consumible, cantidad 1 y variante nula. La selección para concesiones nuevas
+se distingue de esa definición histórica. El servicio no crea Items: exige el
+artículo preparado explícitamente, activo, del código/categoría correctos,
+consumible y sin ItemLevel. El fixture temporal es quien lo prepara. Comprueba
+inventario coherente y rango entero del backend antes del incremento real.
+
+La clave es `ri1:` seguida de SHA-256 hexadecimal completo de la representación
+UTF-8 de este array, conservando orden, sin normalización Unicode:
+
+```json
+["demo-reward-item-key-v1", "origin_code", "fact_id", "recipient_id"]
+```
+
+Los tres últimos valores se sustituyen por la identidad real. La serialización
+es JSON compacto (`separators=(",", ":")`, `ensure_ascii=False`,
+`allow_nan=False`). No reutiliza el serializador anterior con ensure_ascii=True.
+Son 68 caracteres; `operation_key=reference_id=ri1:<digest>` y
+`reference_type=demo_reward_item_v1`. Identidad y fingerprint siguen separados.
+
+### 11.2. Transacción y aprovisionamiento
+
+El servicio exige `default` protegido para ITEM antes de escribir y conserva
+`_xp_transaction(progress, session_token=...)` como único propietario del exterior
+IMMEDIATE/5 s. Valida sesión, progreso, catálogo e historial; resuelve replay o
+conflicto antes de reglas actuales, aprovisionamiento o entrega. Rechaza claves
+ri1 previas huérfanas, ajenas o duplicadas; no las adopta.
+
+Para un premio nuevo válido reutiliza las invariantes User/Wallet de Bank. Si
+faltaba User, crea cuenta sintética inactiva, sin privilegios/datos personales y
+con contraseña inutilizable, Wallet a cero y vínculo exclusivo de partida. Un
+User ya vinculado sin Wallet es corrupción, no ocasión de reparación. Reutiliza
+Ducky compatible del mismo User o crea el mínimo, sexo válido y selected_outfit
+nulo, solo si no falta una causa histórica exigible. No requiere perfil V1 ni
+initialize_ducky. Emisión de tokens, lectura y replay no aprovisionan.
+
+Invoca grant_item público en su savepoint; después comprueba de nuevo el contexto
+exterior, ItemGrant persistido, causa exacta e inventario incrementado en uno.
+Guarda RewardEvent APPLIED con solo item_grant, XP/monedas cero y causas XP/Bank
+nulas; relee la causalidad completa antes del commit exterior. User/Wallet/Ducky,
+inventario, entrega y RewardEvent revierten conjuntamente ante fallo. No créditos,
+XP/evoluciones, selección, consumo o equipamiento dentro del flujo ITEM.
+
+### 11.3. Snapshot y resultado histórico
+
+Solo ITEM usa `demo-reward-result-v3`. Conserva los campos comunes V2, incluidos
+catálogo exacto, ancla XP y progresión estacionaria original; añade exclusivamente
+esta sección `item`:
+
+```text
+mapping_version, item_code, user_id, ducky_id, item_id, item_grant_id,
+item_level_id, category, consumable, quantity, operation_key,
+reference_type, reference_id, created_at
+```
+
+PK enteras exactas positivas, variante NULL, HINT/true/1, versiones y referencias
+anteriores; created_at ISO 8601 con microsegundos de la entrega real. El lector
+reconstruye el resultado esperado desde identidad/huella, definición histórica y
+filas causales, y compara el JSON completo conservadoramente: claves omitidas,
+extrañas, booleanos como IDs, floats y valores incompatibles se rechazan. El
+resultado y su sección de objeto son dataclasses frozen/slots, sin modelos ORM;
+`replay` permanece fuera del snapshot. El resultado anterior se amplía con
+`item=None` por defecto, sin añadir esa clave a JSON V1/V2.
+
+V3 verifica regla/efecto originales sin evaluar reglas actuales; ItemGrant,
+User/Ducky/Item, cantidad, variante, clave, referencias y fecha; pertenencia al
+synthetic_user; exclusividad y correspondencia del namespace ri1 con recompensas
+confirmadas. Distingue definición histórica de selección futura. No confía solo
+en JSON ni inventa una FK ItemGrant→InventoryItem.
+
+Replay no llama a grant_item, no consulta InventoryItem, no exige posesión actual
+ni actividad actual del Item. Categoría/consumible históricos proceden del mapeo
+inmutable; código/PK del artículo y causa persistida siguen comprobándose. No
+reinterpreta anclas XP tras recompensas posteriores. Historial incoherente falla
+sin reparar, entregar o convertir el error en NO_REWARD. V1/V2 conservan sus
+lectores y JSON; el modelo histórico anterior a 0005 no consulta la nueva relación.
+
+### 11.4. Evidencias y límites de 2C
+
+El arnés conserva los escenarios 2A y añade grupos separados de servicio:
+funcionalidad/consumo, validación, integridad, atomicidad y concurrencia. Cada
+subproceso configura default antes de django.setup, mantiene el backend/routers,
+audita todas las aperturas y migra/siembra únicamente su SQLite nueva temporal.
+El padre comprueba configuración, conexión, registro de apps, limpieza y siete
+hashes protegidos sin cambiar su default. No se usa la partida personal.
+
+El caso de consumo concede mediante el coordinador, equipa y consume con las APIs
+reales Duckies (server_accepted y game_reference sintéticos). Verifica inventario
+agotado e ItemGrant conservado y repite el hecho con grant_item/evaluador
+prohibidos y consultas InventoryItem rechazadas. El resultado original vuelve
+sin DML ni reaparición de inventario, incluso con metadata mutable del Item
+modificada. La reapertura de conexión se ensaya por separado.
+
+También se observan SQL real BEGIN IMMEDIATE, savepoint interior y único COMMIT,
+invisibilidad de entrega no confirmada para lector independiente; rollback en
+aprovisionamiento, entrega, guardado Rewards y verificación final. Conexiones
+independientes ensayan hechos iguales, incompatibles, distintos, ITEM/Bank e
+ITEM/XP, además de timeout real de cinco segundos y reintento explícito.
+No hay reintentos automáticos ni cambios de servicios propietarios.
+
+Resultados ejecutados en Windows/Python 3.12/Django 5.2.17 para este corte:
+
+| Ejecución | Resultado real |
+| --- | --- |
+| Regresión focalizada 2A/2B/Rewards XP/Bank y nuevos padres | 104 tests aprobados, 0 fallos/omisiones, 403,319 s. |
+| Runner existente, fase habitual con registro normal | 1320 tests: 1318 aprobados, 2 omitidos, 0 fallos; 177,377 s. Incluye alfa/V1, objetivo, demo original y apps propietarias. |
+| Mismo runner, fase persistente completa | 125 tests aprobados, 0 fallos/omisiones, 500,523 s. |
+| Nuevos escenarios 2C, incluidos en la fase persistente | 5 tests padre; separadamente 19 casos hijos (5 funcionales, 4 validación, 3 integridad, 2 atomicidad, 5 concurrencia), todos aprobados. No se suman de nuevo al total del runner. |
+
+Las dos omisiones se reprodujeron individualmente: Windows no permite crear
+symlinks reales en este entorno (WinError 1314). No se omiten casos nuevos ni se
+alteran tests heredados. En el desarrollo se corrigieron dos datos de pruebas
+nuevas que no respetaban las estructuras públicas F1-A/A4; las ejecuciones finales
+anteriores no presentan fallos.
+
+El SQL observado en el coordinador fue BEGIN IMMEDIATE → SAVEPOINT → RELEASE
+SAVEPOINT → COMMIT, una vez para cada frontera exterior. El timeout ITEM real
+fue 5,5 s, seguido de recuperación explícita sin duplicación. La regresión física
+0004→0005 recuperó nueve llamadas históricas, conservando JSON V1/V2 exactos,
+columnas comunes, índices/FKs/checks y triggers ajenos. Ambos registros de apps
+superaron los checks Django; check y makemigrations --check --dry-run también se
+ejecutaron dentro del default temporal protegido, sin cambios de modelos.
+Enlaces locales y git diff --check correctos; siete hashes personales idénticos.
+
+Estas pruebas son del laboratorio y no certifican defensa frente a modificación
+coordinada por un administrador de BD. La entrega histórica tampoco certifica
+inventario presente. Falta HTTP 2D, incluida presentación autorizada del inventario;
+no se arranca esta fase sobre una SQLite personal ni se activa F2-A productivo,
+USE-01B, TRACE-01B, juegos reales o integración Core.
