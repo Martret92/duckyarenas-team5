@@ -2143,3 +2143,28 @@ El [contrato combinado](contracts/ecomotor-target-demo-rewards-combined-v1.md)
 recoge las verificaciones del arnés temporal real. 0006 ya está integrada por
 #115 y no cambia en 3B. HTTP combinado sigue pendiente de 3C; no integración
 productiva, F2-A, USE-01B, TRACE-01B, permisos Core o interfaz de Henry.
+
+## REW-MULTI-03-3C-ARQ-01 · HTTP combinado del laboratorio · 24/10/2026
+
+**Ratificada internamente por Equipo 5 en 02C-2 el 24/10/2026.** Publicar
+`combo_challenge` como quinta actividad de la ruta local existente
+`/demo/objetivo-persistente/`, sin ampliar el coordinador V4 integrado por #116.
+El formulario cerrado conserva action, activity y fact_token, además de CSRF;
+sesión propietaria, firma y POST/Redirect/GET mantienen sus fronteras anteriores.
+
+Una única recompensa se presenta con tres efectos y sus causas reales:
+XPEvent/evoluciones, Transaction/saldo histórico e ItemGrant/entrega histórica.
+Wallet e inventario presentes siguen siendo consultas separadas. El replay
+recupera los tres efectos originales sin volver a concederlos, incluso después
+de gastar monedas, consumir el HINT o ganar XP adicional.
+
+La excepción complementaria aprobada en 02C-2 permite sustituir únicamente
+`assertNotIn("combo_challenge", dict(REWARD_HTTP_ACTIVITIES))` por `assertIn(...)`
+en el arnés 3B: la ausencia HTTP era cierta en aquel corte y deja de serlo en 3C.
+Las demás comprobaciones históricas se conservan y se vuelven a ejecutar.
+
+El [contrato combinado, corte 3C](contracts/ecomotor-target-demo-rewards-combined-v1.md#15-corte-3c--http-combinado-v4)
+registra implementación y evidencias para revisión. No implica ratificación de
+Óscar, Core o Henry, reglas oficiales, F2-A productivo, USE-01B, TRACE-01B ni
+activación productiva del escritor objetivo. S3 V1 permanece como único escritor
+XP V1 activo fuera del laboratorio. No se migra la SQLite personal.

@@ -7,8 +7,11 @@
 3A/0006 está integrada por #115. Sobre la baseline
 `f88f9be0ba09fad80224de0106cf6d9dc285fcc8`, 3B implementa el servicio y lector V4
 para revisión, con REW-MULTI-03-V4-01 ratificada internamente en 02C-2 el
-24/10/2026. HTTP combinado sigue pendiente de 3C. El corte y las pruebas de 3B
-se registran en [§14](#14-corte-3b--servicio-y-replay-v4).
+24/10/2026. En aquel corte HTTP combinado seguía pendiente de 3C. El corte y las
+pruebas de 3B se registran en [§14](#14-corte-3b--servicio-y-replay-v4).
+Sobre #116 integrada, 3C implementa ahora HTTP para revisión en Draft, con
+REW-MULTI-03-3C-ARQ-01 ratificada internamente en 02C-2 el 24/10/2026;
+su alcance y evidencias se registran en [§15](#15-corte-3c--http-combinado-v4).
 DAR3 conserva autoridad funcional. Sus requisitos de identidad/origen, no premiar
 dos veces y registro se recogen en [Rewards v0](rewards-v0.md); no atribuyen a
 DAR3 las cantidades, claves, esquema o transacción definidos aquí. El original
@@ -477,3 +480,167 @@ No se demuestra atomicidad distribuida ni autenticidad productiva de emisores.
 Los snapshots no son certificados frente a administradores capaces de reescribir
 toda la base. Revisión humana y fusión de 3B preceden a cualquier trabajo 3C;
 no cambia la autoridad DAR3, el contrato candidato F2-A o dependencias Core.
+
+## 15. Corte 3C · HTTP combinado V4
+
+### Autoridad y alcance
+
+REW-MULTI-03-3C-ARQ-01 fue ratificada internamente por Equipo 5 en 02C-2 el
+24/10/2026. Este corte implementa HTTP sobre develop
+`a7be00162e68f4d20a963c65020a2b4559676a28`, con #114/#115/#116 integradas;
+conserva como históricos DOC-01, 3A y 3B. Se prepara para revisión humana en
+Draft, sin autorización productiva de Core, Óscar, Henry ni otros equipos.
+
+No cambia el coordinador, reglas, lectores V1/V2/V3/V4, modelos, migraciones,
+backend, settings, aislamiento, URLconf ni runner. S3 V1 permanece como único
+escritor XP V1 activo fuera del laboratorio. F2-A productivo, USE-01B, TRACE-01B,
+integración Core y activación del escritor objetivo siguen pendientes.
+
+### Formulario, ruta y mensajes
+
+La ruta sigue siendo `/demo/objetivo-persistente/`, nombre `persistent-demo`.
+RewardDemoForm ofrece quinta actividad `combo_challenge`, con etiqueta exacta:
+
+> Desafío combinado ficticio (+700 XP, +5 DuckyCoins y +1 HINT)
+
+Mantiene exclusivamente `action=reward`, `activity` y `fact_token`, más CSRF.
+El servidor emite el hecho firmado; no recibe importes, destinatarios, artículos,
+IDs propietarios, reglas ni referencias como autoridad. Se conservan las cuatro
+actividades individuales y los propósitos separados de XP/opciones/Rewards.
+
+La vista invoca `apply_demo_reward()` existente y utiliza POST/Redirect/GET.
+Solo tras retorno confirmado establece el aviso nuevo exacto:
+
+> APPLIED: +700 XP sintéticas, +5 DuckyCoins ficticias y +1 HINT sintético concedidos en una única recompensa.
+
+El replay devuelve 302 con el aviso exacto:
+
+> Replay Rewards V4: resultado histórico recuperado (700 XP, 5 DuckyCoins y 1 HINT originales). No se ha vuelto a conceder ningún premio.
+
+Se mantienen replay del último hecho y por fila, identidad/instante originales,
+emisión de otro hecho después de confirmar y limpieza de tokens/avisos al iniciar
+otra partida. Los errores eliminan el aviso previo; no confirman una recompensa
+nueva ni se convierten en NO_REWARD.
+
+### Historial y estado presente
+
+Una fila por RewardEvent combinado presenta tres bloques, antes de las ramas
+individuales: XP anterior/posterior, nivel y evoluciones con XPEvent; monedas y
+saldo histórico con Transaction; HINT, cantidad histórica, código/mapeo con
+ItemGrant. Incluye referencias causales originales y versión/regla V4.
+
+El saldo actual procede de la consulta Wallet existente y la cantidad actual
+del HINT de inventario. Gastar monedas, consumir el objeto o ganar XP adicional
+no modifica el resultado histórico. No se promete atomicidad global entre las
+consultas independientes de toda la página. La tabla permite desplazamiento
+horizontal, foco visible y encabezados de columna accesibles.
+
+### Seguridad y respuestas
+
+La sesión propietaria y firma se comprueban en el coordinador existente, con
+CSRF real y rechazo de campos extra, duplicados y ausentes. GET con parámetros
+inesperados se rechaza; no se añaden endpoints, consumo o equipamiento HTTP.
+La salida usa escape Django y mensajes controlados sin SQL, rutas o trazas.
+
+| Situación | HTTP |
+| --- | --- |
+| Nueva recompensa confirmada o replay compatible | 302 |
+| Formulario o parámetros inválidos | 400 |
+| CSRF, token, sesión o pertenencia no autorizados | 403 |
+| Método no admitido, superada la comprobación CSRF aplicable | 405 |
+| Conflicto semántico o historia incoherente | 409 |
+| Configuración, recursos obligatorios, BD o timeout | 503 |
+
+### Excepción histórica y arnés 3C
+
+La excepción complementaria de 02C-2 autoriza exactamente esta adaptación en
+`reward_combo_fixture.py`, sin ningún otro cambio en ese archivo:
+
+```diff
+- self.assertNotIn("combo_challenge", dict(REWARD_HTTP_ACTIVITIES))
++ self.assertIn("combo_challenge", dict(REWARD_HTTP_ACTIVITIES))
+```
+
+La anterior aserción documentaba la ausencia HTTP durante 3B; su actualización
+comprueba la publicación ratificada en 3C. No altera pruebas del coordinador.
+
+El nuevo `reward_combo_http_fixture.py` usa Client real con CSRF, subproceso,
+directorio temporal propio y default protegido file-backed. Configura antes de
+django.setup(), audita todas las aperturas y migra/prepara HINT solo en el
+temporal. Cinco padres nuevos se registran una sola vez mediante load_tests.
+El padre verifica conservación de su conexión/configuración/registro de apps,
+hashes personales y eliminación de temporales después de cerrar conexiones.
+
+El pase focalizado final ejecutó cinco padres y 11 casos hijos: sin fallos,
+errores ni omitidos, 51,680 s. Comprueba formularios extraídos del HTML, PRG,
+una recompensa/tres causas, XP700/nivel8/seis evoluciones, Bank5 y HINT1; replay
+original/último/por fila sin cambios de negocio y reapertura de SQLite.
+Tras XP adicional real, gasto Bank y equipamiento/consumo Duckies en el fixture,
+XP actual900/Wallet0/inventario0 conservan historia XP0→700/saldo5/entrega1.
+Las operaciones de consumo/equipamiento siguen fuera de HTTP.
+
+Incluye CSRF, campos cerrados, métodos, tokens alterados/cruzados, dos sesiones,
+reinicio, escape y ausencia de filtraciones; 409 por conflicto/corrupción y 503
+por recursos/configuración/BD. Tres fallos HTTP inyectados después de escrituras
+reales Transaction/ItemGrant/RewardEvent revierten todas las tablas de negocio.
+Contención real: 503 tras 5,313 s, sin efectos parciales; retry explícito y replay
+posterior dejan una única recompensa. Las sesiones Django se distinguen de las
+escrituras de negocio.
+
+El primer pase focalizado falló en el propio test de métodos: CSRF rechazaba la
+petición antes del 405. El pase final aporta CSRF válido para llegar a la vista;
+la comprobación de sesión cruzada también usa CSRF del destinatario para probar
+la autorización real. No se ha relajado ninguna protección de la aplicación.
+
+La regresión 3B volvió a ejecutar cinco padres y 16 hijos, sin fallos/errores/
+omitidos en 53,541 s: 26 escenarios de rollback, transacción única con savepoints,
+causalidad, corrupción, concurrencia y timeout real de 5,329 s. Estos hijos no se
+suman a los padres ni se presentan como nuevos casos HTTP.
+
+### Revisión visual
+
+Se inspeccionó en Chrome el HTML real obtenido por el test, con CSS local,
+a anchos 375, 768 y 1280. Exportación inerte fuera del repositorio: tokens y
+campos ocultos retirados, botones desactivados, sin formularios operativos ni
+conexión Django/SQLite. Se comprobaron quinta etiqueta, aviso, tres bloques y
+referencias; en móvil/tablet la tabla usa desplazamiento horizontal, con foco
+visible y desplazamiento mediante teclado. Viewport restaurado al finalizar.
+Se guardaron capturas locales. No sustituye una validación interactiva manual
+de la demo montada; el flujo operativo se verificó mediante Client real.
+
+### Regresión completa ejecutada en 3C
+
+`python manage.py test --settings=apps.ecomotor.target_persistent_demo_settings --verbosity=1`
+terminó con código 0 mediante el DemoRunner original de dos fases:
+
+| Ámbito | Ejecutados | Correctos | Omitidos | Fallos/errores | Duración |
+| --- | --- | --- | --- | --- | --- |
+| Habitual | 1320 | 1318 | 2 | 0 | 191,659 s |
+| Persistente, padres | 144 | 144 | 0 | 0 | 701,156 s |
+| Casos hijos reportados | 116 en 41 informes | 116 | 0 | 0 | No se suman a los padres |
+
+Los cinco padres/11 hijos HTTP nuevos están incluidos en esos totales, junto
+con las regresiones 3B, XP, Bank, Duckies, configuraciones Gamer/Romano, HTTP
+histórico y esquemas 0004/0005/0006. El timeout HTTP V4 en este pase fue 5,282 s;
+su reintento explícito confirmó una sola recompensa, seguido de replay sin efectos.
+No se han introducido omisiones. Una ejecución diagnóstica adicional de los dos
+tests de symlink confirmó ambos skips por WinError 1314 (privilegio Windows),
+sin modificar pruebas. La exportación visual repitió un padre/un hijo funcional;
+tampoco se cuenta como caso nuevo ni se añade al total de la suite.
+
+Django check y makemigrations --check --dry-run se ejecutaron exclusivamente
+en los fixtures con default temporal protegido: sin incidencias ni cambios de
+modelos/migraciones pendientes. Se verificaron 273 enlaces locales y anclas en
+los tres documentos, diff sin errores de whitespace y alcance de diez archivos.
+El arnés histórico conserva exactamente la sustitución de una línea autorizada.
+
+Los 41 informes confirmaron conexiones cerradas y aperturas limitadas a su
+archivo autorizado; tras concluir se comprobó también la ausencia física de las
+41 SQLite reportadas. Las siete rutas personales conservan existencia y SHA-256.
+No se abrió su contenido, migró, sembró, copió como fixture ni arrancó Django
+contra ellas. El worktree independiente no se utilizó ni modificó.
+
+La fase queda preparada para revisión en Draft, sin merge automático. La prueba
+visual es del HTML inerte del fixture, no una sesión interactiva sobre la partida
+personal. Se mantienen pendientes las validaciones humanas de 01B-2/02C-2 y las
+dependencias productivas; este corte no activa ninguna integración global.
