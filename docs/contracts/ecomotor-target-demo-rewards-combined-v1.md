@@ -335,8 +335,10 @@ Continúan pendientes Core/A3.5; USE-01B; TRACE-01B; F2-A productivo; identidad,
 autenticación y permisos globales del Equipo 0; contratos de hechos/emisores
 reales; valores oficiales de Óscar; integración productiva con propietarios;
 cualquier activación del escritor XP objetivo y recuperación distribuida entre
-bases/conexiones independientes. S3 V1 sigue como único escritor XP activo
-productivo; el núcleo sintético del laboratorio no cambia ese estado.
+bases/conexiones independientes. S3 V1 permanece como único escritor XP V1 activo
+fuera del laboratorio. F2-A productivo y la activación del escritor objetivo
+continúan pendientes. El núcleo XP sintético del laboratorio no supone una
+activación productiva.
 
 Según información transmitida por el Equipo 5, Henry comunicó el 24/10/2026 su
 intención de reutilizar Rewards–Duckies en una demo visual conjunta separada.
