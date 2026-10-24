@@ -262,7 +262,7 @@ def run(root, scenario):
                 "mapping_version": "demo-item-map-v1", "item_code": "demo-reward-hint-v1"})
             self.assertEqual(rewards.SALT, "ecomotor.persistent-demo.reward-fact.v1")
             from .forms import REWARD_HTTP_ACTIVITIES
-            self.assertNotIn("combo_challenge", dict(REWARD_HTTP_ACTIVITIES))
+            self.assertIn("combo_challenge", dict(REWARD_HTTP_ACTIVITIES))
             variations = [dict(payload, **{key: value}) for key, value in (
                 ("progress", True), ("progress", self.progress.pk + 999), ("owner", "ñ" * 64),
                 ("owner", "0" * 64), ("activity", "challenge"), ("fact_id", "A" * 32),

@@ -71,7 +71,10 @@ def home(request):
                     confirmed = dict(request.session.get("reward_confirmed_tokens", {}))
                     confirmed[str(result.event_id)] = request.session["reward_last"]
                     request.session["reward_confirmed_tokens"] = confirmed
-                    request.session["reward_notice"] = ("Replay Rewards histórico: sin nuevas concesiones; no se ha vuelto a acreditar." if result.replay
+                    combo = result.activity_type == "combo_challenge"
+                    request.session["reward_notice"] = ("Replay Rewards V4: resultado histórico recuperado (700 XP, 5 DuckyCoins y 1 HINT originales). No se ha vuelto a conceder ningún premio." if combo and result.replay
+                        else "APPLIED: +700 XP sintéticas, +5 DuckyCoins ficticias y +1 HINT sintético concedidos en una única recompensa." if combo
+                        else "Replay Rewards histórico: sin nuevas concesiones; no se ha vuelto a acreditar." if result.replay
                         else "APPLIED: HINT sintético entregado y registrado." if result.item is not None
                         else "APPLIED: +5 DuckyCoins ficticias confirmadas." if result.coin_amount
                         else f"APPLIED: +{result.xp_amount} XP sintéticas y recompensa confirmadas juntas." if result.status == "APPLIED"

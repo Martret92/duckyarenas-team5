@@ -1261,3 +1261,29 @@ HTTP combinado/3C sigue pendiente: formulario, vistas, URLs y templates intactos
 No concede autorización productiva, parámetros oficiales o integración Core;
 F2-A productivo, USE-01B y TRACE-01B continúan abiertos. Las SQLite personales
 no se utilizan para pruebas ni se migran.
+
+## REW-MULTI-03-3C-ARQ-01 · Publicación HTTP combinada, corte 3C
+
+Sobre develop `a7be00162e68f4d20a963c65020a2b4559676a28`, #114, #115 y #116
+integran contrato, esquema 0006 y coordinador V4. Los cortes anteriores conservan
+su alcance histórico; el presente implementa la publicación local para revisión.
+La [decisión 3C](decisions.md#rew-multi-03-3c-arq-01--http-combinado-del-laboratorio--24102026)
+fue ratificada internamente en 02C-2 el 24/10/2026.
+
+La misma vista y RewardDemoForm incorporan una quinta actividad cerrada. El POST
+invoca apply_demo_reward existente y solo establece confirmación tras su retorno
+correcto; mantiene sesión, CSRF, tokens firmados y PRG. Una fila V4 contiene tres
+bloques de resultado y sus referencias XPEvent/Transaction/ItemGrant. Las ramas
+individuales V1/V2/V3 y las configuraciones Gamer/Romano se conservan.
+
+El saldo histórico posterior al premio no se sustituye por el saldo Wallet
+actual; la entrega histórica tampoco representa posesión actual. No se promete
+un snapshot global entre consultas independientes. La tabla tiene desplazamiento
+horizontal y foco visible en pantallas estrechas, sin nuevos endpoints.
+
+La excepción complementaria de 02C-2 actualiza una sola aserción de ausencia HTTP
+del arnés 3B a presencia; su lógica transaccional y restantes pruebas no cambian.
+El [contrato, corte 3C](contracts/ecomotor-target-demo-rewards-combined-v1.md#15-corte-3c--http-combinado-v4)
+separa evidencias nuevas de los resultados históricos de 3B. No cambios de
+servicios propietarios, reglas, modelos, migraciones, aislamiento o runner;
+sin integración productiva, Core, Henry ni uso de SQLite personales.

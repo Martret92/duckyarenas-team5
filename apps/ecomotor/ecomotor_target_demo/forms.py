@@ -9,7 +9,8 @@ from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
 
 REWARD_HTTP_ACTIVITIES = (*ACTIVITIES,
     ("coin_challenge", "Desafío ficticio de monedas (+5 DuckyCoins)"),
-    ("item_challenge", "Desafío ficticio de objeto (+1 HINT sintético)"))
+    ("item_challenge", "Desafío ficticio de objeto (+1 HINT sintético)"),
+    ("combo_challenge", "Desafío combinado ficticio (+700 XP, +5 DuckyCoins y +1 HINT)"))
 
 
 class PersistentDemoForm(forms.Form):
