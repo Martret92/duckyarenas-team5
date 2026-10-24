@@ -2069,3 +2069,45 @@ contratos físicos propietarios. Orden obligatorio: documentación → 2A viabil
 continuar. Esta PR no implementa ni ensaya 2A. V1/S3, alfa, Bank, Shop, Duckies,
 Core, backend/settings y migraciones anteriores intactos. No interfaz compartida
 de Henry, F2-A productivo, USE-01B, TRACE-01B o activación del escritor objetivo.
+
+## REW-MULTI-03-ARQ-01 · Recompensas combinadas sintéticas · 24/10/2026
+
+**Ratificada internamente por Equipo 5 en 02C-2 el 24/10/2026.** DAR3 conserva
+autoridad funcional; no hay aprobación económica de Óscar, ratificación externa
+de Core/Fernando/Henry ni autorización productiva. Este corte solo documenta.
+R1–R8, T1–T8 y REW-MULTI-01/02 conservan sus decisiones y fechas históricas.
+
+Se aprueba una futura modalidad del laboratorio consolidado: `combo_challenge`,
+hecho `demo-fact-v4`, reglas `demo-rewards-rules-v4`, regla
+`demo-combo-challenge-v4`. Una propuesta ordenada XP700, DUCKYCOINS5, ITEM1
+producirá un APPLIED con tres causas y `demo-reward-result-v4`. Son importes
+ficticios. Se reutiliza HINT consumible `demo-reward-hint-v1`, mapeo
+`demo-item-map-v1`, sin ItemLevel; no creación automática de artículos.
+Las actividades individuales y NO_REWARD mantienen semántica y V1/V2/V3.
+
+La identidad origen/hecho/destinatario y `rewards-semantic-v1` siguen separadas
+de las claves causales existentes rx1/rb1/ri1, con sus diferentes codificaciones
+y longitudes. Misma identidad compatible recupera historia; incompatible genera
+conflicto. Causas huérfanas no se adoptan. Contexto/token exactos V4, más allá
+de los identificadores ratificados, son propuesta para ratificación antes de 3B.
+
+Rewards conservará el exterior IMMEDIATE/5 s sobre el mismo default protegido:
+XP → Bank → Duckies → RewardEvent/V4 → verificación → commit. Núcleo XP privado
+y APIs públicas credit_coins/grant_item, con savepoints propietarios sin commits
+autónomos. Cualquier fallo revierte efectos y aprovisionamiento conjuntamente.
+La prueba empírica combinada corresponde a 3B, no se presume por pruebas previas.
+
+Futura 0006 estructural, sucesora de 0005: conservar OneToOne nullable/PROTECT
+y ampliar el CHECK a cuatro modalidades APPLIED (tres individuales y combinado)
+más NO_REWARD. Sin tablas nuevas, backfill o cambios históricos. V4 verificará
+las tres causas y recuperará el resultado original sin nuevas concesiones,
+sin exigir saldo, XP o inventario actuales y sin reescribir V1/V2/V3.
+
+El [contrato REW-MULTI-03-DOC-01](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+define identidad, claves, metadatos, esquema, replay y aceptación pendiente.
+Orden obligatorio: DOC-01 → 3A esquema → 3B servicio/V4 → 3C HTTP, cada PR
+revisada y fusionada antes de iniciar la siguiente. No se inicia implementación.
+Core/A3.5, USE-01B, TRACE-01B, F2-A productivo, emisores reales, permisos globales,
+valores oficiales y activación del escritor objetivo siguen pendientes.
+La intención de Henry de reutilizar Rewards–Duckies en una demo visual separada,
+comunicada el 24/10/2026 según el Equipo 5, no aprueba ni prueba esta combinación.

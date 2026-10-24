@@ -1,0 +1,349 @@
+# REW-MULTI-03-DOC-01 · Contrato de Rewards combinado V4
+
+## 1. Estado, autoridad y fuentes
+
+**REW-MULTI-03-ARQ-01, ratificada internamente por Equipo 5 en 02C-2 el
+24/10/2026.** Este contrato documenta una ampliación futura del laboratorio;
+0006, el coordinador combinado y su HTTP no están implementados en este corte.
+DAR3 conserva autoridad funcional. Sus requisitos de identidad/origen, no premiar
+dos veces y registro se recogen en [Rewards v0](rewards-v0.md); no atribuyen a
+DAR3 las cantidades, claves, esquema o transacción definidos aquí. El original
+DAR3 no se ha localizado en el repositorio durante esta revisión documental.
+
+Se conservan R1–R8, T1–T8 y los cortes REW-MULTI-01/02 del
+[registro de decisiones](../decisions.md). La aprobación es interna, sin
+ratificación externa de Óscar, Core, Fernando o Henry. La modalidad combinada
+extiende deliberadamente la exclusividad anterior para una actividad nueva;
+las exclusiones de los contratos históricos describen correctamente sus cortes.
+
+Antecedentes: [persistencia XP](ecomotor-target-persistent-demo-v1.md),
+[Rewards XP/V1](ecomotor-target-demo-rewards-xp-v1.md),
+[Bank/V2](ecomotor-target-demo-rewards-bank-v1.md) y
+[Duckies/V3](ecomotor-target-demo-rewards-duckies-v1.md).
+Sus pruebas históricas no son ejecuciones de DOC-01 ni prueban la combinación.
+
+## 2. Baseline y hechos comprobados estáticamente
+
+Baseline local y remota: `develop` en
+`8552c54ec1446ccd0e472eda6fdf9632584b2e82`, con #113 integrada.
+El laboratorio reside en `apps/ecomotor/ecomotor_target_demo/`, conserva label
+`ecomotor_target_demo` y usa exclusivamente
+`instance/target_persistent_demo.sqlite3` con sus settings independientes.
+
+Los [tipos F1-A](../../apps/ecomotor/reward_types.py) admiten una secuencia
+ordenada de efectos. [evaluate_reward](../../apps/ecomotor/reward_rules.py)
+selecciona una regla, sin autenticar, persistir ni conceder. No se necesitan
+tres reglas coincidentes: eso sería ambiguo, no una propuesta multiefecto.
+El [coordinador actual](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py)
+rechaza más de un efecto. Los [modelos](../../apps/ecomotor/ecomotor_target_demo/models.py)
+y [0005](../../apps/ecomotor/ecomotor_target_demo/migrations/0005_rewards_duckies_schema.py)
+permiten cuatro resultados excluyentes. Por tanto, V4 requiere cambios posteriores
+del servicio y del CHECK; documentarlos no los activa.
+
+Los [servicios XP](../../apps/ecomotor/ecomotor_target_demo/services.py) ya ofrecen
+un núcleo privado sin commit y un exterior controlado. [isolation.py](../../apps/ecomotor/ecomotor_target_demo/isolation.py)
+y el [backend](../../apps/ecomotor/ecomotor_target_demo/db_backend/base.py)
+protegen archivo efectivo, alias, enlaces y sustitución; la apertura normal
+`mode=rw` no crea una SQLite ausente. Solo la migración explícita puede crearla.
+No se cambia ese contrato ni se opera sobre SQLite personales en DOC-01.
+
+## 3. Modalidad ratificada y compatibilidad
+
+| Concepto | Valor cerrado del laboratorio |
+| --- | --- |
+| Actividad | `combo_challenge` |
+| Versión del hecho | `demo-fact-v4` |
+| Versión de reglas | `demo-rewards-rules-v4` |
+| Regla | `demo-combo-challenge-v4` |
+| Propuesta ordenada | XP 700 → DUCKYCOINS 5 → ITEM 1 |
+| Resultado | Un `APPLIED`, un RewardEvent y tres causas reales |
+| Snapshot | `demo-reward-result-v4` |
+| Mapeo y artículo | `demo-item-map-v1`, `demo-reward-hint-v1` |
+
+`demo-fact-v4` es la versión, no el `fact_id` único de una ocurrencia.
+Importes y nombres son ficticios, no baremos oficiales aprobados por Óscar.
+HINT consumible, cantidad 1, `item_level=None`, activo para una concesión nueva.
+El servidor resuelve el mapeo histórico inmutable; fixtures o preparación aislada
+explícita aportarán el Item. Rewards no crea ni repara artículos o catálogos.
+
+`challenge`, `coin_challenge`, `item_challenge` y `visit` mantienen respectivamente
+XP, monedas, objeto y NO_REWARD. Conservan sus constructores, tokens, versiones
+de hecho/reglas, motivos y lectores existentes. V1/V2/V3 no reciben nuevas claves
+JSON; nuevos hechos de actividades anteriores tampoco se convierten en V4.
+
+## 4. Identidad, huella y autorización sintética
+
+Una sola identidad Rewards: `(origin_code, fact_id, recipient_id)`, construida
+por servidor para la partida propietaria de sesión. Se conserva la correspondencia
+local `recipient_id=demo-progress:<PK exacta>` y origen sintético
+`persist-demo-rewards`; esto no autentica emisores de juegos ni usuarios Core.
+El navegador no determina User, Wallet, Ducky, Item, destinatarios o importes.
+
+La [canonización F1-A](../../apps/ecomotor/reward_identity.py) y
+`rewards-semantic-v1` permanecen intactas. El hecho original, incluido
+`occurred_at` firmado, es estable ante reenvíos. La huella semántica contrasta
+contenido; no sustituye identidad, autorización ni claves propietarias.
+
+**Concreción técnica propuesta, pendiente de ratificación antes de 3B:** contexto
+cerrado con `demo=REW-MULTI-03`, `fact_version=demo-fact-v4`,
+`mapping_version=demo-item-map-v1`, `item_code=demo-reward-hint-v1` y resultado
+`completed=true`. Se propone un token ligado a partida, propietario de sesión,
+actividad, fact_id, versión, contexto e instante original, con propósito firmado
+separado de XP/opciones. Su estructura exacta y compatibilidad deberán ratificarse;
+estos detalles no son requisitos DAR3 ni aprobación externa.
+
+Misma identidad y huella compatible recupera el resultado confirmado; otra huella
+es conflicto sin escrituras. No se genera otra identidad o clave para eludirlo.
+Replay se resuelve antes de reglas actuales, aprovisionamiento o concesiones.
+Las unicidades Rewards y de los ledgers son complementarias.
+
+## 5. Propuesta F1-A y validación completa
+
+Una única regla V4 debe producir exactamente, en este orden:
+`ProposedEffect("XP", 700)`, `ProposedEffect("DUCKYCOINS", 5)`,
+`ProposedEffect("ITEM", 1)`. Es una propuesta hasta el commit exterior.
+El servicio comprobará actividad, versiones, regla, elegibilidad y tipos enteros
+exactos; rechazará efectos ausentes, adicionales, duplicados, reordenados,
+cantidades distintas o tipos no soportados. No conservará solo el subconjunto
+válido ni convertirá errores en NO_REWARD. ITEM en actividades antiguas sigue
+rechazándose conforme a sus contratos.
+
+## 6. Tres claves y contratos propietarios
+
+Cada array contiene los valores originales de la misma identidad, en ese orden.
+JSON compacto (`separators=(",", ":")`), codificado en UTF-8 y SHA-256:
+
+| Clave | Array de entrada | Serialización y digest |
+| --- | --- | --- |
+| `rx1:` | `["demo-reward-xp-key-v1", origin_code, fact_id, recipient_id]` | `sort_keys=True`, `ensure_ascii=True`, `allow_nan=False`; primeros 28 hex, longitud total 32 |
+| `rb1:` | `["demo-reward-bank-key-v1", origin_code, fact_id, recipient_id]` | `sort_keys=True`, `ensure_ascii=True`, `allow_nan=False`; 64 hex, longitud total 68 |
+| `ri1:` | `["demo-reward-item-key-v1", origin_code, fact_id, recipient_id]` | `ensure_ascii=False`, `allow_nan=False`, sin normalización Unicode; 64 hex, longitud total 68 |
+
+No se unifican codificaciones, payloads, namespaces o longitudes. No dependen
+de fingerprint, importes, reglas actuales, saldo, inventario, PK Rewards o
+posición del efecto. El truncado XP no prueba imposibilidad de colisiones;
+una causa incompatible se rechaza, sin adoptar o regenerar claves.
+
+XP utiliza `_grant_xp_in_transaction()` y un DemoTargetXPEvent con clave `rx1:`;
+unicidad `(progress, operation_key)`, longitud 32. Se comprueban catálogo exacto,
+importe, cadena histórica y cada evolución realmente causada.
+
+Firma pública comprobada en [Bank](../../apps/bank/services.py):
+
+```python
+credit_coins(user, amount, *, source, operation_key, issuing_entity="Ecomotor",
+             reference_type="", reference_id="", description="")
+```
+
+Para combo: amount=5, source=`persist-demo-rewards`, issuing_entity=`EcomotorDemo`,
+operation_key=reference_id=clave `rb1:` completa,
+reference_type=`demo_reward_fact_v1`, description vacío. Debe devolver
+`LedgerResult(transaction, created=True)`; tipo de Transaction REWARD.
+La idempotencia [bancaria](../../apps/bank/models.py) es `(wallet, operation_key)`.
+Se verifican fila persistida, User/Wallet, importe, saldo anterior/posterior,
+metadatos, fingerprint bancario y fecha. La canonización de ese fingerprint
+bancario es distinta de la derivación `rb1:` y no se sustituye por ella.
+
+Firma pública comprobada en [Duckies](../../apps/duckies/services.py):
+
+```python
+grant_item(user, item, quantity, operation_key, *, item_level=None,
+           reference_type="", reference_id="")
+```
+
+Cantidad 1, variante nula, operation_key=reference_id=clave `ri1:` completa,
+reference_type=`demo_reward_item_v1`. Devuelve ItemGrant, también en replay;
+no ofrece indicador `created`. Su [unicidad](../../apps/duckies/models.py) es
+`(ducky, operation_key)`, límites 255/50/255 para clave/tipo/referencia.
+El coordinador debe descartar causas previas y verificar que la entrega es
+nueva, persistida y coherente, incluido incremento real de inventario en uno.
+No existe FK directa ItemGrant→InventoryItem. Comparar solo hash o PK no verifica
+User, Ducky, Item, variante, cantidad y referencias.
+
+## 7. Aprovisionamiento y propietarios
+
+Solo para una operación nueva válida: reutilizar el synthetic_user exclusivo
+de la partida o crear cuenta sintética inactiva, sin privilegios, información
+personal ni contraseña utilizable, con Wallet inicial cero. Si un User ya
+vinculado carece de Wallet, abortar; no reparar o reiniciar saldos.
+Reutilizar Ducky compatible del mismo User o crear el mínimo con sexo válido y
+selected_outfit=None cuando la historia no exija uno anterior desaparecido.
+No perfil V1 ni initialize_ducky; no usuarios/Wallet/Ducky compartidos entre
+partidas. Token, lectura y replay no aprovisionan. El Item nunca se crea aquí.
+
+Bank conserva saldo/Transaction y Duckies inventario/ItemGrant. Se usan sus APIs
+públicas para acreditar y entregar; no se duplican ledgers ni se modifica su
+código. Configuraciones Gamer/Romano y atributos no reciben cambios por combo.
+
+## 8. Una transacción exterior y rollback conjunto
+
+Rewards conserva `_xp_transaction(progress, session_token=...)` sobre el
+`default` protegido real: misma base, alias y conexión nativa para los tres
+efectos, SQLite IMMEDIATE, timeout cinco segundos. Se valida aislamiento y
+sesión/token antes de entrar; el exterior comienza antes de leer estado mutable.
+
+```text
+identidad → evaluación → XP → Bank → Duckies → RewardEvent/V4
+         → verificación causal → commit exterior
+```
+
+1. Recargar progreso e historia propietaria; resolver replay o conflicto primero.
+2. Para identidad nueva, validar catálogo congelado exacto, progresión, regla y
+   propuesta completa; comprobar claves y ausencia de causas huérfanas/cruzadas.
+3. Conceder XP700 mediante el núcleo privado existente y verificar XPEvent y
+   evoluciones reales. No llamar al servicio público XP que abre otro exterior.
+4. Aprovisionar/reutilizar User/Wallet y llamar a credit_coins; verificar
+   LedgerResult.created=True, Transaction persistida y saldo resultante.
+5. Aprovisionar/reutilizar Ducky, verificar mapeo/Item e inventario representable
+   y llamar a grant_item; verificar entrega nueva e incremento real unitario.
+6. Guardar un único APPLIED enlazado a las tres causas y su V4; releer/contrastar
+   toda la causalidad y confirmar únicamente al salir correctamente del exterior.
+
+Los atomic internos propietarios son savepoints en ese mismo default, sin commit
+autónomo. `_check_xp_transaction()` exige el exterior exacto: se comprueba antes
+y después de las llamadas, nunca dentro de un savepoint Bank/Duckies.
+Sin BEGIN manual, otra transacción envolvente, alias auxiliar, autocommit
+incompatible, reintentos automáticos o I/O externo. select_for_update no es
+garantía de bloqueo por fila en SQLite.
+
+Fallo antes/después de cualquier efecto, guardado o comprobación final revierte
+el conjunto: aprovisionamiento User/Wallet/Ducky, XP/progreso/evoluciones,
+saldo/Transaction, inventario/ItemGrant y RewardEvent. No éxito antes del commit.
+La atomicidad combinada sigue **pendiente de demostración empírica en 3B**;
+las pruebas individuales anteriores no bastan. No se promete atomicidad
+distribuida ni se cambian backend, Bank, Duckies, Core o S3 para conseguirla.
+
+## 9. Futura migración 0006
+
+Diseño exclusivamente documental: `ecomotor_target_demo.0006`, sucesora estricta
+de `0005_rewards_duckies_schema`. Conservar xp_event, bank_transaction e
+item_grant: OneToOne nullable/PROTECT. Sin tablas adicionales o ledgers duplicados.
+Sustituir únicamente `demo_reward_outcome_valid` para admitir estas cinco ramas:
+
+| Resultado | XP / xp_event | coin_amount / bank_transaction | item_grant |
+| --- | --- | --- | --- |
+| APPLIED XP individual | >0 / presente | 0 / NULL | NULL |
+| APPLIED monedas individual | 0 / NULL | >0 / presente | NULL |
+| APPLIED objeto individual | 0 / NULL | 0 / NULL | presente |
+| APPLIED combinado | >0 / presente | >0 / presente | presente |
+| NO_REWARD | 0 / NULL | 0 / NULL | NULL |
+
+No se admite una combinación parcial de dos efectos ni otra rama. El CHECK solo
+certifica forma local; servicio/lectores deben exigir combo_challenge, 700/5/1,
+regla V4, tipos, versiones y pertenencia causal completa. No puede certificar
+por FK/CHECK el importe de Transaction o cantidad/propietario de ItemGrant.
+Se conservan unicidad Rewards, rangos SQLite, formatos de hashes y unicidades
+OneToOne. Migración estructural sin RunPython, backfill, usuarios, hechos o
+snapshots inventados; 0001–0005 y migraciones propietarias quedan intactas.
+
+3A deberá probar instalación nueva y copia temporal poblada 0005→0006,
+comparando columnas comunes, filas/IDs, JSON exactos V1/V2/V3, claves,
+referencias, FKs, índices, constraints y triggers del catálogo. Repetir migrate
+sin efectos de negocio, sin --fake ni operación sobre SQLite personales.
+
+## 10. Snapshot V4 y replay histórico
+
+Solo combo usa `demo-reward-result-v4`, con estas claves superiores exactas:
+
+```text
+schema, identity, activity_type, occurred_at, fingerprint_version, fingerprint,
+status, rule_set_version, matched_rule_id, eligible, effects, reason_codes,
+xp_amount, xp_event_id, evolution_ids, catalog, anchor_xp_event_id, progression,
+coin_amount, bank, item
+```
+
+APPLIED, actividad/versiones/regla de §3, eligible=true y reason_codes=[];
+effects=`[["XP",700],["DUCKYCOINS",5],["ITEM",1]]` en ese orden.
+xp_amount=700, xp_event_id real; evolution_ids y progression reproducen los
+cruces reales. anchor_xp_event_id es ese XPEvent, no un ancla estacionaria.
+Catálogo original exacto. Desde cero con el catálogo sintético actual, XP700
+alcanza nivel 8 y seis evoluciones; no crea una octava época.
+
+coin_amount=5 y `bank` conserva exactamente los campos causales V2:
+user_id, wallet_id, transaction_id, operation_key, transaction_type, amount,
+balance_before, balance_after, source_platform, issuing_entity, reference_type,
+reference_id, request_fingerprint y created_at originales.
+`item` conserva los campos V3: mapping_version, item_code, user_id, ducky_id,
+item_id, item_grant_id, item_level_id, category, consumable, quantity,
+operation_key, reference_type, reference_id y created_at; mapeo/código históricos,
+HINT/true/1, variante NULL y causa ri1 exacta. No reconstruir descripción o
+actividad histórica desde valores mutables actuales del artículo.
+
+Resultado inmutable con `replay` separado, nunca añadido al JSON persistido.
+Progresión, saldo posterior y entrega son históricos; no representan XP, Wallet
+o inventario actuales. Los lectores V1/V2/V3 y sus JSON se conservan exactamente.
+
+El futuro lector V4 despachará por versión explícita y comprobará claves exactas,
+tipos estrictos (bool no es ID/int), rangos, fechas y datos canónicos. Reproducirá
+identidad/huella desde el hecho y contexto históricos versionados; comprobará
+las tres claves y filas XP/evolución/Transaction/ItemGrant, mismo progreso,
+catálogo y User sintético, Wallet y Ducky correctos, importes/referencias y
+snapshot completo. Rechazará efectos ausentes, extra, duplicados, cruzados o
+contradictorios y versiones desconocidas.
+
+Replay no reevaluará reglas actuales, recalculará premios, aprovisionará o
+llamará a escritores XP/Bank/Duckies, compras, equipamiento o consumo; no hará
+INSERT/UPDATE/DELETE de negocio. No exigirá igualdad con XP/saldo actuales ni
+existencia de InventoryItem o posesión del HINT. Debe funcionar tras gastar
+monedas, consumir el HINT y ganar XP adicional, conservando las tres causas.
+
+## 11. Errores, causas huérfanas y concurrencia
+
+Separar entrada/token inválido, sesión/partida/destinatario no autorizados,
+conflicto de huella, regla/combinación no soportada, Item no preparado/inactivo/
+incompatible, identidad sintética incoherente, causa huérfana/cruzada, fallo de
+XP/Bank/Duckies, guardado/verificación Rewards, snapshot corrupto y fallo de
+alias/conexión/bloqueo/timeout SQLite. Ninguno equivale a NO_REWARD o éxito.
+
+Verificar por namespace las causas rx1/rb1/ri1 confirmadas de esa identidad y
+destinatario. Una causa previa sin RewardEvent coherente no se adopta aunque
+la API propietaria pudiera recuperarla; tampoco se reparan causas ausentes o
+intercambiadas. El hash no garantiza por sí solo causalidad o autenticidad.
+No se promete protección ante administradores capaces de reescribir la historia.
+
+Concurrencia debe serializarse mediante IMMEDIATE o fallar de forma controlada,
+sin efectos parciales. Reintento posterior explícito: misma identidad original,
+nueva transacción y verificación del estado confirmado, sin retry automático.
+Los códigos HTTP definitivos corresponden a 3C respetando manejadores existentes;
+DOC-01 no fija una nueva política HTTP ni expone SQL, tokens, secretos o rutas.
+
+## 12. Aceptación pendiente por fases
+
+Estas pruebas están **planificadas, no ejecutadas en DOC-01**:
+
+| Fase | Evidencia exigida |
+| --- | --- |
+| 3A, esquema | Instalación limpia 0006 y actualización poblada 0005→0006; cinco ramas válidas y rechazo de combinaciones parciales/inconsistentes mediante INSERT/UPDATE; preservación exacta V1/V2/V3, IDs, claves, referencias, unicidades, FKs, índices y triggers; sin backfill o cambios históricos. |
+| 3B, efectos | Un RewardEvent con tres causas reales, XP700/cruces pertinentes, crédito5/Transaction y HINT1/ItemGrant; configuraciones anteriores intactas. |
+| 3B, transacción | Misma conexión nativa/default temporal protegido, savepoints y commit exterior único; fallos antes/después de XP, Bank, Duckies y al guardar/verificar Rewards revierten todo, incluido aprovisionamiento. |
+| 3B, concurrencia | Conexiones independientes para hechos iguales, incompatibles y distintos; bloqueo y timeout reales de cinco segundos; retry explícito sin duplicación o efectos parciales. |
+| 3B, historia | Conflictos, causas huérfanas/cruzadas, claves de otro destinatario, snapshots incompletos/extra/corruptos y tipos inválidos; replay tras gasto, consumo, XP adicional, reglas modificadas y reapertura, sin DML ni llamadas de concesión; regresiones estrictas V1/V2/V3. |
+| 3C, HTTP | Formulario sintético cerrado, firma/sesión/CSRF, campos extra/duplicados rechazados, confirmación tras commit y PRG; historial con tres causas, replay último/por fila, histórico frente a estado actual, errores saneados y Client real aislado; revisión visual escritorio/móvil. |
+
+3B/3C usarán subprocesos y default protegido real sobre archivos temporales
+desechables, auditoría de aperturas y cierre/limpieza completos. Mocks aislados
+no acreditan la combinación. Mantener runner normal/persistente y protección
+de las siete rutas personales; ninguna base personal es fixture.
+
+## 13. Secuencia, dependencias y exclusiones
+
+**DOC-01 → 3A esquema → 3B servicio/V4 → 3C HTTP.** Cada PR requiere revisión y
+fusión antes de iniciar la siguiente. DOC-01 no crea ramas de implementación.
+El contexto/token propuesto en §4 requiere ratificación técnica antes de 3B.
+
+Continúan pendientes Core/A3.5; USE-01B; TRACE-01B; F2-A productivo; identidad,
+autenticación y permisos globales del Equipo 0; contratos de hechos/emisores
+reales; valores oficiales de Óscar; integración productiva con propietarios;
+cualquier activación del escritor XP objetivo y recuperación distribuida entre
+bases/conexiones independientes. S3 V1 permanece como único escritor XP V1 activo
+fuera del laboratorio. F2-A productivo y la activación del escritor objetivo
+continúan pendientes. El núcleo XP sintético del laboratorio no supone una
+activación productiva.
+
+Según información transmitida por el Equipo 5, Henry comunicó el 24/10/2026 su
+intención de reutilizar Rewards–Duckies en una demo visual conjunta separada.
+No constituye aprobación o prueba de recompensas combinadas por Henry. No se
+modifican su rama/interfaz, Core, Bank, Duckies, Shop, V1, objetivo, settings o
+backend. No economía oficial, juegos reales, nuevos endpoints, consumo o
+equipamiento dentro de Rewards, tablas propietarias duplicadas o autorización
+productiva. La revisión humana de este contrato precede a toda implementación.
