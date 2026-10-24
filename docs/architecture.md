@@ -1204,3 +1204,34 @@ Secuencia obligatoria de PR: 2A arnés temporal real → 2B esquema/compatibilid
 anterior. No integración en la interfaz compartida de Henry. DAR3 mantiene
 autoridad; F2-A productivo, Core/A3.5, USE-01B y TRACE-01B siguen abiertos.
 Este incremento solo documenta; no ejecuta pruebas Django ni entrega objetos.
+
+## REW-MULTI-03-ARQ-01 · Recompensas combinadas sintéticas
+
+**Ratificación interna de Equipo 5 / 02C-2, 24/10/2026; DOC-01 exclusivamente
+documental.** En la baseline `8552c54ec1446ccd0e472eda6fdf9632584b2e82`,
+REW-MULTI-02 está implementado y validado en su alcance demostrativo individual,
+incluido HTTP 2D (#113). Los cortes históricos anteriores conservan su contexto.
+El coordinador y 0005 actuales excluyen combinaciones. La futura modalidad
+`combo_challenge` añadirá XP700, DuckyCoins5 y HINT1 en un RewardEvent/V4;
+no es una refactorización productiva ni reinterpreta modalidades V1/V2/V3.
+
+```text
+identidad → evaluación → XP → Bank → Duckies → RewardEvent/V4
+         → verificación causal → commit exterior
+```
+
+Una sola transacción IMMEDIATE/5 s sobre default protegido, mismo archivo y
+conexión nativa; núcleo XP interno y savepoints de APIs públicas Bank/Duckies.
+Rollback del conjunto, incluido aprovisionamiento. La combinación debe probarse
+en 3B; no la acredita la viabilidad individual anterior. Una identidad Rewards
+deriva rx1/rb1/ri1 sin cambiar sus codificaciones. V4 conserva tres causas
+históricas, recuperables sin nueva concesión ni dependencia del inventario/saldo
+actuales. Futura 0006 estructural posterior a 0005, sin reescribir historia.
+
+La [decisión interna](decisions.md#rew-multi-03-arq-01--recompensas-combinadas-sintéticas--24102026)
+y el [contrato combinado](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+separan hechos actuales, diseño ratificado y contexto/token V4 aún propuestos.
+Secuencia DOC-01 → 3A → 3B → 3C, con revisión/fusión previa a cada fase.
+DAR3 mantiene autoridad; Core/A3.5, USE-01B, TRACE-01B y F2-A productivo siguen
+abiertos. No cambios en V1/S3, otras apps, SQLite personales o interfaz de Henry;
+su coordinación comunicada por el equipo no ratifica recompensas combinadas.
