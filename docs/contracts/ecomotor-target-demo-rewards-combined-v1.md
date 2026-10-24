@@ -3,8 +3,12 @@
 ## 1. Estado, autoridad y fuentes
 
 **REW-MULTI-03-ARQ-01, ratificada internamente por Equipo 5 en 02C-2 el
-24/10/2026.** Este contrato documenta una ampliación futura del laboratorio;
-0006, el coordinador combinado y su HTTP no están implementados en este corte.
+24/10/2026.** El corte documental original #114 describía una ampliación futura.
+3A/0006 está integrada por #115. Sobre la baseline
+`f88f9be0ba09fad80224de0106cf6d9dc285fcc8`, 3B implementa el servicio y lector V4
+para revisión, con REW-MULTI-03-V4-01 ratificada internamente en 02C-2 el
+24/10/2026. HTTP combinado sigue pendiente de 3C. El corte y las pruebas de 3B
+se registran en [§14](#14-corte-3b--servicio-y-replay-v4).
 DAR3 conserva autoridad funcional. Sus requisitos de identidad/origen, no premiar
 dos veces y registro se recogen en [Rewards v0](rewards-v0.md); no atribuyen a
 DAR3 las cantidades, claves, esquema o transacción definidos aquí. El original
@@ -24,7 +28,7 @@ Sus pruebas históricas no son ejecuciones de DOC-01 ni prueban la combinación.
 
 ## 2. Baseline y hechos comprobados estáticamente
 
-Baseline local y remota: `develop` en
+Baseline del corte DOC-01: `develop` en
 `8552c54ec1446ccd0e472eda6fdf9632584b2e82`, con #113 integrada.
 El laboratorio reside en `apps/ecomotor/ecomotor_target_demo/`, conserva label
 `ecomotor_target_demo` y usa exclusivamente
@@ -34,11 +38,12 @@ Los [tipos F1-A](../../apps/ecomotor/reward_types.py) admiten una secuencia
 ordenada de efectos. [evaluate_reward](../../apps/ecomotor/reward_rules.py)
 selecciona una regla, sin autenticar, persistir ni conceder. No se necesitan
 tres reglas coincidentes: eso sería ambiguo, no una propuesta multiefecto.
-El [coordinador actual](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py)
-rechaza más de un efecto. Los [modelos](../../apps/ecomotor/ecomotor_target_demo/models.py)
+En aquel corte el [coordinador](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py)
+rechazaba más de un efecto. Los [modelos](../../apps/ecomotor/ecomotor_target_demo/models.py)
 y [0005](../../apps/ecomotor/ecomotor_target_demo/migrations/0005_rewards_duckies_schema.py)
-permiten cuatro resultados excluyentes. Por tanto, V4 requiere cambios posteriores
-del servicio y del CHECK; documentarlos no los activa.
+permitían cuatro resultados excluyentes. Después, #115 amplió únicamente el CHECK
+con [0006](../../apps/ecomotor/ecomotor_target_demo/migrations/0006_rewards_combined_schema.py).
+3B añade una rama V4 cerrada al coordinador, sin modificar esa migración.
 
 Los [servicios XP](../../apps/ecomotor/ecomotor_target_demo/services.py) ya ofrecen
 un núcleo privado sin commit y un exterior controlado. [isolation.py](../../apps/ecomotor/ecomotor_target_demo/isolation.py)
@@ -84,13 +89,31 @@ La [canonización F1-A](../../apps/ecomotor/reward_identity.py) y
 `occurred_at` firmado, es estable ante reenvíos. La huella semántica contrasta
 contenido; no sustituye identidad, autorización ni claves propietarias.
 
-**Concreción técnica propuesta, pendiente de ratificación antes de 3B:** contexto
-cerrado con `demo=REW-MULTI-03`, `fact_version=demo-fact-v4`,
-`mapping_version=demo-item-map-v1`, `item_code=demo-reward-hint-v1` y resultado
-`completed=true`. Se propone un token ligado a partida, propietario de sesión,
-actividad, fact_id, versión, contexto e instante original, con propósito firmado
-separado de XP/opciones. Su estructura exacta y compatibilidad deberán ratificarse;
-estos detalles no son requisitos DAR3 ni aprobación externa.
+**REW-MULTI-03-V4-01, ratificada internamente en 02C-2 el 24/10/2026:** la propuesta
+de DOC-01 queda concretada en resultado `{"completed":true}` y contexto exacto:
+
+```json
+{"demo":"REW-MULTI-03","fact_version":"demo-fact-v4","mapping_version":"demo-item-map-v1","item_code":"demo-reward-hint-v1"}
+```
+
+No campos adicionales o valores dinámicos. El token firmado contiene exactamente
+ocho campos: `progress` (PK entera exacta), `owner` (SHA-256 hexadecimal del
+secreto de sesión), `activity=combo_challenge`, `fact_id` (32 hex minúsculos),
+`fact_version=demo-fact-v4`, `occurred_at` (UTC ISO 8601, seis microsegundos y
+sufijo `+00:00`), `mapping_version=demo-item-map-v1` e
+`item_code=demo-reward-hint-v1`. No incluye result/context, User/Wallet/Ducky/Item,
+cantidades, saldos o XP actual. El servidor construye la semántica cerrada.
+
+Se reutilizan `signing.dumps(payload, salt=SALT)` y `signing.loads(token, salt=SALT)`,
+con el SALT histórico exacto `ecomotor.persistent-demo.reward-fact.v1`, sin salt
+V4 nuevo ni vencimiento propio. El propósito sigue separado de XP directa y
+opciones jugables. Una segunda decodificación exclusiva de V4 rechaza claves JSON
+duplicadas que el lector estándar colapsaría; no cambia el lector de tokens
+V1/V2/V3. Tipos estrictos, firma, propietario, partida, ocho claves exactas,
+actividad, versión, mapeo, código y fecha canónica se validan en servidor; bool
+no es PK entera. Campos ausentes/adicionales, mayúsculas en fact_id, zona/formato
+incorrectos o tokens cruzados se rechazan. No son requisitos DAR3 ni ratificación
+externa; se conserva `rewards-semantic-v1` sin modificar su canonicalizador.
 
 Misma identidad y huella compatible recupera el resultado confirmado; otra huella
 es conflicto sin escrituras. No se genera otra identidad o clave para eludirlo.
@@ -209,13 +232,16 @@ garantía de bloqueo por fila en SQLite.
 Fallo antes/después de cualquier efecto, guardado o comprobación final revierte
 el conjunto: aprovisionamiento User/Wallet/Ducky, XP/progreso/evoluciones,
 saldo/Transaction, inventario/ItemGrant y RewardEvent. No éxito antes del commit.
-La atomicidad combinada sigue **pendiente de demostración empírica en 3B**;
-las pruebas individuales anteriores no bastan. No se promete atomicidad
+En DOC-01 la atomicidad combinada quedó pendiente de demostración empírica en 3B;
+la evidencia propia de 3B se recoge en §14. Las pruebas individuales anteriores
+no sustituyen esa demostración. No se promete atomicidad
 distribuida ni se cambian backend, Bank, Duckies, Core o S3 para conseguirla.
 
 ## 9. Futura migración 0006
 
-Diseño exclusivamente documental: `ecomotor_target_demo.0006`, sucesora estricta
+El diseño siguiente corresponde a DOC-01 y quedó implementado por #115/3A,
+incluidas instalación nueva, copia física 0005→0006 y conservación V1/V2/V3.
+3B no cambia el esquema. `ecomotor_target_demo.0006`, sucesora estricta
 de `0005_rewards_duckies_schema`. Conservar xp_event, bank_transaction e
 item_grant: OneToOne nullable/PROTECT. Sin tablas adicionales o ledgers duplicados.
 Sustituir únicamente `demo_reward_outcome_valid` para admitir estas cinco ramas:
@@ -329,7 +355,7 @@ de las siete rutas personales; ninguna base personal es fixture.
 
 **DOC-01 → 3A esquema → 3B servicio/V4 → 3C HTTP.** Cada PR requiere revisión y
 fusión antes de iniciar la siguiente. DOC-01 no crea ramas de implementación.
-El contexto/token propuesto en §4 requiere ratificación técnica antes de 3B.
+El contexto/token de §4 quedó ratificado mediante REW-MULTI-03-V4-01 antes de 3B.
 
 Continúan pendientes Core/A3.5; USE-01B; TRACE-01B; F2-A productivo; identidad,
 autenticación y permisos globales del Equipo 0; contratos de hechos/emisores
@@ -347,3 +373,107 @@ modifican su rama/interfaz, Core, Bank, Duckies, Shop, V1, objetivo, settings o
 backend. No economía oficial, juegos reales, nuevos endpoints, consumo o
 equipamiento dentro de Rewards, tablas propietarias duplicadas o autorización
 productiva. La revisión humana de este contrato precede a toda implementación.
+
+## 14. Corte 3B · Servicio y replay V4
+
+Implementación para revisión desde `f88f9be0ba09fad80224de0106cf6d9dc285fcc8`,
+con #114/#115 integradas. V4-01 concreta §4; los apartados de DOC-01 y su plan
+conservan su procedencia histórica. 3A ya está integrada; 3C no se implementa.
+
+### Implementación y fronteras
+
+`reward_demo_rules.py` añade únicamente la actividad interna, el constructor V4
+cerrado y COMBO_RULE_SET. RULE_SET/ITEM_RULE_SET y las actividades HTTP anteriores
+mantienen versiones y semántica. `reward_demo_services.py` conserva las firmas
+públicas y DemoRewardResult frozen/slots: sus bloques Bank/Item existentes
+permiten expresar las tres causas sin nuevos modelos, DTO propietarios o tablas.
+SALT, `_xp_key`, `_bank_key` y `_item_key` permanecen exactos.
+
+El coordinador valida la propuesta completa antes del primer efecto y comprueba
+globalmente las tres claves preexistentes, sin adoptar causas. Reutiliza el
+núcleo XP privado en el exterior existente; Bank devuelve LedgerResult.created
+verdadero y Duckies se contrasta con ausencia previa y entrega persistida.
+Se verifica el contexto antes/después de APIs propietarias, fuera de savepoints.
+Guarda un APPLIED/V4 y relee toda su causalidad antes del único commit exterior.
+El aprovisionamiento perezoso reutiliza las invariantes sintéticas existentes;
+no crea Items, perfiles V1 o identidades durante token, consulta o replay.
+
+El lector `_recorded_combo` es exclusivo de V4, sin evaluación actual ni consulta
+de InventoryItem. Contrasta filas reales, claves/propietarios, huella histórica,
+regla/efectos exactos, ancla XP y evoluciones. Compara canónicamente el JSON
+completo reconstruido: claves omitidas/extrañas, bool como ID, floats, versiones
+desconocidas, referencias contradictorias y modalidades cruzadas se rechazan.
+También rechaza claves causales reutilizadas en otro destinatario. Las ramas
+V1/V2/V3 siguen separadas; combo no puede presentarse como un resultado antiguo.
+
+### Evidencia focalizada propia de 3B
+
+El arnés [reward_combo_fixture.py](../../apps/ecomotor/ecomotor_target_demo/reward_combo_fixture.py)
+configura default antes de django.setup, exige directorio temporal propietario
+nuevo, audita toda apertura SQLite y conserva backend/IMMEDIATE/timeout5.
+Solo migrate explícito crea el archivo; solo el fixture prepara el HINT.
+El padre verifica configuración/conexión/registro de apps, hashes personales y
+limpieza tras cerrar cada hijo. No se usa la partida personal como origen.
+
+Ejecución focalizada: cinco padres y 16 casos hijos, sin fallos/errores/omitidos
+en el pase final (53,137 s; hijos contabilizados aparte). Comprueba:
+
+- Una recompensa, tres causas, claves exactas; desde XP0, XP700/nivel8/Siglo XX
+  y seis evoluciones, Bank5 y HINT1. Reutilización de identidad e infraestructura
+  previa, XP no inicial, monedas/inventario existentes y configuración Gamer.
+- 36 variantes inválidas de token, incluido JSON duplicado; 12 propuestas
+  incompatibles/ambiguas, sin efectos parciales. Recursos inválidos, ItemLevel,
+  mapeo incompatible, overflow, exterior ajeno y frontera de alias rechazados.
+- 84 corrupciones de snapshot y 26 corrupciones causales rechazadas; causas
+  ausentes/cruzadas y namespaces huérfanos no se adoptan. Las referencias rotas
+  se fabrican exclusivamente en el fixture desechable, se restauran y se vuelven
+  a comprobar las FKs; no se cambia el backend ni el aislamiento.
+- Traza real `BEGIN IMMEDIATE → SAVEPOINT → RELEASE → SAVEPOINT → RELEASE → COMMIT`.
+  Orden de INSERT XP/Bank/ItemGrant/Reward, misma conexión nativa/default y
+  recompensa no visible desde lector independiente antes del commit.
+- 26 escenarios de rollback con infraestructura nueva y existente, incluido
+  aprovisionamiento, evolución intermedia, antes/después de escritores,
+  RewardEvent ya insertado, construcción V4 y validación final; todas las tablas
+  regresan al estado anterior, sin transacciones abiertas o efectos parciales.
+- Conexiones nativas independientes: hecho idéntico, identidad incompatible,
+  hechos distintos, competencia con XP directa y con monedas individuales.
+  Timeout real de 5,297 s y reintento explícito con misma identidad, sin duplicar.
+- Replay sin DML, escritores, evaluación o consulta de inventario tras gastar
+  monedas, equipar/consumir realmente el HINT en el fixture, ganar más XP,
+  cambiar reglas actuales y reabrir SQLite; convivencia V1/V2/V3/V4. Consumo y
+  equipamiento no forman parte del coordinador ni de HTTP.
+
+El primer pase focalizado detectó dos defectos del arnés (clase esperada de
+ambigüedad y restauración de updated_at al retirar una causa huérfana fabricada).
+Se corrigieron sin cambiar F1-A/Bank ni relajar las comprobaciones; el pase final
+incluye además variantes, causas ausentes y rollback intermedio ampliados.
+
+### Regresión completa ejecutada en 3B
+
+`python manage.py test --settings=apps.ecomotor.target_persistent_demo_settings --verbosity=1`
+terminó con código 0 usando DemoRunner original de dos fases:
+
+| Ámbito | Ejecutados | Correctos | Omitidos | Fallos/errores | Duración |
+| --- | --- | --- | --- | --- | --- |
+| Habitual | 1320 | 1318 | 2 | 0 | 180,421 s |
+| Persistente, padres | 139 | 139 | 0 | 0 | 661,423 s |
+| Casos hijos reportados | 105 en 36 informes | 105 | 0 | 0 | No se suman a los padres |
+
+Las omisiones habituales corresponden a la limitación de privilegios Windows
+para symlinks ya observada en el entorno; no se desactivan ni modifican pruebas.
+Los 16 casos nuevos forman parte de esos hijos. La regresión incluye XP/opciones,
+Rewards V1/V2/V3, consumo/replay Duckies, HTTP histórico y migraciones
+0004/0005/0006, sin modificar sus fixtures o expectativas. El propio fixture V4
+ejecutó Django check y makemigrations --check --dry-run exclusivamente contra su
+default temporal: sin incidencias ni cambios de modelos/migraciones pendientes.
+El timeout V4 observado en esta ejecución completa fue 5,313 s.
+
+Todos los informes hijos confirmaron cierre y aperturas limitadas al archivo
+temporal autorizado; el padre comprobó su eliminación y preservación de registro,
+conexión/configuración propias. Las siete rutas personales conservaron existencia
+y SHA-256. No migrate, seed, servidor o Django sobre una SQLite personal.
+
+No se demuestra atomicidad distribuida ni autenticidad productiva de emisores.
+Los snapshots no son certificados frente a administradores capaces de reescribir
+toda la base. Revisión humana y fusión de 3B preceden a cualquier trabajo 3C;
+no cambia la autoridad DAR3, el contrato candidato F2-A o dependencias Core.

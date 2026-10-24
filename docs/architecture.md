@@ -1235,3 +1235,29 @@ Secuencia DOC-01 → 3A → 3B → 3C, con revisión/fusión previa a cada fase.
 DAR3 mantiene autoridad; Core/A3.5, USE-01B, TRACE-01B y F2-A productivo siguen
 abiertos. No cambios en V1/S3, otras apps, SQLite personales o interfaz de Henry;
 su coordinación comunicada por el equipo no ratifica recompensas combinadas.
+
+## REW-MULTI-03-V4-01 · Servicio combinado del laboratorio, corte 3B
+
+Sobre develop `f88f9be0ba09fad80224de0106cf6d9dc285fcc8`, #114 documenta la
+arquitectura y #115 incorpora 0006. El corte DOC-01 anterior conserva su historia.
+La [decisión V4-01](decisions.md#rew-multi-03-v4-01--hecho-token-y-fingerprint-combinado--24102026),
+ratificada internamente en 02C-2 el 24/10/2026, fija resultado/contexto y los
+ocho campos firmados del hecho, reutilizando SALT y huella F1-A históricos.
+
+3B añade la actividad interna combo_challenge con regla V4 cerrada y exactamente
+tres propuestas ordenadas. El coordinador reutiliza el exterior IMMEDIATE/5 s:
+XP → Bank → Duckies → RewardEvent/V4 → verificación → commit. Las dos APIs
+propietarias mantienen savepoints sobre el mismo default protegido. No se
+modifican servicios XP generales, modelos, migraciones, backend o propietarios.
+
+Un único RewardEvent enlaza las tres causas. El lector V4 separado reconstruye
+el resultado desde historia real y compara estructura, tipos y causalidad;
+replay no invoca escritores, consulta inventario ni depende de reglas nuevas,
+saldo actual o posesión del HINT. V1/V2/V3 conservan sus ramas y JSON.
+El [contrato combinado, corte 3B](contracts/ecomotor-target-demo-rewards-combined-v1.md#14-corte-3b--servicio-y-replay-v4)
+registra pruebas físicas de atomicidad, rollback, concurrencia, timeout y replay.
+
+HTTP combinado/3C sigue pendiente: formulario, vistas, URLs y templates intactos.
+No concede autorización productiva, parámetros oficiales o integración Core;
+F2-A productivo, USE-01B y TRACE-01B continúan abiertos. Las SQLite personales
+no se utilizan para pruebas ni se migran.

@@ -29,6 +29,7 @@ SALT = "ecomotor.persistent-demo.reward-fact.v1"
 V1_SNAPSHOT_VERSION = "demo-reward-result-v1"
 SNAPSHOT_VERSION = "demo-reward-result-v2"
 ITEM_SNAPSHOT_VERSION = "demo-reward-result-v3"
+COMBO_SNAPSHOT_VERSION = "demo-reward-result-v4"
 
 
 class DemoRewardConfigurationError(ValueError):
@@ -123,7 +124,26 @@ def issue_reward_fact(progress, *, activity, session_token):
         if activity == "item_challenge":
             mapping = _new_item_mapping()
             payload.update(mapping_version=mapping.mapping_version, item_code=mapping.item_code)
+        if activity == "combo_challenge":
+            payload.update(mapping_version="demo-item-map-v1", item_code="demo-reward-hint-v1")
         return signing.dumps(payload, salt=SALT)
+
+
+class _V4TokenSerializer(signing.JSONSerializer):
+    """Second V4-only decode: Django's default JSON reader collapses duplicates."""
+
+    def loads(self, data):
+        def unique(pairs):
+            value = {}
+            for key, item in pairs:
+                if key in value:
+                    raise signing.BadSignature
+                value[key] = item
+            return value
+        try:
+            return json.loads(data.decode("latin-1"), object_pairs_hook=unique)
+        except (ValueError, UnicodeError):
+            raise signing.BadSignature from None
 
 
 def _fact(token, progress, owner, activity):
@@ -132,9 +152,15 @@ def _fact(token, progress, owner, activity):
         if type(token) is not str or len(token) > 1536:
             raise signing.BadSignature
         value = signing.loads(token, salt=SALT)
+        if activity == "combo_challenge":
+            value = signing.loads(token, salt=SALT, serializer=_V4TokenSerializer)
         expected = {"progress", "owner", "activity", "fact_id", "fact_version", "occurred_at"}
-        if activity == "item_challenge":
+        if activity in ("item_challenge", "combo_challenge"):
             expected |= {"mapping_version", "item_code"}
+        if activity == "combo_challenge" and (type(value) is not dict or set(value) != expected
+                or any(type(value[key]) is not str for key in expected - {"progress"})
+                or re.fullmatch("[0-9a-f]{64}", value["owner"]) is None):
+            raise signing.BadSignature
         if (type(value) is not dict or set(value) != expected
                 or type(value["progress"]) is not int or value["progress"] != progress.pk
                 or type(value["owner"]) is not str or not compare_digest(value["owner"], owner)
@@ -144,6 +170,13 @@ def _fact(token, progress, owner, activity):
         if activity == "item_challenge":
             mapping = rules.ITEM_MAPPINGS["demo-item-map-v1"]
             if value["mapping_version"] != mapping.mapping_version or value["item_code"] != mapping.item_code:
+                raise signing.BadSignature
+        if activity == "combo_challenge":
+            if (any(type(value[key]) is not str for key in expected - {"progress"})
+                    or value["mapping_version"] != "demo-item-map-v1"
+                    or value["item_code"] != "demo-reward-hint-v1"
+                    or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}\+00:00",
+                                    value["occurred_at"]) is None):
                 raise signing.BadSignature
         instant = _instant(value["occurred_at"])
         return rules.synthetic_fact(progress.pk, value["fact_id"], instant, activity)
@@ -235,6 +268,7 @@ def _grant_item(context, current, identity):
             or not 1 <= row.quantity < maximum for row in inventory)):
         raise xp.DemoIntegrityError("Inventario sintético incoherente o no representable.")
     before = inventory[0].quantity if inventory else 0
+    xp._check_xp_transaction(context)
     entry = duckies_service.grant_item(user, item, 1, key, item_level=None,
         reference_type="demo_reward_item_v1", reference_id=key)
     xp._check_xp_transaction(context)  # Duckies' inner savepoint is closed.
@@ -317,6 +351,13 @@ def _decision(value, *, activity=None):
         raise DemoRewardConfigurationError("Se requiere propuesta F1-A válida.")
     checked = RewardDecision(value.rule_set_version, value.matched_rule_id, value.eligible,
                              value.proposed_effects, value.reason_codes)
+    if activity == "combo_challenge":
+        if (checked.rule_set_version != "demo-rewards-rules-v4"
+                or checked.matched_rule_id != "demo-combo-challenge-v4" or checked.eligible is not True
+                or checked.reason_codes != () or checked.proposed_effects != (
+                    ProposedEffect("XP", 700), ProposedEffect("DUCKYCOINS", 5), ProposedEffect("ITEM", 1))):
+            raise DemoRewardConfigurationError("La actividad combinada exige su propuesta V4 completa y ordenada.")
+        return checked
     if (len(checked.rule_set_version) > 64 or (checked.matched_rule_id is not None and len(checked.matched_rule_id) > 64)
             or (checked.proposed_effects and (len(checked.proposed_effects) != 1
                 or checked.proposed_effects[0].effect_type not in
@@ -346,9 +387,9 @@ def _snapshot(result, current, *, anchor, schema=SNAPSHOT_VERSION):
         "catalog": {"pk": current.catalog_id, "catalog_id": current.catalog.catalog_id, "version": current.catalog.version},
         "anchor_xp_event_id": anchor,
         "progression": json.loads(_json(asdict(result.progression)))}
-    if schema in (SNAPSHOT_VERSION, ITEM_SNAPSHOT_VERSION):
+    if schema in (SNAPSHOT_VERSION, ITEM_SNAPSHOT_VERSION, COMBO_SNAPSHOT_VERSION):
         value.update(coin_amount=result.coin_amount, bank=asdict(result.bank) if result.bank is not None else None)
-    if schema == ITEM_SNAPSHOT_VERSION:
+    if schema in (ITEM_SNAPSHOT_VERSION, COMBO_SNAPSHOT_VERSION):
         value["item"] = asdict(result.item) if result.item is not None else None
     return value
 
@@ -377,8 +418,12 @@ def _initial_epoch(current, events):
 
 def _recorded(row, current, events, alias):
     """Cross-check JSON with stored identity, proposal, actual XP and causal rows."""
+    if type(row.snapshot) is dict and row.snapshot.get("schema") == COMBO_SNAPSHOT_VERSION:
+        return _recorded_combo(row, current, events, alias)
     if type(row.snapshot) is dict and row.snapshot.get("schema") == ITEM_SNAPSHOT_VERSION:
         return _recorded_item(row, current, events, alias)
+    if row.activity_type == "combo_challenge":
+        raise xp.DemoIntegrityError("Modalidad combinada sin snapshot histórico V4.")
     if getattr(row, "item_grant_id", None) is not None or row.activity_type == "item_challenge":
         raise xp.DemoIntegrityError("Causa Duckies sin snapshot histórico V3.")
     try:
@@ -490,6 +535,68 @@ def _recorded_item(row, current, events, alias):
         raise xp.DemoIntegrityError("Historia Duckies no representable.") from error
 
 
+def _recorded_combo(row, current, events, alias):
+    """V4 only: reconstruct three historical causes, never today's awards/state."""
+    try:
+        _bank_default(alias)
+        if (row.progress_id != current.pk or row.origin_code != "persist-demo-rewards"
+                or row.recipient_id != f"demo-progress:{current.pk}"
+                or type(row.fact_id) is not str or re.fullmatch("[0-9a-f]{32}", row.fact_id) is None
+                or row.activity_type != "combo_challenge" or row.status != "APPLIED"
+                or row.fingerprint_version != "rewards-semantic-v1"
+                or type(row.xp_amount) is not int or row.xp_amount != 700
+                or type(row.coin_amount) is not int or row.coin_amount != 5
+                or any(type(pk) is not int or not 0 < pk <= 2**63-1 for pk in
+                       (row.pk, row.xp_event_id, row.bank_transaction_id, row.item_grant_id))
+                or type(row.reason_codes) is not list):
+            raise xp.DemoIntegrityError("Identidad o modalidad combinada histórica incoherente.")
+        fact = rules.synthetic_fact(current.pk, row.fact_id, row.occurred_at, "combo_challenge")
+        if semantic_fingerprint(fact) != row.fingerprint:
+            raise xp.DemoIntegrityError("Huella combinada histórica incoherente.")
+        snap = row.snapshot
+        effects = snap.get("effects")
+        if type(effects) is not list or any(type(e) is not list or len(e) != 2 for e in effects):
+            raise xp.DemoIntegrityError("Propuesta combinada histórica incompleta.")
+        decision = _decision(RewardDecision(row.rule_set_version, row.matched_rule_id, snap.get("eligible"),
+            tuple(ProposedEffect(*e) for e in effects), tuple(row.reason_codes)), activity="combo_challenge")
+        event = next((e for e in events if e.pk == row.xp_event_id), None)
+        if event is None or event.operation_key != _xp_key(fact.identity) or event.amount != 700:
+            raise xp.DemoIntegrityError("Causa XP combinada ausente o incompatible.")
+        grant = xp._historical(event, current, alias, replay=True)
+        try:
+            entry = Transaction.objects.using(alias).get(pk=row.bank_transaction_id)
+            delivery = ItemGrant.objects.using(alias).select_related("item").get(pk=row.item_grant_id)
+        except (Transaction.DoesNotExist, ItemGrant.DoesNotExist) as error:
+            raise xp.DemoIntegrityError("Causa combinada histórica ausente.") from error
+        for field, key in (("xp_event_id", event.pk), ("bank_transaction_id", entry.pk),
+                           ("item_grant_id", delivery.pk)):
+            if Reward.objects.using(alias).filter(**{field: key}).exclude(pk=row.pk).exists():
+                raise xp.DemoIntegrityError("Causa combinada utilizada por otra recompensa.")
+        for model, key, pk in ((XPEvent, _xp_key(fact.identity), event.pk),
+                              (Transaction, _bank_key(fact.identity), entry.pk),
+                              (ItemGrant, _item_key(fact.identity), delivery.pk)):
+            if model.objects.using(alias).filter(operation_key=key).exclude(pk=pk).exists():
+                raise xp.DemoIntegrityError("Clave combinada cruzada entre destinatarios.")
+        bank = _bank_snapshot(entry, current, fact.identity, alias)
+        item = _item_snapshot(delivery, current, fact.identity, alias)
+        if bank.user_id != item.user_id:
+            raise xp.DemoIntegrityError("Destinatarios combinados incompatibles.")
+        causal = tuple(Evolution.objects.using(alias).filter(xp_event_id=event.pk)
+                       .order_by("ordinal").values_list("id", flat=True))
+        result = DemoRewardResult(row.pk, fact.identity, fact.activity_type, fact.occurred_at,
+            "APPLIED", row.fingerprint_version, row.fingerprint, decision, 700, event.pk,
+            causal, grant.progression, coin_amount=5, bank=bank, item=item)
+        # Canonical JSON comparison also distinguishes true/1 and 1.0/1, and
+        # rejects missing/extra nested keys without trusting mutable JSON IDs.
+        if _json(snap) != _json(_snapshot(result, current, anchor=event.pk, schema=COMBO_SNAPSHOT_VERSION)):
+            raise xp.DemoIntegrityError("Snapshot combinado no corresponde a las tres causas originales.")
+        return result
+    except (ValueError, TypeError, OverflowError) as error:
+        if isinstance(error, xp.DemoIntegrityError):
+            raise
+        raise xp.DemoIntegrityError("Historia combinada no representable.") from error
+
+
 def _history(current, alias):
     events, _ = xp._history(current, alias)
     if Reward.objects.using(alias).filter(xp_event__progress=current).exclude(progress=current).exists():
@@ -523,7 +630,7 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
         raise xp.DemoInputError("Se requiere una partida persistida.")
     fact = _fact(fact_token, progress, xp._owner(session_token), activity)
     fingerprint = semantic_fingerprint(fact)
-    if activity in ("coin_challenge", "item_challenge"):
+    if activity in ("coin_challenge", "item_challenge", "combo_challenge"):
         # Resolve the protected connection before any write. Historical XP-only
         # fixtures keep their own alias; Bank may never be routed to that alias.
         _bank_default(xp._connection().alias)
@@ -539,20 +646,29 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
         observation = calculate_target_progression(current.xp_total, current.xp_total, catalog)
         if (observation.level_after != current.current_level or observation.epoch_after_code != current.current_epoch.code):
             raise xp.DemoIntegrityError("Progreso Rewards incoherente con el catálogo.")
-        decision = _decision(evaluate_reward(fact,
+        combo = activity == "combo_challenge"
+        decision = _decision(evaluate_reward(fact, rules.COMBO_RULE_SET if combo else
             rules.ITEM_RULE_SET if activity == "item_challenge" else rules.RULE_SET), activity=activity)
         effect = decision.proposed_effects[0] if decision.proposed_effects else None
-        coins = effect.quantity if effect is not None and effect.effect_type == "DUCKYCOINS" else 0
-        amount = effect.quantity if effect is not None and effect.effect_type == "XP" else 0
-        is_item = effect is not None and effect.effect_type == "ITEM"
-        if bool(coins) != (activity == "coin_challenge") or is_item != (activity == "item_challenge"):
+        coins = 5 if combo else effect.quantity if effect is not None and effect.effect_type == "DUCKYCOINS" else 0
+        amount = 700 if combo else effect.quantity if effect is not None and effect.effect_type == "XP" else 0
+        is_item = combo or (effect is not None and effect.effect_type == "ITEM")
+        if bool(coins) != (activity in ("coin_challenge", "combo_challenge")) or is_item != (activity in ("item_challenge", "combo_challenge")):
             raise DemoRewardConfigurationError("Propuesta incompatible con la actividad sintética.")
+        if combo:
+            # All namespaces checked before the first effect or provisioning.
+            for model, key in ((XPEvent, _xp_key(fact.identity)), (Transaction, _bank_key(fact.identity)),
+                               (ItemGrant, _item_key(fact.identity))):
+                if model.objects.using(alias).filter(operation_key=key).exists():
+                    raise xp.DemoIntegrityError("Causa combinada previa sin recompensa; no se adopta.")
         bank, item = None, None
         if amount:
             key = _xp_key(fact.identity)
             if XPEvent.objects.using(alias).filter(progress=current, operation_key=key).exists():
                 raise xp.DemoIntegrityError("Colisión causal Rewards no recuperable automáticamente.")
             grant = xp._grant_xp_in_transaction(context, amount=amount, operation_key=key)
+            if combo and grant.replay:
+                raise xp.DemoIntegrityError("La causa XP combinada no es nueva.")
             current = xp._progress(current.pk, context.owner, alias)
             observation = grant.progression
             xp_id = grant.event_id
@@ -569,6 +685,7 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
                 raise xp.DemoIntegrityError("Causa Bank previa sin recompensa; no se adopta.")
             user, wallet = _wallet(current, alias, provision=True)
             before_balance = wallet.available_balance
+            xp._check_xp_transaction(context)
             ledger = bank_service.credit_coins(user, 5, source=rules.ORIGIN,
                 issuing_entity="EcomotorDemo", operation_key=key,
                 reference_type="demo_reward_fact_v1", reference_id=key)
@@ -598,7 +715,7 @@ def apply_demo_reward(progress, *, activity, fact_token, session_token):
             status=result.status, reason_codes=list(decision.reason_codes), xp_amount=amount, xp_event_id=xp_id,
             coin_amount=coins, bank_transaction_id=bank.transaction_id if bank is not None else None,
             snapshot=_snapshot(result, current, anchor=anchor,
-                schema=ITEM_SNAPSHOT_VERSION if is_item else SNAPSHOT_VERSION), **cause)
+                schema=COMBO_SNAPSHOT_VERSION if combo else ITEM_SNAPSHOT_VERSION if is_item else SNAPSHOT_VERSION), **cause)
         # Includes the new row and actual causal tables; any failure rolls back XP too.
         observed = next(r for r in _history(current, alias) if r.event_id == row.pk)
         return observed

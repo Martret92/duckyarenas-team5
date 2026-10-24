@@ -1763,12 +1763,34 @@ class RewardsDuckiesHTTPSubprocessTests(TestCase):
         self.assertEqual(self.child("http-compatibility")["tests"], 1)
 
 
+class RewardsComboSubprocessTests(TestCase):
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_combo_fixture",
+            prefix="ducky-rewards-combo-", marker="COMBO_DEFAULT_EVIDENCE=")
+
+    def test_functional_v4_and_historical_replay(self):
+        self.assertEqual(self.child("functional")["tests"], 3)
+
+    def test_closed_v4_token_and_complete_proposal(self):
+        self.assertEqual(self.child("validation")["tests"], 3)
+
+    def test_strict_snapshot_real_causes_and_orphans(self):
+        self.assertEqual(self.child("integrity")["tests"], 3)
+
+    def test_shared_transaction_and_complete_rollback(self):
+        self.assertEqual(self.child("atomicity")["tests"], 2)
+
+    def test_independent_concurrency_and_real_timeout(self):
+        self.assertEqual(self.child("concurrency")["tests"], 5)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
