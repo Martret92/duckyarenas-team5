@@ -1,7 +1,8 @@
 # REW-MULTI-02-DOC-01 · Rewards → Duckies en el laboratorio persistente
 
-Las secciones 1–10 registran el corte documental original de #109. El estado
-posterior implementado en 2C y sus evidencias se describen en la sección 11.
+Las secciones 1–10 registran el corte documental original de #109. El servicio
+2C y sus evidencias se describen en la sección 11; el corte HTTP 2D posterior,
+en la sección 12. Cada corte conserva su contexto histórico.
 
 ## 1. Estado, autoridad y alcance
 
@@ -469,3 +470,154 @@ coordinada por un administrador de BD. La entrega histórica tampoco certifica
 inventario presente. Falta HTTP 2D, incluida presentación autorizada del inventario;
 no se arranca esta fase sobre una SQLite personal ni se activa F2-A productivo,
 USE-01B, TRACE-01B, juegos reales o integración Core.
+
+## 12. Corte 2D · HTTP local e inventario presente
+
+Sobre develop `467724c1ffe8ad7c0dc115037293d256a18644a1`, con #112 integrada,
+se publica el servicio 2C en la interfaz local existente. **Arquitectura ratificada
+internamente por Equipo 5 en 02C-2**, según el traspaso 2D; no es autorización
+productiva de Henry, Core o DAR3. Las afirmaciones anteriores sobre HTTP pendiente
+describen sus respectivos cortes históricos. No cambia el algoritmo de concesión,
+las reglas, el mapeo, las claves ri1 o el snapshot V3 de 2C.
+
+### 12.1. Formulario, sesión y resultado
+
+Se conserva `/demo/objetivo-persistente/`, nombre `persistent-demo`, vista home
+y GET/POST, sin rutas adicionales. RewardDemoForm publica cuatro opciones cerradas:
+challenge XP700, coin_challenge monedas5, item_challenge HINT1 y visit NO_REWARD.
+Solo admite action=reward, activity, fact_token y CSRF; campos extra, duplicados
+o ausentes se rechazan. Identidad, destinatario, Item, cantidad, variantes, reglas
+y referencias causales siguen resolviéndose en servidor.
+
+La sesión propietaria y el token firmado emitido por issue_reward_fact mantienen
+partida, actividad e instante original. La vista llama a apply_demo_reward real;
+no invoca grant_item directamente. Después del commit correcto devuelve 302/PRG
+y aviso específico «APPLIED: HINT sintético entregado y registrado». Replay
+comunica recuperación histórica sin otra concesión; ITEM nunca se muestra como
+NO_REWARD o +0 XP. El aviso se consume al visualizarse en GET y se descarta al
+procesar otro POST; los errores no presentan confirmaciones nuevas.
+
+Se conservan replay del último hecho y por fila con los tokens históricos de la
+sesión. El botón no depende del inventario actual. Reiniciar partida limpia esos
+tokens/avisos del nuevo contexto sin borrar historia almacenada. No se aceptan
+PK de partida, User, Wallet, Ducky o Transaction desde GET/POST como autorización.
+CSRF y cookies/sesiones globales permanecen intactos.
+
+### 12.2. Consulta de inventario sin efectos
+
+read_demo_inventory(progress, session_token=...) abre su propia frontera protegida
+_xp_transaction y comprueba pertenencia e historia antes de consultar posesión.
+Devuelve DemoInventoryOverview frozen/slots, con solo item_prepared,
+user_provisioned, ducky_provisioned y quantity; no expone modelos ORM ni IDs.
+
+| Observación | Presentación |
+| --- | --- |
+| User ausente | Identidad no aprovisionada; quantity=NULL. |
+| User válido de Bank y Wallet, sin Ducky ni causa ITEM histórica | Ducky no aprovisionado; quantity=NULL, sin crearlo. |
+| Código del mapeo sin Item preparado | Artículo no preparado; quantity=NULL, sin crear artículos. |
+| User/Wallet/Ducky válidos e Item registrado, sin posesión | quantity=0. |
+| Posesión actual válida | quantity entera exacta positiva, dentro del rango SQLite. |
+
+Reutiliza _wallet y _ducky sin aprovisionamiento. get_item_ownership público se
+llama solo con identidad e Item resueltos y exige entonces el mismo default
+protegido que Duckies utiliza implícitamente. Las observaciones sin User siguen
+siendo compatibles con el alias aislado de los fixtures históricos, sin llamar
+a servicios Duckies sobre otra conexión. Resolver Item usa exclusivamente el
+mapeo histórico cerrado del servidor.
+
+item_prepared informa de la existencia del código para consulta, no de autorización
+para entregar: un premio nuevo sigue requiriendo todas las comprobaciones 2C,
+incluida actividad/categoría/configuración actual. Consultar una entrega histórica
+no exige que el Item siga activo. Historia que exige User/Ducky/ItemGrant ausentes
+o incoherentes produce error de integridad, nunca un inventario vacío ni reparación.
+
+La cantidad presente procede de get_item_ownership, no de DemoRewardResult.item.
+No INSERT/UPDATE/DELETE, aprovisionamiento ni reparaciones en esta consulta.
+La emisión de tokens y el motor de sesiones HTTP pueden mantener django_session;
+no se confunden esas escrituras con XP, Bank, entregas o inventario.
+
+Cada consulta de progreso, Bank, Rewards o inventario es coherente por separado.
+**No se promete un snapshot transaccional global de toda la página**.
+
+### 12.3. Historial e interfaz
+
+El historial presenta ITEM antes de monedas, XP y NO_REWARD. Muestra HINT,
+cantidad histórica 1, ItemGrant, código/mapeo y referencias, regla y versión.
+La sección «Inventario HINT sintético» presenta por separado preparación,
+aprovisionamiento y cantidad actual, incluida cero después del consumo. Los
+campos de Django se escapan; no se imprimen secretos de sesión o rutas SQLite.
+
+Se reutilizan los paneles, tablas y grid responsive existentes, sin cambiar CSS.
+No botones de equipar, consumir, comprar, transferir o gestionar variantes.
+La pantalla aclara que usa modelos Django Duckies auténticos con datos sintéticos,
+sin avatar/inventario productivo ni integración Henry/Core. XP, Bank, opciones,
+Gamer/Romano y redistribuciones conservan su experiencia.
+
+### 12.4. Errores y pruebas del corte
+
+| Caso | HTTP |
+| --- | --- |
+| Premio nuevo confirmado o replay válido | 302 con PRG. |
+| Formulario inválido, extras/duplicados/ausencias o GET con parámetros | 400. |
+| Token/sesión/partida ajenos, firma o actividad incompatible; fallo CSRF | 403. |
+| Conflicto semántico o historia/identidades causales incoherentes | 409. |
+| Item ausente/inactivo/incompatible para conceder, SQL o timeout | 503. |
+| Método no admitido | 405. |
+
+Se preservan los manejadores específicos, sin except Exception ni detalles SQL,
+tokens, rutas privadas o trazas. Los fallos no se traducen en NO_REWARD.
+
+El arnés Duckies añade siete grupos 2D independientes (flujo, replay, consumo y
+consulta, sesiones, CSRF/entradas, errores y compatibilidad). Client real con
+enforce_csrf_checks=True, sesión Django, default file-backed temporal auditado,
+coordinador 2C y APIs Duckies reales. No se sustituye el coordinador por mocks.
+Una inyección SQL controlada prueba el saneamiento del error de lectura; el
+timeout se provoca con otra conexión real, sin reintentos automáticos.
+
+Los grupos preservan los casos 2A/2C. Única adaptación histórica autorizada
+expresamente en 01B-2: la aserción que excluía item_challenge del formulario en
+2C ahora comprueba su inclusión ratificada en 2D. No se relajan validaciones de
+concesión, replay, causas, rollback, concurrencia o esquema. load_tests registra
+los siete padres una sola vez, sin herencia ni duplicación de casos anteriores.
+
+La prueba concede por HTTP, equipa/consume solo dentro del fixture con las APIs
+reales y verifica GET con cantidad cero, ItemGrant histórico conservado y replay
+sin segunda entrega. También prueba consultas sin DML, cinco estados del DTO,
+dos sesiones, reinicio de partida, parámetros de autoridad, HTML escapado, códigos
+controlados, bloqueo real y recuperación explícita. Compatibilidad V1/V2 y las
+otras modalidades se contrastan además mediante sus regresiones existentes.
+
+La SQLite personal permanece sin migrar ni sembrar. No se arranca runserver contra
+ella ni se utiliza como fixture. La preparación del HINT sigue siendo explícita
+y exclusiva de datos sintéticos aislados: GET y POST de la vista no crean Items.
+Este corte no implementa F2-A productivo, USE-01B, TRACE-01B, integración Core,
+interfaz compartida de Henry, consumo HTTP o efectos combinados.
+
+### 12.5. Resultados ejecutados en 2D
+
+Verificación del 24/10/2026 en Windows/Python 3.12/Django 5.2.17, sobre archivos
+desechables. Estos recuentos son nuevas ejecuciones, no resultados reutilizados
+del corte 2C:
+
+| Ejecución | Resultado |
+| --- | --- |
+| Focalizada HTTP/consulta 2D | 7 padres aprobados, 0 fallos/omisiones, 47,403 s. |
+| Casos hijos 2D, contabilizados separadamente | 14 aprobados: flujo 2, replay 1, consumo/consulta 2, sesiones 1, seguridad 3, errores 4 y compatibilidad 1. |
+| Runner de dos fases, registro habitual | 1320 tests: 1318 aprobados, 2 omitidos, 0 fallos; 194,213 s. |
+| Mismo runner, fase persistente completa | 132 padres aprobados, 0 fallos/omisiones; 556,782 s. Incluye los 7 nuevos, sin sumar de nuevo sus hijos. |
+
+Las dos omisiones se reprodujeron por separado: Windows deniega crear symlinks
+reales (WinError 1314). No se omiten casos nuevos ni se desactivan regresiones.
+El timeout HTTP ITEM observado en la suite completa fue 5,484 s; 503 saneado,
+cero efectos parciales y reintento/replay explícitos sin duplicación.
+
+Se comprobaron consumo real desde el fixture, GET con cantidad cero e historial
+con cantidad entregada 1, y los formularios original/último/por fila sin entrega
+adicional. SQL inesperado, corrupción y entradas ajenas no producen confirmación.
+Las regresiones preservan los JSON V1/V2 y nueve replays históricos tras la
+migración temporal 0004→0005. Checks Django correctos en ambas fases; check y
+makemigrations --check --dry-run también dentro del default temporal protegido,
+sin cambios de modelos. Enlaces locales y git diff --check correctos, siete
+hashes protegidos idénticos. No se ejecutó runserver ni revisión visual de móvil
+o navegador contra una SQLite personal; la validación funcional fue HTTP real
+con Django Client, no una simulación del coordinador.

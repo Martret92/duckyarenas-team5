@@ -41,6 +41,9 @@ def home(request):
         secret = request.session.get("demo_secret")
         pk = request.session.get("demo_progress")
         if request.method == "POST":
+            # An unsuccessful attempt must not leave a previous confirmation
+            # looking like the outcome of this request or the following GET.
+            request.session.pop("reward_notice", None)
             actions = request.POST.getlist("action")
             action = actions[0] if len(actions) == 1 else "grant"
             bound = (RewardDemoForm(request.POST) if action == "reward" else
@@ -69,9 +72,10 @@ def home(request):
                     confirmed[str(result.event_id)] = request.session["reward_last"]
                     request.session["reward_confirmed_tokens"] = confirmed
                     request.session["reward_notice"] = ("Replay Rewards histórico: sin nuevas concesiones; no se ha vuelto a acreditar." if result.replay
+                        else "APPLIED: HINT sintético entregado y registrado." if result.item is not None
                         else "APPLIED: +5 DuckyCoins ficticias confirmadas." if result.coin_amount
                         else f"APPLIED: +{result.xp_amount} XP sintéticas y recompensa confirmadas juntas." if result.status == "APPLIED"
-                        else "NO_REWARD: visita válida registrada, sin concesión de XP ni monedas.")
+                        else "NO_REWARD: visita válida registrada, sin concesión de XP ni monedas ni objetos.")
                     tokens = dict(request.session.get("reward_tokens", {}))
                     if tokens.get(values["activity"]) == values["fact_token"]:
                         tokens.pop(values["activity"])
@@ -152,11 +156,12 @@ def home(request):
                 context["playable_replay_form"] = PlayableForm(action=saved["action"], initial=saved, auto_id="replay_%s")
             bank = rewards.read_demo_bank(progress, session_token=secret)
             context.update(bank=bank, reward_history=bank.rewards)
+            context["inventory"] = rewards.read_demo_inventory(progress, session_token=secret)
             confirmed = request.session.get("reward_confirmed_tokens", {})
             context["reward_cards"] = tuple({"result": result, "replay": RewardDemoForm(
                 initial=confirmed[str(result.event_id)], auto_id=f"reward_history_{result.event_id}_%s")
                 if str(result.event_id) in confirmed else None} for result in bank.rewards)
-            context["reward_notice"] = request.session.get("reward_notice") if request.method == "GET" else None
+            context["reward_notice"] = request.session.pop("reward_notice", None) if request.method == "GET" else None
             tokens = dict(request.session.get("reward_tokens", {}))
             missing = False
             reward_forms = []
