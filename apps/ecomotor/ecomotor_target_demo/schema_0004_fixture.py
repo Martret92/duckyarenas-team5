@@ -70,7 +70,18 @@ def run(root, scenario):
                 "pid": os.getpid(), "observations": []}
 
     def command(*args, **kwargs):
-        return call_command(*args, stdout=StringIO(), stderr=StringIO(), **kwargs)
+        result = call_command(*args, stdout=StringIO(), stderr=StringIO(), **kwargs)
+        # Keep this historical app frontier; still install other apps normally.
+        if args[:2] == ("migrate", "ecomotor_target_demo") and args[2] == "0005_rewards_duckies_schema":
+            executor = MigrationExecutor(db)
+            targets = [node for node in executor.loader.graph.leaf_nodes()
+                       if node[0] != "ecomotor_target_demo"] + [("ecomotor_target_demo", "0005_rewards_duckies_schema")]
+            if executor.migration_plan(targets):
+                executor.migrate(targets)
+                from django.core.management.sql import emit_post_migrate_signal
+                emit_post_migrate_signal(0, False, "default",
+                    apps=executor.loader.project_state(targets).apps, stdout=StringIO())
+        return result
 
     def normalized(result):
         value = asdict(replace(result, replay=False))
@@ -184,7 +195,7 @@ def run(root, scenario):
         def test_historical_copy(self):
             old = json.loads((root / "historical.json").read_text(encoding="utf-8"))
             self.assertEqual(rows(), old["rows"])
-            command("migrate", interactive=False)
+            command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             after = rows()
             for table, previous in old["rows"].items():
                 columns = after[table]["columns"]
@@ -255,16 +266,19 @@ def run(root, scenario):
 
         def repeat_migrate(self):
             with CaptureQueriesContext(db) as queries:
-                command("migrate", interactive=False)
+                command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             self.assertFalse(any(q["sql"].lstrip().upper().startswith(
                 ("INSERT", "UPDATE", "DELETE", "REPLACE", "CREATE", "DROP", "ALTER")) for q in queries))
             executor = MigrationExecutor(db)
-            self.assertEqual(executor.migration_plan(executor.loader.graph.leaf_nodes()), [])
+            self.assertEqual(executor.migration_plan([node for node in executor.loader.graph.leaf_nodes()
+                if node[0] != "ecomotor_target_demo"] + [("ecomotor_target_demo", "0005_rewards_duckies_schema")]), [])
+            self.assertNotIn(("ecomotor_target_demo", "0006_rewards_combined_schema"),
+                             executor.loader.applied_migrations)
             command("makemigrations", check=True, dry_run=True)
             command("check")
 
         def test_fresh_schema_constraints(self):
-            command("migrate", interactive=False)
+            command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             command("seed_persistent_target_demo")
             self.assertEqual(get_user_model().objects.count(), 0)
             self.assertEqual(Wallet.objects.count(), 0)
