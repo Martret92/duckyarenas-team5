@@ -83,7 +83,18 @@ def run(root, scenario):
                 "pid": os.getpid(), "observations": []}
 
     def command(*args, **kwargs):
-        return call_command(*args, stdout=StringIO(), stderr=StringIO(), **kwargs)
+        result = call_command(*args, stdout=StringIO(), stderr=StringIO(), **kwargs)
+        # Keep this historical app frontier; still install other apps normally.
+        if args[:2] == ("migrate", "ecomotor_target_demo") and args[2] == "0005_rewards_duckies_schema":
+            executor = MigrationExecutor(db)
+            targets = [node for node in executor.loader.graph.leaf_nodes()
+                       if node[0] != "ecomotor_target_demo"] + [("ecomotor_target_demo", "0005_rewards_duckies_schema")]
+            if executor.migration_plan(targets):
+                executor.migrate(targets)
+                from django.core.management.sql import emit_post_migrate_signal
+                emit_post_migrate_signal(0, False, "default",
+                    apps=executor.loader.project_state(targets).apps, stdout=StringIO())
+        return result
 
     def normalized(result):
         value = asdict(replace(result, replay=False))
@@ -192,11 +203,12 @@ def run(root, scenario):
         def repeat_migrate_and_check(self):
             before = rows()
             with CaptureQueriesContext(db) as queries:
-                command("migrate", interactive=False)
+                command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             assert_readonly(self, queries)
             self.assertEqual(rows(), before)
             executor = MigrationExecutor(db)
-            self.assertEqual(executor.migration_plan(executor.loader.graph.leaf_nodes()), [])
+            self.assertEqual(executor.migration_plan([node for node in executor.loader.graph.leaf_nodes()
+                if node[0] != "ecomotor_target_demo"] + [("ecomotor_target_demo", "0005_rewards_duckies_schema")]), [])
             self.assertIn(latest, executor.loader.applied_migrations)
             migration = executor.loader.disk_migrations[latest]
             self.assertEqual(migration.dependencies, [previous,
@@ -204,12 +216,14 @@ def run(root, scenario):
             self.assertEqual([type(op).__name__ for op in migration.operations],
                              ["RemoveConstraint", "AddField", "AddConstraint"])
             command("check", databases=["default"])
+            self.assertNotIn(("ecomotor_target_demo", "0006_rewards_combined_schema"),
+                             executor.loader.applied_migrations)
             command("makemigrations", check=True, dry_run=True)
             self.assertEqual(rows(), before)
             self.assertFalse(db.in_atomic_block or db.connection.in_transaction)
 
         def test_fresh_installation_and_repeat(self):
-            command("migrate", interactive=False)
+            command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             for model in (get_user_model(), Wallet, Transaction, Ducky, Item, ItemGrant,
                           InventoryItem, models.DemoTargetProgress, Reward):
                 self.assertEqual(model.objects.count(), 0, model.__name__)
@@ -350,7 +364,7 @@ def run(root, scenario):
             before_executor = MigrationExecutor(db)
             self.assertIn(previous, before_executor.loader.applied_migrations)
             self.assertNotIn(latest, before_executor.loader.applied_migrations)
-            command("migrate", interactive=False)
+            command("migrate", "ecomotor_target_demo", "0005_rewards_duckies_schema", interactive=False)
             after = rows()
             self.assertEqual(set(after), set(old["rows"]))
             for name, prior in old["rows"].items():

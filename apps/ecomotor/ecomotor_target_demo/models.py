@@ -147,6 +147,8 @@ class DemoTargetRewardEvent(models.Model):
                     coin_amount__gt=0, bank_transaction__isnull=False, item_grant__isnull=True)
                 | models.Q(status="APPLIED", xp_amount=0, xp_event__isnull=True,
                     coin_amount=0, bank_transaction__isnull=True, item_grant__isnull=False)
+                | models.Q(status="APPLIED", xp_amount__gt=0, xp_event__isnull=False,
+                    coin_amount__gt=0, bank_transaction__isnull=False, item_grant__isnull=False)
                 | models.Q(status="NO_REWARD", xp_amount=0, xp_event__isnull=True,
                     coin_amount=0, bank_transaction__isnull=True, item_grant__isnull=True)), name="demo_reward_outcome_valid"),
             models.CheckConstraint(condition=models.Q(xp_amount__lte=MAX_XP), name="demo_reward_xp_range"),
