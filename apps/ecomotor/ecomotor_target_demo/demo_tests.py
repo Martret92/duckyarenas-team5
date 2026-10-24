@@ -478,10 +478,16 @@ class PersistentTests(TestCase):
         with self.assertRaises(services.DemoIntegrityError): self.grant(progress, token=token)
         self.assertEqual(DemoTargetXPEvent.objects.using(self.alias).count(), 0)
 
-    def test_no_user_or_selection_relationships_in_demo_schema(self):
+    def test_only_explicit_nullable_synthetic_user_relationship_in_demo_schema(self):
+        from django.contrib.auth import get_user_model
         for model in (DemoTargetProgress, DemoTargetXPEvent, DemoTargetEvolutionEvent):
             for field in model._meta.fields:
                 if field.is_relation:
+                    if model is DemoTargetProgress and field.name == "synthetic_user":
+                        self.assertIs(field.related_model, get_user_model())
+                        self.assertTrue(field.one_to_one and field.null)
+                        self.assertEqual(field.remote_field.on_delete.__name__, "PROTECT")
+                        continue
                     self.assertIn(field.related_model._meta.app_label, ("ecomotor", "ecomotor_target_demo"))
         from apps.ecomotor import target_persistent_demo_settings as production
         self.assertEqual(production.SESSION_COOKIE_NAME, "target_persistent_demo_session")
@@ -988,6 +994,26 @@ from apps.ecomotor.reward_types import RewardDecision, RewardRuleSet, ProposedEf
 
 
 class RewardTests(PlayableTests):
+    def test_unprovisioned_bank_read_keeps_historical_alias_and_no_writes(self):
+        progress = self.new()
+        before = self.rows()
+        with patch.object(rewards.bank_service, "wallet_summary", side_effect=AssertionError("no Wallet")), patch.object(rewards.bank_service, "transaction_history", side_effect=AssertionError("no Wallet")), CaptureQueriesContext(self.db) as queries:
+            overview = rewards.read_demo_bank(progress, session_token=SECRET)
+        self.assertEqual((overview.provisioned, overview.balance, overview.movements), (False, None, ()))
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE", "REPLACE")) for q in queries))
+
+    def test_coin_alias_rejected_before_writes_and_bank(self):
+        progress = self.new()
+        token = self.fact_token(progress, "coin_challenge")
+        before = self.rows()
+        with patch.object(rewards.bank_service, "credit_coins", side_effect=AssertionError("wrong alias")) as credit, CaptureQueriesContext(self.db) as queries:
+            with self.assertRaises(services.DemoTransactionError):
+                self.reward(progress, "coin_challenge", token)
+        credit.assert_not_called()
+        self.assertEqual(self.rows(), before)
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE", "REPLACE")) for q in queries))
+
     def fact_token(self, progress, activity="challenge", secret=SECRET):
         return rewards.issue_reward_fact(progress, activity=activity, session_token=secret)
 
@@ -1386,9 +1412,11 @@ class ConsolidationTests(PersistentTests):
             self.assertEqual(model.__module__, config.name + ".models")
         hashes = {"0001_initial":"09f7eb21fb13aebfcb99dd7951d8c4a434db68e1775b07026edc679863246522",
                   "0002_playable_configurations":"baf12dd0a66bd08416b5703fc4bb05758906a53fe74cc3a802f9f86376d83989",
-                  "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b"}
+                  "0003_synthetic_rewards":"0adbd48a735a480d74a00bf8325a9b65e5c1d3acdbe5c9aaf38a830d14f2be8b",
+                  "0004_rewards_bank_schema":"6f740210d76395e28ea3135cec1d3a569a26bd7197b92df5720f913f23434a27"}
         loader = MigrationLoader(self.db)
-        self.assertEqual({name for app,name in loader.disk_migrations if app==config.label}, set(hashes))
+        self.assertEqual({name for app,name in loader.disk_migrations if app==config.label},
+                         set(hashes) | {"0005_rewards_duckies_schema", "0006_rewards_combined_schema"})
         self.assertTrue({(config.label,name) for name in hashes} <= set(loader.applied_migrations))
         for name,digest in hashes.items():
             source = Path(import_module(config.name + ".migrations." + name).__file__).read_text(encoding="utf-8")
@@ -1423,12 +1451,346 @@ class ConsolidationTests(PersistentTests):
         self.assertEqual(len([row for row in before["django_content_type"] if row[1]=="ecomotor_target_demo"]),7)
 
 
+class BankDefaultSubprocessTests(TestCase):
+    """Do not inherit persistent_fixture or replace the parent's default."""
+
+    def child(self, scenario, *, module="apps.ecomotor.ecomotor_target_demo.bank_default_fixture",
+              prefix="ducky-bank-default-", marker="BANK_DEFAULT_EVIDENCE="):
+        from copy import deepcopy
+        import json
+        import os
+        import subprocess
+        import sys
+        from .isolation import MIGRATING
+        from . import test_runner
+
+        root_repo = Path(__file__).resolve().parents[3]
+        protected = [root_repo / name for name in (
+            "db.sqlite3", "db_preview.sqlite3", "instance/target_demo.sqlite3",
+            "instance/target_persistent_demo.sqlite3", "local_settings.py",
+            "local_urls.py", "local_demo_seed.py")]
+
+        def hashes():
+            return {str(p): sha256(p.read_bytes()).hexdigest() if p.is_file() else None for p in protected}
+
+        parent = connections["default"]
+        original_native = parent.connection
+        original_config = deepcopy(connections.databases)
+        original_state = (parent.autocommit, parent.in_atomic_block, tuple(parent.atomic_blocks),
+                          settings.BASE_DIR, settings.TARGET_PERSISTENT_DEMO_ALIAS,
+                          settings.TARGET_PERSISTENT_DEMO, MIGRATING.get(), test_runner.running)
+        registry = {key: id(value) for key, value in apps.app_configs.items()}
+        before = hashes()
+        temporary_root = None
+        try:
+            with TemporaryDirectory(prefix=prefix) as directory:
+                temporary_root = Path(directory)
+                (temporary_root / "instance").mkdir()
+                if scenario == "historical":
+                    from shutil import copyfile
+                    source = temporary_root / "before"
+                    (source / "instance").mkdir(parents=True)
+                    self._schema_before(source, root_repo, module)
+                    copyfile(source / "instance" / "target_persistent_demo.sqlite3",
+                             temporary_root / "instance" / "target_persistent_demo.sqlite3")
+                    copyfile(source / "historical.json", temporary_root / "historical.json")
+                process = subprocess.Popen(
+                    [sys.executable, "-m", module,
+                     str(temporary_root), scenario], cwd=root_repo,
+                    env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
+                try:
+                    output, errors = process.communicate(timeout=90)
+                finally:
+                    if process.poll() is None:
+                        process.terminate()
+                        try:
+                            process.communicate(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.communicate(timeout=5)
+                self.assertIsNotNone(process.returncode)
+                self.assertEqual(process.returncode, 0, output + "\n" + errors)
+                reports = [line.removeprefix(marker) for line in output.splitlines()
+                           if line.startswith(marker)]
+                self.assertEqual(len(reports), 1, output + errors)
+                report = json.loads(reports[0])
+                self.assertTrue(report["success"])
+                self.assertEqual((report["failures"], report["errors"], report["skipped"]), (0, 0, 0))
+                self.assertTrue(report["connections_closed"])
+                self.assertTrue(report["only_fixture_connections"])
+                self.assertEqual(report["alias"], "default")
+                self.assertEqual(Path(report["file"]), temporary_root / "instance" / "target_persistent_demo.sqlite3")
+                self.assertNotEqual(report["pid"], os.getpid())
+                print(marker.replace("EVIDENCE", "CHILD") + json.dumps(report, sort_keys=True))
+                return report
+        finally:
+            if temporary_root is not None:
+                self.assertFalse(temporary_root.exists(), "Child file handles prevented fixture cleanup")
+            self.assertIs(connections["default"], parent)
+            self.assertIs(parent.connection, original_native)
+            self.assertEqual(connections.databases, original_config)
+            self.assertEqual((parent.autocommit, parent.in_atomic_block, tuple(parent.atomic_blocks),
+                              settings.BASE_DIR, settings.TARGET_PERSISTENT_DEMO_ALIAS,
+                              settings.TARGET_PERSISTENT_DEMO, MIGRATING.get(), test_runner.running), original_state)
+            self.assertEqual({key: id(value) for key, value in apps.app_configs.items()}, registry)
+            self.assertEqual(hashes(), before)
+
+    def _schema_before(self, root, repo, module):
+        import os
+        import subprocess
+        import sys
+        process = subprocess.Popen([sys.executable, "-m", module, str(root), "before"],
+            cwd=repo, env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
+        try:
+            output, errors = process.communicate(timeout=90)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.communicate(timeout=5)
+        self.assertEqual(process.returncode, 0, output + errors)
+
+    def test_shared_default_commit_and_rollback(self):
+        report = self.child("atomicity")
+        self.assertEqual(report["tests"], 3)
+        self.assertEqual(len(report["observations"]), 3)
+
+    def test_real_bank_idempotency_and_conflicts(self):
+        self.assertEqual(self.child("idempotency")["tests"], 1)
+
+    def test_file_backed_concurrency_and_timeout(self):
+        report = self.child("concurrency")
+        self.assertEqual(report["tests"], 2)
+        self.assertEqual(len(report["observations"]), 3)
+
+    def test_child_failure_propagates_and_cleans_up(self):
+        with self.assertRaisesRegex(AssertionError, "injected child failure after protected connection opened"):
+            self.child("failure")
+
+
+class Schema0004Tests(TestCase):
+    """Separate processes preserve the parent's registry and protected default."""
+
+    child = BankDefaultSubprocessTests.child
+    _schema_before = BankDefaultSubprocessTests._schema_before
+
+    def test_new_sqlite_schema_and_constraints(self):
+        self.child("fresh", module="apps.ecomotor.ecomotor_target_demo.schema_0004_fixture")
+
+    def test_physical_pre_0004_copy_and_original_replays(self):
+        self.child("historical", module="apps.ecomotor.ecomotor_target_demo.schema_0004_fixture")
+
+
+class RewardsBankSubprocessTests(TestCase):
+    child = BankDefaultSubprocessTests.child
+
+    def test_real_rewards_bank_functional_and_replay(self):
+        self.assertEqual(self.child("functional", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 6)
+
+    def test_real_rewards_bank_single_transaction_and_rollback(self):
+        self.assertEqual(self.child("atomicity", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 4)
+
+    def test_real_rewards_bank_historical_integrity(self):
+        self.assertEqual(self.child("integrity", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 4)
+
+    def test_real_rewards_bank_concurrency_and_timeout(self):
+        self.assertEqual(self.child("concurrency", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 6)
+
+    def test_http_bank_credit_readonly_history_and_replay(self):
+        self.assertEqual(self.child("http-functional", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
+
+    def test_http_bank_csrf_sessions_tokens_and_fields(self):
+        self.assertEqual(self.child("http-security", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
+
+    def test_http_bank_controlled_errors_and_real_timeout(self):
+        self.assertEqual(self.child("http-errors", module="apps.ecomotor.ecomotor_target_demo.reward_bank_fixture")["tests"], 3)
+
+
+class Schema0005Tests(TestCase):
+    _schema_before = BankDefaultSubprocessTests._schema_before
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.schema_0005_fixture",
+            prefix="ducky-schema-0005-", marker="SCHEMA_0005_EVIDENCE=")
+
+    def test_fresh_schema_four_outcomes_and_physical_constraints(self):
+        report = self.child("fresh")
+        self.assertEqual(report["tests"], 4)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][2],
+                         {"update_combinations": 64, "accepted": 4, "rejected_by_named_check": 60})
+
+    def test_physical_0004_copy_raw_history_and_v1_v2_replays(self):
+        report = self.child("historical")
+        self.assertEqual(report["tests"], 1)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][0]["historical_calls_replayed"], 9)
+        self.assertTrue(report["observations"][0]["raw_v1_v2_json_unchanged"])
+        self.assertTrue(report["observations"][0]["replay_readonly"])
+
+
+class Schema0006Tests(TestCase):
+    _schema_before = BankDefaultSubprocessTests._schema_before
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.schema_0006_fixture",
+            prefix="ducky-schema-0006-", marker="SCHEMA_0006_EVIDENCE=")
+
+    def test_fresh_schema_five_outcomes_and_exhaustive_sql(self):
+        report = self.child("fresh")
+        self.assertEqual(report["tests"], 4)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][2], {
+            "update_combinations": 64, "insert_combinations": 64,
+            "accepted": 5, "rejected_by_named_check": 59})
+
+    def test_physical_0005_copy_original_v1_v2_v3_and_replays(self):
+        report = self.child("historical")
+        self.assertEqual(report["tests"], 1)
+        self.assertTrue(report["migration_scope_closed"])
+        self.assertEqual(report["observations"][0]["historical_calls_replayed"], 10)
+        self.assertTrue(report["observations"][0]["raw_v1_v2_v3_json_unchanged"])
+        self.assertTrue(report["observations"][0]["replay_readonly"])
+
+
+class RewardsDuckiesSubprocessTests(TestCase):
+    """Only parent tests; child cases are reported separately, never rediscovered."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_real_rewards_boundary_savepoint_commit_and_rollback(self):
+        report = self.child("atomicity")
+        self.assertEqual(report["tests"], 4)
+        self.assertEqual(len(report["observations"]), 4)
+        first = report["observations"][0]
+        for name in ("shared_native_connection", "single_begin_immediate", "duckies_savepoint",
+                     "single_commit", "uncommitted_delivery_invisible"):
+            self.assertIs(first[name], True)
+
+    def test_duckies_idempotency_is_not_future_rewards_replay(self):
+        report = self.child("idempotency")
+        self.assertEqual(report["tests"], 1)
+        self.assertIs(report["observations"][0]["not_rewards_coordinator_replay"], True)
+
+    def test_independent_connections_conflicts_timeout_and_recovery(self):
+        report = self.child("concurrency")
+        self.assertEqual(report["tests"], 4)
+        self.assertEqual(len(report["observations"]), 4)
+        for observation in report["observations"][:3]:
+            self.assertIs(observation["independent_native_connections"], True)
+        self.assertGreaterEqual(report["observations"][3]["real_timeout_seconds"], 4.5)
+
+    def test_child_failure_propagates_and_releases_temporary_file(self):
+        with self.assertRaisesRegex(AssertionError,
+                "injected Duckies child failure after protected connection opened"):
+            self.child("failure")
+
+
+class RewardsDuckiesServiceSubprocessTests(TestCase):
+    """Five parent scenarios; the 19 real child cases have separate counts."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_item_coordinator_consumption_and_historical_replay(self):
+        report = self.child("service-functional")
+        self.assertEqual(report["tests"], 5)
+        self.assertTrue(report["checks_and_no_model_changes"])
+        self.assertTrue(report["observations"][1]["real_equip_and_consume"])
+        self.assertTrue(report["observations"][1]["replay_without_inventory_query_or_dml"])
+
+    def test_closed_mapping_strict_facts_and_overflow(self):
+        self.assertEqual(self.child("service-validation")["tests"], 4)
+
+    def test_causal_integrity_and_orphan_rejection(self):
+        self.assertEqual(self.child("service-integrity")["tests"], 3)
+
+    def test_single_outer_commit_and_full_rollback(self):
+        report = self.child("service-atomicity")
+        self.assertEqual(report["tests"], 2)
+        for key in ("shared_native_connection", "single_begin_immediate", "single_commit", "inner_savepoint"):
+            self.assertTrue(report["observations"][0][key])
+        self.assertEqual(report["observations"][1]["rollback_stages"], 5)
+
+    def test_real_concurrency_timeout_and_explicit_recovery(self):
+        report = self.child("service-concurrency")
+        self.assertEqual(report["tests"], 5)
+        self.assertGreaterEqual(report["observations"][-1]["real_timeout_seconds"], 4.5)
+
+
+class RewardsDuckiesHTTPSubprocessTests(TestCase):
+    """Seven distinct 2D parents, fourteen child cases counted separately."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_http_grant_and_get_without_business_effects(self):
+        report = self.child("http-functional")
+        self.assertEqual(report["tests"], 2)
+        self.assertTrue(report["observations"][0]["real_item_grant"])
+
+    def test_original_last_and_row_replay(self):
+        self.assertEqual(self.child("http-replay")["tests"], 1)
+
+    def test_real_consumption_and_readonly_inventory_states(self):
+        report = self.child("http-consumption")
+        self.assertEqual(report["tests"], 2)
+        self.assertTrue(report["observations"][0]["http_replay_without_delivery"])
+        self.assertTrue(report["observations"][1]["no_dml"])
+
+    def test_owned_sessions_and_new_game(self):
+        self.assertEqual(self.child("http-sessions")["tests"], 1)
+
+    def test_csrf_parameters_tokens_escape_and_conflict(self):
+        self.assertEqual(self.child("http-security")["tests"], 3)
+
+    def test_controlled_errors_real_timeout_and_retry(self):
+        report = self.child("http-errors")
+        self.assertEqual(report["tests"], 4)
+        self.assertGreaterEqual(report["observations"][-1]["seconds"], 4.5)
+
+    def test_xp_bank_visit_playable_and_reopen(self):
+        self.assertEqual(self.child("http-compatibility")["tests"], 1)
+
+
+class RewardsComboSubprocessTests(TestCase):
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_combo_fixture",
+            prefix="ducky-rewards-combo-", marker="COMBO_DEFAULT_EVIDENCE=")
+
+    def test_functional_v4_and_historical_replay(self):
+        self.assertEqual(self.child("functional")["tests"], 3)
+
+    def test_closed_v4_token_and_complete_proposal(self):
+        self.assertEqual(self.child("validation")["tests"], 3)
+
+    def test_strict_snapshot_real_causes_and_orphans(self):
+        self.assertEqual(self.child("integrity")["tests"], 3)
+
+    def test_shared_transaction_and_complete_rollback(self):
+        self.assertEqual(self.child("atomicity")["tests"], 2)
+
+    def test_independent_concurrency_and_real_timeout(self):
+        self.assertEqual(self.child("concurrency")["tests"], 5)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

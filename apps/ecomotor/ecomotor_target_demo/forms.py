@@ -7,6 +7,10 @@ from .data import OPTION_CHOICES
 from .reward_demo_rules import ACTIVITIES
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
 
+REWARD_HTTP_ACTIVITIES = (*ACTIVITIES,
+    ("coin_challenge", "Desafío ficticio de monedas (+5 DuckyCoins)"),
+    ("item_challenge", "Desafío ficticio de objeto (+1 HINT sintético)"))
+
 
 class PersistentDemoForm(forms.Form):
     action = forms.ChoiceField(choices=(("start", "start"), ("grant", "grant")), widget=forms.HiddenInput)
@@ -72,7 +76,7 @@ class PlayableForm(forms.Form):
 
 class RewardDemoForm(forms.Form):
     action = forms.ChoiceField(choices=(("reward", "reward"),), widget=forms.HiddenInput)
-    activity = forms.ChoiceField(choices=ACTIVITIES, widget=forms.HiddenInput)
+    activity = forms.ChoiceField(choices=REWARD_HTTP_ACTIVITIES, widget=forms.HiddenInput)
     fact_token = forms.CharField(max_length=1536, strip=False, widget=forms.HiddenInput)
 
     def clean(self):

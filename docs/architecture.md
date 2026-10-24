@@ -1089,3 +1089,175 @@ ni borrado. La validación usa una copia desechable poblada con el código previ
 replay API/HTTP y reapertura, además de instalación limpia y regresiones del runner
 de dos fases. No cambia reglas ni responsabilidades de los Pasos 2–4; mantiene
 pendientes todos los acuerdos productivos y no afecta a la demo #94.
+
+## REW-MULTI-01 · Ampliación Rewards y Bank prevista
+
+Decisión interna 02C-2 del **23/10/2026**, en fase exclusivamente documental para
+revisión 01B-2. El laboratorio consolidado de los Pasos 1–4 se conserva. Se prevé
+una actividad de **5 DuckyCoins ficticias** acreditadas mediante la API existente
+`apps.bank.services.credit_coins()`; no se crean modelos Wallet/Transaction
+alternativos ni se atribuye aprobación externa de Fernando o Core.
+
+User/Wallet serán propios de cada partida ficticia, sin datos personales ni login,
+aprovisionados transaccionalmente solo cuando sean necesarios. La sesión conserva
+la autorización local de acceso; no se aceptan IDs de usuario/cuenta ni importes
+del cliente como autoridad. Partidas antiguas pueden seguir sin usuario vinculado.
+
+Bank usa implícitamente **default**. Rewards debe poseer el único atomic exterior
+IMMEDIATE/5 segundos sobre el default protegido de
+`instance/target_persistent_demo.sqlite3`; el atomic interno Bank es un savepoint,
+sin commit independiente. Crédito, ledger, evento Rewards y comprobación causal
+se confirman o revierten conjuntamente. Replay usa las causas/snapshots originales
+sin volver a llamar a credit_coins; saldo histórico no equivale al saldo actual.
+
+La futura migración 0004 extenderá la app de demo sin modificar Bank ni 0001–0003.
+El [contrato REW-MULTI-01](contracts/ecomotor-target-demo-rewards-bank-v1.md)
+propone los campos nullable compatibles, causas XP/Bank excluyentes, clave causal
+versionada y snapshots V2 para nuevas recompensas, conservando V1 exacto.
+Esas concreciones físicas están para revisión, no implementadas. La regla de
+5 monedas no habilita automáticamente recompensas combinadas XP + monedas.
+
+Condición previa de implementación: nuevo fixture temporal file-backed donde
+Rewards y Bank usen realmente default, con identidad nativa de conexión comprobada,
+una sola transacción exterior, concurrencia y rollback demostrables y restauración
+íntegra de configuración/conexiones. El actual persistent_fixture no basta y no se
+debilita el backend ni el runner de dos fases para salvar esa diferencia.
+
+Las exclusiones XP-only del Paso 4 describen su corte histórico, no se reescriben.
+La ampliación sigue pendiente de implementación y no altera demo #94, V1/S3,
+Duckies, Shop, Core o contratos propietarios Bank. No cierra F2-A productivo,
+USE-01B/TRACE-01B ni integración global; DAR3 conserva autoridad funcional.
+
+## ALFA-A-ARQ-01 · Alfa de consulta Ecomotor V1
+
+Arquitectura aprobada internamente por Equipo 5 en 02C-2 para preparar una primera
+alfa navegable para Óscar. **ALFA-A-DOC-01 es documental; ALFA-A-01 todavía no está
+implementada.** No es ratificación externa de Óscar/Core ni requisito literal
+nuevo de DAR3. [Contrato de alfa](contracts/ecomotor-alpha-v1.md).
+
+El futuro apps.ecomotor.alpha_urls expondrá solo progreso, historial XP/evolución
+e historial de asignaciones, reutilizando progress_view, xp_history_view y
+allocation_history_view y las consultas S4-A/S9-A. Todas mantienen login_required,
+request.user como única identidad, GET/HEAD y errores controlados sin escrituras
+de negocio. No inicialización ni asignación/XP por POST; S3 V1 sigue único escritor.
+Se conserva la ausencia de snapshot transaccional conjunto de las lecturas V1.
+
+En la baseline e7277aba, apps.ecomotor.urls incluye además allocate_points_view;
+la base, progreso y asignaciones enlazan a esa ruta. ALFA-A-01 deberá adaptar la
+navegación desde el servidor para no evaluar esos reversos en modo alfa, incluidos
+estados vacíos, y conservar íntegro el montaje V1 completo. No basta quitar el
+patrón de asignación. No se implementa esa adaptación en esta documentación.
+
+config.urls no monta Ecomotor. Prefijo/namespace de instancia, login y retorno,
+menú y montaje global siguen pendientes de Core. URLconf autónomo no supone
+servidor o login propios; no nuevos settings ni cambios de Core/User/auth por
+esta decisión. Los nombres reversibles locales del contrato son propuestas
+técnicas, no URLs públicas confirmadas. README actualizado y pruebas funcionales
+quedan para ALFA-A-01 tras revisión/fusión documental.
+
+La alfa no activa Ecomotor objetivo ni modifica sus modelos, fuentes, catálogos o
+datos legacy. Mantiene abiertos A3.5, USE-01B, TRACE-01B y F2-A productivo.
+La demo Rewards–Bank conserva app auxiliar, settings y SQLite separados; sus
+datos ficticios no son el origen de la alfa V1. Sin nuevas cifras oficiales ni
+funciones Duckies, Bank o Shop.
+
+## REW-MULTI-02-ARQ-01 · Extensión documental Rewards → Duckies
+
+Sobre develop 74ba7560, con ALFA-A-01 integrada por #108, se documenta una futura
+extensión de `apps/ecomotor/ecomotor_target_demo/` y su única SQLite
+`instance/target_persistent_demo.sqlite3`. No modifica alfa/V1, otros dominios,
+settings o backend. **Arquitectura interna cerrada en 02C-2; implementación y
+viabilidad transaccional Duckies pendientes.** Los cortes anteriores de alfa y
+Rewards conservan su contexto histórico.
+
+Según el traspaso del Equipo 5, Henry dio conformidad el 23/10/2026 al uso de
+grant_item y al Ducky mínimo. Esta procedencia comunicada no acredita acta,
+aprobación productiva, otras interfaces o modificaciones a sus modelos.
+
+El coordinador actual del laboratorio solo admite XP/DUCKYCOINS. La futura rama
+de objeto usará exclusivamente grant_item público, con un HINT consumible activo,
+cantidad 1 e ItemLevel=None, resuelto por mapeo sintético versionado del servidor.
+No se mezclan efectos. F1-A mantiene responsabilidad pura; Duckies conserva
+inventario e ItemGrant y no concede XP ni monedas.
+
+La identidad local de sesión/partida se vincula al synthetic_user existente,
+Wallet compatible y Ducky mínimo del mismo User, sin perfil Ecomotor V1,
+inicializador productivo ni equipamiento. Aprovisionamiento perezoso solo para
+premio nuevo válido, nunca durante lectura/replay. Misma terna Rewards y solicitud
+compatible recupera la causa original; ri1 distingue la entrega de rx1 y rb1.
+No se adoptan causas huérfanas ni se exige posesión actual tras consumir el objeto.
+
+grant_item usa atomic y ORM sobre default implícito. Rewards debe conservar el
+exterior IMMEDIATE/5 s en ese mismo default protegido; conexión nativa compartida,
+savepoint, rollback, concurrencia y timeout requieren la prueba empírica 2A.
+La evidencia Bank previa no demuestra aún esas garantías para Duckies.
+
+El [contrato específico](contracts/ecomotor-target-demo-rewards-duckies-v1.md)
+recoge los hechos verificados y las concreciones propuestas para revisión:
+clave/metadatos, futura 0005 con OneToOne nullable/PROTECT a ItemGrant,
+constraints exclusivos y V3 de objeto con causalidad comprobada. V1/V2 y todas
+las filas anteriores se conservan sin backfill o reinterpretación. No nuevas
+tablas/modelos económicos ni cambios a migraciones Duckies.
+
+Secuencia obligatoria de PR: 2A arnés temporal real → 2B esquema/compatibilidad
+→ 2C servicio/V3 → 2D interfaz local, cada una después de revisar/fusionar la
+anterior. No integración en la interfaz compartida de Henry. DAR3 mantiene
+autoridad; F2-A productivo, Core/A3.5, USE-01B y TRACE-01B siguen abiertos.
+Este incremento solo documenta; no ejecuta pruebas Django ni entrega objetos.
+
+## REW-MULTI-03-ARQ-01 · Recompensas combinadas sintéticas
+
+**Ratificación interna de Equipo 5 / 02C-2, 24/10/2026; DOC-01 exclusivamente
+documental.** En la baseline `8552c54ec1446ccd0e472eda6fdf9632584b2e82`,
+REW-MULTI-02 está implementado y validado en su alcance demostrativo individual,
+incluido HTTP 2D (#113). Los cortes históricos anteriores conservan su contexto.
+El coordinador y 0005 actuales excluyen combinaciones. La futura modalidad
+`combo_challenge` añadirá XP700, DuckyCoins5 y HINT1 en un RewardEvent/V4;
+no es una refactorización productiva ni reinterpreta modalidades V1/V2/V3.
+
+```text
+identidad → evaluación → XP → Bank → Duckies → RewardEvent/V4
+         → verificación causal → commit exterior
+```
+
+Una sola transacción IMMEDIATE/5 s sobre default protegido, mismo archivo y
+conexión nativa; núcleo XP interno y savepoints de APIs públicas Bank/Duckies.
+Rollback del conjunto, incluido aprovisionamiento. La combinación debe probarse
+en 3B; no la acredita la viabilidad individual anterior. Una identidad Rewards
+deriva rx1/rb1/ri1 sin cambiar sus codificaciones. V4 conserva tres causas
+históricas, recuperables sin nueva concesión ni dependencia del inventario/saldo
+actuales. Futura 0006 estructural posterior a 0005, sin reescribir historia.
+
+La [decisión interna](decisions.md#rew-multi-03-arq-01--recompensas-combinadas-sintéticas--24102026)
+y el [contrato combinado](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+separan hechos actuales, diseño ratificado y contexto/token V4 aún propuestos.
+Secuencia DOC-01 → 3A → 3B → 3C, con revisión/fusión previa a cada fase.
+DAR3 mantiene autoridad; Core/A3.5, USE-01B, TRACE-01B y F2-A productivo siguen
+abiertos. No cambios en V1/S3, otras apps, SQLite personales o interfaz de Henry;
+su coordinación comunicada por el equipo no ratifica recompensas combinadas.
+
+## REW-MULTI-03-V4-01 · Servicio combinado del laboratorio, corte 3B
+
+Sobre develop `f88f9be0ba09fad80224de0106cf6d9dc285fcc8`, #114 documenta la
+arquitectura y #115 incorpora 0006. El corte DOC-01 anterior conserva su historia.
+La [decisión V4-01](decisions.md#rew-multi-03-v4-01--hecho-token-y-fingerprint-combinado--24102026),
+ratificada internamente en 02C-2 el 24/10/2026, fija resultado/contexto y los
+ocho campos firmados del hecho, reutilizando SALT y huella F1-A históricos.
+
+3B añade la actividad interna combo_challenge con regla V4 cerrada y exactamente
+tres propuestas ordenadas. El coordinador reutiliza el exterior IMMEDIATE/5 s:
+XP → Bank → Duckies → RewardEvent/V4 → verificación → commit. Las dos APIs
+propietarias mantienen savepoints sobre el mismo default protegido. No se
+modifican servicios XP generales, modelos, migraciones, backend o propietarios.
+
+Un único RewardEvent enlaza las tres causas. El lector V4 separado reconstruye
+el resultado desde historia real y compara estructura, tipos y causalidad;
+replay no invoca escritores, consulta inventario ni depende de reglas nuevas,
+saldo actual o posesión del HINT. V1/V2/V3 conservan sus ramas y JSON.
+El [contrato combinado, corte 3B](contracts/ecomotor-target-demo-rewards-combined-v1.md#14-corte-3b--servicio-y-replay-v4)
+registra pruebas físicas de atomicidad, rollback, concurrencia, timeout y replay.
+
+HTTP combinado/3C sigue pendiente: formulario, vistas, URLs y templates intactos.
+No concede autorización productiva, parámetros oficiales o integración Core;
+F2-A productivo, USE-01B y TRACE-01B continúan abiertos. Las SQLite personales
+no se utilizan para pruebas ni se migran.

@@ -1963,3 +1963,183 @@ Los resultados de las suites se comunican en la PR, sin sustituirlos por recuent
 Es una reorganización estructural, no una aprobación externa de DAR3, Óscar o Core.
 No cierra USE-01B, TRACE-01B ni contratos productivos. No altera V1/S3, Duckies,
 Bank, Shop, Rewards F1-A ni la demo #94.
+
+## REW-MULTI-01 · Rewards y DuckyBank demostrativos · 23/10/2026
+
+**Aprobada internamente por Equipo 5 / 02C-2. Fase 1 documental, sin implementación.**
+DAR3 conserva autoridad funcional; la decisión no es una obligación técnica literal
+de DAR3 ni una aprobación externa de Fernando, Óscar o Core.
+
+Se conserva la app consolidada `apps/ecomotor/ecomotor_target_demo/` y los Pasos
+1–4. La ampliación concederá **5 DuckyCoins ficticias** mediante exclusivamente
+`apps.bank.services.credit_coins()`, sobre User, Wallet y Transaction existentes
+en `instance/target_persistent_demo.sqlite3`, sin duplicar modelos económicos.
+Cada partida tendrá un usuario sintético propio, sin información personal ni
+credenciales funcionales, aislado por la sesión propietaria. User/Wallet se
+aprovisionarán bajo transacción controlada cuando se necesiten por primera vez.
+
+Se aprueba incorporar la futura `ecomotor_target_demo.0004` con compatibilidad
+histórica: preservar filas y lectura exacta de snapshots `demo-reward-result-v1`,
+introducir V2 para nuevas recompensas y mantener 0001–0003 sin reescribirlas.
+La clave Bank será estable, versionada y derivada de la identidad Rewards original,
+independiente de su huella semántica y separada de claves XP. Replay recuperará
+el resultado confirmado sin acreditar otra vez; contenido incompatible con una
+identidad reutilizada será conflicto. No se admiten causas cruzadas ni reparaciones
+silenciosas de historia incoherente.
+
+Rewards controlará un único exterior SQLite IMMEDIATE: crédito, Transaction,
+RewardEvent y referencias causales se confirman o revierten juntos ante fallos
+de Bank, Rewards o verificación causal. Bank opera implícitamente sobre default;
+la integración queda restringida a ese mismo alias/conexión protegidos. El fixture
+actual persistent_fixture no demuestra esa garantía: el nuevo arnés file-backed
+default deberá verificarse antes del flujo, conservando aislamiento y runner.
+
+[Contrato técnico de demo](contracts/ecomotor-target-demo-rewards-bank-v1.md)
+concreta como **propuestas técnicas para revisión 01B-2** campos/relaciones/checks
+de 0004, aprovisionamiento perezoso, metadatos/clave Bank, esquema V2 y estrategia
+del fixture. No se presentan como diseño físico ya implementado ni ratificación
+externa; un cambio de alcance debe volver a 02C-2 antes de generar implementación.
+No se amplía automáticamente a XP y monedas combinadas: una actividad admite
+un solo efecto soportado o ausencia de premio.
+
+El corte XP-only de DEMO-REWARDS-XP-01 se conserva como antecedente íntegro.
+No F2-A productivo, autenticación Core, juegos reales, monedas oficiales,
+USE-01B/TRACE-01B, cambios a Bank/Shop/Duckies o activación del escritor objetivo.
+La fase siguiente requiere revisión documental; esta PR no la inicia.
+
+## ALFA-A-ARQ-01 · Primera alfa básica y navegable de Ecomotor V1
+
+**Aprobada internamente por Equipo 5 en 02C-2.** DAR3 conserva autoridad funcional.
+Preparar la alfa para Óscar no equivale a aceptación de Óscar ni ratificación del
+montaje por Core, propietario de User, autenticación e integración global.
+
+Se aprueba reutilizar las vistas y consultas V1 existentes mediante un URLconf
+autónomo `apps/ecomotor/alpha_urls.py` con exactamente tres páginas: progreso,
+historial XP/evolución e historial de asignaciones. Identidad exclusivamente desde
+request.user y login_required. Asignar puntos queda fuera de la alfa, incluidos
+sus POST y accesos de navegación; la V1 completa conserva su comportamiento.
+No cambios en config/urls.py, Core/User/auth, modelos o migraciones, ni cifras
+funcionales oficiales inventadas. S3 V1 sigue como único escritor XP activo.
+La demo persistente Rewards–Bank y sus settings permanecen separados.
+
+[ALFA-A-DOC-01](contracts/ecomotor-alpha-v1.md) registra el alcance y el contrato
+de montaje para revisión; **ALFA-A-01 está pendiente de implementación posterior**.
+La adaptación de navegación debe evitar reversos a asignación ausentes en el
+montaje alfa, sin romper rutas ni plantillas de la V1 completa. Nombres internos
+propuestos no fijan prefijo, login o menú global, que requieren acuerdo Core.
+El README funcional se actualizará en ALFA-A-01, no en esta PR documental.
+No se cierran A3.5, USE-01B, TRACE-01B ni Rewards F2-A productivo, ni se activa
+el Ecomotor objetivo o se integran Duckies, Bank y Shop.
+
+## REW-MULTI-02-ARQ-01 · Rewards y Duckies en el laboratorio persistente
+
+Arquitectura cerrada internamente en **02C-2** para documentación y futura
+verificación técnica. DAR3 conserva autoridad funcional; no es aprobación de
+Rewards productivo, de valores oficiales ni de integración Core.
+Según el traspaso del Equipo 5, **Henry dio su conformidad el 23/10/2026** sobre
+el uso de grant_item y el Ducky mínimo. Se registra como información transmitida
+por el equipo, sin inventar actas, citas ni ratificaciones adicionales de Henry.
+
+Se aprueba ampliar solo el laboratorio consolidado y su SQLite exclusiva para
+conceder un único HINT sintético, consumible, cantidad 1, sin ItemLevel ni
+vestimentas, mediante la API pública existente apps.duckies.services.grant_item.
+Cada recompensa sigue siendo exclusivamente XP, monedas, objeto o NO_REWARD,
+sin combinaciones. User sintético de la partida y Wallet compatible se reutilizan
+o aprovisionan para un objeto nuevo válido; Ducky mínimo del mismo User con sexo
+válido y selected_outfit=None, sin perfil V1 o inicializador productivo Duckies.
+GET, consulta y replay no aprovisionan ni entregan. Inconsistencias no se reparan.
+
+La identidad Rewards conserva origen/hecho/destinatario y huella independiente.
+Clave causal ri1 determinista/versionada, separada de rx1/rb1; causa huérfana o
+contenido incompatible se rechazan. Rewards controla un único exterior IMMEDIATE
+compartido con el atomic interior Duckies, cuya viabilidad real **aún debe probarse
+en 2A** sobre default protegido temporal. select_for_update no acredita bloqueo
+por fila SQLite. Fallos revierten entrega/inventario, aprovisionamiento y Rewards.
+
+Futura 0005 posterior a 0004: OneToOne nullable/PROTECT de DemoTargetRewardEvent
+a ItemGrant y cuatro resultados excluyentes. Preservar filas y lectores V1/V2;
+V3 para objetos conserva causa histórica suficiente, sin reentrega ni posesión
+actual como condición de replay. Consumo posterior no invalida una entrega.
+
+[Contrato REW-MULTI-02-DOC-01](contracts/ecomotor-target-demo-rewards-duckies-v1.md)
+separa código observado, diseño aprobado y propuestas técnicas (codificación
+exacta ri1/metadatos, nombres de actividad/campo y estructura JSON). No altera
+contratos físicos propietarios. Orden obligatorio: documentación → 2A viabilidad
+→ 2B esquema → 2C servicio/V3 → 2D HTTP; PR separada revisada/fusionada antes de
+continuar. Esta PR no implementa ni ensaya 2A. V1/S3, alfa, Bank, Shop, Duckies,
+Core, backend/settings y migraciones anteriores intactos. No interfaz compartida
+de Henry, F2-A productivo, USE-01B, TRACE-01B o activación del escritor objetivo.
+
+## REW-MULTI-03-ARQ-01 · Recompensas combinadas sintéticas · 24/10/2026
+
+**Ratificada internamente por Equipo 5 en 02C-2 el 24/10/2026.** DAR3 conserva
+autoridad funcional; no hay aprobación económica de Óscar, ratificación externa
+de Core/Fernando/Henry ni autorización productiva. Este corte solo documenta.
+R1–R8, T1–T8 y REW-MULTI-01/02 conservan sus decisiones y fechas históricas.
+
+Se aprueba una futura modalidad del laboratorio consolidado: `combo_challenge`,
+hecho `demo-fact-v4`, reglas `demo-rewards-rules-v4`, regla
+`demo-combo-challenge-v4`. Una propuesta ordenada XP700, DUCKYCOINS5, ITEM1
+producirá un APPLIED con tres causas y `demo-reward-result-v4`. Son importes
+ficticios. Se reutiliza HINT consumible `demo-reward-hint-v1`, mapeo
+`demo-item-map-v1`, sin ItemLevel; no creación automática de artículos.
+Las actividades individuales y NO_REWARD mantienen semántica y V1/V2/V3.
+
+La identidad origen/hecho/destinatario y `rewards-semantic-v1` siguen separadas
+de las claves causales existentes rx1/rb1/ri1, con sus diferentes codificaciones
+y longitudes. Misma identidad compatible recupera historia; incompatible genera
+conflicto. Causas huérfanas no se adoptan. Contexto/token exactos V4, más allá
+de los identificadores ratificados, son propuesta para ratificación antes de 3B.
+
+Rewards conservará el exterior IMMEDIATE/5 s sobre el mismo default protegido:
+XP → Bank → Duckies → RewardEvent/V4 → verificación → commit. Núcleo XP privado
+y APIs públicas credit_coins/grant_item, con savepoints propietarios sin commits
+autónomos. Cualquier fallo revierte efectos y aprovisionamiento conjuntamente.
+La prueba empírica combinada corresponde a 3B, no se presume por pruebas previas.
+
+Futura 0006 estructural, sucesora de 0005: conservar OneToOne nullable/PROTECT
+y ampliar el CHECK a cuatro modalidades APPLIED (tres individuales y combinado)
+más NO_REWARD. Sin tablas nuevas, backfill o cambios históricos. V4 verificará
+las tres causas y recuperará el resultado original sin nuevas concesiones,
+sin exigir saldo, XP o inventario actuales y sin reescribir V1/V2/V3.
+
+El [contrato REW-MULTI-03-DOC-01](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+define identidad, claves, metadatos, esquema, replay y aceptación pendiente.
+Orden obligatorio: DOC-01 → 3A esquema → 3B servicio/V4 → 3C HTTP, cada PR
+revisada y fusionada antes de iniciar la siguiente. No se inicia implementación.
+Core/A3.5, USE-01B, TRACE-01B, F2-A productivo, emisores reales, permisos globales,
+valores oficiales y activación del escritor objetivo siguen pendientes.
+La intención de Henry de reutilizar Rewards–Duckies en una demo visual separada,
+comunicada el 24/10/2026 según el Equipo 5, no aprueba ni prueba esta combinación.
+
+## REW-MULTI-03-V4-01 · Hecho, token y fingerprint combinado · 24/10/2026
+
+**Ratificada internamente por Equipo 5 en 02C-2 el 24/10/2026.** Concreta la
+propuesta de REW-MULTI-03-ARQ-01 sin atribuir aprobación productiva a DAR3, Óscar,
+Core u otros equipos. Importes XP700/DuckyCoins5/HINT1 exclusivamente sintéticos.
+
+Actividad `combo_challenge`, resultado exacto `{"completed":true}` y contexto
+cerrado `demo=REW-MULTI-03`, `fact_version=demo-fact-v4`,
+`mapping_version=demo-item-map-v1`, `item_code=demo-reward-hint-v1`.
+El token contiene exactamente progress (PK entera, no bool), owner (hash SHA-256
+de sesión), activity, fact_id (32 hex minúsculos), fact_version, occurred_at
+(UTC ISO con seis microsegundos y +00:00), mapping_version e item_code.
+No campos extra, duplicados, IDs propietarios, cantidades o contexto del cliente.
+
+Firma mediante signing.dumps/loads y SALT histórico
+`ecomotor.persistent-demo.reward-fact.v1`, sin salt V4 ni vencimiento propios.
+Identidad servidor `(persist-demo-rewards, fact_id, demo-progress:<PK exacta>)`;
+huella `rewards-semantic-v1` con canonicalizador F1-A intacto. Las claves causales
+rx1/rb1/ri1 y sus codificaciones separadas tampoco cambian.
+
+3B implementa rama cerrada para propuesta ordenada XP700/DUCKYCOINS5/ITEM1,
+coordinación en el exterior IMMEDIATE existente y snapshot/lector V4 específico.
+Los tokens, semántica, JSON y lectores V1/V2/V3 conservan sus contratos.
+Replay contrasta tres causas y recupera historia sin evaluar reglas actuales,
+aprovisionar, conceder o exigir saldo/inventario presentes. Corrupción/conflicto
+no son NO_REWARD ni autorización para reconstruir causas.
+
+El [contrato combinado](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+recoge las verificaciones del arnés temporal real. 0006 ya está integrada por
+#115 y no cambia en 3B. HTTP combinado sigue pendiente de 3C; no integración
+productiva, F2-A, USE-01B, TRACE-01B, permisos Core o interfaz de Henry.
