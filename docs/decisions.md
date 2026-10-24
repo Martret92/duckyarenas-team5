@@ -2111,3 +2111,35 @@ Core/A3.5, USE-01B, TRACE-01B, F2-A productivo, emisores reales, permisos global
 valores oficiales y activación del escritor objetivo siguen pendientes.
 La intención de Henry de reutilizar Rewards–Duckies en una demo visual separada,
 comunicada el 24/10/2026 según el Equipo 5, no aprueba ni prueba esta combinación.
+
+## REW-MULTI-03-V4-01 · Hecho, token y fingerprint combinado · 24/10/2026
+
+**Ratificada internamente por Equipo 5 en 02C-2 el 24/10/2026.** Concreta la
+propuesta de REW-MULTI-03-ARQ-01 sin atribuir aprobación productiva a DAR3, Óscar,
+Core u otros equipos. Importes XP700/DuckyCoins5/HINT1 exclusivamente sintéticos.
+
+Actividad `combo_challenge`, resultado exacto `{"completed":true}` y contexto
+cerrado `demo=REW-MULTI-03`, `fact_version=demo-fact-v4`,
+`mapping_version=demo-item-map-v1`, `item_code=demo-reward-hint-v1`.
+El token contiene exactamente progress (PK entera, no bool), owner (hash SHA-256
+de sesión), activity, fact_id (32 hex minúsculos), fact_version, occurred_at
+(UTC ISO con seis microsegundos y +00:00), mapping_version e item_code.
+No campos extra, duplicados, IDs propietarios, cantidades o contexto del cliente.
+
+Firma mediante signing.dumps/loads y SALT histórico
+`ecomotor.persistent-demo.reward-fact.v1`, sin salt V4 ni vencimiento propios.
+Identidad servidor `(persist-demo-rewards, fact_id, demo-progress:<PK exacta>)`;
+huella `rewards-semantic-v1` con canonicalizador F1-A intacto. Las claves causales
+rx1/rb1/ri1 y sus codificaciones separadas tampoco cambian.
+
+3B implementa rama cerrada para propuesta ordenada XP700/DUCKYCOINS5/ITEM1,
+coordinación en el exterior IMMEDIATE existente y snapshot/lector V4 específico.
+Los tokens, semántica, JSON y lectores V1/V2/V3 conservan sus contratos.
+Replay contrasta tres causas y recupera historia sin evaluar reglas actuales,
+aprovisionar, conceder o exigir saldo/inventario presentes. Corrupción/conflicto
+no son NO_REWARD ni autorización para reconstruir causas.
+
+El [contrato combinado](contracts/ecomotor-target-demo-rewards-combined-v1.md)
+recoge las verificaciones del arnés temporal real. 0006 ya está integrada por
+#115 y no cambia en 3B. HTTP combinado sigue pendiente de 3C; no integración
+productiva, F2-A, USE-01B, TRACE-01B, permisos Core o interfaz de Henry.

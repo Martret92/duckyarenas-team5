@@ -12,7 +12,7 @@ FINGERPRINT_VERSION = "rewards-semantic-v1"
 ACTIVITIES = (("challenge", "Desafío ficticio completado (+700 XP)"),
               ("visit", "Visita ficticia al archivo (NO_REWARD)"))
 # Forms explicitly add coins to this historical surface; ITEM stays internal.
-INTERNAL_ACTIVITIES = tuple(code for code, _ in ACTIVITIES) + ("coin_challenge", "item_challenge")
+INTERNAL_ACTIVITIES = tuple(code for code, _ in ACTIVITIES) + ("coin_challenge", "item_challenge", "combo_challenge")
 RULE_SET = RewardRuleSet("demo-rewards-rules-v2", (
     RewardRule("demo-challenge-700-v1", "challenge", {"completed": True}, (ProposedEffect("XP", 700),)),
     RewardRule("demo-coin-challenge-5-v2", "coin_challenge", {"completed": True}, (ProposedEffect("DUCKYCOINS", 5),)),
@@ -36,9 +36,15 @@ ITEM_MAPPING = ITEM_MAPPINGS["demo-item-map-v1"]
 ITEM_RULE_SET = RewardRuleSet("demo-rewards-rules-v3", (
     RewardRule("demo-item-challenge-hint-v3", "item_challenge", {"completed": True}, (ProposedEffect("ITEM", 1),)),
 ))
+COMBO_RULE_SET = RewardRuleSet("demo-rewards-rules-v4", (
+    RewardRule("demo-combo-challenge-v4", "combo_challenge", {"completed": True}, (
+        ProposedEffect("XP", 700), ProposedEffect("DUCKYCOINS", 5), ProposedEffect("ITEM", 1))),
+))
 
 
 def fact_version(activity):
+    if activity == "combo_challenge":
+        return "demo-fact-v4"
     if activity == "item_challenge":
         return "demo-fact-v3"
     return "demo-fact-v2" if activity == "coin_challenge" else FACT_VERSION
@@ -47,6 +53,12 @@ def fact_version(activity):
 def synthetic_fact(progress_id, fact_id, occurred_at, activity):
     if type(activity) is not str or activity not in INTERNAL_ACTIVITIES:
         raise ValueError("Actividad ficticia no admitida.")
+    if activity == "combo_challenge":
+        # Historical V4-01 definition, independent of rules/selection for new grants.
+        return ValidatedRewardFact(RewardIdentity(ORIGIN, fact_id, f"demo-progress:{progress_id}"),
+            activity, occurred_at, {"completed": True}, {"demo": "REW-MULTI-03",
+                "fact_version": "demo-fact-v4", "mapping_version": "demo-item-map-v1",
+                "item_code": "demo-reward-hint-v1"})
     if activity == "item_challenge":
         mapping = ITEM_MAPPINGS["demo-item-map-v1"]
         return ValidatedRewardFact(RewardIdentity(ORIGIN, fact_id, f"demo-progress:{progress_id}"),
