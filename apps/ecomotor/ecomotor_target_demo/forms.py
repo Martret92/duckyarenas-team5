@@ -7,7 +7,9 @@ from .data import OPTION_CHOICES
 from .reward_demo_rules import ACTIVITIES
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
 
-REWARD_HTTP_ACTIVITIES = (*ACTIVITIES, ("coin_challenge", "Desafío ficticio de monedas (+5 DuckyCoins)"))
+REWARD_HTTP_ACTIVITIES = (*ACTIVITIES,
+    ("coin_challenge", "Desafío ficticio de monedas (+5 DuckyCoins)"),
+    ("item_challenge", "Desafío ficticio de objeto (+1 HINT sintético)"))
 
 
 class PersistentDemoForm(forms.Form):

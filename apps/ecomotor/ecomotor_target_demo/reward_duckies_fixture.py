@@ -64,6 +64,9 @@ def run(root, scenario):
     from django.db import connections, IntegrityError, transaction
     from django.core import signing
     from django.test.utils import CaptureQueriesContext
+    from django.test import Client
+    from html.parser import HTMLParser
+    from urllib.parse import urlencode
     from apps.bank.models import Wallet, Transaction
     from apps.duckies.models import Ducky, Item, ItemLevel, ItemGrant, InventoryItem, EquipmentSlot, ItemUsage
     from apps.duckies.services import grant_item
@@ -476,7 +479,7 @@ def run(root, scenario):
             self.assertEqual(DemoTargetEvolutionEvent.objects.filter(progress=self.progress).count(), 6)
             self.replay(item_token, original)
             from .forms import REWARD_HTTP_ACTIVITIES
-            self.assertNotIn("item_challenge", dict(REWARD_HTTP_ACTIVITIES))
+            self.assertIn("item_challenge", dict(REWARD_HTTP_ACTIVITIES))
 
         def test_real_consumption_then_readonly_replay(self):
             token = self.token()
@@ -918,6 +921,388 @@ def run(root, scenario):
             evidence["observations"].append({"real_timeout_seconds": elapsed, "explicit_retry_only": True,
                 "no_partial_effects": True})
 
+    class RewardsItemHTTPTests(unittest.TestCase):
+        """2D only: actual Client, sessions, CSRF and the unmodified coordinator."""
+        url = "/demo/objetivo-persistente/"
+
+        def setUp(self):
+            slot, _ = EquipmentSlot.objects.get_or_create(code="http-hint-slot", defaults={"name": "Synthetic HINT slot"})
+            self.item, _ = Item.objects.update_or_create(code=rules.ITEM_MAPPING.item_code, defaults={
+                "name": "Synthetic HINT", "category": Item.HINT, "consumable": True, "is_active": True, "slot": slot})
+
+        def start(self):
+            client = Client(enforce_csrf_checks=True, HTTP_HOST="localhost")
+            self.assertEqual(client.get(self.url).status_code, 200)
+            self.assertEqual(self.post(client, {"action": "start"}).status_code, 302)
+            self.assertEqual(client.get(self.url).status_code, 200)
+            return client
+
+        def post(self, client, data, **kwargs):
+            return client.post(self.url, data,
+                HTTP_X_CSRFTOKEN=client.cookies[settings.CSRF_COOKIE_NAME].value, **kwargs)
+
+        def fact(self, client, activity="item_challenge"):
+            return {"action": "reward", "activity": activity, "fact_token": client.session["reward_tokens"][activity]}
+
+        def progress(self, client):
+            return services.DemoTargetProgress.objects.get(pk=client.session["demo_progress"])
+
+        def business(self):
+            with db.cursor() as cursor:
+                return {table: cursor.execute('SELECT * FROM "' + table + '" ORDER BY rowid').fetchall()
+                    for table in db.introspection.table_names(cursor) if table not in ("django_session", "sqlite_sequence")}
+
+        def readonly(self, client):
+            before = self.business()
+            with CaptureQueriesContext(db) as queries:
+                result = rewards.read_demo_inventory(self.progress(client), session_token=client.session["demo_secret"])
+            self.assertFalse(any(q["sql"].lstrip().upper().startswith(
+                ("INSERT", "UPDATE", "DELETE", "REPLACE", "CREATE", "DROP")) for q in queries))
+            self.assertEqual(self.business(), before)
+            self.assertFalse(hasattr(result, "__dict__"))
+            with self.assertRaises(FrozenInstanceError):
+                result.quantity = 99
+            return result
+
+        def reward(self, client):
+            return DemoTargetRewardEvent.objects.get(progress=self.progress(client), activity_type="item_challenge")
+
+        def test_http_real_grant_and_distinct_present_inventory(self):
+            client = self.start()
+            data = self.fact(client)
+            page = client.get(self.url).content.decode()
+            self.assertIn('value="item_challenge"', page)
+            self.assertIn(data["fact_token"], page)
+            before = {model: model.objects.count() for model in (Transaction, DemoTargetXPEvent, DemoTargetEvolutionEvent)}
+            response = self.post(client, data)
+            self.assertEqual((response.status_code, response["Location"]), (302, self.url))
+            row = self.reward(client)
+            self.assertEqual((row.status, row.xp_amount, row.coin_amount, row.snapshot["schema"]),
+                ("APPLIED", 0, 0, "demo-reward-result-v3"))
+            self.assertIsNotNone(row.item_grant_id)
+            self.assertEqual(InventoryItem.objects.get(ducky__user=self.progress(client).synthetic_user, item=self.item).quantity, 1)
+            page = client.get(self.url).content.decode()
+            for text in ("APPLIED: HINT sintético entregado y registrado.", "Cantidad histórica entregada: 1",
+                    f"ItemGrant #{row.item_grant_id}", 'id="hint-quantity">1</strong>', "demo-item-challenge-hint-v3"):
+                self.assertIn(text, page)
+            self.assertNotIn("APPLIED: +0 XP", page)
+            self.assertEqual({m: m.objects.count() for m in before}, before)
+            self.assertEqual(Wallet.objects.get(user=self.progress(client).synthetic_user).available_balance, 0)
+            evidence["observations"].append({"http_prg": 302, "real_item_grant": True,
+                "historical_quantity": 1, "present_quantity": 1, "no_xp_or_bank_credit": True})
+
+        def test_get_and_tokens_never_provision(self):
+            client = Client(enforce_csrf_checks=True, HTTP_HOST="localhost")
+            before = self.business()
+            self.assertEqual(client.get(self.url).status_code, 200)
+            self.assertEqual(self.business(), before)
+            client = self.start()
+            before = self.business()
+            self.assertEqual(client.get(self.url).status_code, 200)
+            self.assertEqual(client.get(self.url).status_code, 200)
+            self.assertEqual(self.business(), before)
+            self.assertIsNone(self.progress(client).synthetic_user_id)
+
+        def test_replay_original_last_and_row_forms(self):
+            client = self.start()
+            original = self.fact(client)
+            self.assertEqual(self.post(client, original).status_code, 302)
+            row = self.reward(client)
+            snapshot = deepcopy(row.snapshot)
+            self.assertEqual(client.get(self.url).status_code, 200)
+
+            class Forms(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.forms, self.current, self.ids = [], None, []
+                def handle_starttag(self, tag, attrs):
+                    attrs = dict(attrs)
+                    if tag == "form":
+                        self.current, self.ids = {}, []
+                    if tag == "input" and self.current is not None and "name" in attrs:
+                        self.current[attrs["name"]] = attrs.get("value", "")
+                        self.ids.append(attrs.get("id", ""))
+                def handle_endtag(self, tag):
+                    if tag == "form" and self.current is not None:
+                        self.forms.append((self.current, tuple(self.ids)))
+                        self.current = None
+
+            parser = Forms()
+            parser.feed(client.get(self.url).content.decode())
+            replays = [values for values, ids in parser.forms if any(
+                identity in ids for identity in ("reward_replay_fact_token", f"reward_history_{row.pk}_fact_token"))]
+            self.assertEqual(len(replays), 2)
+            for payload in (original, *replays):
+                before = self.business()
+                self.assertEqual(self.post(client, payload).status_code, 302)
+                self.assertEqual(self.business(), before)
+                page = client.get(self.url).content.decode()
+                self.assertIn("Replay Rewards histórico: sin nuevas concesiones", page)
+                self.assertNotIn("APPLIED: HINT sintético entregado", page)
+            row.refresh_from_db()
+            self.assertEqual(row.snapshot, snapshot)
+            self.assertEqual(ItemGrant.objects.filter(pk=row.item_grant_id).count(), 1)
+
+        def test_consumed_inventory_zero_and_http_replay(self):
+            client = self.start()
+            data = self.fact(client)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            row = self.reward(client)
+            user = self.progress(client).synthetic_user
+            duckies.equip_item(user, self.item)
+            duckies.consume_item(user, self.item, 1, "http-consume-" + uuid4().hex,
+                server_accepted=True, game_reference="http-fixture-game")
+            self.assertFalse(InventoryItem.objects.filter(ducky__user=user, item=self.item).exists())
+            Item.objects.filter(pk=self.item.pk).update(is_active=False)
+            before = self.business()
+            page = client.get(self.url).content.decode()
+            self.assertIn('id="hint-quantity">0</strong>', page)
+            self.assertIn("Cantidad histórica entregada: 1", page)
+            self.assertIn("Repetir último hecho Rewards", page)
+            self.assertIn(f"Repetir hecho #{row.pk}", page)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            self.assertEqual(self.business(), before)
+            self.assertTrue(ItemGrant.objects.filter(pk=row.item_grant_id).exists())
+            evidence["observations"].append({"real_http_grant_equip_consume": True,
+                "inventory_exhausted": True, "http_replay_without_delivery": True})
+
+        def test_inventory_readonly_all_states(self):
+            client = self.start()
+            state = self.readonly(client)
+            self.assertEqual(asdict(state), dict(item_prepared=True, user_provisioned=False, ducky_provisioned=False, quantity=None))
+            Item.objects.filter(pk=self.item.pk).update(code="unprepared-" + uuid4().hex)
+            self.assertFalse(self.readonly(client).item_prepared)
+            Item.objects.filter(pk=self.item.pk).update(code=rules.ITEM_MAPPING.item_code)
+            self.assertEqual(self.post(client, self.fact(client, "coin_challenge")).status_code, 302)
+            self.assertEqual(client.get(self.url).status_code, 200)
+            state = self.readonly(client)
+            self.assertTrue(state.user_provisioned)
+            self.assertFalse(state.ducky_provisioned)
+            user = self.progress(client).synthetic_user
+            Ducky.objects.create(user=user, sex=Ducky.SEX[0][0], selected_outfit=None)
+            Item.objects.filter(pk=self.item.pk).update(code="unprepared-with-ducky-" + uuid4().hex)
+            state = self.readonly(client)
+            self.assertEqual(asdict(state), dict(item_prepared=False, user_provisioned=True,
+                ducky_provisioned=True, quantity=None))
+            Item.objects.filter(pk=self.item.pk).update(code=rules.ITEM_MAPPING.item_code)
+            self.assertEqual(self.readonly(client).quantity, 0)
+            self.assertEqual(self.post(client, self.fact(client)).status_code, 302)
+            self.assertEqual(self.readonly(client).quantity, 1)
+            with self.assertRaises(services.DemoAccessError):
+                rewards.read_demo_inventory(self.progress(client), session_token="f" * 64)
+            row = self.reward(client)
+            corrupt = deepcopy(row.snapshot)
+            corrupt["item"]["quantity"] = True
+            DemoTargetRewardEvent.objects.filter(pk=row.pk).update(snapshot=corrupt)
+            before = self.business()
+            with self.assertRaises(services.DemoIntegrityError):
+                self.readonly(client)
+            self.assertEqual(self.business(), before)
+            evidence["observations"].append({"readonly_states": 5, "no_dml": True,
+                "historical_corruption_not_empty_inventory": True})
+
+        def test_sessions_reset_and_private_history(self):
+            a, b = self.start(), self.start()
+            first = self.fact(a)
+            self.assertEqual(self.post(a, first).status_code, 302)
+            ra = self.reward(a)
+            self.assertEqual(self.post(b, first).status_code, 403)
+            self.assertEqual(self.post(b, self.fact(b)).status_code, 302)
+            rb = self.reward(b)
+            self.assertNotIn(f"ItemGrant #{ra.item_grant_id}", b.get(self.url).content.decode())
+            self.assertNotIn(f"ItemGrant #{rb.item_grant_id}", a.get(self.url).content.decode())
+            own_pk = a.session["demo_progress"]
+            session = a.session
+            session["demo_progress"] = b.session["demo_progress"]
+            session.save()
+            before = self.business()
+            self.assertEqual(a.get(self.url).status_code, 403)
+            self.assertEqual(self.business(), before)
+            session = a.session
+            session["demo_progress"] = own_pk
+            session.save()
+            self.assertEqual(self.post(a, {"action": "start"}).status_code, 302)
+            self.assertEqual(a.get(self.url).status_code, 200)
+            self.assertNotIn("ItemGrant #", a.get(self.url).content.decode())
+            self.assertEqual(self.post(a, first).status_code, 403)
+            self.assertTrue(DemoTargetRewardEvent.objects.filter(pk=ra.pk).exists())
+            self.assertNotIn(str(ra.pk), a.session.get("reward_confirmed_tokens", {}))
+            self.assertNotIn("reward_last", a.session)
+
+        def test_csrf_and_methods(self):
+            client = self.start()
+            data = self.fact(client)
+            before = self.business()
+            self.assertEqual(client.post(self.url, data).status_code, 403)
+            self.assertEqual(client.post(self.url, data, HTTP_X_CSRFTOKEN="x" * 64).status_code, 403)
+            self.assertEqual(self.business(), before)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            for method in ("put", "patch", "delete", "head", "options", "trace"):
+                self.assertEqual(getattr(client, method)(self.url,
+                    HTTP_X_CSRFTOKEN=client.cookies[settings.CSRF_COOKIE_NAME].value).status_code, 405)
+
+        def test_strict_fields_tokens_get_and_escape(self):
+            client = self.start()
+            data = self.fact(client)
+            before = self.business()
+            for key in ("item_id", "user_id", "ducky_id", "quantity", "item_level_id", "wallet_id",
+                    "balance", "transaction_id", "progress", "fact_id"):
+                with self.subTest(extra=key):
+                    self.assertEqual(self.post(client, {**data, key: "1"}).status_code, 400)
+                    self.assertEqual(client.get(self.url, {key: "1"}).status_code, 400)
+            for key in data:
+                self.assertEqual(self.post(client, {k: v for k, v in data.items() if k != key}).status_code, 400)
+                self.assertEqual(self.post(client, urlencode([*data.items(), (key, data[key])]),
+                    content_type="application/x-www-form-urlencoded").status_code, 400)
+            for token in ("forged", data["fact_token"] + "x", client.session["reward_tokens"]["challenge"],
+                    client.session["demo_operation"]):
+                self.assertEqual(self.post(client, {**data, "fact_token": token}).status_code, 403)
+            response = self.post(client, {**data, "activity": "<script>private</script>"})
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn("<script>private</script>", response.content.decode())
+            self.assertIn("&lt;script&gt;private&lt;/script&gt;", response.content.decode())
+            self.assertEqual(self.business(), before)
+
+        def test_conflict_and_no_stale_success(self):
+            client = self.start()
+            data = self.fact(client)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            self.assertEqual(client.get(self.url).status_code, 200)
+            payload = signing.loads(data["fact_token"], salt=rewards.SALT)
+            payload["occurred_at"] = (rewards._instant(payload["occurred_at"]) + timedelta(seconds=1)).isoformat(timespec="microseconds")
+            changed = {**data, "fact_token": signing.dumps(payload, salt=rewards.SALT)}
+            before = self.business()
+            response = self.post(client, changed)
+            self.assertEqual(response.status_code, 409)
+            self.assertNotIn("APPLIED:", response.content.decode())
+            self.assertEqual(self.business(), before)
+            self.assertNotIn("APPLIED: HINT", client.get(self.url).content.decode())
+
+        def test_item_unavailable_and_invalid_configuration(self):
+            client = self.start()
+            data = self.fact(client)
+            for fields in ({"code": "absent-" + uuid4().hex}, {"is_active": False}, {"category": Item.COSMETIC}):
+                with self.subTest(fields=fields):
+                    Item.objects.filter(pk=self.item.pk).update(**fields)
+                    before = self.business()
+                    response = self.post(client, data)
+                    self.assertEqual(response.status_code, 503)
+                    self.assertEqual(self.business(), before)
+                    self.assertNotIn("APPLIED:", response.content.decode())
+                    self.assertNotIn(str(path), response.content.decode())
+                    Item.objects.filter(pk=self.item.pk).update(code=rules.ITEM_MAPPING.item_code, is_active=True, category=Item.HINT)
+            self.assertIsNone(self.progress(client).synthetic_user_id)
+
+        def test_history_identity_and_cause_errors(self):
+            client = self.start()
+            self.assertEqual(self.post(client, self.fact(client)).status_code, 302)
+            row = self.reward(client)
+            grant = ItemGrant.objects.get(pk=row.item_grant_id)
+            for changes in ({"reference_id": "private-incompatible"}, {"quantity": 2}, {"operation_key": "ri1:private-incompatible"}):
+                previous = {key: getattr(grant, key) for key in changes}
+                ItemGrant.objects.filter(pk=grant.pk).update(**changes)
+                before = self.business()
+                response = client.get(self.url)
+                self.assertEqual(response.status_code, 409)
+                self.assertEqual(self.business(), before)
+                self.assertNotIn("private-incompatible", response.content.decode())
+                self.assertNotIn("APPLIED:", response.content.decode())
+                ItemGrant.objects.filter(pk=grant.pk).update(**previous)
+            user = self.progress(client).synthetic_user
+            User.objects.filter(pk=user.pk).update(is_active=True)
+            self.assertEqual(client.get(self.url).status_code, 409)
+            User.objects.filter(pk=user.pk).update(is_active=False)
+            ducky = Ducky.objects.get(user=user)
+            Ducky.objects.filter(pk=ducky.pk).update(sex="bad")
+            self.assertEqual(client.get(self.url).status_code, 409)
+            Ducky.objects.filter(pk=ducky.pk).update(sex=ducky.sex)
+            snapshot = deepcopy(row.snapshot)
+            snapshot["item"]["quantity"] = 99
+            DemoTargetRewardEvent.objects.filter(pk=row.pk).update(snapshot=snapshot)
+            self.assertEqual(client.get(self.url).status_code, 409)
+
+        def test_inventory_sql_error_is_sanitized(self):
+            from django.db import OperationalError
+            client = self.start()
+            self.assertEqual(self.post(client, self.fact(client)).status_code, 302)
+            before = self.business()
+
+            def fail_inventory(execute, sql, params, many, context):
+                if "duckies_inventoryitem" in sql.lower():
+                    raise OperationalError("private-sql-location")
+                return execute(sql, params, many, context)
+
+            with db.execute_wrapper(fail_inventory):
+                response = client.get(self.url)
+            self.assertEqual(response.status_code, 503)
+            self.assertEqual(self.business(), before)
+            self.assertNotIn("private-sql-location", response.content.decode())
+            self.assertNotIn("APPLIED:", response.content.decode())
+
+        def test_real_http_timeout_and_explicit_retry(self):
+            client = self.start()
+            data = self.fact(client)
+            before = self.business()
+            held, release = Event(), Event()
+
+            def blocker():
+                try:
+                    with services._xp_transaction(self.progress(client), session_token=client.session["demo_secret"]):
+                        held.set()
+                        if not release.wait(15):
+                            raise AssertionError("HTTP fixture lock was not released")
+                finally:
+                    connections["default"].close()
+
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(blocker)
+                self.assertTrue(held.wait(10))
+                started = monotonic()
+                try:
+                    response = self.post(client, data)
+                    elapsed = monotonic() - started
+                    self.assertEqual(response.status_code, 503)
+                    self.assertGreaterEqual(elapsed, 4.5)
+                    self.assertNotIn("APPLIED:", response.content.decode())
+                finally:
+                    release.set()
+                    future.result(timeout=10)
+            self.assertEqual(self.business(), before)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            self.assertEqual(self.post(client, data).status_code, 302)
+            self.assertEqual(InventoryItem.objects.get(ducky__user=self.progress(client).synthetic_user, item=self.item).quantity, 1)
+            evidence["observations"].append({"http_timeout": 503, "seconds": elapsed,
+                "explicit_retry_without_duplicate": True})
+
+        def test_xp_bank_visit_and_playable_compatibility(self):
+            client = self.start()
+            original = {a: self.fact(client, a) for a in ("challenge", "coin_challenge", "visit")}
+            for payload in original.values():
+                self.assertEqual(self.post(client, payload).status_code, 302)
+            self.assertEqual(client.get(self.url).status_code, 200)
+            progress = self.progress(client)
+            self.assertEqual((progress.xp_total, progress.current_level), (700, 8))
+            self.assertEqual(DemoTargetEvolutionEvent.objects.filter(progress=progress).count(), 6)
+            self.assertEqual(Wallet.objects.get(user=progress.synthetic_user).available_balance, 5)
+            revision = None
+            for option in ("persist-demo-tech-gamer", "persist-demo-epoch-3"):
+                result = playable.configure_demo_option(progress, option_code=option,
+                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                    operation_token=playable.issue_playable_operation(progress, action="configure", session_token=client.session["demo_secret"]),
+                    session_token=client.session["demo_secret"], expected_revision=revision)
+                revision = result.after.revision
+            before = self.business()
+            for payload in original.values():
+                self.assertEqual(self.post(client, payload).status_code, 302)
+            self.assertEqual(self.business(), before)
+            self.assertEqual(self.post(client, self.fact(client)).status_code, 302)
+            db.close()
+            page = client.get(self.url).content.decode()
+            for text in ("+700 XP", "+5 DuckyCoins", "NO_REWARD", "ItemGrant #", "Gamer", "Romano"):
+                self.assertIn(text, page)
+            self.assertEqual({r.snapshot["schema"] for r in DemoTargetRewardEvent.objects.filter(progress=progress)},
+                {"demo-reward-result-v2", "demo-reward-result-v3"})
+
     groups = {
         "atomicity": ("test_shared_default_savepoint_commit", "test_rollback_existing_inventory",
                       "test_rollback_new_provisioning", "test_inner_failure_rolls_back_savepoint"),
@@ -935,6 +1320,13 @@ def run(root, scenario):
         "service-atomicity": ("test_shared_connection_single_commit", "test_complete_rollback_matrix"),
         "service-concurrency": ("test_concurrent_same", "test_concurrent_conflict", "test_concurrent_distinct",
             "test_concurrent_item_with_bank_and_direct_xp", "test_timeout_explicit_retry"),
+        "http-functional": ("test_http_real_grant_and_distinct_present_inventory", "test_get_and_tokens_never_provision"),
+        "http-replay": ("test_replay_original_last_and_row_forms",),
+        "http-consumption": ("test_consumed_inventory_zero_and_http_replay", "test_inventory_readonly_all_states"),
+        "http-sessions": ("test_sessions_reset_and_private_history",),
+        "http-security": ("test_csrf_and_methods", "test_strict_fields_tokens_get_and_escape", "test_conflict_and_no_stale_success"),
+        "http-errors": ("test_item_unavailable_and_invalid_configuration", "test_history_identity_and_cause_errors", "test_inventory_sql_error_is_sanitized", "test_real_http_timeout_and_explicit_retry"),
+        "http-compatibility": ("test_xp_bank_visit_and_playable_compatibility",),
     }
     try:
         try:
@@ -950,7 +1342,8 @@ def run(root, scenario):
             raise AssertionError("Migration creation context leaked")
         call_command("seed_persistent_target_demo", stdout=StringIO())
         db = demo_connection()
-        case = RewardsItemServiceTests if scenario.startswith("service-") else RewardsDuckiesTests
+        case = (RewardsItemHTTPTests if scenario.startswith("http-") else
+                RewardsItemServiceTests if scenario.startswith("service-") else RewardsDuckiesTests)
         suite = unittest.TestSuite(case(name) for name in groups[scenario])
         result = unittest.TextTestRunner(stream=sys.stderr, verbosity=2).run(suite)
         evidence.update(tests=result.testsRun, failures=len(result.failures), errors=len(result.errors),

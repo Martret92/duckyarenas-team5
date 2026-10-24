@@ -1701,12 +1701,49 @@ class RewardsDuckiesServiceSubprocessTests(TestCase):
         self.assertGreaterEqual(report["observations"][-1]["real_timeout_seconds"], 4.5)
 
 
+class RewardsDuckiesHTTPSubprocessTests(TestCase):
+    """Seven distinct 2D parents, fourteen child cases counted separately."""
+
+    def child(self, scenario):
+        return BankDefaultSubprocessTests.child(self, scenario,
+            module="apps.ecomotor.ecomotor_target_demo.reward_duckies_fixture",
+            prefix="ducky-rewards-duckies-", marker="DUCKIES_DEFAULT_EVIDENCE=")
+
+    def test_http_grant_and_get_without_business_effects(self):
+        report = self.child("http-functional")
+        self.assertEqual(report["tests"], 2)
+        self.assertTrue(report["observations"][0]["real_item_grant"])
+
+    def test_original_last_and_row_replay(self):
+        self.assertEqual(self.child("http-replay")["tests"], 1)
+
+    def test_real_consumption_and_readonly_inventory_states(self):
+        report = self.child("http-consumption")
+        self.assertEqual(report["tests"], 2)
+        self.assertTrue(report["observations"][0]["http_replay_without_delivery"])
+        self.assertTrue(report["observations"][1]["no_dml"])
+
+    def test_owned_sessions_and_new_game(self):
+        self.assertEqual(self.child("http-sessions")["tests"], 1)
+
+    def test_csrf_parameters_tokens_escape_and_conflict(self):
+        self.assertEqual(self.child("http-security")["tests"], 3)
+
+    def test_controlled_errors_real_timeout_and_retry(self):
+        report = self.child("http-errors")
+        self.assertEqual(report["tests"], 4)
+        self.assertGreaterEqual(report["observations"][-1]["seconds"], 4.5)
+
+    def test_xp_bank_visit_playable_and_reopen(self):
+        self.assertEqual(self.child("http-compatibility")["tests"], 1)
+
+
 def load_tests(loader, suite, pattern):
     # Explicit, predictable discovery under exclusive settings only. Keep the
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, Schema0005Tests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))

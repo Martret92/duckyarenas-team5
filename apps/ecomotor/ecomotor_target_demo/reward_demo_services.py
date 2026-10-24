@@ -651,3 +651,38 @@ def read_demo_bank(progress, *, session_token):
                 raise xp.DemoIntegrityError("Historial Bank ajeno o estructuralmente incoherente.")
             movements.append(DemoBankMovement(row.pk, row.created_at, row.transaction_type, row.amount, row.balance_after))
         return DemoBankOverview(True, balance, tuple(movements), history)
+
+
+@dataclass(frozen=True, slots=True)
+class DemoInventoryOverview:
+    item_prepared: bool
+    user_provisioned: bool
+    ducky_provisioned: bool
+    quantity: int | None
+
+
+def read_demo_inventory(progress, *, session_token):
+    """Observe present HINT ownership; never provision or infer it from a grant.
+
+    This observation owns its short transaction, independently of page reads of
+    progress/Bank. Current activity/category metadata cannot invalidate V3 replay.
+    """
+    with xp._xp_transaction(progress, session_token=session_token) as context:
+        current, alias = xp._check_xp_transaction(context)
+        _history(current, alias)  # Missing historical identities are corruption.
+        mapping = rules.ITEM_MAPPINGS["demo-item-map-v1"]
+        item = Item.objects.using(alias).filter(code=mapping.item_code).first()
+        if current.synthetic_user_id is None:
+            return DemoInventoryOverview(item is not None, False, False, None)
+        user, _ = _wallet(current, alias)  # Requires protected default, no creation.
+        if not Ducky.objects.using(alias).filter(user_id=user.pk).exists():
+            return DemoInventoryOverview(item is not None, True, False, None)
+        _ducky(user, alias)  # Validate an existing identity, never repair it.
+        if item is None:
+            return DemoInventoryOverview(False, True, True, None)
+        quantity = duckies_service.get_item_ownership(user, item, item_level=None)
+        maximum = context.db.ops.integer_field_range(InventoryItem._meta.get_field("quantity").get_internal_type())[1]
+        if type(quantity) is not int or not 0 <= quantity <= maximum:
+            raise xp.DemoIntegrityError("Cantidad de inventario sintético incoherente.")
+        xp._check_xp_transaction(context)
+        return DemoInventoryOverview(True, True, True, quantity)
