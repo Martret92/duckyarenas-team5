@@ -14,7 +14,7 @@ from .demo_services import demo_user, provision, credit_demo, local_initializati
 from .forms import ActionForm
 from .selectors import state
 
-SECTIONS={"dashboard":"Inicio","player":"Mi Pato","evolution":"Evolución","specialization":"Especialización","wardrobe":"Vestuario","inventory":"Inventario","museum":"Museo","shop":"Tienda","wallet":"Banco","arena":"Arena"}
+SECTIONS={"dashboard":"Inicio","player":"Mi Pato","evolution":"Evolución","specialization":"Especialización","wardrobe":"Vestuario","inventory":"Inventario","museum":"Museo","shop":"Tienda","wallet":"Banco","arena":"Arena","rewards":"Recompensas"}
 
 def _guard(request):
     # Sin login SOLO para pruebas locales; nunca público, incluso si DEBUG=True.
@@ -26,7 +26,7 @@ def page(request,section="dashboard"):
     if section not in SECTIONS:raise Http404()
     user=demo_user()
     data=state(user)
-    data.update({"section":section,"section_title":SECTIONS[section],"sections":SECTIONS,"demo_user":user})
+    data.update({"rewards_lab_url":"http://127.0.0.1:8002/demo/objetivo-persistente/", "section":section,"section_title":SECTIONS[section],"sections":SECTIONS,"demo_user":user})
     return render(request,"team5_ui/page.html",data)
 
 @require_POST

@@ -10,6 +10,8 @@ class LocalAccessTests(SimpleTestCase):
     @override_settings(DEBUG=True,ALLOWED_HOSTS=["example.com"])
     def test_rejects_external_hostname(self):
         with self.assertRaises(Http404):_guard(self.factory.get("/team5/",HTTP_HOST="example.com"))
-    @override_settings(DEBUG=True)
+    @override_settings(DEBUG=True, ALLOWED_HOSTS=["127.0.0.1", "localhost"])
     def test_localhost_allowed(self):
-        self.assertIsNone(_guard(self.factory.get("/team5/",HTTP_HOST="127.0.0.1:8000")))
+        self.assertIsNone(
+            _guard(self.factory.get("/team5/", HTTP_HOST="127.0.0.1:8000"))
+        )
