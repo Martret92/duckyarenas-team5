@@ -938,9 +938,19 @@ atribuir confirmación de Core/Óscar.
 | Core/A3.5 y A3.6 | Las cinco respuestas de identidad, autorización, ciclo de vida, conservación y privacidad, concretadas en la [frontera Core](contracts/ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026), y evidencia suficiente/vigente; §30 conserva las preferencias internas sin ratificación externa. |
 | USE-01B / TRACE-01B | Resolver autorización y procedencia persistente antes de nuevas concesiones objetivo; congelación, auditoría técnica o clasificación no las sustituyen. |
 | Escritor objetivo / transición | Implementación separada y pruebas tras sus precondiciones; compatibilidad V1, consumidores y corte autorizado de escritor único. S3 V1 sigue único escritor XP activo fuera del laboratorio; replay `(profile, operation_key)` sin duplicación. |
-| Rewards productivo / propietarios y emisores | Contratos reales Core, Bank, Duckies y emisores, autorización de integración y pruebas conjuntas posteriores a las puertas anteriores; el laboratorio no implementa F2-A productivo. |
+| Rewards combinados / propietarios y emisores | Contratos reales Core, Bank, Duckies y emisores, autorización de integración y pruebas conjuntas posteriores a las puertas anteriores para trasladar REW-MULTI-03; el laboratorio no implementa F2-A productivo. |
 | Henry · navegación y futura retirada | El enlace desde feature/demo-interfaz es navegación entre demos. Antes de cualquier retirada, acordar y verificar una alternativa de acceso con Henry y disponer de reemplazo funcional comprobado. Sin retirada autorizada por INT-A-00. |
 | Henry · diagnóstico de layout | Obtener evidencia reproducible del fallo comunicado `DemoPackageLayoutTests.test_only_the_new_physical_package_exists` y diagnosticar su causa. No atribuirlo a Rewards ni modificar código/tests sin evidencia y alcance posterior autorizado. |
+
+**F2-A independiente:** [DOC-6 / Rewards §12](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6)
+mantiene su arquitectura de XP histórica positiva mediante S3 V1 y NO_REWARD,
+con identidad, persistencia, idempotencia y causalidad propias. Su diseño o
+preparación no espera automáticamente a INT-A2/INT-A3, ni la validación del
+laboratorio lo desbloquea. Siguen pendientes identidad, autorización,
+conservación, relaciones físicas y demás condiciones de Core y de su contrato.
+No incorpora automáticamente DuckyCoins, HINT o V4, ni autoriza activar Rewards
+productivo o dos escritores XP; S3 V1 continúa como único escritor XP activo
+fuera del laboratorio. La secuencia anterior se aplica al traslado combinado.
 
 Solo documentación en esta PR: sin comunicaciones al equipo, código, pruebas
 Django, migraciones, seeds, configuración o uso de SQLite personales. La secuencia

@@ -2186,6 +2186,15 @@ replay `(profile, operation_key)` y no se habilita doble escritura. Las cinco
 [respuestas Core requeridas](contracts/ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026)
 precisan las preguntas existentes sin atribuir respuestas externas.
 
+**Precisión de 02C-2:** el orden evolución objetivo → recompensas combinadas
+afecta al traslado REW-MULTI-03 de INT-A-00, no modifica ni bloquea automáticamente
+la arquitectura independiente F2-A de [DOC-6 / Rewards §12](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6).
+F2-A puede continuar diseño/preparación sobre XP histórica positiva S3 V1 y
+NO_REWARD por sus propias dependencias, sin esperar automáticamente a INT-A2/A3.
+No queda desbloqueada por el laboratorio: mantiene acuerdos Core y condiciones
+de su contrato, sin añadir DuckyCoins, HINT o V4 al alcance original ni autorizar
+activación productiva o escritores XP simultáneos.
+
 La navegación entre demos comunicada por Henry no integra economías/inventarios.
 No retirar ecomotor_target_demo hasta disponer de reemplazo funcional verificado
 y alternativa de acceso acordada/verificada con Henry. El fallo de layout

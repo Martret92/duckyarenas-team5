@@ -796,12 +796,27 @@ no hay ratificación de Óscar/Core ni autorización de integración productiva.
    a §4–§8: suspensión/drenaje y consumidores coordinados, sin reinterpretar
    historia ni duplicar concesiones. S3 V1 continúa como único escritor XP activo
    fuera del laboratorio; no activar simultáneamente ambos escritores.
-6. Integrar Rewards productivo con Core, Bank, Duckies y emisores reales solo
+6. Integrar las recompensas combinadas de REW-MULTI-03 en Parte A con Core,
+   Bank, Duckies y emisores reales solo
    después de cerrar los contratos necesarios y autorizar la transición. Las
    pruebas locales de atomicidad no demuestran esa integración global.
 7. Ejecutar pruebas conjuntas y plantear la eventual retirada del laboratorio
    únicamente cuando exista un reemplazo funcional verificado y estén resueltas
    sus dependencias de acceso. INT-A-00 no aprueba fecha ni eliminación.
+
+**Precisión de 02C-2:** la precedencia evolución objetivo → recompensas
+combinadas describe este traslado del laboratorio; no modifica ni bloquea
+automáticamente Rewards F2-A. Su arquitectura independiente, aprobada
+internamente en [DOC-6 / Rewards §12](rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6),
+contempla XP histórica positiva mediante S3 V1 y NO_REWARD, con identidad,
+persistencia, idempotencia y causalidad propias. F2-A puede continuar diseño o
+preparación por sus propias dependencias, sin esperar automáticamente a INT-A2
+o INT-A3; tampoco queda desbloqueada por la validación de REW-MULTI-03.
+Conserva los acuerdos pendientes de Core sobre identidad, autorización,
+conservación, relaciones físicas y demás condiciones de su contrato. Su alcance
+original no incorpora DuckyCoins, HINT ni efectos combinados V4. Esta precisión
+no autoriza activar Rewards productivo ni dos escritores XP simultáneos; S3 V1
+permanece como único escritor XP activo fuera del laboratorio.
 
 Se conserva la identidad de replay XP `(profile, operation_key)` de §6, sin
 añadir versión o escritor como vía para repetir una concesión. Resolver historia
