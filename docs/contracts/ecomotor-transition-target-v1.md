@@ -762,3 +762,66 @@ Privacidad y autorización Core siguen obligatorias. S3 V1 continúa activo; no 
 modifica ni se ejecuta migración/activación. A3.2 y sus tests son futuros 01B,
 sin cambios iniciales de A3.1, S3, modelos/migraciones o configuración.
 [Pendientes A3.2](../pending-decisions.md#16-a32--alcance-y-validaciones-pendientes).
+
+## 13. INT-A-00 · Plan de integración progresiva · 26/10/2026
+
+**Plan aprobado internamente en 02C-2 el 26/10/2026, exclusivamente documental.**
+Baseline: develop `032e05a25d84c200d6da5b93278c874164984d79`. Las PR #114–#117
+integran REW-MULTI-03 en el laboratorio persistente. Según el traspaso del Equipo 5,
+también ha sido validado interactivamente en ese entorno sintético; esta PR no
+repite ni amplía esa validación. El [contrato combinado](ecomotor-target-demo-rewards-combined-v1.md)
+conserva sus evidencias y cortes históricos. DAR3 mantiene autoridad funcional;
+no hay ratificación de Óscar/Core ni autorización de integración productiva.
+
+### Etapas y entregables de planificación
+
+| Etapa | Trabajo previsto y resultado que debe revisarse |
+| --- | --- |
+| INT-A1 · Contraste | Comparar `apps.ecomotor` con `apps/ecomotor/ecomotor_target_demo/`: inventariar funcionalidades, reglas, servicios y dependencias; distinguir componentes reutilizables, adaptaciones condicionadas por contratos y elementos exclusivamente demostrativos. El resultado será un contraste trazable, no un traslado automático de código. |
+| INT-A2 · Evolución | Planificar siete épocas objetivo, elección desde nivel 8 y eventos de evolución separados, conservando íntegramente identidades, referencias e interpretación de historiales V1. Reutilizar A1.1/A1.2, A2.1, catálogos objetivo, congelación, auditoría técnica y reglas puras A3.3; identificar las piezas persistentes y contratos todavía pendientes. No inferir autorización de catálogo congelado, auditoría conforme o clasificación. |
+| INT-A3 · Rewards | Planificar Rewards en Parte A principal con contratos de Core, Bank, Duckies y emisores reales: identidad/autorización del hecho y destinatario, reglas autorizadas, causalidad, replay, errores y garantías transaccionales acordadas con propietarios. Los usuarios, umbrales, presupuestos, artículos, reglas e importes sintéticos no se convierten en oficiales. |
+
+### Orden lógico y puertas de avance
+
+1. Documentar plan y dependencias INT-A1/A2/A3, comenzando por el contraste; cada
+   implementación posterior requerirá alcance y revisión propios.
+2. Obtener acuerdos Core/A3.5 y evidencia A3.6 suficiente y vigente. Las
+   [cinco respuestas concretas requeridas](ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026)
+   siguen pendientes; una preferencia interna no las sustituye.
+3. Resolver autorización USE-01B y trazabilidad TRACE-01B, conforme a las
+   fronteras de §3; no simularlas con datos de laboratorio.
+4. Implementar y probar el escritor XP objetivo separado solo tras resolver sus
+   precondiciones. Estar implementado o probado no autoriza activarlo.
+5. Ensayar compatibilidad V1 y transición autorizada de escritor único conforme
+   a §4–§8: suspensión/drenaje y consumidores coordinados, sin reinterpretar
+   historia ni duplicar concesiones. S3 V1 continúa como único escritor XP activo
+   fuera del laboratorio; no activar simultáneamente ambos escritores.
+6. Integrar Rewards productivo con Core, Bank, Duckies y emisores reales solo
+   después de cerrar los contratos necesarios y autorizar la transición. Las
+   pruebas locales de atomicidad no demuestran esa integración global.
+7. Ejecutar pruebas conjuntas y plantear la eventual retirada del laboratorio
+   únicamente cuando exista un reemplazo funcional verificado y estén resueltas
+   sus dependencias de acceso. INT-A-00 no aprueba fecha ni eliminación.
+
+Se conserva la identidad de replay XP `(profile, operation_key)` de §6, sin
+añadir versión o escritor como vía para repetir una concesión. Resolver historia
+compatible antes de elegibilidad nueva, con autorización y límites de evidencia
+histórica intactos. Las identidades sintéticas Rewards y las claves causales del
+laboratorio no definen por sí solas el contrato de emisores productivos.
+
+### Coordinación con Henry y conservación del laboratorio
+
+Según el traspaso, el enlace añadido por Henry desde `feature/demo-interfaz`
+hacia Rewards es navegación entre demos: no integra inventarios, economías,
+sesiones ni contratos productivos. Antes de retirar `ecomotor_target_demo`, se
+debe acordar y verificar con Henry una alternativa funcional para ese acceso.
+No se modifica su rama ni se envían comunicaciones desde esta tarea.
+
+El fallo `DemoPackageLayoutTests.test_only_the_new_physical_package_exists`
+comunicado por Henry permanece pendiente de diagnóstico y evidencia reproducible.
+No se atribuye a Rewards ni se determina su causa sin evidencia; este plan no
+modifica código, tests, paquetes ni sus expectativas para resolverlo.
+
+Los [pendientes INT-A-00](../pending-decisions.md#33-int-a-00--puertas-de-integración-progresiva--26102026)
+registran las puertas abiertas. No código, modelos, migraciones, seeds, cambios
+de settings/despliegue, refactorización o retirada del laboratorio por este corte.
