@@ -762,3 +762,247 @@ Privacidad y autorización Core siguen obligatorias. S3 V1 continúa activo; no 
 modifica ni se ejecuta migración/activación. A3.2 y sus tests son futuros 01B,
 sin cambios iniciales de A3.1, S3, modelos/migraciones o configuración.
 [Pendientes A3.2](../pending-decisions.md#16-a32--alcance-y-validaciones-pendientes).
+
+## 13. INT-A-00 · Plan de integración progresiva · 26/10/2026
+
+**Plan aprobado internamente en 02C-2 el 26/10/2026, exclusivamente documental.**
+Baseline: develop `032e05a25d84c200d6da5b93278c874164984d79`. Las PR #114–#117
+integran REW-MULTI-03 en el laboratorio persistente. Según el traspaso del Equipo 5,
+también ha sido validado interactivamente en ese entorno sintético; esta PR no
+repite ni amplía esa validación. El [contrato combinado](ecomotor-target-demo-rewards-combined-v1.md)
+conserva sus evidencias y cortes históricos. DAR3 mantiene autoridad funcional;
+no hay ratificación de Óscar/Core ni autorización de integración productiva.
+
+### Etapas y entregables de planificación
+
+| Etapa | Trabajo previsto y resultado que debe revisarse |
+| --- | --- |
+| INT-A1 · Contraste | Comparar `apps.ecomotor` con `apps/ecomotor/ecomotor_target_demo/`: inventariar funcionalidades, reglas, servicios y dependencias; distinguir componentes reutilizables, adaptaciones condicionadas por contratos y elementos exclusivamente demostrativos. El resultado será un contraste trazable, no un traslado automático de código. |
+| INT-A2 · Evolución | Planificar siete épocas objetivo, elección desde nivel 8 y eventos de evolución separados, conservando íntegramente identidades, referencias e interpretación de historiales V1. Reutilizar A1.1/A1.2, A2.1, catálogos objetivo, congelación, auditoría técnica y reglas puras A3.3; identificar las piezas persistentes y contratos todavía pendientes. No inferir autorización de catálogo congelado, auditoría conforme o clasificación. |
+| INT-A3 · Rewards | Planificar Rewards en Parte A principal con contratos de Core, Bank, Duckies y emisores reales: identidad/autorización del hecho y destinatario, reglas autorizadas, causalidad, replay, errores y garantías transaccionales acordadas con propietarios. Los usuarios, umbrales, presupuestos, artículos, reglas e importes sintéticos no se convierten en oficiales. |
+
+### Orden lógico y puertas de avance
+
+1. Documentar plan y dependencias INT-A1/A2/A3, comenzando por el contraste; cada
+   implementación posterior requerirá alcance y revisión propios.
+2. Obtener acuerdos Core/A3.5 y evidencia A3.6 suficiente y vigente. Las
+   [cinco respuestas concretas requeridas](ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026)
+   siguen pendientes; una preferencia interna no las sustituye.
+3. Resolver autorización USE-01B y trazabilidad TRACE-01B, conforme a las
+   fronteras de §3; no simularlas con datos de laboratorio.
+4. Implementar y probar el escritor XP objetivo separado solo tras resolver sus
+   precondiciones. Estar implementado o probado no autoriza activarlo.
+5. Ensayar compatibilidad V1 y transición autorizada de escritor único conforme
+   a §4–§8: suspensión/drenaje y consumidores coordinados, sin reinterpretar
+   historia ni duplicar concesiones. S3 V1 continúa como único escritor XP activo
+   fuera del laboratorio; no activar simultáneamente ambos escritores.
+6. Integrar las recompensas combinadas de REW-MULTI-03 en Parte A con Core,
+   Bank, Duckies y emisores reales solo
+   después de cerrar los contratos necesarios y autorizar la transición. Las
+   pruebas locales de atomicidad no demuestran esa integración global.
+7. Ejecutar pruebas conjuntas y plantear la eventual retirada del laboratorio
+   únicamente cuando exista un reemplazo funcional verificado y estén resueltas
+   sus dependencias de acceso. INT-A-00 no aprueba fecha ni eliminación.
+
+**Precisión de 02C-2:** la precedencia evolución objetivo → recompensas
+combinadas describe este traslado del laboratorio; no modifica ni bloquea
+automáticamente Rewards F2-A. Su arquitectura independiente, aprobada
+internamente en [DOC-6 / Rewards §12](rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6),
+contempla XP histórica positiva mediante S3 V1 y NO_REWARD, con identidad,
+persistencia, idempotencia y causalidad propias. F2-A puede continuar diseño o
+preparación por sus propias dependencias, sin esperar automáticamente a INT-A2
+o INT-A3; tampoco queda desbloqueada por la validación de REW-MULTI-03.
+Conserva los acuerdos pendientes de Core sobre identidad, autorización,
+conservación, relaciones físicas y demás condiciones de su contrato. Su alcance
+original no incorpora DuckyCoins, HINT ni efectos combinados V4. Esta precisión
+no autoriza activar Rewards productivo ni dos escritores XP simultáneos; S3 V1
+permanece como único escritor XP activo fuera del laboratorio.
+
+Se conserva la identidad de replay XP `(profile, operation_key)` de §6, sin
+añadir versión o escritor como vía para repetir una concesión. Resolver historia
+compatible antes de elegibilidad nueva, con autorización y límites de evidencia
+histórica intactos. Las identidades sintéticas Rewards y las claves causales del
+laboratorio no definen por sí solas el contrato de emisores productivos.
+
+### Coordinación con Henry y conservación del laboratorio
+
+Según el traspaso, el enlace añadido por Henry desde `feature/demo-interfaz`
+hacia Rewards es navegación entre demos: no integra inventarios, economías,
+sesiones ni contratos productivos. Antes de retirar `ecomotor_target_demo`, se
+debe acordar y verificar con Henry una alternativa funcional para ese acceso.
+No se modifica su rama ni se envían comunicaciones desde esta tarea.
+
+El fallo `DemoPackageLayoutTests.test_only_the_new_physical_package_exists`
+comunicado por Henry permanece pendiente de diagnóstico y evidencia reproducible.
+No se atribuye a Rewards ni se determina su causa sin evidencia; este plan no
+modifica código, tests, paquetes ni sus expectativas para resolverlo.
+
+Los [pendientes INT-A-00](../pending-decisions.md#33-int-a-00--puertas-de-integración-progresiva--26102026)
+registran las puertas abiertas. No código, modelos, migraciones, seeds, cambios
+de settings/despliegue, refactorización o retirada del laboratorio por este corte.
+
+## 14. INT-A1 · Contraste técnico del laboratorio y Parte A · 26/10/2026
+
+**Estado:** contraste documental del código de `develop` en `dae5212bf78a516ef18cf291ca94ceb1807fb7a7`, para revisión de 02C-2. No se aprueban implementaciones productivas, esquemas, permisos ni valores oficiales. Se conserva la planificación de §13 y la independencia de Rewards F2-A.
+
+**Criterio:** «Conservar» significa reutilizar el contrato ya integrado; «Adaptar» significa extraer garantías, no copiar implementación; «No trasladar» comprende identidades, tablas y parámetros ficticios. Ninguna capacidad de la demo supone publicación o autorización.
+
+### Matriz trazable
+
+| Bloque | Parte A principal: evidencia y estado real | Laboratorio: evidencia y diferencia | Dictamen y dependencia |
+| --- | --- | --- | --- |
+| **1. Progresión y catálogo** | [A1.1 `target_catalog_validation.py`](../../apps/ecomotor/target_catalog_validation.py), [A1.2 `target_progression.py`](../../apps/ecomotor/target_progression.py) y [A2.1 `target_xp_plan.py`](../../apps/ecomotor/target_xp_plan.py): validación, cálculo y planificación puros ya integrados, siete épocas e indicador de elección desbloqueada desde nivel 8, sin octava época ni puntos de ascenso objetivo. | [`data.py`](../../apps/ecomotor/ecomotor_target_demo/data.py) y [`catalog.py`](../../apps/ecomotor/ecomotor_target_demo/catalog.py): códigos, umbrales, versión y seed sintéticos exactos. | **Conservar** A1.1/A1.2/A2.1 (A1.1 conserva metadatos heredados de puntos, sin que el cálculo objetivo los conceda); **no trasladar** versiones, códigos ni umbrales ficticios. Pendientes valores y fuentes oficiales. |
+| **1. Catálogo persistente** | [`models.py`](../../apps/ecomotor/models.py): `TargetCatalogVersion`, `TargetLevelThreshold`, `TargetEpoch`; [`target_catalog_persistence.py`](../../apps/ecomotor/target_catalog_persistence.py): lectura validada; [`target_catalog_freeze.py`](../../apps/ecomotor/target_catalog_freeze.py) y [`target_catalog_audit.py`](../../apps/ecomotor/target_catalog_audit.py): congelación/auditoría técnicas implementadas. | [`catalog.py` demo](../../apps/ecomotor/ecomotor_target_demo/catalog.py): seed preparatorio seguido de congelación en SQLite propia. | **Conservar** infraestructura; `frozen_at`/auditoría no acreditan publicación, autorización USE-01B ni procedencia TRACE-01B. **No trasladar** seed. |
+| **2. XP y evolución V1** | [`xp_service.py`](../../apps/ecomotor/xp_service.py) es S3 V1 activo; [`XPEvent`, `EvolutionEvent`, `EvolutionStage`](../../apps/ecomotor/models.py) conservan identidad `(profile, operation_key)` de XP, eventos históricos y puntos de ascenso V1. Replay V1 no reconstruye snapshots inexistentes. | [`services.py` demo](../../apps/ecomotor/ecomotor_target_demo/services.py) concede XP ficticia sin llamar a S3. | **Conservar V1 sin reinterpretar**, sin doble escritor ni adoptar claves de sesión de demo. |
+| **2. XP objetivo y causalidad** | [`target_xp_preview.py`](../../apps/ecomotor/target_xp_preview.py) combina lector y A2.1, pero solo simula; [`models.py`](../../apps/ecomotor/models.py) no contiene aún `TargetEvolutionEvent` productivo ni escritor objetivo. | [`services.py` demo](../../apps/ecomotor/ecomotor_target_demo/services.py) usa `_grant_xp_in_transaction`; [`models.py` demo](../../apps/ecomotor/ecomotor_target_demo/models.py) guarda `DemoTargetXPEvent` (snapshots y códigos/niveles cruzados) y un `DemoTargetEvolutionEvent` por época cruzada (causa XP, época, ordinal y catálogo exacto). | **Adaptar** snapshots, múltiples cruces y replay bajo contrato; **no copiar** esquema `DemoTarget*`. Requiere TRACE-01B, A3.5/A3.6, catálogo autorizado, escritor objetivo separado y conservación V1. |
+| **3. Clasificación** | [`legacy_transition_audit.py`](../../apps/ecomotor/legacy_transition_audit.py) A3.1, [`legacy_inventory_reader.py`](../../apps/ecomotor/legacy_inventory_reader.py) A3.2 y [`profile_classification_rules.py`](../../apps/ecomotor/profile_classification_rules.py) A3.3 están integrados; no existen aún modelos físicos `ProfileProgressionPolicy`/evento de clasificación ni servicio de confirmación real. | [`DemoTargetProgress`](../../apps/ecomotor/ecomotor_target_demo/models.py) es una partida persistente, no clasificación de `UserProfileEcomotor`. | **Conservar** auditor A3.1 y reglas A3.3 puros, y lector ORM A3.2 de solo lectura. **No inferir** clasificación por nivel o sesión. Persistencia depende de Core/A3.5 y evidencia vigente/suficiente A3.6. |
+| **3. Identidad y Core** | [`xp_service.py`](../../apps/ecomotor/xp_service.py) recibe perfil Ecomotor persistido; [frontera Core A3.5](ecomotor-classification-core-boundary-v1.md) mantiene pendientes operador, permisos, ciclo de vida, retención, privacidad y `on_delete`. | [`services.py` demo](../../apps/ecomotor/ecomotor_target_demo/services.py) usa token firmado y `session_owner`; [`DemoTargetProgress`](../../apps/ecomotor/ecomotor_target_demo/models.py) tiene `synthetic_user` opcional. | **No trasladar** tokens/identidades sintéticas como autenticación/atribución Core; **adaptar** controles a contexto servidor y perfil canónico acordados. |
+| **4. Estadísticas y opción** | [`target_stats_validation.py`](../../apps/ecomotor/target_stats_validation.py), [`target_stats_config_validation.py`](../../apps/ecomotor/target_stats_config_validation.py) y [`target_stats_preparation.py`](../../apps/ecomotor/target_stats_preparation.py): validación/preparación puras existentes; [`target_stats_resolution.py`](../../apps/ecomotor/target_stats_resolution.py) rechaza siempre la resolución real, sin fuente autorizada. | [`stats_definitions.py`](../../apps/ecomotor/ecomotor_target_demo/stats_definitions.py) usa bases cero y presupuesto 45 sintéticos. | **Conservar** validadores, **no oficializar** 45/bases/códigos demo. Resolver fuente de definiciones, parámetros y permisos antes de elegir. |
+| **4. Estado jugable** | [`models.py`](../../apps/ecomotor/models.py) tiene especializaciones y progreso de dominio V1, no estado de opciones objetivo productivo. | [`playable_services.py`](../../apps/ecomotor/ecomotor_target_demo/playable_services.py) implementa configure/switch/redistribute, revisión, historial y replay; [`models.py` demo](../../apps/ecomotor/ecomotor_target_demo/models.py) define `DemoTargetOptionConfiguration`, `DemoTargetPlayableState`, `DemoTargetPlayableEvent`. | **Adaptar** control de revisión, idempotencia e historial cuando haya contrato; **no copiar** modelos ni asociar opción ficticia a Ducky real. Dependencias A4, Core, Henry. |
+| **5. Rewards F1-A / F2-A** | [`reward_types.py`](../../apps/ecomotor/reward_types.py), [`reward_identity.py`](../../apps/ecomotor/reward_identity.py), [`reward_rules.py`](../../apps/ecomotor/reward_rules.py): F1-A puro implementado. [DOC-6 / Rewards F2-A](rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6): arquitectura interna **no implementada** para XP histórica positiva con S3 V1 y NO_REWARD; requiere Core. | [`reward_demo_rules.py`](../../apps/ecomotor/ecomotor_target_demo/reward_demo_rules.py) utiliza F1-A con hechos/reglas inventados; [`DemoTargetRewardEvent`](../../apps/ecomotor/ecomotor_target_demo/models.py) no es el modelo F2-A. | **Conservar F1-A. F2-A es independiente** de INT-A2/INT-A3: puede avanzar en diseño por sus propias puertas sin quedar desbloqueado por la demo. No incluye automáticamente monedas, HINT ni V4. |
+| **5. Rewards combinado** | No existe coordinador combinado productivo en Parte A ni autorización de Rewards F2-A. | [`reward_demo_services.py`](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py) implementa V4: un `DemoTargetRewardEvent` con causas XP/Bank/Item, atomicidad local, histórico y replay; [`reward_demo_rules.py`](../../apps/ecomotor/ecomotor_target_demo/reward_demo_rules.py) fija 700 XP + 5 DuckyCoins + 1 HINT ficticios. | **Adaptar** garantías de unicidad de hecho, causalidad, resultado histórico y rollback para INT-A3. **No trasladar** importes, tokens, esquemas V4 ni identidades demo. |
+| **5. Bank y Duckies** | [`bank/services.py`](../../apps/bank/services.py) proporciona `credit_coins` y ledger; [`duckies/services.py`](../../apps/duckies/services.py) proporciona `grant_item`; sus [modelos Bank](../../apps/bank/models.py) y [modelos Duckies](../../apps/duckies/models.py) tienen propietarios propios. | [`reward_demo_services.py`](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py) compone estos servicios en la SQLite aislada, no en un sistema global integrado. | **Conservar** propiedad de Bank/Duckies; **adaptar** coordinación tras contratos. La transacción en una SQLite no asegura atomicidad entre bases ni inventario común con Henry. |
+| **Aislamiento y navegación** | [`alpha_urls.py`](../../apps/ecomotor/alpha_urls.py) expone consulta V1 bajo montaje futuro de Core. | [`target_persistent_demo_settings.py`](../../apps/ecomotor/target_persistent_demo_settings.py), [`isolation.py`](../../apps/ecomotor/ecomotor_target_demo/isolation.py) y [`urls.py` demo](../../apps/ecomotor/ecomotor_target_demo/urls.py) aíslan SQLite, sesión, alias y ruta. Henry comunica enlace desde `feature/demo-interfaz`; no se ha comprobado una identidad/economía compartida. | **No trasladar** ruta/settings/sesión demo. Mantener laboratorio hasta reemplazo probado y alternativa de navegación acordada con Henry. Test de layout comunicado: causa no confirmada. |
+
+### Conclusiones y asignación
+
+**Conservar:** A1.1/A1.2, A2.1/preview como cálculo/consulta, persistencia-congelación-auditoría de catálogo, auditor A3.1 y reglas A3.3 puros, lector ORM A3.2 de solo lectura, validación/preparación estadística, F1-A y toda la historia/semántica S3 V1.
+
+**Adaptar bajo contratos:** servicio XP objetivo **separado**, eventos causales de evolución objetivo, clasificación persistente autorizada, elección jugable real, Rewards combinado coordinado con Core/Bank/Duckies. **No trasladar:** modelos `DemoTarget*`, sesión y `synthetic_user`, semillas/catálogos/umbrales/45/bases cero sintéticos, recompensas 700/5/HINT y URLs/SQLite de laboratorio.
+
+**Destino:** INT-A2 se ocupa de evolución objetivo y su compatibilidad V1; INT-A3 de recompensas combinadas con emisores/propietarios; retirada futura solo después de sustitución verificada. Rewards F2-A sobre S3 V1 sigue la ruta independiente DOC-6, no bloqueada automáticamente por INT-A2/INT-A3 ni aprobada por el éxito del laboratorio.
+
+### Primer incremento INT-A2 recomendado (propuesta, no decisión)
+
+**INT-A2.1 propuesto: preparador puro de propuestas de evolución causal, sin ORM ni escrituras.** Reutilizar `TargetXPPlan.progression.crossed_epoch_codes` (ya calculados por A1.2/A2.1), no reimplementar umbrales. A partir de un plan obtenido mediante `plan_target_xp_grant()` sobre un snapshot A1.1 validado y referencias explícitas de causa/catálogo suministradas por el llamador, producir una secuencia inmutable de propuestas, una por época cruzada, sin persistirlas ni autenticar tales referencias. Construir directamente un `TargetXPPlan` no acredita por sí solo la coherencia semántica del plan ni autorización. No elegir automáticamente versión, escritor, usuario o clave; nunca tocar `EvolutionEvent` V1. Esto reduce riesgo antes de decidir tablas, `on_delete`, identidad histórica y activación; no debe confundirse con `TargetEvolutionEvent` implementado.
+
+**Alternativa:** cerrar primero solo el contrato físico/causal TRACE-01B y posponer cualquier adaptador. Preferible si 02C-2 considera prematuro fijar incluso la forma de una propuesta causal. La arquitectura del incremento debe ratificarse antes de programarlo.
+
+**Puertas:** para el preparador puro, aprobación de interfaz y límites sin autoridad; para persistencia posterior, TRACE-01B, Core/A3.5, A3.6, USE-01B, datos oficiales, escritor objetivo separado y consumidores. No bloquear ni fusionar este trabajo con F2-A.
+
+**Tests futuros, no ejecutados aquí:** cero/uno/múltiples cruces, salto de seis épocas, nivel 8 sin octava época, orden/unicidad, ausencia de puntos por ascenso objetivo, referencias y versiones explícitas sin inventar, errores estructurales, copia/inmutabilidad y cero ORM/SQL/efectos. Tras aprobar persistencia: causalidad XP, replay idempotente, concurrencia, rollback, compatibilidad con V1 y retención. INT-A1 no ejecuta tests Django.
+
+**Estado final:** inventario documental; sin activación, backfill, migraciones, integración productiva, retirada del laboratorio ni modificación de módulos propietarios.
+
+## 15. INT-A2-T01 · Contrato causal mínimo de evolución objetivo · 26/10/2026
+
+**Estado:** estudio documental del código y contratos en `develop` `13f00114b4bd825333185142fce36076abd32c79`, para revisión de 02C-2. Se desarrollan garantías ya aprobadas internamente en [A3-CAT-TRACE-01A](#a3-cat-trace-01a--procedencia-y-trazabilidad-causal-del-catálogo-objetivo), [A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01), [A2-IDEM-01](ecomotor-target-xp-v1.md#4-identidad-y-replay-entre-versiones--a2-idem-01) y [A3-CAT-EVENT-01](#a3-cat-event-01--separación-de-eventos-objetivo). **No se aprueba un esquema físico ni se cierra TRACE-01B**; las alternativas nuevas identificadas abajo son propuestas, no decisiones tomadas. DAR3 mantiene autoridad funcional y Core no ha ratificado relaciones, permisos o conservación.
+
+### 15.1. Causa XP V1 y frontera de escritura
+
+[`XPEvent`](../../apps/ecomotor/models.py) ya materializa una concesión histórica con `profile`, `operation_key`, `amount`, `xp_before`, `xp_after` y `created_at`; su unicidad real es `(profile, operation_key)`. [`grant_historical_xp`](../../apps/ecomotor/xp_service.py) es el escritor S3 V1 vigente y recupera eventos existentes por esa identidad; [`EvolutionEvent`](../../apps/ecomotor/models.py) conserva una causa `xp_event` y una etapa **V1**, sin snapshots completos de sus atributos. El [contrato A2](ecomotor-target-xp-v1.md) prevé que el *futuro* escritor objetivo separado cree un `XPEvent` por concesión nueva y evoluciones objetivo separadas. **Reutilizar `XPEvent` como causa conceptual no equivale a adaptar ahora S3 ni a introducir FKs nuevas**: el escritor objetivo y la comprobación transaccional de su causa no existen.
+
+- La identidad compartida para búsqueda/replay sigue siendo `(profile, operation_key)`, **sin incluir catálogo, versión o escritor**. Un importe distinto con la misma identidad es conflicto; no hay nueva concesión ni doble escritor activo.
+- La autenticación/autorización del llamador no la resuelve `grant_historical_xp`: S3 recibe un perfil persistido y valida estado e integridad. El acceso confiable corresponde al contexto servidor/Core; la exigencia conceptual de autorización previa del futuro servicio no se presenta como una comprobación Core ya implementada en S3.
+- Antes de una concesión objetivo nueva habrá que demostrar clasificación/escritor autorizados, catálogo exacto autorizado, estado previo compatible y procedencia persistida. Una fila XP por sí sola no demuestra que sea V1 u objetivo; **ausencia de procedencia no clasifica automáticamente como V1**.
+- Las concesiones objetivo y sus eventos causales deberán confirmarse o revertirse juntos con progreso y procedencia conforme a D-19; no se presume atomicidad entre BD distintas. S3 V1, `XPEvent` y `EvolutionEvent` históricos no se reescriben, reparan ni reinterpretan.
+
+### 15.2. Procedencia por concesión, también con cero cruces
+
+**Garantía aprobada TRACE-01A:** cada concesión nueva **objetivo** necesita una evidencia persistente, inequívoca e inmutable de la **versión exacta del catálogo utilizada**, aun cuando `crossed_epoch_codes` esté vacío. Un registro únicamente en cada evento de evolución es insuficiente para ese caso. Una versión textual sola, `frozen_at` o un resultado de `preview_target_xp` no constituyen prueba de uso autorizado; identidad de versión y procedencia deben ser comprobables en su contexto/alias confiable.
+
+| Alternativa conceptual de representación | Ventaja y límite | Estado |
+| --- | --- | --- |
+| **A. Registro de procedencia separado por concesión objetivo**, enlazable inequívocamente con la causa XP y su perfil, con identidad exacta de versión. | Cubre concesiones sin evolución y permite comprobar el vínculo en replay sin tocar la semántica de los eventos V1. La relación física concreta, cardinalidad, unicidad, campos y forma de preservar evidencia aún no están definidos. | **Preferencia conceptual ya aprobada** en TRACE-01A; **diseño físico pendiente TRACE-01B**. |
+| **B. Extender físicamente `XPEvent` con metadatos objetivo**. | Concentraría datos en el evento causal, pero alteraría una tabla e interfaz histórica compartida y requeriría preservar explícitamente la interpretación V1; no satisface por sí sola conservación/autorización. | **Alternativa de estudio, no aprobada**; no desplaza A ni autoriza modificar `XPEvent`. |
+| **C. Registrar versión solo en eventos de evolución o deducirla del catálogo actual**. | Pierde concesiones sin cruces; una versión posterior podría cambiar el significado histórico y no cubre replay fiel. | **No satisface TRACE-01A**; no se propone como implementación. |
+
+Cualquier forma física futura debe tratar de modo explícito el identificador de causa XP, perfil, alias, versión exacta y posibilidad de ausencia/supresión legítima de evidencia. **No se decide** FK, `OneToOne`, campo en `XPEvent`, tabla, `on_delete` o retención mediante este estudio.
+
+### 15.3. Vínculos de evolución y posibles invariantes
+
+Según A2-EVO-01, un cruce real de época objetivo produce **un evento objetivo por época cruzada**, nunca un `EvolutionEvent` V1. Cada registro conceptual debe permitir comprobar: (a) cuál fue el **mismo `XPEvent` causal** de la concesión; (b) que coincide su perfil destinatario; (c) cuál era la identidad exacta de catálogo y época utilizada al confirmar el cruce; (d) que el cruce pertenece al recorrido XP original y no se duplicó ni insertó retrospectivamente. Nivel 8 solo desbloquea elección; no añade octava época. [`TargetXPPlan.progression.crossed_epoch_codes`](../../apps/ecomotor/target_xp_plan.py) conserva los códigos calculados por A1.2, **no PK técnicas, causa XP persistida ni prueba de autorización**.
+
+| Invariante funcional que habrá que preservar | Restricción/comprobación física **candidata**, no acordada |
+| --- | --- |
+| Una operación XP por `(profile, operation_key)` entre versiones; replay no vuelve a conceder. | `XPEvent` ya tiene `UNIQUE(profile, operation_key)`; el futuro escritor debe respetarla con comprobación causal en servicio. No añadir catálogo/escritor a la clave. |
+| Una procedencia objetivo verificable por **cada** concesión nueva objetivo, incluso sin cruces, y sin dos evidencias incompatibles para una misma causa. | Evaluar una unicidad de causa en la futura representación separada; aún sin decidir cardinalidad, tipos, FK o comprobación transaccional. |
+| Cada evento de época apunta a su causa XP, al **mismo perfil** y a la versión/época correspondientes; exactamente todos los cruces y ningún cruce repetido. | Evaluar unicidad de `(causa XP, época exacta)` y controles de correspondencia en servicio. No copiar automáticamente `UNIQUE(profile, stage)` de V1 ni confundir prevención de duplicados con validación causal o cobertura exacta de cruces. |
+| XP, procedencia, progreso y eventos objetivo se confirman juntos sin eventos huérfanos ni reparaciones silenciosas. | Comprobaciones bajo una transacción D-19, unicidades/índices de apoyo y validación de referencias; el mecanismo concreto y tratamiento de borrados quedan abiertos. |
+
+La BD por sí sola no acredita que las épocas registradas sean **exactamente** los cruces del plan autorizado, que un operador tenga permiso o que la referencia a la versión haya sido obtenida de fuente confiable. Estas son verificaciones del futuro servicio, y el contrato físico no está aprobado.
+
+### 15.4. Evidencia histórica y replay
+
+El [orden ya acordado en §6](#6-replay-entre-versiones--a3-replay-01) exige validar primero identidad/acceso e integridad, buscar `(profile, operation_key)` dentro de la frontera D-19 y **solo ante ausencia de operación** evaluar clasificación/escritor/catálogo para conceder. Un replay existente no recalcula desde el catálogo actual ni inserta XP, procedencia o evoluciones nuevas. No se puede prometer reconstrucción de datos que no se guardaron:
+
+| Evidencia | Disponible hoy / requisito futuro |
+| --- | --- |
+| `XPEvent` V1 | Importe, XP anterior/posterior, perfil, operación, fecha e IDs causales que realmente existan. **No** niveles, épocas, cruces ni puntos históricos completos persistidos en ese evento; el replay S3 devuelve `None` en parte de estos campos. |
+| `EvolutionEvent` V1 | Relación con `XPEvent` y `EvolutionStage` V1; no contiene los atributos originales de la etapa como snapshot inmutable. No atribuir catálogo objetivo o versión retroactiva. |
+| Nueva operación objetivo | **Propuesta de evidencia mínima a resolver en TRACE-01B:** causa/perfil/clave/importe y XP previo/final; identidad exacta de versión y época previa/final; niveles previo/final; lista original ordenada de cruces; referencias a cada evento objetivo confirmado y su causa. Decidir cuáles se persistirán como snapshots propios, cuáles mediante relaciones inmutables y los límites de consulta y conservación. No reconstruir los que falten. |
+| Replay con evidencia incoherente o legítimamente suprimida | Rechazo/control específico pendiente de Core y diseño de errores: nunca tratar como concesión nueva, reparar o fingir replay completo. No prometer conservación ilimitada. |
+
+Para resultados nuevos objetivo no se conceden puntos por nivel (A2-RES-01); si se mantienen campos de compatibilidad del resultado, `stat_points_awarded=0` y `available_points_after=None` son los **valores acordados conceptualmente**, no datos V1 que deban reescribirse ni garantía de un snapshot físico aprobado.
+
+### 15.5. Puertas y responsabilidades aún abiertas
+
+- **Equipo 5 / 02C-2:** decidir TRACE-01B (representación física de procedencia y eventos, correspondencia XP/perfil/versión, cardinalidad/unicidades, snapshot y consulta conjunta V1/objetivo), tests transaccionales, interfaz del futuro escritor separado y compatibilidad histórica. Esta sección **no elige** modelos, migraciones, FKs ni políticas de backfill.
+- **Core / A3.5:** identidad y atribución canónica, autenticación/autorización de escritura y replay, bajas, privacidad, retención, supresión y `on_delete`; no convertir propuestas internas o silencio en ratificación. **Equipo 5 / A3.6:** comprobar suficiencia y vigencia de evidencias sin tomar el diagnóstico como permiso de migración.
+- **USE-01B y responsables de catálogo:** fuente y autorización funcional de valores/versiones, publicación/selección confiable y conexión con la operación XP real; congelación y auditoría técnicas no conceden autorización.
+- **Consumidores / Henry / otros equipos:** compatibilidad de eventos, visualización, `EvolutionItem`, vestimentas y lectura histórica, sin modificar Duckies, Core, Bank ni Shop desde este incremento.
+- **Integración:** transición con un único escritor XP activo, suspensión/drenaje y pruebas de idempotencia/concurrencia/rollback; S3 V1 sigue activo. El laboratorio y Rewards F2-A sobre S3 V1 conservan sus fronteras independientes.
+
+### 15.6. ¿Añadir ahora un preparador puro INT-A2.1?
+
+**Evaluación técnica, no decisión:** A1.2 (`calculate_target_progression`) y A2.1 (`plan_target_xp_grant`) ya proporcionan `crossed_epoch_codes`, orden y XP/niveles/épocas anterior y posterior. Un adaptador que solo copie esos cruces a otra tupla **no aporta una garantía independiente** y duplicaría superficie de tests. Un eventual preparador tendría valor únicamente si formalizara un contrato de *intenciones causales* o referencias históricas estables que A2.1 no conoce. Podría validar su estructura, pero no acreditar existencia, pertenencia o autorización de causas persistidas; esas comprobaciones seguirían en el futuro servicio y su diseño pendiente TRACE-01B. Presentar la propuesta pura como confirmación causal sería engañoso.
+
+**Recomendación para decidir en 02C-2:** precisar primero el mínimo causal de TRACE-01B y los snapshots necesarios; posponer la aprobación/implementación del preparador hasta demostrar una responsabilidad distinta del plan existente. Alternativa abierta: un adaptador puro estrictamente no autoritativo, aprobado de forma separada, sin ORM y sin sustituir las comprobaciones del futuro escritor. **No iniciar ninguna opción por esta PR.**
+
+**Tests futuros, no ejecutados aquí:** concesión objetivo sin cruce y con uno/varios cruces; identidad y conflicto de importe entre versiones; integridad de causa/perfil/versión; unicidades y replay sin efectos; snapshots históricos con catálogo cambiado; historia V1 parcial; fallo/rollback y concurrencia D-19; conservación y acceso según Core. Cada test de persistencia queda condicionado al diseño físico y sus acuerdos. Esta sección documenta garantías y alternativas, **no cierra TRACE-01B, USE-01B ni activa INT-A2**.
+
+## 16. INT-A2-T02 · Diseño lógico de procedencia y eventos · 26/10/2026
+
+**Estado:** cardinalidad lógica, principio de mínima duplicación y posposición del preparador puro **aprobados internamente por 02C-2 el 26/10/2026**, tras revisión del estudio documental sobre `develop` `3efbf8928078250cb559090bfa7ad419b4699e30`. Desarrolla [TRACE-01A](#a3-cat-trace-01a--procedencia-y-trazabilidad-causal-del-catálogo-objetivo), [A2-EVO-01](ecomotor-target-xp-v1.md#5-progresión-y-eventos-causales--a2-evo-01), [A2-IDEM-01](ecomotor-target-xp-v1.md#4-identidad-y-replay-entre-versiones--a2-idem-01) y [§15](#15-int-a2-t01--contrato-causal-mínimo-de-evolución-objetivo--26102026). **No cierra TRACE-01B ni aprueba modelos, FKs o migraciones.** DAR3 conserva autoridad funcional; las decisiones físicas y externas siguen pendientes.
+
+### 16.1. Relaciones lógicas aprobadas y representación física pendiente
+
+| Entidad conceptual | Relación y cardinalidad lógica aprobada | Estado y límite |
+| --- | --- | --- |
+| Concesión histórica `XPEvent` existente | Una operación queda identificada por `(profile, operation_key)`; importe y XP antes/después se conservan en [`XPEvent`](../../apps/ecomotor/models.py). El escritor objetivo futuro reutilizaría este hecho como causa, no un segundo `XPEvent` de laboratorio. | **Ya existe** el modelo/UNIQUE de V1; el escritor objetivo **no existe**. No introducir versión o escritor en la clave de replay. |
+| Procedencia objetivo separada | **Cardinalidad lógica aprobada:** exactamente una evidencia de procedencia por cada *nueva* concesión objetivo, incluso sin cambio de época; identidad exacta de [`TargetCatalogVersion`](../../apps/ecomotor/models.py) y correspondencia con causa XP y perfil. Cero evidencias nuevas para un replay y ninguna inventada para V1. | **Registro separado es preferencia conceptual aprobada** por TRACE-01A; cardinalidad física y referencias físicas **pendientes** de TRACE-01B. No presupone `OneToOne`, FK ni `on_delete`. |
+| Evento de evolución objetivo separado | **Cardinalidad lógica aprobada:** de cero a seis eventos causales de evolución por nueva concesión, correspondientes exactamente a las épocas atravesadas, uno por cada cruce real; con siete épocas y XP monotónica, como máximo seis cruces posteriores a la época inicial. Cada evento identifica causa `XPEvent`, perfil y época de la **misma versión exacta**. | Separación de [`EvolutionEvent` V1](../../apps/ecomotor/models.py) y obligación de todos los cruces **ya aprobadas conceptualmente**; nombre, tablas, tipos, claves y retención pendientes. |
+
+Los cruces se obtienen del intervalo `xp_before < umbral <= xp_after` de [`calculate_target_progression`](../../apps/ecomotor/target_progression.py), no del nivel 8 por sí mismo. El límite de seis presupone las siete épocas válidas y la época inicial resuelta a XP cero; no es una restricción SQL propuesta ni un número de eventos V1. Se exige un **mismo alias/frontera transaccional** para confirmar progreso, XP, procedencia y eventos objetivo; no se promete atomicidad entre bases distintas.
+
+### 16.2. Matriz mínima de información histórica
+
+| Dato o prueba | Ya existe | Necesidad objetivo / decisión abierta |
+| --- | --- | --- |
+| Perfil, operación, causa XP | `XPEvent.profile`, `operation_key`, PK y unicidad `(profile, operation_key)` | La procedencia y cada evolución deben identificar inequívocamente ese mismo evento y comprobar su pertenencia al perfil. Relación física pendiente. |
+| Importe, XP antes/después, instante | `XPEvent.amount`, `xp_before`, `xp_after`, `created_at` | Reutilizar para replay; **no duplicar** sin motivo de conservación o consulta aprobado. |
+| Versión exacta utilizada | Existen `TargetCatalogVersion` con identidad de catálogo/versión; `XPEvent` no referencia esa versión | Procedencia persistente por concesión, incluso con cero cruces. Distinguir referencia a fila/versionado verificable de texto suelto; persistencia, borrado y durabilidad por decidir. |
+| Época anterior/posterior | A1.2 las calcula, pero `XPEvent` no las guarda | Resolver si bastan referencias inmutables verificables o si son necesarios snapshots explícitos para replay y conservación; no inferir de catálogo actual. |
+| Nivel anterior/posterior | A1.2 calcula ambos, no están en `XPEvent` | Proponer conservación histórica cuando se requiera resultado completo; formato/ubicación pendientes, no repetir campos por defecto. |
+| Cruces ordenados y cada causa | `TargetXPPlan.progression.crossed_epoch_codes` conserva los cruces calculados por A1.2, sin persistencia; `EvolutionEvent` existente es V1 | Eventos objetivo causales por cada época cruzada. Evaluar si el conjunto ordenado se recupera fielmente de esos eventos y de la versión inmutable, o si necesita snapshot adicional; evitar duplicación injustificada. |
+| Evidencia de replay | `XPEvent` y eventos V1 disponibles, pero snapshots históricos V1 parciales | Objetivo debe poder recuperar XP, procedencia exacta y cruces **realmente conservados**, sin revalidar la elegibilidad del catálogo para una concesión nueva; la autorización de acceso al replay y su integridad siguen exigidas. |
+
+**Principio de mínima duplicación aprobado internamente por 02C-2 el 26/10/2026:** reutilizar `XPEvent` para identidad/XP, asociar procedencia separada verificable para **todas** las concesiones objetivo, y derivar cruces históricos de eventos objetivo confirmados **solo si** sus referencias, orden y retención permiten demostrar completitud. Prever snapshots adicionales únicamente ante necesidad histórica demostrada; su ubicación, formato y contenido físicos quedan pendientes. No fijar ahora JSON, columnas, tablas ni FKs.
+
+### 16.3. Invariantes, alternativas y propietarios
+
+| Garantía | Responsable y mecanismo lógico candidato | Puerta abierta |
+| --- | --- | --- |
+| No doble concesión con misma operación | `XPEvent` ya impone `UNIQUE(profile, operation_key)`; servicio verifica importe y causalidad antes de replay, sin crear eventos otra vez. | Comprobaciones transaccionales y compatibilidad del futuro escritor separado. |
+| No falta ni sobra procedencia objetivo | Servicio confirma una evidencia compatible en toda nueva concesión objetivo, incluso cero cruces; **candidata** unicidad por causa XP. | Cardinalidad física y restricción de BD reales, datos ausentes/suprimidos, retención con Core. |
+| Causa, perfil, versión y época concordantes | Servicio verifica mismo `XPEvent`/perfil, época perteneciente a versión autorizada y exactamente los cruces del plan; unicidad candidata `(causa XP, época exacta)` como defensa de duplicados. | Unicidad no prueba causalidad ni completitud. No copiar `UNIQUE(profile, stage)` V1 ni elegir FK/índice. |
+| Catálogo elegible y autorizado | Fuente confiable del servidor, versión exacta, protección efectiva y autorización funcional; catálogo `frozen_at` o auditoría no bastan. | USE-01B, datos oficiales y consumidores. |
+| Identidad, acceso y conservación | Core determina identidad canónica/atribución, autorización de escritura y lectura/replay, retención, supresión, privacidad y `on_delete`. | Core/A3.5; suficiencia/vigencia de evidencia A3.6; coordinación con Henry y consumidores. |
+
+**Alternativas pendientes:** referencia a versión inmutable frente a snapshots selectivos (menor duplicación frente a resistencia ante supresión o cambios de disponibilidad); unicidad por causa y época frente a otras claves (prevención de repetición por operación frente a duplicados a través de concesiones distintas); lectura conjunta V1/objetivo sin reinterpretar V1. Son **propuestas**, no garantías ya implementadas ni decisiones de esquema.
+
+### 16.4. Replay, compatibilidad y ausencia de evidencia
+
+Casos requeridos para el **futuro servicio**, no capacidades objetivo ya implementadas. La autorización de acceso a lectura/replay sigue siendo obligatoria; no la proporciona por sí solo S3 ni conocer una operation_key.
+
+- **Objetivo sin evolución:** recuperar `XPEvent` y procedencia exacta, con **cero eventos objetivo**; ausencia de cruces no equivale a ausencia de procedencia ni a V1.
+- **Objetivo con múltiples cruces:** recuperar la causa única, procedencia original y todos los eventos causales ordenados/comprobados; nunca recomputar desde la última versión de catálogo o generar cruces nuevos.
+- **Identidad existente:** bajo [replay A3-REPLAY-01](#6-replay-entre-versiones--a3-replay-01), validar acceso e integridad, comprobar importe, recuperar historia realmente persistida; no revalidar la elegibilidad o autorización del catálogo exigible a una **concesión nueva** para recuperar una operación existente, sin dispensar autorización actual de acceso al replay. Si hay conflicto o anomalía, no conceder de nuevo.
+- **V1 parcial:** `XPEvent`/`EvolutionEvent` existentes no conservan todos los niveles, puntos, épocas o atributos originales; devolver solo evidencia disponible. No crear procedencia objetivo retrospectiva, inferirla por ausencia o reinterpretar etapas V1.
+- **Evidencia ausente o legítimamente suprimida:** distinguir caso incompleto/inaccesible de replay confirmado. La respuesta y política de supresión/retención necesitan contrato de Core; nunca reconstruir ni fabricar un resultado completo. La evidencia ausente no autoriza automáticamente una concesión nueva; si la identidad ya consta, no tratarla como operación inédita.
+
+### 16.5. Preparador: decisión lógica y límites pendientes
+
+**Decisión aprobada internamente por 02C-2 el 26/10/2026: posponer la implementación del preparador puro.** [`A1.2`](../../apps/ecomotor/target_progression.py) y [`A2.1`](../../apps/ecomotor/target_xp_plan.py) ya calculan los cruces y sus estados antes/después. Transformar esos códigos en una nueva tupla no aporta una garantía independiente; un adaptador puro tampoco puede probar causa persistida, pertenencia al perfil o autorización. Solo reconsiderarlo si una responsabilidad nueva y verificable —no cubierta por estos componentes ni por el futuro servicio— justifica una interfaz y tests propios.
+
+**Ratificación interna de 02C-2, 26/10/2026:** exactamente una evidencia de procedencia por nueva concesión XP objetivo, incluso sin cruces, y de cero a seis eventos causales correspondientes exactamente a las épocas atravesadas; mínima duplicación con snapshots adicionales solo ante necesidad histórica demostrada; posposición del preparador puro salvo responsabilidad independiente y justificada. La identidad XP compartida, la correspondencia causal/perfil/versión y el replay sin nuevos efectos conservan las garantías previamente acordadas, sin someterlas aquí a nueva aprobación. **No aprobado en este corte:** cardinalidad física, modelo/tabla, FKs, `OneToOne`, índices/unicidades nuevas, estructura de snapshots, consulta conjunta, migraciones o servicio escritor objetivo. **Condicionado a Core y propietarios:** identidad/permisos, A3.5, retención/anonimización/`on_delete`, evidencia A3.6, USE-01B, parámetros autorizados y contratos de consumidores. TRACE-01B sigue **abierto**; S3 V1 sigue único escritor XP activo fuera del laboratorio; Rewards F2-A mantiene ruta independiente. No implementar ni fusionar sin revisión.

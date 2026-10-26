@@ -2168,3 +2168,47 @@ registra implementación y evidencias para revisión. No implica ratificación d
 Óscar, Core o Henry, reglas oficiales, F2-A productivo, USE-01B, TRACE-01B ni
 activación productiva del escritor objetivo. S3 V1 permanece como único escritor
 XP V1 activo fuera del laboratorio. No se migra la SQLite personal.
+
+## INT-A-00 · Plan documental de integración progresiva · 26/10/2026
+
+**Aprobado internamente por Equipo 5 en 02C-2 el 26/10/2026.** Sobre develop
+`032e05a25d84c200d6da5b93278c874164984d79`, con #114–#117 integradas,
+registrar el [plan INT-A1/A2/A3](contracts/ecomotor-transition-target-v1.md#13-int-a-00--plan-de-integración-progresiva--26102026)
+para contrastar laboratorio/dominio, planificar evolución y preparar integración
+Rewards. La validación interactiva del laboratorio es información del traspaso;
+no se repite ni convierte en evidencia de integración productiva en esta PR.
+
+Se mantienen las puertas Core/A3.5 y evidencia A3.6, USE-01B/TRACE-01B, escritor
+objetivo separado y probado, compatibilidad V1 y transición autorizada de escritor
+único antes de Rewards productivo con Core, Bank, Duckies y emisores reales.
+S3 V1 continúa como único escritor XP activo fuera del laboratorio; se conserva
+replay `(profile, operation_key)` y no se habilita doble escritura. Las cinco
+[respuestas Core requeridas](contracts/ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026)
+precisan las preguntas existentes sin atribuir respuestas externas.
+
+**Precisión de 02C-2:** el orden evolución objetivo → recompensas combinadas
+afecta al traslado REW-MULTI-03 de INT-A-00, no modifica ni bloquea automáticamente
+la arquitectura independiente F2-A de [DOC-6 / Rewards §12](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6).
+F2-A puede continuar diseño/preparación sobre XP histórica positiva S3 V1 y
+NO_REWARD por sus propias dependencias, sin esperar automáticamente a INT-A2/A3.
+No queda desbloqueada por el laboratorio: mantiene acuerdos Core y condiciones
+de su contrato, sin añadir DuckyCoins, HINT o V4 al alcance original ni autorizar
+activación productiva o escritores XP simultáneos.
+
+La navegación entre demos comunicada por Henry no integra economías/inventarios.
+No retirar ecomotor_target_demo hasta disponer de reemplazo funcional verificado
+y alternativa de acceso acordada/verificada con Henry. El fallo de layout
+comunicado permanece sin diagnóstico, sin atribuirlo a Rewards ni cambiar tests.
+Esta decisión solo documenta: no autoriza código, migraciones, seeds, retirada
+del laboratorio o comunicaciones externas. DAR3 sigue principal; no ratificación
+de Óscar/Core ni cierre productivo de F2-A, USE-01B o TRACE-01B.
+
+## INT-A2-T01 · Estado documental del contrato causal mínimo · 26/10/2026
+
+Este incremento **no aprueba decisiones técnicas nuevas**. La [sección de estudio](contracts/ecomotor-transition-target-v1.md#15-int-a2-t01--contrato-causal-mínimo-de-evolución-objetivo--26102026) recopila y contrasta decisiones **ya aprobadas internamente**: A2-IDEM-01 (`(profile, operation_key)`), A2-EVO-01 (un XPEvent causal y todos los cruces objetivo), A3-CAT-EVENT-01 (eventos objetivo separados de V1) y A3-CAT-TRACE-01A (procedencia persistente exacta aun sin evolución y preferencia conceptual por registro separado). D-19, replay y escritor único conservan sus garantías y límites históricos.
+
+**Siguen como propuestas pendientes de 02C-2 y TRACE-01B:** cardinalidad y forma física del registro separado, relaciones con XPEvent/perfil/versión/épocas, unicidades/índices, contenido y conservación de snapshots, consultas conjuntas y posible preparador puro adicional. El contraste no selecciona FKs, `OneToOne`, `on_delete`, migraciones o política de retención, ni ratifica decisiones de Core. S3 V1 es el único escritor XP activo fuera del laboratorio; INT-A2 no se implementa ni se activa con esta PR.
+
+## INT-A2-T02 · Estudio lógico de procedencia y eventos · 26/10/2026
+
+El [diseño lógico de §16](contracts/ecomotor-transition-target-v1.md#16-int-a2-t02--diseño-lógico-de-procedencia-y-eventos--26102026) desarrolla TRACE-01A, A2-EVO-01 y A2-IDEM-01 **sin adoptar decisiones físicas nuevas**. Son acuerdos internos previos: `XPEvent` causal con replay `(profile, operation_key)`, evolución objetivo separada de V1, procedencia exacta incluso sin cruces y preferencia conceptual de registro separado. **Aprobadas internamente por 02C-2 el 26/10/2026:** (1) exactamente una evidencia de procedencia por nueva concesión XP objetivo, incluso sin cruces, y de cero a seis eventos causales correspondientes exactamente a las épocas atravesadas; (2) reutilizar evidencia histórica existente cuando sea suficiente, previendo snapshots adicionales únicamente ante necesidad histórica demostrada; (3) posponer la implementación del preparador puro porque A1.2/A2.1 ya calculan los cruces, reconsiderándolo solo ante una responsabilidad independiente y justificada. La cardinalidad física, los mecanismos de representación y la ubicación, formato y contenido físicos de snapshots siguen como candidatos pendientes. No se atribuye aprobación externa a Core u otros propietarios. TRACE-01B sigue abierto; no quedan aprobados modelos, tablas, FKs, `OneToOne`, constraints SQL nuevas, snapshots físicos, retención, anonimización, `on_delete`, migraciones, servicio XP ni activación. Core/A3.5, A3.6, USE-01B y consumidores mantienen sus dependencias; S3 V1 sigue escritor activo y Rewards F2-A independiente.
