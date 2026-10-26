@@ -10,7 +10,7 @@ from apps.duckies.services import select_outfit, equip_item
 from apps.duckies.models import Item, ItemLevel
 from apps.shop.services import purchase_item
 from apps.users.models import UserProfileEcomotor
-from .demo_services import demo_user, provision, credit_demo, local_initialization_config
+from .demo_services import demo_user, provision, credit_demo, local_initialization_config, grant_demo_hint
 from .forms import ActionForm
 from .selectors import state
 
@@ -69,6 +69,9 @@ def action(request):
             level=ItemLevel.objects.filter(pk=d["code"],item=item).first() if d["code"] else None
             equip_item(user,item,level)
             messages.success(request,"Objeto equipado.")
+        elif act=="hint":
+            grant_demo_hint(user,"ui-hint-"+uuid.uuid4().hex)
+            messages.success(request,"HINT de prueba entregado por Duckies; no procede de Rewards.")
         elif act=="buy":
             purchase_item(user,d["code"],operation_key="ui-buy-"+uuid.uuid4().hex,quantity=d["quantity"] or 1)
             messages.success(request,"Compra realizada: Bank ha cobrado y Duckies ha recibido el objeto.")

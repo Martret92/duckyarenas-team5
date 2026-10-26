@@ -1,5 +1,5 @@
 from apps.bank.models import Wallet, Transaction
-from apps.duckies.models import Ducky, InventoryItem, EvolutionItem, SpecializationItem, EquippedItem
+from apps.duckies.models import Ducky, InventoryItem, EvolutionItem, SpecializationItem, EquippedItem, ItemGrant
 from apps.ecomotor.models import EvolutionStage, Specialization, CharacterStats, LevelThreshold
 from apps.shop.models import ShopItem, Purchase
 from apps.users.models import UserProfileEcomotor
@@ -20,6 +20,7 @@ def state(user):
         "outfits":list(EvolutionItem.objects.select_related("item","stage").order_by("stage__ordinal")),
         "spec_outfits":list(SpecializationItem.objects.select_related("item","specialization")),
         "inventory":list(InventoryItem.objects.select_related("item","item_level","item__slot").filter(ducky=ducky).order_by("item__name")) if ducky else [],
+        "item_grants":list(ItemGrant.objects.select_related("item").filter(ducky=ducky).order_by("-created_at")[:25]) if ducky else [],
         "equipped":list(EquippedItem.objects.select_related("inventory_item__item","slot").filter(ducky=ducky)) if ducky else [],
         "offers":list(ShopItem.objects.select_related("item","item_level").filter(is_available=True)),
         "transactions":list(Transaction.objects.filter(wallet=wallet).order_by("-created_at")[:25]) if wallet else [],

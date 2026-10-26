@@ -11,6 +11,7 @@ from apps.duckies.integration_services import initialize_player_ducky
 from apps.ecomotor import initialization_config
 from apps.ecomotor.models import EvolutionStage, LevelThreshold, Specialization
 from apps.duckies.models import EvolutionItem, SpecializationItem, Item
+from apps.duckies.services import grant_item
 
 STAGES = (("PREHISTORICO","Prehistoria"),("GRIEGO","Antigua Grecia"),("ROMANO","Roma Imperial"),("MEDIEVAL","Edad Medieval"),("RENACENTISTA","Renacimiento"),("REVOLUCION_INDUSTRIAL","Revolución Industrial"),("SIGLO_XX","Siglo XX"))
 SPECS = (("DEVELOPER","Developer"),("GAMER","Gamer"),("CIBER","Ciberseguridad"),("SISTEMAS","Sistemas"),("DATA_IA","Data / IA"))
@@ -51,3 +52,26 @@ def provision(user,sex):
 
 def credit_demo(user,amount,operation_key):
     return credit_coins(user,amount,source="TEAM5_LOCAL_DEMO",issuing_entity="Team5 Demo",operation_key=operation_key,description="Crédito manual de pruebas")
+
+
+def grant_demo_hint(user, operation_key):
+    """Entrega local de prueba: NO es Rewards ni usa el laboratorio de Jaime.
+
+    Solo invocable desde la interfaz protegida por localhost y DEBUG.
+    La operación de inventario utiliza el servicio público idempotente de Duckies.
+    """
+    item, _ = Item.objects.get_or_create(
+        code="team5_local_hint",
+        defaults={
+            "name": "Pista de prueba (HINT)",
+            "description": "Objeto de prueba local; no representa un premio de Rewards.",
+            "category": Item.HINT,
+            "consumable": True,
+        },
+    )
+    if item.category != Item.HINT or not item.consumable:
+        raise ValueError("El código de HINT local pertenece a un objeto incompatible")
+    return grant_item(
+        user, item, 1, operation_key,
+        reference_type="TEAM5_LOCAL_DEMO", reference_id="manual-hint",
+    )
