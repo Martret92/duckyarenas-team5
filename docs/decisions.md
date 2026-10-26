@@ -2168,3 +2168,37 @@ registra implementación y evidencias para revisión. No implica ratificación d
 Óscar, Core o Henry, reglas oficiales, F2-A productivo, USE-01B, TRACE-01B ni
 activación productiva del escritor objetivo. S3 V1 permanece como único escritor
 XP V1 activo fuera del laboratorio. No se migra la SQLite personal.
+
+## INT-A-00 · Plan documental de integración progresiva · 26/10/2026
+
+**Aprobado internamente por Equipo 5 en 02C-2 el 26/10/2026.** Sobre develop
+`032e05a25d84c200d6da5b93278c874164984d79`, con #114–#117 integradas,
+registrar el [plan INT-A1/A2/A3](contracts/ecomotor-transition-target-v1.md#13-int-a-00--plan-de-integración-progresiva--26102026)
+para contrastar laboratorio/dominio, planificar evolución y preparar integración
+Rewards. La validación interactiva del laboratorio es información del traspaso;
+no se repite ni convierte en evidencia de integración productiva en esta PR.
+
+Se mantienen las puertas Core/A3.5 y evidencia A3.6, USE-01B/TRACE-01B, escritor
+objetivo separado y probado, compatibilidad V1 y transición autorizada de escritor
+único antes de Rewards productivo con Core, Bank, Duckies y emisores reales.
+S3 V1 continúa como único escritor XP activo fuera del laboratorio; se conserva
+replay `(profile, operation_key)` y no se habilita doble escritura. Las cinco
+[respuestas Core requeridas](contracts/ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026)
+precisan las preguntas existentes sin atribuir respuestas externas.
+
+**Precisión de 02C-2:** el orden evolución objetivo → recompensas combinadas
+afecta al traslado REW-MULTI-03 de INT-A-00, no modifica ni bloquea automáticamente
+la arquitectura independiente F2-A de [DOC-6 / Rewards §12](contracts/rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6).
+F2-A puede continuar diseño/preparación sobre XP histórica positiva S3 V1 y
+NO_REWARD por sus propias dependencias, sin esperar automáticamente a INT-A2/A3.
+No queda desbloqueada por el laboratorio: mantiene acuerdos Core y condiciones
+de su contrato, sin añadir DuckyCoins, HINT o V4 al alcance original ni autorizar
+activación productiva o escritores XP simultáneos.
+
+La navegación entre demos comunicada por Henry no integra economías/inventarios.
+No retirar ecomotor_target_demo hasta disponer de reemplazo funcional verificado
+y alternativa de acceso acordada/verificada con Henry. El fallo de layout
+comunicado permanece sin diagnóstico, sin atribuirlo a Rewards ni cambiar tests.
+Esta decisión solo documenta: no autoriza código, migraciones, seeds, retirada
+del laboratorio o comunicaciones externas. DAR3 sigue principal; no ratificación
+de Óscar/Core ni cierre productivo de F2-A, USE-01B o TRACE-01B.

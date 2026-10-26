@@ -116,3 +116,27 @@ No se aprueban modelos, migraciones, campos, FKs, backfill, clasificación real 
 activación objetivo. S3 V1 sigue único escritor XP activo. Sin código, nuevos tests
 Django ejecutados o cambios de Core, Henry u otros equipos. Próximo paso: contrastar
 las preferencias con Core mediante coordinación autorizada; no contacto automático.
+
+## 7. INT-A-00 · Respuestas concretas requeridas de Core · 26/10/2026
+
+El [plan INT-A-00](ecomotor-transition-target-v1.md#13-int-a-00--plan-de-integración-progresiva--26102026),
+aprobado internamente en 02C-2 el 26/10/2026, precisa qué respuesta necesitamos
+recibir para cada pregunta A3.5 existente. §2 conserva las preguntas originales
+y §6 las preferencias internas; **ninguna fila siguiente es una respuesta
+recibida o ratificada por Core**. No se eligen unilateralmente campos, FKs,
+permisos, retención ni mecanismos de autenticación.
+
+| Pregunta existente | Respuesta concreta requerida para revisar la integración |
+| --- | --- |
+| CORE-A3.3-IDENTITY | Identificar la representación canónica de perfil destinatario, usuario, operador y proceso interno; especificar de qué contexto confiable se obtienen, cómo se resuelven y cómo se conserva su atribución histórica tras cambios o bajas. Confirmar qué identidad del operador forma parte de la comparación de solicitudes/replay y cómo se vincula al perfil, sin asumir que toda identidad sea un User. |
+| CORE-A3.3-AUTH | Aportar la matriz de permisos para clasificación inicial, transición, bloqueo, recuperación, replay y nuevas concesiones objetivo; precisar quién autoriza cada operación, alcance por perfil/alias y cómo entrega Core el contexto verificable a Parte A. Definir qué sucede cuando el permiso se revoca, incluido replay, y qué rechazos deben devolver los consumidores. Conocer la clave no equivale a permiso. |
+| CORE-A3.3-LIFECYCLE | Confirmar el comportamiento ante baja, desactivación, eliminación y eventual recreación de User/perfil: efectos sobre políticas, eventos y causas; política acordada por relación/on_delete y responsable/orden de ejecución. Indicar cómo impedir referencias rotas o reutilización de identidad que permita duplicar operaciones, sin inventar historia ni reparar automáticamente. |
+| CORE-A3.3-RETENTION | Especificar qué evidencia, claves, políticas, eventos y referencias debe conservarse, durante qué plazos o condiciones legítimas y quién ejecuta su retirada. Acordar desde qué momento deja de garantizarse reconstrucción/comparación/replay exactos y cómo debe responder el servicio al faltar evidencia, sin reconstruir desde estado actual ni prometer conservación indefinida. |
+| CORE-A3.3-PRIVACY | Definir quién puede consultar cada dato histórico, con qué alcance y minimización; tratamiento de identificadores, operation_key y referencias en consultas, logs y exportaciones. Precisar el procedimiento de anonimización/supresión y qué atribución o comparación se preserva legítimamente, así como los límites explícitos de replay cuando no pueda conservarse. |
+
+La respuesta deberá poder contrastarse con §3–§4 y evidencia A3.6 antes de cerrar
+el esquema y servicio condicionados. Se registrarán fuente, alcance y confirmación
+de los acuerdos recibidos, sin interpretar silencio o pruebas sintéticas como
+ratificación. Las puertas USE-01B/TRACE-01B y contratos de Bank, Duckies y emisores
+reales siguen siendo requisitos separados; estas preguntas no los dan por cerrados.
+La coordinación externa requiere autorización específica: esta PR no envía consultas.

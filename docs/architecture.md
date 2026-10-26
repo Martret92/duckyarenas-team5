@@ -1287,3 +1287,35 @@ El [contrato, corte 3C](contracts/ecomotor-target-demo-rewards-combined-v1.md#15
 separa evidencias nuevas de los resultados históricos de 3B. No cambios de
 servicios propietarios, reglas, modelos, migraciones, aislamiento o runner;
 sin integración productiva, Core, Henry ni uso de SQLite personales.
+
+## INT-A-00 · Integración progresiva de Parte A · 26/10/2026
+
+Sobre develop `032e05a25d84c200d6da5b93278c874164984d79`, REW-MULTI-03 está
+integrado mediante #114–#117. El traspaso del Equipo 5 comunica validación
+interactiva en el laboratorio sintético; no es una nueva ejecución de esta PR.
+Los cortes anteriores conservan su historia. INT-A-00, aprobado internamente en
+02C-2 el 26/10/2026, es un plan documental, no ratificación de Óscar/Core ni
+autorización de integración productiva. DAR3 mantiene autoridad funcional.
+
+El [plan en el contrato de transición](contracts/ecomotor-transition-target-v1.md#13-int-a-00--plan-de-integración-progresiva--26102026)
+es la referencia única de etapas y secuencia: INT-A1 contrasta dominio principal
+y laboratorio; INT-A2 planifica evolución objetivo preservando V1; INT-A3 planifica
+Rewards con contratos reales. Reutilización no equivale a trasladar código o
+importar reglas/identidades sintéticas como oficiales.
+
+Antes de implementar/activar lo condicionado: acuerdos Core/A3.5 y evidencia
+A3.6, USE-01B/TRACE-01B, escritor objetivo separado y probado, compatibilidad V1
+y transición autorizada de escritor único; después Rewards productivo y pruebas
+conjuntas con propietarios. S3 V1 continúa como único escritor XP activo fuera
+del laboratorio, sin dos escritores simultáneos ni cambio de identidad de replay
+`(profile, operation_key)`. Las respuestas Core requeridas se concretan en la
+[frontera A3.5](contracts/ecomotor-classification-core-boundary-v1.md#7-int-a-00--respuestas-concretas-requeridas-de-core--26102026).
+
+El acceso desde feature/demo-interfaz comunicado por Henry es navegación entre
+demos, no integración de inventarios/economías. Una retirada futura exige
+reemplazo funcional verificado y alternativa de acceso acordada/verificada con
+Henry. Su fallo comunicado DemoPackageLayoutTests.test_only_the_new_physical_package_exists
+sigue pendiente de diagnóstico, sin atribución causal a Rewards.
+Los [pendientes](pending-decisions.md#33-int-a-00--puertas-de-integración-progresiva--26102026)
+mantienen estas puertas abiertas. Sin código, migraciones, seeds, cambios de
+despliegue o eliminación/refactorización del laboratorio en INT-A-00.
