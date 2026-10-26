@@ -2202,3 +2202,9 @@ comunicado permanece sin diagnóstico, sin atribuirlo a Rewards ni cambiar tests
 Esta decisión solo documenta: no autoriza código, migraciones, seeds, retirada
 del laboratorio o comunicaciones externas. DAR3 sigue principal; no ratificación
 de Óscar/Core ni cierre productivo de F2-A, USE-01B o TRACE-01B.
+
+## INT-A2-T01 · Estado documental del contrato causal mínimo · 26/10/2026
+
+Este incremento **no aprueba decisiones técnicas nuevas**. La [sección de estudio](contracts/ecomotor-transition-target-v1.md#15-int-a2-t01--contrato-causal-mínimo-de-evolución-objetivo--26102026) recopila y contrasta decisiones **ya aprobadas internamente**: A2-IDEM-01 (`(profile, operation_key)`), A2-EVO-01 (un XPEvent causal y todos los cruces objetivo), A3-CAT-EVENT-01 (eventos objetivo separados de V1) y A3-CAT-TRACE-01A (procedencia persistente exacta aun sin evolución y preferencia conceptual por registro separado). D-19, replay y escritor único conservan sus garantías y límites históricos.
+
+**Siguen como propuestas pendientes de 02C-2 y TRACE-01B:** cardinalidad y forma física del registro separado, relaciones con XPEvent/perfil/versión/épocas, unicidades/índices, contenido y conservación de snapshots, consultas conjuntas y posible preparador puro adicional. El contraste no selecciona FKs, `OneToOne`, `on_delete`, migraciones o política de retención, ni ratifica decisiones de Core. S3 V1 es el único escritor XP activo fuera del laboratorio; INT-A2 no se implementa ni se activa con esta PR.
