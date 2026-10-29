@@ -1,0 +1,32 @@
+
+{% extends 'duckies/base.html' %}
+
+{% block title %}Museo{% endblock %}
+
+{% block content %}
+
+<h2>Museo histórico</h2>
+
+<ul>
+    {% for entry in historical %}
+        <li>
+            {{ entry.stage.name }} —
+            {{ entry.item.name }} —
+
+            {% if entry.allowed %}
+                Disponible para vestir
+            {% else %}
+                No disponible para vestir
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Sin épocas registradas.</li>
+    {% endfor %}
+</ul>
+
+<p>
+    El museo es informativo; la selección real
+    se valida en los servicios de Duckies.
+</p>
+
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'duckies/base.html' %}{% block title %}Inventario{% endblock %}{% block content %}<h2>Inventario</h2>
+<ul>{% for owned in inventory %}<li>{{ owned.item.name }} {% if owned.item_level %}(nivel {{ owned.item_level.level
+        }}){% endif %} — Cantidad: {{ owned.quantity }}{% if owned.item.slot %}<form action="{% url 'duckies:equip' %}"
+            method="post">{% csrf_token %}<input type="hidden" name="inventory_id" value="{{ owned.pk }}"><button
+                type="submit">Equipar</button></form>{% endif %}</li>{% empty %}<li>Inventario vacío.</li>{% endfor %}
+</ul>{% endblock %}

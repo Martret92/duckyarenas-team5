@@ -1,0 +1,22 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Duckies{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'duckies/css/base.css' %}">
+</head>
+
+<body>
+    <header>
+        <h1>Duckies</h1>
+        <nav><a href="{% url 'duckies:detail' %}">Mi Ducky</a> <a href="{% url 'duckies:inventory' %}">Inventario</a> <a
+                href="{% url 'duckies:outfits' %}">Vestimentas</a> <a href="{% url 'duckies:museum' %}">Museo</a></nav>
+    </header>
+    <main>{% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}{% block content %}{% endblock %}
+    </main>
+</body>
+
+</html>

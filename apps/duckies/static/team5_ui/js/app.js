@@ -1,0 +1,1 @@
+document.querySelectorAll('.alert').forEach(el=>{el.addEventListener('click',()=>el.remove());});
