@@ -1,0 +1,68 @@
+
+{% extends 'duckies/base.html' %}
+
+{% block title %}Vestimentas{% endblock %}
+
+{% block content %}
+
+<h2>Vestimentas históricas</h2>
+
+<ul>
+    {% for entry in historical %}
+        <li>
+            {{ entry.item.name }} — {{ entry.stage.name }}
+
+            {% if entry.allowed %}
+                <form method="post" action="{% url 'duckies:select-outfit' %}">
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="item_id"
+                        value="{{ entry.item.pk }}"
+                    >
+
+                    <button type="submit">
+                        Seleccionar
+                    </button>
+                </form>
+            {% else %}
+                (bloqueada)
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Sin vestimentas.</li>
+    {% endfor %}
+</ul>
+
+<h2>Especializaciones</h2>
+
+<ul>
+    {% for entry in specializations %}
+        <li>
+            {{ entry.item.name }}
+
+            {% if entry.allowed %}
+                <form method="post" action="{% url 'duckies:select-outfit' %}">
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="item_id"
+                        value="{{ entry.item.pk }}"
+                    >
+
+                    <button type="submit">
+                        Seleccionar
+                    </button>
+                </form>
+            {% else %}
+                (no disponible)
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Sin especializaciones.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
