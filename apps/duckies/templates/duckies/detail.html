@@ -1,0 +1,37 @@
+
+{% extends 'duckies/base.html' %}
+{% load static %}
+
+{% block title %}Mi Ducky{% endblock %}
+
+{% block content %}
+<h2>Mi Ducky</h2>
+
+<p>Sexo: {{ ducky.get_sex_display }}</p>
+
+<p>
+    Vestimenta:
+    {{ ducky.selected_outfit.name|default:'Sin vestimenta' }}
+</p>
+
+{% if ducky.selected_outfit.image_path %}
+    <img
+        class="preview"
+        src="{% static ducky.selected_outfit.image_path %}"
+        alt="Vestimenta actual"
+    >
+{% endif %}
+
+<h3>Equipo</h3>
+
+<ul>
+    {% for equipped in equipment %}
+        <li>
+            {{ equipped.slot.name }}:
+            {{ equipped.inventory_item.item.name }}
+        </li>
+    {% empty %}
+        <li>No hay objetos equipados.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
