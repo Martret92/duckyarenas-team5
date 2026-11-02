@@ -1,0 +1,155 @@
+import secrets
+
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db import DatabaseError
+from django.db.models import F, Q
+from django.http import Http404, HttpResponse
+from django.shortcuts import redirect, render
+from django.views.decorators.http import require_GET, require_POST
+
+from apps.bank.services import BankError
+from apps.duckies.models import Item
+
+from .forms import PurchaseForm
+from .models import Purchase, ShopItem
+from .services import ShopError, purchase_item
+
+
+def _catalog_queryset():
+    """Return only active offers whose persisted configuration matches Shop V1."""
+    supported_configuration = (
+        Q(
+            item__category=Item.COSMETIC,
+            item__consumable=False,
+            item_level__isnull=True,
+        )
+        | Q(
+            item__category__in=(Item.ATTACK, Item.DEFENSE),
+            item__consumable=True,
+            item_level__isnull=False,
+            item_level__item_id=F("item_id"),
+        )
+        | Q(
+            item__category=Item.HINT,
+            item__consumable=True,
+            item_level__isnull=True,
+        )
+    )
+    return (
+        ShopItem.objects.filter(
+            is_available=True,
+            item__is_active=True,
+        )
+        .filter(supported_configuration)
+        .select_related("item", "item_level")
+    )
+
+
+def _purchase_form(data=None):
+    if data is not None:
+        return PurchaseForm(data)
+    return PurchaseForm(initial={"operation_key": secrets.token_urlsafe(32), "quantity": 1})
+
+
+@login_required
+@require_GET
+def catalog_view(request):
+    try:
+        return render(
+            request,
+            "shop/catalog.html",
+            {"shop_items": _catalog_queryset()},
+        )
+    except DatabaseError:
+        return HttpResponse("Servicio no disponible temporalmente.", status=503)
+
+
+@login_required
+@require_GET
+def product_detail_view(request, sku_code):
+    try:
+        shop_item = _catalog_queryset().filter(code=sku_code).first()
+        if shop_item is None:
+            raise Http404("Producto no encontrado.")
+        return render(
+            request,
+            "shop/detail.html",
+            {"shop_item": shop_item, "form": _purchase_form()},
+        )
+    except DatabaseError:
+        return HttpResponse("Servicio no disponible temporalmente.", status=503)
+
+
+@login_required
+@require_POST
+def purchase_view(request, sku_code):
+    form = _purchase_form(request.POST)
+
+    if not form.is_valid():
+        try:
+            shop_item = _catalog_queryset().filter(code=sku_code).first()
+        except DatabaseError:
+            return HttpResponse("Servicio no disponible temporalmente.", status=503)
+
+        if shop_item is None:
+            raise Http404("Producto no encontrado o no disponible.")
+
+        return render(
+            request,
+            "shop/detail.html",
+            {"shop_item": shop_item, "form": form},
+            status=400,
+        )
+
+    try:
+        # The service must resolve completed operations before checking
+        # whether the catalog offer is currently available.
+        purchase_item(
+            request.user,
+            sku_code,
+            operation_key=form.cleaned_data["operation_key"],
+            quantity=form.cleaned_data["quantity"],
+        )
+    except (ShopError, BankError, ValueError) as exc:
+        try:
+            shop_item = _catalog_queryset().filter(code=sku_code).first()
+        except DatabaseError:
+            return HttpResponse("Servicio no disponible temporalmente.", status=503)
+
+        if shop_item is None:
+            raise Http404("Producto no encontrado o no disponible.") from exc
+
+        return render(
+            request,
+            "shop/detail.html",
+            {
+                "shop_item": shop_item,
+                "form": form,
+                "error_message": str(exc),
+            },
+            status=409,
+        )
+    except DatabaseError:
+        return HttpResponse("Servicio no disponible temporalmente.", status=503)
+
+    return redirect("shop:purchase-history")
+
+
+@login_required
+@require_GET
+def purchase_history_view(request):
+    try:
+        purchases = (
+            Purchase.objects.filter(user=request.user)
+            .select_related("shop_item", "bank_transaction")
+            .order_by("-created_at", "-id")
+        )
+        page_obj = Paginator(purchases, 20).get_page(request.GET.get("page", 1))
+        return render(
+            request,
+            "shop/purchase_history.html",
+            {"page_obj": page_obj, "purchases": page_obj.object_list},
+        )
+    except DatabaseError:
+        return HttpResponse("Servicio no disponible temporalmente.", status=503)

@@ -1,0 +1,27 @@
+{% extends "duckies/base.html" %}
+
+{% block title %}DuckyShop · Catálogo{% endblock %}
+
+{% block content %}
+<nav aria-label="Navegación de economía">
+    <a href="{% url 'bank:wallet' %}">DuckyBank</a>
+    <a href="{% url 'shop:catalog' %}">DuckyShop</a>
+    <a href="{% url 'shop:purchase-history' %}">Mis compras</a>
+</nav>
+<h2>DuckyShop</h2>
+<p>Catálogo de objetos disponibles. El precio y la entrega se validan en el servidor.</p>
+{% if shop_items %}
+    <ul>
+        {% for shop_item in shop_items %}
+            <li>
+                <h3><a href="{% url 'shop:detail' shop_item.code %}">{{ shop_item.name }}</a></h3>
+                {% if shop_item.description %}<p>{{ shop_item.description }}</p>{% endif %}
+                <p>{{ shop_item.price_coins }} DukiCoins · Pack: {{ shop_item.included_quantity }}</p>
+                {% if shop_item.featured %}<p>Destacado</p>{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay ofertas disponibles en este momento.</p>
+{% endif %}
+{% endblock %}
