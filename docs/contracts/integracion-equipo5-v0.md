@@ -428,3 +428,296 @@ consume_item(
 Por qué: Duckies controla el inventario y los juegos únicamente aplican los efectos permitidos.
 
 Para cerrarlo: Henry y los equipos de juegos deben definir cuándo se confirma el uso y cómo se recupera una operación si falla el juego.
+
+## Anexo INT-INV-01 · Inventario técnico vigente de XP V1 y DuckyBank
+
+### I. Corte, autoridad y lectura del documento
+
+**02/11/2026 · develop `67a09b064854fe788cc978ed4ed9f62051d29869`.**
+Inventario técnico descriptivo autorizado por el usuario a partir de la propuesta
+02C-3, no contrato definitivo ni aprobación externa de Core, Óscar o juegos.
+DAR3 conserva la autoridad funcional. Se preservan íntegramente las matrices y
+estados históricos anteriores: sus firmas ilustrativas no deben utilizarse como
+firmas ejecutables actuales. Este anexo describe el código de este corte, sin
+ratificar retrospectivamente aquellas propuestas ni introducir interfaces.
+
+### II. Tres servicios Python implementados
+
+| Operación | Importación real | Identidad y selección de BD | Resultado |
+| --- | --- | --- | --- |
+| Concesión histórica XP V1 (S3) | `from apps.ecomotor.xp_service import grant_historical_xp` | `UserProfileEcomotor` persistido; alias `profile._state.db`, explícito en consultas/escrituras internas | `XPGrantResult`, dataclass frozen, colecciones como tuplas |
+| Ingreso DuckyCoins | `from apps.bank.services import credit_coins` | User destinatario de una Wallet existente; `atomic()` sin `using` y ORM sin alias explícito | `LedgerResult(transaction, created)` |
+| Gasto DuckyCoins | `from apps.bank.services import debit_coins` | Igual que ingreso; no acepta Wallet ni alias como argumento | `LedgerResult(transaction, created)` |
+
+Firmas exactas, sin anotaciones añadidas:
+
+```text
+grant_historical_xp(profile, amount, operation_key)
+
+credit_coins(user, amount, *, source, operation_key,
+             issuing_entity="Ecomotor", reference_type="",
+             reference_id="", description="")
+
+debit_coins(user, amount, *, source, operation_key,
+            issuing_entity="DuckyShop", reference_type="purchase",
+            reference_id="", description="")
+```
+
+Las tres funciones existen; ninguna es por sí misma una API de juegos aprobada.
+No hay argumento de score, sesión de juego, emisor autenticado o regla Rewards.
+
+### III. XP V1: entradas, configuración y efectos
+
+- `profile` debe ser instancia persistida de `UserProfileEcomotor`, con PK
+  validable y alias configurado. Se recarga desde ese alias; no se confía en su
+  estado cacheado. No se recibe User ni se comprueba autorización del llamador.
+- `amount`: `int` positivo excluyendo `bool`, sin convertir cadenas o floats;
+  límites técnicos de representación de los campos/backend, no baremos de juego.
+- `operation_key`: `str` de 1 a 255 caracteres, conservada exactamente.
+  **No hay trim**: espacios son caracteres, incluso una clave formada por espacios
+  no está excluida por la validación de S3. No extrapolar la regla más estricta de Bank.
+- Requiere perfil y `CharacterStats` existentes y estructuralmente válidos en
+  el mismo alias; S3 no inicializa ni repara. Para una operación nueva exige
+  catálogos `LevelThreshold`/`EvolutionStage` válidos y
+  `initialization_config.INITIAL_CONFIGURATION` de tipo `InitializationConfiguration`,
+  con siete códigos únicos de etapa, no vacíos y de hasta 32 caracteres. Solo usa
+  esa correspondencia, no los seis atributos iniciales. La referencia global está
+  en `None` en el código base; los fixtures no la convierten en configuración oficial.
+- Valida coherencia del nivel/etapa actual con XP y catálogos para la concesión
+  nueva, perfiles de evoluciones y causas XP, rangos técnicos y ausencia de una
+  etapa cruzada ya registrada. Delega la progresión exclusivamente a S1.
+- Crea un `XPEvent` y un `EvolutionEvent` por etapa nueva cruzada, sin evolución
+  inicial; actualiza XP histórica, nivel y etapa del perfil y suma puntos de nivel
+  al saldo existente de `CharacterStats.available_points`. No reconstruye puntos
+  gastados, ni modifica los seis atributos base, especialización, Bank o inventario.
+
+`XPGrantResult` contiene `replayed`, `profile_id`, `xp_event_id`, `amount`,
+`operation_key`, `xp_before`, `xp_after`, `evolution_event_ids`, `evolved_stage_ids`,
+`level_before`, `level_after`, `stage_before_code`, `stage_after_code`,
+`crossed_levels`, `crossed_stage_codes`, `stat_points_awarded` y
+`available_points_after`. Expone la clave; no volcar resultados completos en logs
+o respuestas públicas sin revisar privacidad.
+
+**Replay:** identidad local `(profile, operation_key)`. Misma cantidad devuelve
+el `XPEvent` original sin DML de negocio y con `replayed=True`; cantidad distinta
+produce `IdempotencyConflictError`. Se siguen validando estructura actual de
+perfil/stats, snapshots XP y coherencia causal; no todo duplicado es replay válido.
+No consulta los catálogos actuales para reinterpretar el pasado. `xp_before` y
+`xp_after` son los originales, no la XP actual. Devuelve los IDs persistidos de
+evolución/etapa, ordenados por PK de evolución; no acredita ordinales históricos.
+Los ocho campos de nivel, código de etapa, cruces y puntos son **`None` en replay**:
+V1 no guardó esos snapshots. No sustituirlos por el estado actual ni por cero.
+
+| Excepción de `apps.ecomotor.xp_service` | Situación relevante |
+| --- | --- |
+| `InvalidProfileError` | Perfil incorrecto, no persistido, PK inválida o perfil ya inexistente |
+| `InvalidXPAmountError` / `InvalidOperationKeyError` | Cantidad o clave fuera del contrato de entrada |
+| `IdempotencyConflictError` | Misma identidad local con otra cantidad |
+| `InvalidXPConfigurationError` | Correspondencia/catálogos ausentes, inválidos o incompatibles con S1 en operación nueva |
+| `InconsistentProgressError` | Perfil/stats parciales, snapshots o causalidad incompatibles, estado actual incoherente o etapa cruzada ya registrada |
+| `XPOverflowError` | Importe, XP acumulada, nivel o saldo de puntos no representables |
+| `XPDatabaseError` | `DatabaseError`, incluido bloqueo/timeout; se conserva la causa y atomic revierte el trabajo de la llamada |
+
+### IV. DuckyBank: entradas, resultado, replay y errores
+
+Se requiere User destinatario compatible con la FK de Wallet y una Wallet ya
+aprovisionada; no se crea mediante crédito o débito. El servicio no valida de
+forma expresa tipo/estado de User ni autentica su identidad: resolver un User
+persistido y autorizado es responsabilidad del llamador. No requiere perfil
+Ecomotor ni Ducky. El saldo implementado está en `Wallet.available_balance` local;
+no prueba integración con el saldo global candidato del Contrato 6 histórico.
+
+- `amount`: `type(amount) is int`, positivo, sin `bool`; el débito también recibe
+  cantidad positiva. El movimiento guardado es positivo en crédito y negativo
+  en débito. El saldo resultante debe estar entre 0 y `MAX_BALANCE = 2**63 - 1`.
+- `operation_key`: cadena de hasta 255 caracteres con `strip()` no vacío; se
+  valida, pero se guarda/compara sin recortar. `source` e `issuing_entity`: cadenas
+  no vacías tras `strip()`, máximo 100 caracteres, también sin normalizar.
+- `reference_type`, `reference_id`, `description` admiten vacío y límites de
+  100, 255 y 255 respectivamente. Para uso interno suministrar cadenas: el código
+  solo comprueba su longitud, no ofrece un validador de tipos exhaustivo para
+  estos tres campos; tipos incompatibles pueden propagar errores Python.
+- No hay `using`: con `config.settings` actual, sin routers personalizados,
+  ORM y `transaction.atomic()` operan en `default`. No seleccionar BD a partir de
+  `user._state.db` ni suponer protección explícita frente a usuarios de otro alias.
+  Un despliegue multibase/router requeriría revisión; no está acreditado aquí.
+
+Operación nueva: actualiza Wallet y crea una `Transaction` de tipo `REWARD`
+(crédito) o `PURCHASE` (débito), con `wallet_id`, `amount` firmado,
+`balance_after`, `operation_key`, `source_platform` (argumento `source`),
+`issuing_entity`, `reference_type`, `reference_id`, `description`,
+`request_fingerprint` y `created_at`, además de su PK. No concede XP ni objetos.
+
+`LedgerResult` es una dataclass frozen con `transaction` (instancia ORM real,
+**no snapshot profundamente inmutable**) y `created`; `already_applied` es la
+propiedad `not created`. Nueva operación: `created=True`. Replay: `created=False`,
+`already_applied=True`, misma Transaction y **`balance_after` histórico**, sin
+segunda acreditación/cargo. El saldo actual se lee aparte con `wallet_summary(user)`;
+`transaction_history(user, *, transaction_type=None, source=None)` devuelve un
+QuerySet de movimientos de esa Wallet, no un control de autorización.
+
+La identidad es `(wallet, operation_key)`, compartida por créditos y débitos.
+La huella SHA-256 del JSON canónico versión 1 compara `transaction_type`, importe
+**firmado**, `source`, `issuing_entity`, `reference_type` y `reference_id`.
+**`description` no forma parte de la huella**: cambiar solo esa descripción
+recupera la Transaction anterior, sin actualizarla. Cambiar cualquier dato de la
+huella con la misma clave produce `IdempotencyConflict`, incluso al cambiar de
+crédito a débito. Se validan entradas y existencia de Wallet antes de recuperar
+el replay; este se resuelve antes de comprobar fondos para una operación nueva.
+No se comprueba por ello la autenticidad del emisor o una causalidad Rewards.
+
+| Excepción | Situación relevante |
+| --- | --- |
+| `InvalidAmount` (`BankError`) | Importe no entero estricto/positivo, o saldo resultante superior a `MAX_BALANCE` |
+| `WalletNotProvisioned` (`BankError`) | No existe Wallet para el destinatario; no se aprovisiona automáticamente |
+| `InsufficientFunds` (`BankError`) | El débito nuevo dejaría saldo negativo |
+| `IdempotencyConflict` (`BankError`) | Huella incompatible para la misma Wallet/clave |
+| `ValueError` | Clave, origen/emisor o longitudes fuera de contrato |
+| Errores Python/ORM y `DatabaseError` de Django | No existe traductor general de errores técnicos Bank; bloqueo, integridad y errores de tipos no se convierten en éxito ni en `NO_REWARD` |
+
+Bank no devuelve una excepción propia llamada `BankDatabaseError`. Un consumidor
+HTTP debe traducir los errores que corresponda sin exponer SQL, claves o trazas;
+no reutilizar directamente los textos de excepciones como salida pública.
+
+### V. Frontera transaccional y alcance de las garantías
+
+XP abre `atomic(using=profile._state.db)`; Bank abre `atomic()` y consulta Wallet
+con `select_for_update()`. Con los settings SQLite del corte, la transacción
+exterior comienza `IMMEDIATE`, timeout 5 s. `select_for_update()` no aporta bloqueo
+de fila efectivo en SQLite. Estos servicios no verifican por sí mismos toda esa
+configuración al entrar ni rechazan universalmente transacciones envolventes:
+un `atomic()` interior puede ser un savepoint y su retorno no implica commit
+del exterior. No prometer atomicidad entre aliases, bases remotas o servicios HTTP.
+No hay retry automático. La idempotencia local no sustituye la de una recompensa
+completa ni certifica historia íntegra. La ejecución actual de §X cubre las suites
+indicadas, no una nueva demostración de concurrencia, multibase o conexión remota.
+
+### VI. Coordinadores y herramientas realmente existentes
+
+En [`apps.duckies.integration_services`](../../apps/duckies/integration_services.py)
+los cuatro coordinadores exigen usuario guardado y alias `default`, y envuelven
+sus operaciones en `atomic(using=alias)`:
+
+| Firma existente | Coordinación demostrable y límite |
+| --- | --- |
+| `initialize_player_ducky(user, sex)` | `ensure_ecomotor_initialized`, `initialize_ducky`, validación de apariencia; devuelve Ducky. Requiere configuración/catálogos y relaciones Duckies válidos; no crea Wallet |
+| `grant_xp_and_sync_outfit(user, amount, operation_key)` | Recupera perfil por User, llama a S3, sincroniza vestimenta histórica según estado **actual** y valida apariencia; devuelve el `XPGrantResult` de S3 |
+| `select_initial_specialization_and_outfit(user, specialization_code)` | Primera elección Ecomotor; sincroniza vestimenta si el resultado fue creado; valida apariencia y devuelve el resultado de especialización |
+| `switch_specialization_and_outfit(user, target_code, expected_active_code)` | Cambio Ecomotor con código activo esperado; sincroniza según primera activación/reactivación, conserva no-op y valida apariencia |
+
+El coordinador XP ejecuta sincronización/validación Duckies incluso si S3 devuelve
+replay. No extrapolar la ausencia de escrituras del replay **S3 aislado** a todo
+ese coordinador. Si falla la sincronización dentro del exterior común, los tests
+demuestran rollback XP. No crea una recompensa monetaria: los tests comprueban
+que XP no acredita Bank automáticamente. Tampoco valida partidas externas,
+emisores globales o baremos de juegos; puede propagar errores de perfil,
+Ecomotor, Duckies o BD y requiere Ducky/mapeos de vestimenta compatibles.
+
+Como coordinador económico relacionado, [`apps.shop.services.purchase_item`](../../apps/shop/services.py)
+tiene firma `purchase_item(user, sku_code, *, operation_key, quantity=1)`:
+coordina débito Bank, `grant_item()` Duckies y Purchase con idempotencia de compra.
+Las pruebas de integración acreditan replay y rollback local; no es un coordinador
+general Rewards ni autoriza compras remotas por sí solo.
+
+Herramienta de diagnóstico, no adaptador de juegos: el comando
+[`check_ecomotor_readiness`](../../apps/ecomotor/management/commands/check_ecomotor_readiness.py)
+lee configuración/catálogos y no los activa. El laboratorio separado
+[`ecomotor_target_demo`](../../apps/ecomotor/ecomotor_target_demo/reward_demo_services.py)
+tiene su coordinador sintético `apply_demo_reward`; no es S3 V1, F2-A productivo
+ni contrato para emisores reales. No trasladar sus importes o reglas a juegos.
+
+### VII. Ejemplos internos condicionados, sin baremos
+
+Estos fragmentos no son endpoints ni scripts de aprovisionamiento. Antes de
+invocarlos, un llamador servidor autorizado debe haber resuelto `profile` y `user`
+persistidos del destinatario correcto, perfil/stats/catálogos/configuración V1
+válidos para XP, Wallet existente en `default` para Bank, reglas verificadas y
+claves estables por operación/destinatario. Las variables de importe proceden de
+esas reglas; las referencias son cadenas verificadas por servidor. No se fija
+ningún valor económico oficial ni se inicializa un recurso ocultamente.
+
+```python
+from apps.ecomotor.xp_service import grant_historical_xp
+from apps.bank.services import credit_coins, debit_coins
+
+xp_result = grant_historical_xp(profile, xp_validada, clave_xp)
+credit_result = credit_coins(
+    user, monedas_validadas, source=origen_validado,
+    operation_key=clave_credito, reference_id=referencia_validada,
+)
+debit_result = debit_coins(
+    user, coste_validado, source=origen_validado,
+    operation_key=clave_debito, reference_id=referencia_validada,
+)
+```
+
+Son tres ejemplos independientes: ejecutarlos consecutivamente no constituye una
+recompensa combinada atómica. S3 directo no sincroniza vestimenta; usar el
+coordinador Duckies requiere además sus precondiciones y contrato específico.
+
+### VIII. Seguridad, candidatos y dependencias
+
+Los servicios internos no autentican emisores, validan partidas externas o
+autorizan que cualquier cliente conceda premios. Core y los contratos consumidores
+deben resolver identidad canónica, atribución User/perfil, autenticación, permisos,
+ciclo de vida, conservación y privacidad. El servidor debe validar el hecho y sus
+reglas Rewards; un importe arbitrario enviado por el cliente no reemplaza esa
+evaluación. Conocer una clave idempotente tampoco autoriza consulta o replay.
+
+Los Contratos 1–8 y ejemplos como `process_game_result` anteriores conservan su
+estado candidato; **no se ha encontrado una implementación de esa función en
+`apps/`**. F1-A propone efectos y valida estructura, no concede ni persiste premios.
+F2-A mantiene arquitectura propia y dependencias pendientes según
+[Rewards v0](rewards-v0.md#12-f2-a--persistencia-y-xp-histórica-local--doc-6);
+el laboratorio no desbloquea su activación productiva ni la integración global.
+
+No hay endpoint REST público implementado para estas tres operaciones en las
+rutas inspeccionadas. [`config.urls`](../../config/urls.py) monta solo admin en
+este corte; las vistas Ecomotor/Duckies y URLconf de demos son superficies
+distintas, no una API de concesión para los cuatro juegos. No se acredita que la
+integración con esos juegos esté completada. Siguen pendientes reglas, emisores,
+identidades y respuestas de error/transporte acordadas con Core y consumidores,
+fuente canónica global de monedas, y fronteras transaccionales/recuperación.
+S3 V1 sigue como único escritor XP V1 activo fuera del laboratorio; este inventario
+no autoriza escritor objetivo, TRACE-01B, USE-01B ni nuevas interfaces productivas.
+
+### IX. Fuentes concretas
+
+- Código: [S3 y XPGrantResult](../../apps/ecomotor/xp_service.py),
+  [configuración V1](../../apps/ecomotor/initialization_config.py),
+  [Bank y LedgerResult](../../apps/bank/services.py),
+  [Wallet/Transaction](../../apps/bank/models.py),
+  [coordinadores Duckies](../../apps/duckies/integration_services.py).
+- Tests: [XP V1](../../apps/ecomotor/test_xp_service.py),
+  [Bank](../../apps/bank/tests.py),
+  [integración Duckies](../../apps/duckies/tests/integration/), especialmente
+  [evolución](../../apps/duckies/tests/integration/test_evolution.py),
+  [idempotencia](../../apps/duckies/tests/integration/test_idempotency.py),
+  [atomicidad](../../apps/duckies/tests/integration/test_atomicity.py) y
+  [recorrido local](../../apps/duckies/tests/integration/test_full_integration.py).
+- Contratos: [S3 V1](ecomotor-xp-v1.md),
+  [inicialización S2-A](ecomotor-initialization-v1.md),
+  [Rewards](rewards-v0.md),
+  [frontera Core](ecomotor-classification-core-boundary-v1.md) y
+  [laboratorio Rewards–Bank](ecomotor-target-demo-rewards-bank-v1.md).
+
+### X. Evidencia ejecutada en INT-INV-01
+
+Inspección estática de firmas, resultados, validaciones, errores y rutas sobre el
+HEAD citado. Python 3.12 / Django 5.2.17 / Windows; configuración segura derivada
+de `config.settings`, sustituyendo `default` antes de inicializar Django, sin cargar
+`local_settings.py`, `local_urls.py` ni `local_demo_seed.py`. Test DB en memoria,
+auditoría de aperturas SQLite que rechaza archivos fuera del entorno temporal y
+cierre de conexiones antes de limpiar temporales. No se usaron bases personales.
+
+| Ejecución nueva | Resultado |
+| --- | --- |
+| `apps.ecomotor.test_xp_service` | 47 tests aprobados |
+| `apps.bank.tests` | 10 tests aprobados |
+| `apps.duckies.tests.integration` | 30 tests aprobados |
+| Total conjunto | 87 tests, 0 fallos, 0 omitidos; 0,960 s |
+| Django `check`, configuración segura | Sin problemas, 0 silenciados |
+
+Estas ejecuciones no prueban nuevos permisos, emisores, integración REST o juegos
+reales. La PR es únicamente documental: conserva el contenido histórico anterior,
+sin modificar servicios, tests, fixtures, modelos, migraciones o configuraciones.
