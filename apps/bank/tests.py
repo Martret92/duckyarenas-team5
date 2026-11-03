@@ -97,6 +97,47 @@ class BankServiceTests(TestCase):
                 operation_key="operation-shared",
             )
 
+    def test_debit_is_idempotent(self):
+        credit_coins(
+            self.user,
+            100,
+            source="test",
+            operation_key="debit-replay-credit",
+        )
+
+        first = debit_coins(
+            self.user,
+            30,
+            source="shop",
+            operation_key="debit-replay-key",
+            reference_type="purchase",
+            reference_id="debit-replay-reference",
+        )
+        replay = debit_coins(
+            self.user,
+            30,
+            source="shop",
+            operation_key="debit-replay-key",
+            reference_type="purchase",
+            reference_id="debit-replay-reference",
+        )
+
+        self.assertTrue(first.created)
+        self.assertFalse(replay.created)
+        self.assertEqual(first.transaction.pk, replay.transaction.pk)
+        self.assertEqual(first.transaction.amount, -30)
+        self.assertEqual(
+            Wallet.objects.get(user=self.user).available_balance,
+            70,
+        )
+        self.assertEqual(Transaction.objects.count(), 2)
+        self.assertEqual(
+            Transaction.objects.filter(
+                transaction_type=TransactionType.PURCHASE,
+            ).count(),
+            1,
+        )
+
     def test_debit_uses_signed_ledger_amount_and_rejects_insufficient_funds(self):
         credit_coins(
             self.user,

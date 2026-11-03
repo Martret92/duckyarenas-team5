@@ -135,6 +135,61 @@ class ShopPurchaseTests(TestCase):
         )
         self.assertEqual(inventory.quantity, self.offer.included_quantity)
 
+    def test_reusing_key_with_different_sku_conflicts(self):
+        other_item = Item.objects.create(
+            code="attack-cross-sku",
+            name="Alternative smoke",
+            category=Item.ATTACK,
+            consumable=True,
+            is_active=True,
+        )
+        other_level = ItemLevel.objects.create(
+            item=other_item,
+            level=2,
+            effect_code="SMOKE_ALT",
+            effect_value="5",
+        )
+        other_offer = ShopItem.objects.create(
+            code="smoke-alt-pack",
+            item=other_item,
+            item_level=other_level,
+            name="Alternative smoke pack",
+            price_coins=25,
+            included_quantity=2,
+        )
+
+        purchase_item(
+            self.user,
+            self.offer.code,
+            operation_key="shop-order-cross-sku",
+        )
+
+        with self.assertRaises(PurchaseIdempotencyConflict):
+            purchase_item(
+                self.user,
+                other_offer.code,
+                operation_key="shop-order-cross-sku",
+            )
+
+        self.assertEqual(
+            Wallet.objects.get(user=self.user).available_balance,
+            80,
+        )
+        self.assertEqual(Purchase.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(ItemGrant.objects.filter(ducky=self.ducky).count(), 1)
+        self.assertEqual(
+            Transaction.objects.filter(
+                transaction_type=TransactionType.PURCHASE,
+            ).count(),
+            1,
+        )
+        inventory = InventoryItem.objects.get(
+            ducky=self.ducky,
+            item=self.attack,
+            item_level=self.attack_level,
+        )
+        self.assertEqual(inventory.quantity, self.offer.included_quantity)
+
     def test_reusing_key_with_different_quantity_conflicts(self):
         purchase_item(
             self.user,
