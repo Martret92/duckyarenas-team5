@@ -1,0 +1,1 @@
+{% extends 'team5_ui/base.html' %}{% block content %}<div class="dark-panel"><h1>Movimientos bancarios</h1>{% for tx in transactions %}<div class="fact"><span>{{ tx.created_at }} · {{ tx.transaction_type }}</span><b>{{ tx.amount }}</b></div>{% empty %}<p>Sin movimientos</p>{% endfor %}</div>{% endblock %}

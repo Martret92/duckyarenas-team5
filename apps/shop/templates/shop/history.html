@@ -1,0 +1,1 @@
+{% extends 'team5_ui/base.html' %}{% block content %}<div class="dark-panel"><h1>Mis compras</h1>{% for purchase in purchases %}<div class="fact"><span>{{ purchase.shop_item.name }}</span><b>{{ purchase.total_price_coins }} 🪙</b></div>{% empty %}<p>Sin compras</p>{% endfor %}</div>{% endblock %}
