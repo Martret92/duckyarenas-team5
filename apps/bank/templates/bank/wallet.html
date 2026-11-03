@@ -1,0 +1,50 @@
+{% extends "duckies/base.html" %}
+
+{% block title %}DuckyBank · Cartera{% endblock %}
+
+{% block content %}
+<nav aria-label="Navegación de economía">
+    <a href="{% url 'bank:wallet' %}">DuckyBank</a>
+    <a href="{% url 'shop:catalog' %}">DuckyShop</a>
+    <a href="{% url 'shop:purchase-history' %}">Mis compras</a>
+</nav>
+<h2>Mi cartera DuckyBank</h2>
+{% if summary %}
+    <section aria-label="Resumen de cartera">
+        <p><strong>Saldo disponible:</strong> {{ summary.available_balance }} DukiCoins</p>
+        <p><strong>Total recibido:</strong> {{ summary.total_earned }} DukiCoins</p>
+        <p><strong>Total gastado:</strong> {{ summary.total_spent }} DukiCoins</p>
+    </section>
+    <h3>Historial de movimientos</h3>
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr><th>Fecha</th><th>Tipo</th><th>Origen</th><th>Importe</th><th>Saldo posterior</th><th>Descripción</th></tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ transaction.get_transaction_type_display }}</td>
+                        <td>{{ transaction.source_platform }}</td>
+                        <td>{{ transaction.amount }}</td>
+                        <td>{{ transaction.balance_after }}</td>
+                        <td>{{ transaction.description|default:"—" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginación del historial">
+                {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+                <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>Aún no hay movimientos registrados.</p>
+    {% endif %}
+{% else %}
+    <p role="status">Tu cartera todavía no ha sido habilitada. La inicialización corresponde al proceso autorizado de Core.</p>
+{% endif %}
+{% endblock %}

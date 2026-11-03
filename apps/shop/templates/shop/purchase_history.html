@@ -1,0 +1,38 @@
+{% extends "duckies/base.html" %}
+
+{% block title %}Mis compras · DuckyShop{% endblock %}
+
+{% block content %}
+<nav aria-label="Navegación de economía">
+    <a href="{% url 'bank:wallet' %}">DuckyBank</a>
+    <a href="{% url 'shop:catalog' %}">DuckyShop</a>
+    <a href="{% url 'shop:purchase-history' %}">Mis compras</a>
+</nav>
+<h2>Mis compras</h2>
+{% if purchases %}
+    <table>
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Total</th><th>Estado</th><th>Referencia</th></tr></thead>
+        <tbody>
+            {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ purchase.shop_item.name }}</td>
+                    <td>{{ purchase.quantity }}</td>
+                    <td>{{ purchase.total_price_coins }} DukiCoins</td>
+                    <td>{{ purchase.get_status_display }}</td>
+                    <td>{{ purchase.delivery_reference }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginación de compras">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <p>Aún no has realizado compras.</p>
+{% endif %}
+{% endblock %}
