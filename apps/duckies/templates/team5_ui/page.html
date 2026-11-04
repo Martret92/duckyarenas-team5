@@ -1,4 +1,5 @@
 
+
 {% extends 'team5_ui/base.html' %}
 {% load static %}
 
@@ -7,53 +8,80 @@
 {% if section == 'rewards' %}
 
 <section class="dark-panel" style="max-width:950px;margin:0 auto">
-    <div class="eyebrow">LABORATORIO REAL · REWARDS</div>
+    <div class="eyebrow">LABORATORIO TÉCNICO · REWARDS</div>
     <h1>🎁 Cámara de recompensas</h1>
 
     <p>
-        Prueba el coordinador real de Rewards de Ecomotor,
-        que puede entregar XP, Ducky Coins y objetos HINT
-        a su partida sintética aislada.
+        Explora el laboratorio técnico persistente de Ecomotor,
+        donde se realizan pruebas aisladas de progresión y
+        recompensas con personajes y datos ficticios.
+    </p>
+
+    <p>
+        <strong>Estado de HINT:</strong>
+        la entrega de objetos HINT mediante Rewards y su
+        comprobación en <code>ItemGrant</code> todavía no están
+        validadas con el seed limpio del laboratorio persistente.
+        Por tanto, este recorrido no se presenta como una
+        funcionalidad demostrable en esta versión.
     </p>
 
     <p>
         <strong>Importante:</strong>
         este laboratorio utiliza una partida, sesión y base de datos
         distintas de tu Ducky de DuckyArena.
-        Sus premios no aparecerán en el inventario ni en el saldo
-        de esta interfaz.
+        Su progreso y sus recompensas no se incorporan al inventario
+        ni al saldo de esta interfaz.
     </p>
 
     <div class="parchment" style="padding:24px;margin:24px 0">
         <h2>Acceder al laboratorio de Jaime</h2>
         <p>
-            Inicia el servidor aislado en el puerto 8001
-            y después abre su interfaz.
+            Inicia el laboratorio persistente de Ecomotor
+            en el puerto 8002 utilizando su configuración
+            específica. Después, abre su interfaz:
         </p>
         <a class="btn gold" href="{{ rewards_lab_url }}" target="_blank" rel="noopener noreferrer">
-            Abrir Rewards real ↗
+            Abrir laboratorio de Rewards ↗
         </a>
     </div>
 
-    <h2>Cómo verificar Rewards → Duckies</h2>
+    <h2>Qué se puede comprobar</h2>
 
     <ol>
-        <li>Inicia una partida en el laboratorio aislado.</li>
-        <li>Emite y aplica el hecho de <code>item_challenge</code>.</li>
-        <li>Comprueba la entrega HINT y su registro ItemGrant.</li>
-        <li>Repite el mismo hecho para verificar que no se duplica.</li>
+        <li>
+            Iniciar un personaje ficticio en el laboratorio
+            persistente de Ecomotor.
+        </li>
+        <li>
+            Explorar las pruebas de progresión y XP disponibles
+            en esa demostración.
+        </li>
+        <li>
+            Comprobar la persistencia del progreso utilizando
+            las funcionalidades habilitadas en el laboratorio.
+        </li>
+        <li>
+            Consultar las limitaciones de la demostración,
+            que utiliza datos y reglas sintéticas.
+        </li>
     </ol>
 
     <p>
-        También puedes probar <code>coin_challenge</code>
-        y <code>combo_challenge</code> si están habilitados.
-        Para comprobar un replay debe utilizarse el mismo hecho.
+        <strong>Validación pendiente:</strong>
+        el recorrido de recompensas HINT mediante
+        <code>item_challenge</code> y su registro en
+        <code>ItemGrant</code> no está validado con el seed limpio
+        del laboratorio persistente. No debe considerarse
+        una prueba funcional completada.
     </p>
 
     <p>
         <small>
             Este apartado es un acceso al laboratorio aislado.
             No fusiona usuarios, partidas, bases de datos ni saldos.
+            Las recompensas del laboratorio no se incorporan
+            a la partida local de DuckyArena.
         </small>
     </p>
 </section>
@@ -897,6 +925,8 @@
             <p>
                 Operaciones registradas disponibles únicamente
                 en el entorno local autorizado.
+                Estas herramientas son independientes del
+                laboratorio persistente de Rewards.
             </p>
 
             <form method="post" action="{% url 'team5_demo:action' %}">
@@ -943,6 +973,8 @@
             <small>
                 Las entregas manuales de HINT utilizan los servicios
                 de Duckies y no invocan Rewards.
+                No validan el recorrido HINT del laboratorio
+                persistente de Ecomotor.
             </small>
 
             <small>

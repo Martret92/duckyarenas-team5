@@ -280,7 +280,7 @@ def dashboard(request, section="dashboard"):
 
         "ducky_image": ducky_image(ducky),
 
-        "rewards_lab_url": "http://127.0.0.1:8001/",
+        'rewards_lab_url': 'http://127.0.0.1:8002/demo/objetivo-persistente/',
     }
 
     return render(
