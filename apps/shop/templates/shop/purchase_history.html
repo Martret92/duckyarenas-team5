@@ -1,38 +1,6 @@
-{% extends "duckies/base.html" %}
-
-{% block title %}Mis compras · DuckyShop{% endblock %}
-
-{% block content %}
-<nav aria-label="Navegación de economía">
-    <a href="{% url 'bank:wallet' %}">DuckyBank</a>
-    <a href="{% url 'shop:catalog' %}">DuckyShop</a>
-    <a href="{% url 'shop:purchase-history' %}">Mis compras</a>
-</nav>
-<h2>Mis compras</h2>
-{% if purchases %}
-    <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Total</th><th>Estado</th><th>Referencia</th></tr></thead>
-        <tbody>
-            {% for purchase in purchases %}
-                <tr>
-                    <td>{{ purchase.created_at|date:"Y-m-d H:i" }}</td>
-                    <td>{{ purchase.shop_item.name }}</td>
-                    <td>{{ purchase.quantity }}</td>
-                    <td>{{ purchase.total_price_coins }} DukiCoins</td>
-                    <td>{{ purchase.get_status_display }}</td>
-                    <td>{{ purchase.delivery_reference }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% if page_obj.has_other_pages %}
-        <nav aria-label="Paginación de compras">
-            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
-            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
-        </nav>
-    {% endif %}
-{% else %}
-    <p>Aún no has realizado compras.</p>
-{% endif %}
+{% extends "team5_ui/base.html" %}
+{% load static %}
+{% block content %}<link rel="stylesheet" href="{% static 'shop/css/shop.css' %}">
+<section class="page-title"><div><div class="eyebrow">DUCKYSHOP</div><h1>Mis compras</h1><p>Historial real de compras del jugador</p></div><a class="btn navy" href="{% url 'shop:catalog' %}">Volver a la tienda</a></section>
+<section class="dark-panel"><div class="shop-table-wrap"><table class="shop-table"><thead><tr><th>Artículo</th><th>Fecha</th><th>Packs</th><th>Total</th><th>Estado</th><th>Referencia</th></tr></thead><tbody>{% for purchase in purchases %}<tr><td><div class="shop-history-product"><img src="{{ purchase.shop_item.image_url }}" alt="" loading="lazy"><strong>{{ purchase.shop_item.name }}</strong></div></td><td>{{ purchase.created_at|date:'d/m/Y H:i' }}</td><td>{{ purchase.quantity }}</td><td>🪙 {{ purchase.total_price_coins }}</td><td>{{ purchase.get_status_display }}</td><td>{{ purchase.delivery_reference }}</td></tr>{% empty %}<tr><td colspan="6" class="empty">Aún no has realizado compras.</td></tr>{% endfor %}</tbody></table></div>{% if page_obj.has_other_pages %}<nav class="shop-pagination" aria-label="Paginación de compras">{% if page_obj.has_previous %}<a class="btn navy" href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}<span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="btn navy" href="?page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}</nav>{% endif %}</section>
 {% endblock %}
