@@ -111,6 +111,23 @@ def _validate_offer(shop_item):
         raise InvalidProductConfiguration("Permanent items must have included_quantity=1.")
 
 
+def _find_existing_purchase(*, user, operation_key, request_fingerprint):
+    """Return an idempotent replay or reject reuse with different semantics."""
+    existing = (
+        Purchase.objects.select_related("shop_item", "bank_transaction")
+        .filter(user=user, operation_key=operation_key)
+        .first()
+    )
+    if existing is None:
+        return None
+
+    if existing.request_fingerprint != request_fingerprint:
+        raise PurchaseIdempotencyConflict(
+            "operation_key was already used with a different SKU or quantity."
+        )
+    if existing.bank_transaction.wallet.user_id != user.pk:
+        raise ShopError("The purchase is linked to another user's wallet.")
+    return existing
 def purchase_item(user, sku_code, *, operation_key, quantity=1):
     """Buy a digital SKU and coordinate debit, delivery, and Purchase locally.
 
@@ -128,22 +145,32 @@ def purchase_item(user, sku_code, *, operation_key, quantity=1):
     )
 
     with transaction.atomic():
-        # A replay must recover the original result before current availability/price checks.
-        existing = (
-            Purchase.objects.select_for_update()
-            .select_related("shop_item", "bank_transaction")
-            .filter(user=user, operation_key=operation_key)
-            .first()
+        # Fast path for completed operations.
+        existing = _find_existing_purchase(
+            user=user,
+            operation_key=operation_key,
+            request_fingerprint=request_fingerprint,
         )
         if existing is not None:
-            if existing.request_fingerprint != request_fingerprint:
-                raise PurchaseIdempotencyConflict(
-                    "operation_key was already used with a different SKU or quantity."
-                    )
-            if existing.bank_transaction.wallet.user_id != user.pk:
-                raise ShopError(
-                    "The purchase is linked to another user's wallet."
-                      )
+            return existing
+
+        # Serialize purchases for this buyer before locking the SKU. A concurrent
+        # request may have passed the fast path while the first request was still
+        # processing. Re-check after acquiring the buyer lock so it returns the
+        # committed purchase instead of attempting a duplicate insert.
+        try:
+            Ducky.objects.select_for_update().get(user=user)
+        except Ducky.DoesNotExist as exc:
+            raise BuyerNotProvisioned(
+                "The buyer has no initialized Ducky inventory."
+            ) from exc
+
+        existing = _find_existing_purchase(
+            user=user,
+            operation_key=operation_key,
+            request_fingerprint=request_fingerprint,
+        )
+        if existing is not None:
             return existing
 
         shop_item = (
@@ -158,13 +185,6 @@ def purchase_item(user, sku_code, *, operation_key, quantity=1):
         _validate_offer(shop_item)
         item = shop_item.item
         item_level = shop_item.item_level
-
-        try:
-            Ducky.objects.select_for_update().get(user=user)
-        except Ducky.DoesNotExist as exc:
-            raise BuyerNotProvisioned(
-                "The buyer has no initialized Ducky inventory."
-            ) from exc
 
         if not item.consumable:
             if quantity != 1:
