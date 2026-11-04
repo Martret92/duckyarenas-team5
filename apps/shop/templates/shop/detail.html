@@ -1,7 +1,32 @@
 {% extends "team5_ui/base.html" %}
 {% load static %}
-{% block content %}<link rel="stylesheet" href="{% static 'shop/css/shop.css' %}">
-<section class="page-title"><div><div class="eyebrow">DUCKYSHOP</div><h1>{{ shop_item.name }}</h1><p>{{ shop_item.description }}</p></div><a class="btn navy" href="{% url 'shop:catalog' %}">← Volver al catálogo</a></section>
-<div class="content-grid"><section class="dark-panel"><div class="product-art"><img src="{{ shop_item.image_url }}" alt="{{ shop_item.name }}"></div><h2>{{ shop_item.name }}</h2><p>{{ shop_item.description }}</p></section><section class="dark-panel"><h2>Comprar artículo</h2><p>Precio por pack: <span class="price">🪙 {{ shop_item.price_coins }}</span></p><p>Unidades incluidas: {{ shop_item.included_quantity }}</p><p>Saldo disponible: {{ wallet.available_balance|default:0 }} DC</p>{% if error_message %}<div class="alert error" role="alert">{{ error_message }}</div>{% endif %}
-<form method="post" action="{% url 'shop:purchase' shop_item.code %}">{% csrf_token %}{{ form.non_field_errors }}{{ form.operation_key }}{{ form.operation_key.errors }}<div class="shop-field"><label for="{{ form.quantity.id_for_label }}">Cantidad de packs</label>{{ form.quantity }}{{ form.quantity.errors }}</div><button class="btn gold" type="submit">Comprar con DukiCoins</button></form><p class="muted">La validación de saldo, compra y entrega se realiza mediante los servicios oficiales.</p></section></div>
+{% block content %}
+<link rel="stylesheet" href="{% static 'shop/css/shop.css' %}">
+<section class="page-title">
+    <div>
+        <div class="eyebrow">DUCKYSHOP</div>
+        <h1>{{ shop_item.name }}</h1>
+        <p>{{ shop_item.description }}</p>
+    </div><a class="btn navy" href="{% url 'shop:catalog' %}">← Volver al catálogo</a>
+</section>
+<div class="content-grid">
+    <section class="dark-panel">
+        <div class="product-art"><img src="{{ shop_item.image_url }}" alt="{{ shop_item.name }}"></div>
+        <h2>{{ shop_item.name }}</h2>
+        <p>{{ shop_item.description }}</p>
+    </section>
+    <section class="dark-panel">
+        <h2>Comprar artículo</h2>
+        <p>Precio por pack: <span class="price">🪙 {{ shop_item.price_coins }} DukiCoins</span></p>
+        <p>Unidades incluidas: {{ shop_item.included_quantity }}</p>
+        <p>Saldo disponible: {{ wallet.available_balance|default:0 }} DC</p>{% if error_message %}<div
+            class="alert error" role="alert">{{ error_message }}</div>{% endif %}
+        <form method="post" action="{% url 'shop:purchase' shop_item.code %}">{% csrf_token %}{{ form.non_field_errors
+            }}{{ form.operation_key }}{{ form.operation_key.errors }}<div class="shop-field"><label
+                    for="{{ form.quantity.id_for_label }}">Cantidad de packs</label>{{ form.quantity }}{{
+                form.quantity.errors }}</div><button class="btn gold" type="submit">Comprar con DukiCoins</button>
+        </form>
+        <p class="muted">La validación de saldo, compra y entrega se realiza mediante los servicios oficiales.</p>
+    </section>
+</div>
 {% endblock %}

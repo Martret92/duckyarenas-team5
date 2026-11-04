@@ -5,15 +5,20 @@ from django.urls import include, path, reverse
 from apps.bank.models import Transaction, Wallet
 from apps.bank.services import credit_coins
 from apps.duckies.models import Ducky, InventoryItem, Item, ItemGrant, ItemLevel
-
+from django.contrib.auth import views as auth_views
 from .models import Purchase, ShopItem
 
 urlpatterns = [
     path("duckies/", include("apps.duckies.urls")),
     path("bank/", include("apps.bank.urls")),
     path("shop/", include("apps.shop.urls")),
+    path("", include("apps.duckies.team5_ui.urls")),
+    path(
+        "accounts/logout/",
+        auth_views.LogoutView.as_view(),
+        name="logout",
+    ),
 ]
-
 
 @override_settings(ROOT_URLCONF=__name__)
 class ShopHTTPTests(TestCase):
