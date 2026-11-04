@@ -30,10 +30,7 @@
             Inicia el servidor aislado en el puerto 8001
             y después abre su interfaz.
         </p>
-        <a class="btn gold"
-           href="{{ rewards_lab_url }}"
-           target="_blank"
-           rel="noopener noreferrer">
+        <a class="btn gold" href="{{ rewards_lab_url }}" target="_blank" rel="noopener noreferrer">
             Abrir Rewards real ↗
         </a>
     </div>
@@ -65,8 +62,7 @@
 
 <section class="hero welcome">
     <div class="welcome-art">
-        <img src="{% static 'team5_ui/img/characters/ducky_male.png' %}"
-             alt="Ducky medieval">
+        <img src="{% static 'team5_ui/img/characters/ducky_male.png' %}" alt="Ducky medieval">
     </div>
 
     <div class="welcome-card parchment">
@@ -187,8 +183,7 @@
             <h3>🎯 Próximo objetivo</h3>
             <p>Alcanza el siguiente nivel y descubre nuevas épocas.</p>
 
-            <a class="btn navy"
-               href="{% url 'team5_ui:evolution' %}">
+            <a class="btn navy" href="{% url 'team5_ui:evolution' %}">
                 Consultar evolución
             </a>
         </div>
@@ -215,16 +210,30 @@
     <div class="dark-panel">
         <h3>🎒 Equipamiento actual</h3>
 
-        <div class="item-mini">
+        <div class="item-mini equipped-item-grid">
             {% for eq in equipped %}
-                <span>{{ eq.inventory_item.item.name }}</span>
+                <div class="equipped-item-card">
+
+                    {% if eq.image_url %}
+                        <img
+                            src="{{ eq.image_url }}"
+                            alt="{{ eq.inventory_item.item.name }}"
+                            class="equipped-item-image"
+                            loading="lazy"
+                        >
+                    {% endif %}
+
+                    <span class="equipped-item-name">
+                        {{ eq.inventory_item.item.name }}
+                    </span>
+
+                </div>
             {% empty %}
                 <span>Sin objetos equipados</span>
             {% endfor %}
         </div>
 
-        <a class="btn navy"
-           href="{% url 'team5_ui:wardrobe' %}">
+        <a class="btn navy" href="{% url 'team5_ui:wardrobe' %}">
             Editar vestuario
         </a>
     </div>
@@ -236,8 +245,7 @@
             {{ wallet.available_balance|default:0 }}
         </div>
 
-        <a class="btn navy"
-           href="{% url 'team5_ui:wallet' %}">
+        <a class="btn navy" href="{% url 'team5_ui:wallet' %}">
             Ir al banco
         </a>
     </div>
@@ -260,9 +268,7 @@
 <section class="content-grid">
 
     <div class="dark-panel character-panel">
-        <img class="character-large"
-             src="{{ ducky_image }}"
-             alt="Tu Ducky">
+        <img class="character-large" src="{{ ducky_image }}" alt="Tu Ducky">
 
         <h2>{{ user.username }}</h2>
         <p>
@@ -304,8 +310,7 @@
             <b>{{ ducky.selected_outfit.name|default:'Sin seleccionar' }}</b>
         </div>
 
-        <a class="btn gold"
-           href="{% url 'team5_ui:wardrobe' %}">
+        <a class="btn gold" href="{% url 'team5_ui:wardrobe' %}">
             Ver vestuario
         </a>
     </div>
@@ -394,9 +399,7 @@
 
         <div class="product-card">
             <div class="product-art">
-                <img src="{{ outfit.image_url }}"
-                     alt="Vestimenta {{ outfit.stage.name }}"
-                     loading="lazy">
+                <img src="{{ outfit.image_url }}" alt="Vestimenta {{ outfit.stage.name }}" loading="lazy">
             </div>
 
             <h3>{{ outfit.stage.name }}</h3>
@@ -457,34 +460,23 @@
 
             <h3>{{ spec.name }}</h3>
 
-            <form method="post"
-                  action="{% url 'team5_ui:action' %}">
-
+            <form method="post" action="{% url 'team5_ui:action' %}">
                 {% csrf_token %}
 
-                <input type="hidden"
-                       name="action"
-                       value="specialization">
-
-                <input type="hidden"
-                       name="return_to"
-                       value="specialization">
-
-                <input type="hidden"
-                       name="code"
-                       value="{{ spec.code }}">
+                <input type="hidden" name="action" value="specialization">
+                <input type="hidden" name="return_to" value="specialization">
+                <input type="hidden" name="code" value="{{ spec.code }}">
 
                 <button
                     type="submit"
                     class="btn {% if profile.active_specialization_code == spec.code %}navy{% else %}gold{% endif %}"
-                    {% if profile.active_specialization_code == spec.code %}disabled{% endif %}>
-
+                    {% if profile.active_specialization_code == spec.code %}disabled{% endif %}
+                >
                     {% if profile.active_specialization_code == spec.code %}
                         Actual
                     {% else %}
                         Elegir
                     {% endif %}
-
                 </button>
 
             </form>
@@ -502,9 +494,7 @@
     <div class="dark-panel character-panel">
         <h2>👑 Tu apariencia actual</h2>
 
-        <img class="character-large"
-             src="{{ ducky_image }}"
-             alt="Ducky con su vestimenta activa">
+        <img class="character-large" src="{{ ducky_image }}" alt="Ducky con su vestimenta activa">
 
         <p>
             <b>
@@ -532,10 +522,11 @@
 
             {% for outfit in outfits %}
 
-            <form method="post"
-                  action="{% url 'team5_ui:action' %}"
-                  class="product-card outfit-card {% if ducky.selected_outfit_id == outfit.item.pk %}is-equipped{% endif %}">
-
+            <form
+                method="post"
+                action="{% url 'team5_ui:action' %}"
+                class="product-card outfit-card {% if ducky.selected_outfit_id == outfit.item.pk %}is-equipped{% endif %}"
+            >
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="outfit">
@@ -543,9 +534,7 @@
                 <input type="hidden" name="item_id" value="{{ outfit.item.pk }}">
 
                 <div class="product-art">
-                    <img src="{{ outfit.image_url }}"
-                         alt="{{ outfit.item.name }}"
-                         loading="lazy">
+                    <img src="{{ outfit.image_url }}" alt="{{ outfit.item.name }}" loading="lazy">
                 </div>
 
                 <h3>{{ outfit.stage.name }}</h3>
@@ -561,16 +550,16 @@
                     {% endif %}
                 </span>
 
-                <button class="btn navy"
-                        type="submit"
-                        {% if not outfit.allowed or ducky.selected_outfit_id == outfit.item.pk %}disabled{% endif %}>
-
+                <button
+                    class="btn navy"
+                    type="submit"
+                    {% if not outfit.allowed or ducky.selected_outfit_id == outfit.item.pk %}disabled{% endif %}
+                >
                     {% if ducky.selected_outfit_id == outfit.item.pk %}
                         En uso
                     {% else %}
                         Vestir
                     {% endif %}
-
                 </button>
             </form>
 
@@ -592,10 +581,11 @@
 
             {% for outfit in spec_outfits %}
 
-            <form method="post"
-                  action="{% url 'team5_ui:action' %}"
-                  class="product-card outfit-card {% if ducky.selected_outfit_id == outfit.item.pk %}is-equipped{% endif %}">
-
+            <form
+                method="post"
+                action="{% url 'team5_ui:action' %}"
+                class="product-card outfit-card {% if ducky.selected_outfit_id == outfit.item.pk %}is-equipped{% endif %}"
+            >
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="outfit">
@@ -603,9 +593,7 @@
                 <input type="hidden" name="item_id" value="{{ outfit.item.pk }}">
 
                 <div class="product-art">
-                    <img src="{{ outfit.image_url }}"
-                         alt="{{ outfit.item.name }}"
-                         loading="lazy">
+                    <img src="{{ outfit.image_url }}" alt="{{ outfit.item.name }}" loading="lazy">
                 </div>
 
                 <h3>{{ outfit.specialization.name }}</h3>
@@ -621,16 +609,16 @@
                     {% endif %}
                 </span>
 
-                <button class="btn navy"
-                        type="submit"
-                        {% if not outfit.allowed or ducky.selected_outfit_id == outfit.item.pk %}disabled{% endif %}>
-
+                <button
+                    class="btn navy"
+                    type="submit"
+                    {% if not outfit.allowed or ducky.selected_outfit_id == outfit.item.pk %}disabled{% endif %}
+                >
                     {% if ducky.selected_outfit_id == outfit.item.pk %}
                         En uso
                     {% else %}
                         Vestir
                     {% endif %}
-
                 </button>
 
             </form>
@@ -661,9 +649,7 @@
 
                 {% if entry.image_url %}
 
-                    <img src="{{ entry.image_url }}"
-                         alt="{{ entry.item.name }}"
-                         loading="lazy">
+                    <img src="{{ entry.image_url }}" alt="{{ entry.item.name }}" loading="lazy">
 
                 {% else %}
 
@@ -694,21 +680,17 @@
 
             {% if entry.item.slot %}
 
-            <form method="post"
-                  action="{% url 'team5_ui:action' %}">
-
+            <form method="post" action="{% url 'team5_ui:action' %}">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="equip">
                 <input type="hidden" name="return_to" value="inventory">
                 <input type="hidden" name="item_id" value="{{ entry.item_id }}">
-                <input type="hidden" name="code"
-                       value="{{ entry.item_level_id|default:'' }}">
+                <input type="hidden" name="code" value="{{ entry.item_level_id|default:'' }}">
 
                 <button class="btn gold" type="submit">
                     Equipar
                 </button>
-
             </form>
 
             {% else %}
@@ -794,13 +776,11 @@
         de tu Ducky.
     </p>
 
-    <a class="btn gold"
-       href="{% url 'shop:catalog' %}">
+    <a class="btn gold" href="{% url 'shop:catalog' %}">
         Ir al catálogo oficial
     </a>
 
-    <a class="btn navy"
-       href="{% url 'shop:purchase-history' %}">
+    <a class="btn navy" href="{% url 'shop:purchase-history' %}">
         Mis compras
     </a>
 
@@ -870,8 +850,7 @@
 
         {% endfor %}
 
-        <a class="btn navy"
-           href="{% url 'shop:purchase-history' %}">
+        <a class="btn navy" href="{% url 'shop:purchase-history' %}">
             Ver historial de compras
         </a>
     </div>
@@ -892,8 +871,7 @@
         del motor de batalla de otros equipos.
     </p>
 
-    <a class="btn gold"
-       href="{% url 'shop:catalog' %}">
+    <a class="btn gold" href="{% url 'shop:catalog' %}">
         Preparar mi inventario
     </a>
 
@@ -921,9 +899,7 @@
                 en el entorno local autorizado.
             </p>
 
-            <form method="post"
-                  action="{% url 'team5_demo:action' %}">
-
+            <form method="post" action="{% url 'team5_demo:action' %}">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="xp">
@@ -931,20 +907,14 @@
 
                 <label>XP histórica</label>
 
-                <input type="number"
-                       name="amount"
-                       min="1"
-                       max="1000000"
-                       value="500">
+                <input type="number" name="amount" min="1" max="1000000" value="500">
 
                 <button class="btn navy" type="submit">
                     ＋ Añadir XP
                 </button>
             </form>
 
-            <form method="post"
-                  action="{% url 'team5_demo:action' %}">
-
+            <form method="post" action="{% url 'team5_demo:action' %}">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="coins">
@@ -952,20 +922,14 @@
 
                 <label>Ducky Coins</label>
 
-                <input type="number"
-                       name="amount"
-                       min="1"
-                       max="1000000"
-                       value="500">
+                <input type="number" name="amount" min="1" max="1000000" value="500">
 
                 <button class="btn gold" type="submit">
                     ＋ Añadir monedas
                 </button>
             </form>
 
-            <form method="post"
-                  action="{% url 'team5_demo:action' %}">
-
+            <form method="post" action="{% url 'team5_demo:action' %}">
                 {% csrf_token %}
 
                 <input type="hidden" name="action" value="hint">

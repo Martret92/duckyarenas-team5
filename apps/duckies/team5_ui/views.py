@@ -1,4 +1,5 @@
 
+
 """Interfaz integrada de DuckyArena Equipo 5.
 
 Las operaciones se delegan a los servicios de dominio.
@@ -189,12 +190,31 @@ def dashboard(request, section="dashboard"):
     # EQUIPAMIENTO Y ENTREGAS
     # --------------------------------------------------------
 
-    equipped = (
+    equipped = list(
         EquippedItem.objects
         .filter(ducky=ducky)
         .select_related("inventory_item__item")
     ) if ducky else []
 
+    # Utilizar las mismas variantes visuales del inventario.
+    # La imagen depende de la vestimenta seleccionada,
+    # no de la época desbloqueada ni del artículo comprado.
+    for eq in equipped:
+        item = eq.inventory_item.item
+
+        relative_image = image_for_item(
+            item,
+            visual_key,
+        )
+
+        eq.image_url = (
+            static(relative_image)
+            if relative_image
+            else item_image(item)
+        )
+
+    # Mantener las entregas de artículos en el contexto.
+    # Esta consulta es independiente del equipamiento.
     item_grants = (
         ItemGrant.objects
         .filter(ducky=ducky)
