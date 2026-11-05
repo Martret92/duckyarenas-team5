@@ -11,6 +11,7 @@ from .services import (
     adjust_wallet,
     credit_coins,
     debit_coins,
+    ensure_wallet_provisioned,
     transaction_history,
     wallet_summary,
 )
@@ -33,6 +34,46 @@ class BankServiceTests(TestCase):
                 source="rewards",
                 operation_key="reward-unprovisioned",
             )
+
+    def test_explicit_provision_creates_zero_balance_wallet(self):
+        user = get_user_model().objects.create_user(username="wallet-provision-user")
+
+        wallet, created = ensure_wallet_provisioned(user)
+
+        self.assertTrue(created)
+        self.assertEqual(wallet.user_id, user.pk)
+        self.assertEqual(wallet.available_balance, 0)
+        self.assertEqual(Wallet.objects.filter(user=user).count(), 1)
+
+    def test_explicit_provision_is_idempotent(self):
+        user = get_user_model().objects.create_user(username="wallet-idempotent-user")
+
+        first_wallet, first_created = ensure_wallet_provisioned(user)
+        second_wallet, second_created = ensure_wallet_provisioned(user)
+
+        self.assertTrue(first_created)
+        self.assertFalse(second_created)
+        self.assertEqual(first_wallet.pk, second_wallet.pk)
+        self.assertEqual(Wallet.objects.filter(user=user).count(), 1)
+
+    def test_explicit_provision_preserves_existing_balance(self):
+        self.wallet.available_balance = 73
+        self.wallet.save(update_fields=("available_balance", "updated_at"))
+
+        wallet, created = ensure_wallet_provisioned(self.user)
+
+        self.assertFalse(created)
+        self.assertEqual(wallet.pk, self.wallet.pk)
+        self.assertEqual(wallet.available_balance, 73)
+
+    def test_explicit_provision_rejects_unsaved_user(self):
+        user = get_user_model()()
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "A persisted user is required to provision a wallet.",
+        ):
+            ensure_wallet_provisioned(user)
 
     def test_credit_is_idempotent(self):
         first = credit_coins(
