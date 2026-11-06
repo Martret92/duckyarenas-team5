@@ -41,6 +41,18 @@ class LedgerResult:
         return not self.created
 
 
+def ensure_wallet_provisioned(user):
+    """Explicitly create a zero-balance wallet for an existing user.
+
+    This service is intentionally not called by reads or ledger movements.
+    The caller must be the agreed onboarding/lifecycle orchestrator.
+    """
+    if user is None or user.pk is None or user._state.adding:
+        raise ValueError("A persisted user is required to provision a wallet.")
+
+    return Wallet.objects.get_or_create(user=user)
+
+
 def _require_operation_key(operation_key):
     if not isinstance(operation_key, str) or not operation_key.strip():
         raise ValueError("operation_key must be a non-empty string.")
