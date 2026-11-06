@@ -1,0 +1,1 @@
+{% extends 'team5_ui/base.html' %}{% block content %}<div class="dark-panel" style="max-width:520px;margin:60px auto"><h1>Crear usuario</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn gold">Registrarme</button></form><p><a href="{% url 'login' %}">Ya tengo cuenta</a></p></div>{% endblock %}

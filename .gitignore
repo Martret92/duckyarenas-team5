@@ -226,3 +226,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Base de datos local de integración Team5
+db_team5_local.sqlite3

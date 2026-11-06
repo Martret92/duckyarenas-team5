@@ -6,6 +6,13 @@ from django.db import DatabaseError
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.templatetags.static import static
+
+from apps.bank.models import Wallet
+from apps.duckies.models import Ducky
+from apps.duckies.item_visuals import outfit_visual_key, image_for_item
+from apps.duckies.team5_ui.image_registry import item_image
+from apps.duckies.team5_ui.views import SECTIONS
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.bank.services import BankError
@@ -46,6 +53,34 @@ def _catalog_queryset():
     )
 
 
+def _ui_context(request, **extra):
+    """Presentation-only context: never alters Shop, Bank or Duckies state."""
+    ducky = Ducky.objects.select_related("selected_outfit").filter(user=request.user).first()
+    visual_key = outfit_visual_key(ducky)
+    wallet = Wallet.objects.filter(user=request.user).first()
+    profile = None
+    try:
+        from apps.users.models import UserProfileEcomotor
+        profile = UserProfileEcomotor.objects.filter(user=request.user).first()
+    except DatabaseError:
+        raise
+    def decorate(offer):
+        relative = image_for_item(offer.item, visual_key)
+        offer.image_url = static(relative) if relative else item_image(offer.item)
+        return offer
+    if "shop_items" in extra:
+        extra["shop_items"] = [decorate(offer) for offer in extra["shop_items"]]
+    if extra.get("shop_item") is not None:
+        decorate(extra["shop_item"])
+    if "purchases" in extra:
+        for purchase in extra["purchases"]:
+            decorate(purchase.shop_item)
+    return {
+        "section": "shop", "section_title": "Tienda", "sections": SECTIONS,
+        "ducky": ducky, "wallet": wallet, "profile": profile, **extra,
+    }
+
+
 def _purchase_form(data=None):
     if data is not None:
         return PurchaseForm(data)
@@ -59,7 +94,7 @@ def catalog_view(request):
         return render(
             request,
             "shop/catalog.html",
-            {"shop_items": _catalog_queryset()},
+            _ui_context(request, shop_items=_catalog_queryset()),
         )
     except DatabaseError:
         return HttpResponse("Servicio no disponible temporalmente.", status=503)
@@ -75,7 +110,7 @@ def product_detail_view(request, sku_code):
         return render(
             request,
             "shop/detail.html",
-            {"shop_item": shop_item, "form": _purchase_form()},
+            _ui_context(request, shop_item=shop_item, form=_purchase_form()),
         )
     except DatabaseError:
         return HttpResponse("Servicio no disponible temporalmente.", status=503)
@@ -98,7 +133,7 @@ def purchase_view(request, sku_code):
         return render(
             request,
             "shop/detail.html",
-            {"shop_item": shop_item, "form": form},
+            _ui_context(request, shop_item=shop_item, form=form),
             status=400,
         )
 
@@ -123,11 +158,7 @@ def purchase_view(request, sku_code):
         return render(
             request,
             "shop/detail.html",
-            {
-                "shop_item": shop_item,
-                "form": form,
-                "error_message": str(exc),
-            },
+            _ui_context(request, shop_item=shop_item, form=form, error_message=str(exc)),
             status=409,
         )
     except DatabaseError:
@@ -149,7 +180,7 @@ def purchase_history_view(request):
         return render(
             request,
             "shop/purchase_history.html",
-            {"page_obj": page_obj, "purchases": page_obj.object_list},
+            _ui_context(request, page_obj=page_obj, purchases=page_obj.object_list),
         )
     except DatabaseError:
         return HttpResponse("Servicio no disponible temporalmente.", status=503)
