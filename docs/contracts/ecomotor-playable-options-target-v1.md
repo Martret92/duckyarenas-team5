@@ -1,5 +1,15 @@
 # Ecomotor · Opciones jugables · Contrato objetivo v1 (02C)
 
+> **Precisión posterior · ATR-OBJ-02 (07/11/2026).** La nomenclatura vigente del
+> **objetivo**, aprobada internamente por Equipo 5, es `ATK, DEF, VEL, INT,
+> LOG, ESP`; `ESP` es el único atributo Especial y `CUACK` deja de existir como
+> atributo objetivo. Las referencias a `CUACK` en el diseño inicial 02C son
+> antecedentes de `ATR-OBJ-01`, no instrucciones actuales de implementación.
+> [Decisión vigente](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+> `DOC-A4-45+5` mantiene sin cambios sus siete vectores, presupuestos de cinco
+> y orden de reducción. **El código integrado aún usa `CUACK`**; no hay alias,
+> conversión, activación ni resolución aprobada para datos sintéticos guardados.
+
 ## 1. Estado y autoridad
 
 **Precisión funcional posterior:** [§8](#8-conciliación-funcional-posterior-con-óscar)

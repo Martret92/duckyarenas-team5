@@ -990,3 +990,25 @@ no queda sustituida fuera de ese alcance histórico.
 A4.1/A4.2.1/A4.3.1/A4.4.1, demos sintéticas, S2-A, S3 y S7-A
 permanecen intactos. **S3 V1 sigue siendo el único escritor XP activo fuera
 del laboratorio**. Rewards productivo y fuentes confiables continúan bloqueados.
+
+## 35. ATR-OBJ-02 · Nomenclatura y transición pendientes · 07/11/2026
+
+[ATR-OBJ-02](decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026)
+**resuelve internamente** la nomenclatura objetivo: `ATK, DEF, VEL, INT,
+LOG, ESP`; `CUACK` deja de ser un atributo objetivo. Los apartados anteriores
+que declaran `CUACK` canónico o `ESP/CUACK` sin resolver son antecedentes
+anteriores a esta decisión, **no** el estado conceptual vigente. No se atribuye esta
+decisión a Óscar ni a DAR3.
+
+| Pendiente | Responsable y límite |
+| --- | --- |
+| Compatibilidad de snapshots de la demo persistente | Análisis técnico **independiente y previo** a los cambios de validadores; no asumir recuperación, migración, alias, reparación o borrado de datos `CUACK`. |
+| A4.1 y tests | Adaptar después `TARGET_STAT_CODES`, casos de códigos válidos/inválidos y regresión sin cambiar las demás garantías de A4.1. |
+| A4.2.1 / A4.3.1 / A4.4.1 | Revisar tests y dependencias del código canónico. La entrada A4.4.1 sigue cerrada sin fuente autorizada; no simularla. |
+| Demos HTTP y laboratorio sintético | Revisar etiquetas, formularios, fixtures, tests, historias y snapshots; el código integrado todavía usa `CUACK`. No reinterpretar estados previos. |
+| Datos y contratos externos | Confirmación funcional de Óscar, consumidores/Core, fuentes/versiones, persistencia y transición real siguen pendientes. |
+| A4-45+5-MATH-01 | Autorización suspendida hasta corregir nomenclatura; siete vectores y presupuesto de cinco intactos, sin activar el sistema. |
+
+V1 (`log_stat`, `spe`), S2-A, S3 y S7-A no cambian. Esta tarea es
+exclusivamente documental: no incorpora cambios Python, ORM, migraciones,
+servicios, endpoints, fuentes de producción o validación con datos reales.

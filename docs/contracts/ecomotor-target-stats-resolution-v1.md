@@ -1,5 +1,14 @@
 # A4.4 · Resolución confiable de estadísticas objetivo · Contrato conceptual v1
 
+> **Precisión posterior · ATR-OBJ-02 (07/11/2026).** Los atributos del
+> **diseño objetivo** son `ATK, DEF, VEL, INT, LOG, ESP`; `CUACK` se conserva
+> solo en antecedentes de `ATR-OBJ-01` y en el código aún no adaptado.
+> [Decisión](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+> La resolución real A4.4.1 **permanece cerrada** sin fuente confiable; no hay
+> proveedor, alias, conversión, presupuesto predeterminado, migración ni fuente
+> oficial añadidos. Corregir validadores, demos y snapshots exige análisis
+> técnico independiente; no cambia el funcionamiento actual en esta PR.
+
 ## 1. Autoridad, antecedentes y estado
 
 A4.4-SOURCE-01, A4.4-INPUT-01, A4.4-RESOLVE-01, A4.4-LIFECYCLE-01 y

@@ -2289,3 +2289,45 @@ y consumidores/juegos. No activar el sistema objetivo ni Rewards productivo.
 [resolución A4.4](contracts/ecomotor-target-stats-resolution-v1.md) y
 [pendientes](pending-decisions.md) precisan el alcance sin sustituir los
 antecedentes fechados de 21/10/2026.
+
+## ATR-OBJ-02 · ESP como sexto atributo objetivo · 07/11/2026
+
+**Decisión interna del Equipo 5, comunicada por Jaime y aprobada en 02C-3 el
+07/11/2026.** No se atribuye a Óscar ni se presenta como requisito literal de
+DAR3. Esta precisión **sustituye parcialmente ATR-OBJ-01** (20/10/2026) solo
+respecto del código `CUACK`; aquel acuerdo queda conservado como antecedente
+histórico, incluidos su fecha, procedencia y demás límites.
+
+Los **seis códigos canónicos del Ecomotor objetivo** son, en orden de la API:
+`ATK, DEF, VEL, INT, LOG, ESP`. `ESP` es el único atributo **Especial**.
+`CUACK` **deja de existir como atributo objetivo** y no hay séptimo atributo.
+No se introducen alias `CUACK`/`ESP`, conversiones automáticas `CUACK`/`ESP`
+o `SPE`/`ESP`, ni reinterpretación de `log_stat` o `spe` de V1.
+
+**Relación con DOC-A4-45+5 (#134):** sus siete vectores de 45 puntos y
+presupuestos independientes de cinco puntos **no cambian**. Su tabla continúa
+ordenada como `ATK, DEF, LOG, VEL, INT, ESP`; el procedimiento de reducción,
+los mayores restos y el desempate permanecen intactos. La correspondencia
+nominal `ESP`/`CUACK` anotada entonces como pendiente **queda decidida ahora
+solo para la nomenclatura objetivo**; no autoriza adaptar por inferencia datos
+persistidos, publicar bases oficiales ni activar configuraciones reales.
+
+**Estado de implementación:** A4.1 y los componentes puros A4.2.1, A4.3.1 y
+A4.4.1 **todavía utilizan `CUACK`** en el código integrado y/o sus tests.
+Las demostraciones HTTP y el laboratorio persistente pueden contenerlo también.
+Antes de modificar validadores es obligatorio analizar por separado la
+compatibilidad de snapshots sintéticos: no se aprueban alias, migraciones,
+conversión automática, sustitución silenciosa ni borrado de historias.
+La corrección técnica requiere nueva autorización y regresión; no se modifica
+Python, ORM, servicios, modelos ni estado de producción mediante esta decisión.
+
+Permanecen intactos S2-A, S3, S7-A, Ecomotor V1, evolución/XP, Rewards,
+Duckies, Bank, Shop y la frontera de Core. A4-45+5-MATH-01 sigue suspendida
+hasta completar la corrección de nomenclatura y el análisis técnico posterior.
+
+[Contrato A4.1](contracts/ecomotor-target-stats-validation-v1.md),
+[definiciones A4.2](contracts/ecomotor-target-stats-config-v1.md),
+[preparación A4.3](contracts/ecomotor-target-stats-preparation-v1.md),
+[resolución A4.4](contracts/ecomotor-target-stats-resolution-v1.md),
+[opciones objetivo](contracts/ecomotor-playable-options-target-v1.md) y
+[pendientes](pending-decisions.md#35-atr-obj-02--nomenclatura-y-transición-pendientes--07112026).

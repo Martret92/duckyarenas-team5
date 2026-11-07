@@ -1,5 +1,14 @@
 # A4.3 · Preparación pura de configuraciones objetivo · Contrato conceptual v1
 
+> **Precisión posterior · ATR-OBJ-02 (07/11/2026).** Las seis claves
+> canónicas **del diseño objetivo** son `ATK, DEF, VEL, INT, LOG, ESP`.
+> [ATR-OBJ-01](../decisions.md#atr-obj-01--nomenclatura-de-atributos-objetivo--20102026)
+> queda parcialmente sustituida por [ATR-OBJ-02](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+> A4.3.1 ya integrada todavía depende del validador con `CUACK`; no se afirma
+> que el cambio esté implementado. Permanecen firmas, preparación pura,
+> independencia de presupuestos, versiones y límites de autorización.
+> Sin alias, transformación de snapshots, persistencia ni activación.
+
 ## 1. Autoridad, antecedentes y estado
 
 A4.3-PREP-01, BOUNDARY-01, VERSION-01 y FAIL-01, aprobadas internamente por

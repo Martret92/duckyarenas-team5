@@ -1,5 +1,14 @@
 # Ecomotor y evolución · ERD V2 provisional de Parte A
 
+> **Precisión de nomenclatura objetivo · 07/11/2026.**
+> [ATR-OBJ-02](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026)
+> establece seis atributos conceptuales: `ATK, DEF, VEL, INT, LOG, ESP`.
+> En los apartados históricos de este ERD, `CUACK` refleja `ATR-OBJ-01` y
+> **no** es ya código objetivo vigente. No se crean ni renombrarán por este
+> documento tablas, campos, FKs, migraciones, datos V1 ni snapshots.
+> La implementación A4 y las demos siguen usando `CUACK` hasta una PR técnica
+> autorizada; no se infiere conversión automática `SPE`/`CUACK` → `ESP`.
+
 > Fase 1 A3-CAT-PHYS-01 implementada para revisión desde ca27e88: tres tablas
 > preparatorias adicionales mediante 0006, sin datos ni uso real. Véase §15.1;
 > los recuentos V1 y notas documentales siguientes conservan su corte histórico.

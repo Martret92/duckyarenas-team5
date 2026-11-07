@@ -1,5 +1,15 @@
 # A4.2 · Configuración de estadísticas objetivo · Contrato conceptual v1
 
+> **Precisión posterior · ATR-OBJ-02 (07/11/2026).** La definición objetivo
+> A4.2.1 debe usar `ATK, DEF, VEL, INT, LOG, ESP`: `ESP` es el único atributo
+> Especial y `CUACK` queda como antecedente de `ATR-OBJ-01`, sin alias ni
+> transformación automática. [Decisión](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+> La discrepancia de nomenclatura registrada en `DOC-A4-45+5` queda resuelta
+> **internamente**, pero sus siete vectores históricos de 45, presupuesto de 5
+> y desempate `ATK, DEF, LOG, VEL, INT, ESP` siguen intactos y no pasan a ser
+> catálogo oficialmente publicado. **La API integrada todavía exige `CUACK`**;
+> su adaptación, las demos y snapshots sintéticos requieren fase técnica posterior.
+
 ## 1. Autoridad y estado
 
 A4.2-SPLIT-01, ID-01, TRUST-01, SNAPSHOT-01 y CONSUME-01, aprobadas internamente

@@ -1,5 +1,14 @@
 # Arquitectura del Equipo 5 · Estado integrado y Rewards v0 candidato
 
+> **Vigencia documental · ATR-OBJ-02 (07/11/2026).**
+> [ATR-OBJ-02](decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026)
+> sustituye internamente `CUACK` por `ESP` como sexto atributo del **diseño objetivo**:
+> `ATK, DEF, VEL, INT, LOG, ESP`. Los pasajes fechados sobre `ATR-OBJ-01`
+> conservan valor histórico, pero ya no determinan el código objetivo vigente.
+> **El código integrado todavía utiliza `CUACK`**: su corrección, las demos y
+> la compatibilidad de snapshots sintéticos están pendientes de análisis técnico.
+> Sin alias, conversiones, migraciones, aprobación de Óscar o cambios en V1.
+
 ## 1. Estado y fuentes
 
 **Actualización A3.4 · 20/10/2026:** baseline `8b6b0f7`, reglas puras A3.3 integradas
