@@ -1,37 +1,27 @@
 # ERD y diccionario de datos · Parte C — DuckyBank y DuckyShop
 
-- **Proyecto:** DuckyArenas · Equipo 5 - **Responsable:** Fernando · Parte C - **Versión:** Borrador 0.2 · 13/10/2026 - **Estado:** Candidato para revisión conjunta A/B/C y Óscar/Core
+- **Proyecto:** DuckyArenas · Equipo 5
+- **Responsable del dominio:** Fernando · Parte C
+- **Versión documental:** 0.3 · 07/11/2026
+- **Estado:** inventario del ORM y servicios integrados en `develop`; candidato para revisión conjunta A/B/C y Core.
 
-> Este documento describe el modelo que aparece en el código actual y separa sus relaciones verificadas de las propuestas pendientes. No constituye aprobación detallada del ERD, del ORM ni de los contratos compartidos. La conformidad verbal general comunicada en la daily del 13/10 no debe interpretarse como aprobación de estos detalles.
+> Este documento describe el estado observable del código en `develop`. No ratifica que `Wallet` sea el saldo global canónico, no aprueba contratos externos y no sustituye las decisiones de Core sobre identidad, autorización, conservación o ciclo de vida.
 
-## 1. Objetivo y alcance
+## 1. Alcance y propiedad
 
-Documentar las entidades candidatas de DuckyBank y DuckyShop, su diccionario de datos, restricciones y relaciones, antes de consolidar el ERD conjunto del Equipo 5.
+La Parte C comprende:
 
-La Parte C cubre la cartera y los movimientos económicos, el catálogo comercial y las compras. Inventory/Duckies conserva la responsabilidad sobre la posesión de objetos; Ecomotor coordina funcionalmente Rewards y conserva la responsabilidad sobre XP, evolución y estadísticas.
+- **Bank:** cartera local, saldo disponible y libro de movimientos.
+- **Shop:** catálogo comercial, validación de ofertas y coordinación de compras.
+- **Duckies / Inventory:** catálogo general de objetos, variantes, posesión y entrega. Shop consume sus modelos y servicios, pero no debe escribir directamente en sus tablas de inventario.
+- **Core:** identidad, autenticación, autorización y ciclo de vida global del usuario.
+- **Ecomotor / Rewards:** coordinación funcional de recompensas. La emisión de monedas desde Rewards requiere un contrato explícito con Bank y Core.
 
-## 2. Estado arquitectónico y límites
+El catálogo comercial no es el catálogo de objetos: `ShopItem` representa una oferta/SKU y referencia un `Item` propiedad de Duckies.
 
-La estructura objetivo recogida en D-21 es `apps.ecomotor`, `apps.duckies`, `apps.bank` y `apps.shop`, conservando `apps.users`; Rewards se coordina desde Ecomotor y no exige una app independiente. D-21 es un acuerdo interno de organización objetivo, sujeto a la revisión de las fronteras y contratos compartidos.
+## 2. ERD físico observado en `develop`
 
-En la rama actual de la Parte C, los cuatro modelos descritos aquí todavía están definidos en `apps/ecomotor/models.py`, y sus servicios están en `apps/ecomotor/services.py`. Esta ubicación refleja el estado actual del código, no confirma que sea la ubicación definitiva de los modelos. No se deben mover modelos ni modificar migraciones hasta revisar el ERD conjunto y acordar una estrategia de migración.
-
-### Responsabilidad propuesta por dominio
-
-| Dominio | Responsabilidad | Estado |
-|---|---|---|
-| Core / `User` | Identidad, autenticación y autorización común | Dependencia externa; contrato pendiente |
-| Ecomotor / Rewards | Evaluar hechos recompensables y coordinar efectos de recompensa | Rewards v0 es candidato, no contrato cerrado |
-| Bank | Saldo económico canónico y movimientos trazables | Responsabilidad de Parte C; fuente canónica concreta pendiente de confirmación con Core |
-| Shop | Oferta comercial, precio, disponibilidad y compra | Parte C; frontera con Bank e Inventory pendiente |
-| Duckies / Inventory | Catálogo general de objetos, posesión, cantidades y entrega | Parte B; contrato B/C pendiente |
-| Avatar / Equipment | Estado de equipamiento | Parte B; alcance y contrato pendientes |
-
-No se crea una segunda cartera/saldo. El `UserProfileBank` existente es un perfil vinculado a `User`; no almacena saldo en el código actual. `Wallet.available_balance` es el campo del saldo en la implementación actual, pero su confirmación como fuente física canónica requiere acuerdo con Core.
-
-## 3. ERD candidato de las entidades de Parte C
-
-El siguiente diagrama representa las relaciones que existen actualmente en el ORM. No dibuja como FK la relación con `Item`/Inventory porque el código actual solo contiene `ShopItem.item_code` como texto y no existe una relación Django con modelos de Parte B.
+El diagrama refleja las relaciones Django actuales. No representa una aprobación global de la arquitectura.
 
 ```mermaid
 erDiagram
@@ -39,183 +29,166 @@ erDiagram
     WALLET ||--o{ TRANSACTION : records
     USER ||--o{ PURCHASE : places
     SHOP_ITEM ||--o{ PURCHASE : purchased_as
-    TRANSACTION o|--o| PURCHASE : settles
+    TRANSACTION ||--o| PURCHASE : settles
+    ITEM ||--o{ SHOP_ITEM : offered_as
+    ITEM_LEVEL o|--o{ SHOP_ITEM : variant
 ```
 
-### Relaciones externas todavía conceptuales
+### Cardinalidades y `on_delete`
 
-- `ShopItem.item_code` pretende identificar el objeto de Inventory, pero formato, unicidad, existencia, versiones y operación de entrega deben acordarse con Henry.
-- No se ha aprobado una FK física entre `ShopItem` e `Item` ni entre `Purchase` e inventario/posesión.
-- No se ha aprobado el coordinador definitivo de compra ni la estrategia de recuperación cuando Bank confirma el débito pero la entrega de Inventory no se confirma en la misma transacción.
-
-## 4. Diccionario de datos
-
-Los nombres y tipos de esta sección reflejan los modelos de la rama de Parte C incluida en el paquete de revisión. Se presentan para revisión; no se elevan automáticamente a esquema definitivo.
-
-### 4.1 `Wallet` — cartera de DuckyBank
-
-| Campo | Tipo actual | Regla actual | Descripción |
+| Relación | Cardinalidad | Regla ORM | Interpretación |
 |---|---|---|---|
-| `id` | `BigAutoField` | PK automática | Identificador interno de la cartera |
-| `user` | `OneToOneField(AUTH_USER_MODEL)` | `CASCADE`, único, `related_name="duki_wallet"` | Usuario propietario |
-| `available_balance` | `PositiveBigIntegerField` | `default=0` | Saldo disponible en la implementación actual |
-| `created_at` | `DateTimeField` | `auto_now_add=True` | Fecha de creación |
-| `updated_at` | `DateTimeField` | `auto_now=True` | Última actualización |
+| `User` → `Wallet` | User 0..1 Wallet; Wallet 1 User | `OneToOneField`, `CASCADE` | Un usuario puede no tener cartera provisionada. |
+| `Wallet` → `Transaction` | Wallet 0..N movimientos | `ForeignKey`, `CASCADE` | El ledger depende de la cartera en el esquema actual. |
+| `User` → `Purchase` | User 0..N compras | `ForeignKey`, `CASCADE` | La compra está asociada al usuario. |
+| `ShopItem` → `Purchase` | SKU 0..N compras | `ForeignKey`, `PROTECT` | Una oferta con compras no puede eliminarse mediante borrado ORM normal. |
+| `Transaction` → `Purchase` | Transaction 0..1 Purchase; Purchase 1 Transaction | `OneToOneField`, `PROTECT` | Cada compra persistida referencia un movimiento Bank. |
+| `Item` → `ShopItem` | Item 0..N ofertas | `ForeignKey`, `PROTECT` desde ShopItem | Duckies conserva el objeto; Shop puede ofrecerlo en más de un SKU. |
+| `ItemLevel` → `ShopItem` | Nivel 0..N ofertas; SKU 0..1 nivel | `ForeignKey`, `PROTECT`, nullable | La variante es opcional; la validación de categoría determina cuándo es obligatoria. |
 
-**Cardinalidad:** cada `Wallet` pertenece a un único `User`; un `User` puede tener cero o una `Wallet`.
+**Importante:** `CASCADE` sobre User/Wallet/Purchase y Wallet/Transaction describe el comportamiento técnico actual, no una política de retención aprobada. La política global de eliminación, anonimización, supresión y conservación sigue dependiendo de Core.
 
-**Reglas y cuestiones pendientes:** el estado económico lo debe decidir el servidor. La política de creación de cartera (explícita o al primer movimiento) no debe confundirse con la creación automática de `UserProfileBank`, que no se implementa mediante señales. La conservación/eliminación del saldo y el historial cuando se elimina un usuario sigue pendiente (P5).
+## 3. Diccionario de datos
 
-**Nombre canónico:** el borrador anterior proponía `coins`; el modelo actual usa `available_balance`. No renombrar el campo sin acuerdo, porque afecta al contrato y al esquema.
+### 3.1 `Wallet` — cartera local
 
-### 4.2 `Transaction` — libro de movimientos
+| Campo | Tipo | Restricción / significado |
+|---|---|---|
+| `id` | `BigAutoField` | PK automática |
+| `user` | `OneToOneField(AUTH_USER_MODEL)` | Obligatorio, único, `CASCADE`, `related_name="duki_wallet"` |
+| `available_balance` | `PositiveBigIntegerField` | `default=0`; saldo disponible local |
+| `created_at` | `DateTimeField` | `auto_now_add=True` |
+| `updated_at` | `DateTimeField` | `auto_now=True` |
 
-| Campo | Tipo actual | Regla actual | Descripción |
-|---|---|---|---|
-| `id` | `BigAutoField` | PK automática | Identificador del movimiento |
-| `wallet` | `ForeignKey(Wallet)` | `CASCADE`, `related_name="transactions"` | Cartera afectada |
-| `transaction_type` | `CharField(20)` | Choices: `REWARD`, `PURCHASE`, `REFUND`, `ADJUSTMENT` | Clase de movimiento |
-| `amount` | `BigIntegerField` | Positivo para ingreso y negativo para gasto por convención de servicios; no hay `CheckConstraint` explícito contra cero en `Meta` | Importe contabilizado |
-| `balance_after` | `PositiveBigIntegerField` | `CheckConstraint(balance_after >= 0)` | Saldo resultante persistido |
-| `operation_key` | `CharField(255)` | Único junto con `wallet` | Clave de idempotencia local del ledger |
-| `source_platform` | `CharField(100)` | Obligatorio en ORM | Sistema de origen |
-| `issuing_entity` | `CharField(100)` | Obligatorio en ORM | Componente emisor |
-| `description` | `CharField(255)` | `blank=True` | Descripción legible |
-| `reference_type` | `CharField(100)` | `blank=True` | Tipo de entidad referenciada |
-| `reference_id` | `CharField(255)` | `blank=True` | Identificador referenciado |
-| `created_at` | `DateTimeField` | `auto_now_add=True`; orden descendente por fecha e ID | Fecha del movimiento |
+Restricción SQL: `available_balance >= 0`.
 
-**Restricciones ORM actuales:** unicidad de `(wallet, operation_key)` y `balance_after >= 0`.
+**Provisionamiento:** `ensure_wallet_provisioned(user)` crea explícitamente una cartera de saldo cero para un usuario persistido y devuelve `(wallet, created)`, usando `get_or_create`. Es idempotente y no reemplaza el saldo existente. No se invoca desde lecturas ni desde créditos/débitos. El llamador debe ser un orquestador de ciclo de vida acordado; la existencia del servicio no significa que Core haya aprobado o conectado ese orquestador.
 
-**Reglas de servicio actuales:** los métodos de crédito y débito rechazan importes menores o iguales a cero y requieren `operation_key`; el ledger rechaza un saldo resultante negativo. El ajuste rechaza el importe cero. Las validaciones de servicio no sustituyen las restricciones de base de datos para escrituras directas.
+### 3.2 `Transaction` — ledger de Bank
 
-**Idempotencia pendiente de revisión:** el código actual compara `amount` y `transaction_type` cuando encuentra la misma clave. No compara `source_platform`, `issuing_entity`, `reference_type`, `reference_id` o `description`. Hay que acordar qué campos definen una reutilización incompatible de una clave local; no confundir esta idempotencia de Bank con la deduplicación global del hecho en Rewards v0.
+| Campo | Tipo | Restricción / significado |
+|---|---|---|
+| `id` | `BigAutoField` | PK automática |
+| `wallet` | `ForeignKey(Wallet)` | Obligatorio, `CASCADE`, `related_name="transactions"` |
+| `transaction_type` | `CharField(20)` | `REWARD`, `PURCHASE`, `REFUND`, `ADJUSTMENT` |
+| `amount` | `BigIntegerField` | No cero; positivo para crédito e ingreso, negativo para débito por convención de servicios |
+| `balance_after` | `PositiveBigIntegerField` | Snapshot del saldo después del movimiento; no negativo |
+| `operation_key` | `CharField(255)` | Obligatorio y no vacío; único junto con `wallet` |
+| `source_platform` | `CharField(100)` | Origen de la operación |
+| `issuing_entity` | `CharField(100)` | Emisor/componente responsable |
+| `reference_type` | `CharField(100)` | Referencia tipada, opcional |
+| `reference_id` | `CharField(255)` | Identificador causal, opcional |
+| `description` | `CharField(255)` | Texto explicativo, opcional |
+| `request_fingerprint` | `CharField(64)` | Huella semántica usada para detectar reutilización incompatible de clave |
+| `created_at` | `DateTimeField` | `auto_now_add=True`; orden descendente por fecha e ID |
 
-### 4.3 `ShopItem` — oferta comercial
+Restricciones SQL: unicidad `(wallet, operation_key)`, `amount != 0`, `balance_after >= 0` y `operation_key != ""`.
 
-| Campo | Tipo actual | Regla actual | Descripción |
-|---|---|---|---|
-| `id` | `BigAutoField` | PK automática | Identificador de la oferta |
-| `code` | `CharField(100)` | Único | Código comercial interno de Shop |
-| `item_code` | `CharField(100)` | Obligatorio, sin FK ni unicidad declarada | Referencia textual candidata al objeto de Inventory |
-| `name` | `CharField(150)` | Obligatorio | Nombre comercial |
-| `description` | `TextField` | `blank=True` | Descripción comercial |
-| `price_coins` | `PositiveBigIntegerField` | `MinValueValidator(1)` en el modelo | Precio en monedas |
-| `included_quantity` | `PositiveIntegerField` | `default=1` | Cantidad incluida en la oferta; semántica pendiente |
-| `is_available` | `BooleanField` | `default=True` | Disponibilidad comercial |
-| `featured` | `BooleanField` | `default=False` | Indicador de producto destacado |
-| `created_at` | `DateTimeField` | `auto_now_add=True` | Fecha de creación |
-| `updated_at` | `DateTimeField` | `auto_now=True` | Última actualización |
+**Servicios:** `credit_coins`, `debit_coins` y `adjust_wallet` validan el importe, bloquean la Wallet con `select_for_update`, buscan una operación previa, verifican fondos y límite superior, actualizan saldo y crean el movimiento dentro de `transaction.atomic()`.
 
-**Orden actual:** `-featured`, `name`, `id`. El código actual no define constraints de `Meta` para exigir `price_coins > 0` en SQL; `MinValueValidator` se ejecuta cuando un formulario o `full_clean()` valida el objeto, pero `save()` no llama automáticamente a `full_clean()`.
+La huella actual incluye versión, tipo, importe firmado, origen, emisor, tipo de referencia e ID de referencia. No incluye `description`. Repetir una clave con huella distinta genera `IdempotencyConflict`; una repetición compatible devuelve el movimiento existente sin volver a modificar saldo.
 
-**Relación con Inventory:** no hay FK. `item_code` es solo un texto en la implementación incluida. La unicidad/canonicalización de ese código, si un objeto puede tener varias ofertas y si el catálogo general pertenece exclusivamente a B siguen pendientes. La propuesta antigua `Item 1 — 0..1 ShopItem` no es una relación implementada.
+`wallet_summary` y `transaction_history` son consultas del usuario indicado. Las vistas HTTP aplican `login_required` y filtran por `request.user`.
 
-**Cantidad:** el modelo contiene tanto `included_quantity` como `Purchase.quantity`. El servicio de compra actual no recibe un parámetro `quantity` y persiste `Purchase.quantity = 1`; debe acordarse qué significa cada campo antes de cambiar el contrato.
+### 3.3 `ShopItem` — oferta comercial / SKU
 
-### 4.4 `Purchase` — registro de compra
+| Campo | Tipo | Restricción / significado |
+|---|---|---|
+| `id` | `BigAutoField` | PK automática |
+| `code` | `CharField(100)` | Único; identificador comercial del SKU |
+| `item` | `ForeignKey(duckies.Item)` | Obligatorio, `PROTECT`, `related_name="shop_offers"` |
+| `item_level` | `ForeignKey(duckies.ItemLevel)` | Opcional, `PROTECT`, `related_name="shop_offers"` |
+| `name` | `CharField(150)` | Nombre comercial |
+| `description` | `TextField` | Opcional |
+| `price_coins` | `PositiveBigIntegerField` | Precio unitario; validador mínimo 1 y constraint SQL `> 0` |
+| `included_quantity` | `PositiveIntegerField` | `default=1`; cantidad entregada por unidad de SKU |
+| `is_available` | `BooleanField` | `default=True` |
+| `featured` | `BooleanField` | `default=False` |
+| `created_at` / `updated_at` | `DateTimeField` | Alta y última actualización |
 
-| Campo | Tipo actual | Regla actual | Descripción |
-|---|---|---|---|
-| `id` | `BigAutoField` | PK automática | Identificador de compra |
-| `user` | `ForeignKey(AUTH_USER_MODEL)` | `CASCADE`, `related_name="duki_purchases"` | Comprador |
-| `shop_item` | `ForeignKey(ShopItem)` | `PROTECT`, `related_name="purchases"` | Oferta adquirida |
-| `operation_key` | `CharField(255)` | Único junto con `user` | Clave idempotente de la compra |
-| `unit_price_coins` | `PositiveBigIntegerField` | `CheckConstraint > 0` | Precio unitario aplicado |
-| `quantity` | `PositiveIntegerField` | `MinValueValidator(1)` y `CheckConstraint > 0` | Cantidad registrada en la compra |
-| `total_price_coins` | `PositiveBigIntegerField` | `CheckConstraint > 0` | Total registrado |
-| `status` | `CharField(20)` | `COMPLETED` o `REFUNDED`; default `COMPLETED` | Estado comercial actual |
-| `bank_transaction` | `OneToOneField(Transaction)` | Nullable/blank, `PROTECT`, `related_name="purchase"` | Movimiento asociado al cobro |
-| `created_at` | `DateTimeField` | `auto_now_add=True`; orden descendente por fecha e ID | Fecha de creación |
-| `updated_at` | `DateTimeField` | `auto_now=True` | Última actualización |
+Orden: `-featured`, `name`, `id`. Constraints SQL: `price_coins > 0` e `included_quantity > 0`.
 
-**Restricciones ORM actuales:** unicidad de `(user, operation_key)` y restricciones `unit_price_coins > 0`, `quantity > 0`, `total_price_coins > 0`.
+**Validación de oferta V1:** no se venden objetos `HISTORICAL`; se admiten `COSMETIC`, `ATTACK`, `DEFENSE` y `HINT`. `ATTACK`/`DEFENSE` requieren `ItemLevel`; las demás categorías no lo admiten. `ATTACK`/`DEFENSE`/`HINT` deben ser consumibles; `COSMETIC` debe ser permanente. Los objetos permanentes se venden en unidades de uno. El servicio vuelve a validar la oferta en el servidor antes de cobrar.
 
-**Integridad pendiente:** no hay una restricción SQL que compruebe `total_price_coins = unit_price_coins * quantity`. Tampoco existe una constraint que exija que toda compra `COMPLETED` tenga `bank_transaction`; el servicio pretende mantener compra, débito y entrega en una única operación local.
+### 3.4 `Purchase` — compra completada
 
-**Estados:** el código actual solo define `COMPLETED` y `REFUNDED`. Los estados `PENDING` y `FAILED` del borrador anterior no forman parte del modelo actual y no deben añadirse sin acordar el flujo de recuperación.
+| Campo | Tipo | Restricción / significado |
+|---|---|---|
+| `id` | `BigAutoField` | PK automática |
+| `user` | `ForeignKey(AUTH_USER_MODEL)` | Obligatorio, `CASCADE`, `related_name="duki_purchases"` |
+| `shop_item` | `ForeignKey(ShopItem)` | Obligatorio, `PROTECT`, `related_name="purchases"` |
+| `operation_key` | `CharField(255)` | Único junto con `user` |
+| `request_fingerprint` | `CharField(64)` | Huella de usuario, SKU y cantidad |
+| `unit_price_coins` | `PositiveBigIntegerField` | Precio unitario aplicado |
+| `quantity` | `PositiveIntegerField` | Cantidad de paquetes solicitada |
+| `total_price_coins` | `PositiveBigIntegerField` | Total cobrado |
+| `status` | `CharField(20)` | `COMPLETED` o `REFUNDED`; default `COMPLETED` |
+| `bank_transaction` | `OneToOneField(bank.Transaction)` | Obligatorio, `PROTECT`, `related_name="purchase"` |
+| `delivery_reference` | `CharField(255)` | Referencia persistida de la entrega |
+| `created_at` / `updated_at` | `DateTimeField` | Alta y última actualización |
 
-## 5. Cardinalidades y `on_delete` actuales
+Constraints SQL: unicidad `(user, operation_key)`, campos de precio/cantidad positivos y `total_price_coins = unit_price_coins * quantity`.
 
-| Relación | Cardinalidad actual | `on_delete` | Estado / observación |
-|---|---|---|---|
-| `User` — `Wallet` | `User 1 : 0..1 Wallet` | `CASCADE` desde `Wallet.user` | Código actual; política de conservación con Core pendiente |
-| `Wallet` — `Transaction` | `Wallet 1 : N Transaction` | `CASCADE` desde `Transaction.wallet` | Código actual; podría eliminar historial al borrar Wallet, pendiente P5 |
-| `User` — `Purchase` | `User 1 : N Purchase` | `CASCADE` desde `Purchase.user` | Código actual; conservación de historial pendiente P5 |
-| `ShopItem` — `Purchase` | `ShopItem 1 : N Purchase` | `PROTECT` desde `Purchase.shop_item` | Código actual; impide borrar la oferta con compras relacionadas |
-| `Transaction` — `Purchase` | `Transaction 1 : 0..1 Purchase` y `Purchase 1 : 0..1 Transaction` | `PROTECT` desde `Purchase.bank_transaction` | Código actual; relación opcional en ORM; coherencia del estado se garantiza por servicio, no por constraint cruzada |
-| `User` — `UserProfileBank` | `User 1 : 0..1 UserProfileBank` | `CASCADE` | Perfil en `apps.users`; no almacena saldo |
+La compra conserva el precio aplicado en el momento de la operación. No existe en este modelo una tabla independiente de líneas de compra ni un mecanismo automático de reembolso expuesto por Shop V1.
 
-Las reglas de borrado anteriores describen el ORM actual y no se consideran decisión definitiva de conservación. La política de eliminación, anonimización o retención de usuarios, perfiles, Wallet y ledger debe cerrarse con Core (P5) antes de fijar el esquema final.
+## 4. Flujo de compra implementado
 
-## 6. Servicios actuales y límites de integración
+`purchase_item(user, sku_code, operation_key, quantity=1)` coordina la compra local:
 
-El código actual ofrece funciones Python internas en `apps/ecomotor/services.py`; en el paquete revisado no hay un endpoint HTTP/REST de Bank o Shop implementado. Por tanto, estas firmas son descripción del servicio actual, no contratos externos aprobados.
+1. Valida clave, SKU y cantidad.
+2. Calcula una huella de la petición (usuario, SKU y cantidad).
+3. Abre una transacción y busca una compra previa compatible; una clave reutilizada con otro SKU/cantidad genera conflicto.
+4. Bloquea el `Ducky` del comprador y vuelve a comprobar la compra previa para serializar reintentos concurrentes del mismo comprador.
+5. Bloquea el SKU, comprueba disponibilidad y valida la configuración comercial.
+6. Para objetos permanentes, comprueba que el comprador no posea ya el objeto.
+7. Calcula total y cantidad entregada, verificando límites numéricos.
+8. Ejecuta `debit_coins` con una clave derivada estable.
+9. Ejecuta `grant_item` en Duckies con otra clave derivada estable.
+10. Persiste `Purchase`, vinculando el movimiento Bank y la referencia de entrega.
 
-- `credit_wallet(user, amount, *, operation_key, ...)`: crea o recupera un movimiento de crédito idempotente local.
-- `debit_wallet(user, amount, *, operation_key, ...)`: intenta registrar un débito si existe saldo suficiente.
-- `wallet_summary(user)` y `transaction_history(user, ...)`: exponen resumen e historial en el nivel de servicio.
-- `purchase_item(user, shop_item, *, operation_key, deliver)`: coordina compra, débito y callback de entrega.
-- `refund_purchase(purchase, *, operation_key, ...)`: registra un crédito de reembolso y actualiza el estado de compra.
-- `adjust_wallet(...)`: permite un ajuste positivo o negativo distinto de cero, sujeto al saldo resultante.
+La capa HTTP no recibe precio ni usuario desde el formulario: el usuario procede de `request.user`, el precio se lee del SKU en servidor y el formulario recibe `operation_key` y `quantity`. Las vistas de Bank/Shop son autenticadas y de lectura GET, salvo el endpoint de compra, que requiere POST.
 
-### Transacciones y concurrencia (D-19)
+**Límite transaccional:** la atomicidad conjunta depende de que Bank, Shop y Duckies operen sobre la misma base/alias y de que sus servicios no confirmen transacciones independientemente ni ejecuten I/O externo. No se debe presentar esta transacción local como garantía distribuida entre servicios o bases distintas.
 
-El proyecto conserva SQLite V1 con `transaction_mode = "IMMEDIATE"`, timeout explícito de 5 segundos y operaciones críticas dentro de `transaction.atomic()` antes de leer estado mutable. `select_for_update()` puede expresar intención, pero no proporciona bloqueo por fila en SQLite. Las transacciones deben ser breves y no contener HTTP ni I/O externo.
+## 5. Integración visual y entorno local
 
-En `purchase_item`, `deliver` se ejecuta dentro de la transacción. Esto solo permite rollback conjunto si es trabajo local compatible con la misma base de datos/conexión transaccional y no confirma por separado. Si Inventory está en otra base de datos o el callback realiza una llamada remota, el código no ofrece atomicidad global y el flujo debe detenerse hasta acordar recuperación/compensación.
+La integración de interfaz de PR #131 consume la presentación de Duckies desde Shop, pero el dominio comercial sigue en `apps.shop`. Esta dependencia de presentación no cambia la propiedad de modelos ni autoriza a Shop a escribir directamente en inventario.
 
-### Diferencias de comportamiento que deben corregirse o acordarse antes de declarar el código alineado
+`config/urls.py` en `develop` monta rutas de login/logout/registro, Duckies, Bank, Shop y UI globalmente. `config/settings_team5_local.py` cambia la base de datos, activa `TEAM5_LOCAL_ISOLATED` y configura rutas de login/redirect, pero no redefine `ROOT_URLCONF`. Por tanto, la separación demostrada por ese archivo es de configuración/base de datos y no acredita por sí sola que las rutas globales estén aisladas. La propiedad y aceptación de las rutas globales corresponde a Core; Parte C no debe corregir `config/urls.py` unilateralmente.
 
-1. **Orden de idempotencia en compra:** `purchase_item` comprueba `is_available` antes de buscar una compra con la misma clave. Si una compra ya se procesó y la oferta después se desactiva, un reintento puede recibir `ProductUnavailable` en vez del resultado persistido. Revisar este orden en el servicio.
-2. **Contenido de clave de ledger:** la validación actual de clave reutilizada solo compara importe y tipo. Debe revisarse si referencias y origen forman parte de los parámetros incompatibles, especialmente para reembolsos de compras diferentes.
-3. **Cantidad de compra:** el servicio actual fija `quantity=1`; confirmar la semántica de `included_quantity` y si la cantidad comprada debe ser configurable.
-4. **Constraints de integridad:** estudiar, tras el acuerdo del ERD, cómo garantizar en base de datos importe no nulo/cero prohibido, total coherente con precio por cantidad y asociación entre compra completada y movimiento. No añadir constraints a ciegas antes del contrato de compra.
-5. **Pruebas de concurrencia:** los tests actuales de Parte C cubren flujos ordinarios, idempotencia, fondos insuficientes, compra, rollback y reembolso; no sustituyen las pruebas `TransactionTestCase` y SQLite file-backed requeridas por D-19.
+En el entorno `TEAM5_LOCAL_ISOLATED`, `apps.duckies.team5_local.apps.Team5LocalConfig` registra una señal local que crea `Wallet` directamente al crear un usuario, y conecta el seed de Shop después de migraciones. Esa señal es específica del entorno local, no un flujo productivo. Existe ahora `ensure_wallet_provisioned`; sería preferible que el orquestador local invoque el servicio Bank en vez de manipular el modelo `Wallet` directamente, pero el cambio pertenece al propietario de la configuración local y debe coordinarse con Henry.
 
-## 7. Contratos y relaciones externas pendientes
+## 6. Pruebas y evidencia
 
-### Rewards / Ecomotor → Bank
+Las pruebas de Bank/Shop cubren servicios, saldo no negativo, fondos insuficientes, idempotencia, conflictos, rollback, configuración de SKU, propiedad/entrega, reintentos y vistas HTTP. Los resultados históricos comunicados en PR anteriores no deben presentarse como ejecución de la suite actual.
 
-La operación interna `credit_wallet` no constituye un endpoint oficial ni resuelve la deduplicación global de Rewards. Deben acordarse identidad del hecho y destinatario, autorización del origen con Core, clave local/global, resultado ante duplicado/conflicto y referencias auditables. Rewards v0 sigue siendo una propuesta técnica candidata.
+Pendientes de evidencia específica:
 
-### Shop → Bank
+- Concurrencia real de dos conexiones PostgreSQL para reintentos de compra y operaciones Bank.
+- Validación conjunta de límites de bloqueo/orden de locks entre Duckies, Shop y Bank.
+- Confirmar comportamiento de rollback con el mismo alias de base de datos usado por todos los dominios.
+- Ejecutar regresión completa en el entorno Python/Django acordado; documentar fallos preexistentes por separado, sin atribuirlos automáticamente a Parte C.
+- Verificar funcionalmente las rutas integradas y su aislamiento con Core.
 
-Debe acordarse el coordinador de compra, la clave que correlaciona la compra con el débito, la validación del precio, el resultado recuperable de duplicados y el comportamiento en fallos. Rewards v0 no aprueba automáticamente el contrato de compra.
+## 7. Decisiones todavía abiertas
 
-### Shop → Duckies / Inventory
+| Tema | Estado / propietario |
+|---|---|
+| Fuente canónica global del saldo y titularidad económica | Pendiente de Core; `Wallet` es el saldo local implementado, no una ratificación global. |
+| Identidad, autorización y permisos por operación | Pendiente de Core. Las vistas autenticadas actuales no sustituyen autorización global por dominio. |
+| Ciclo de vida, anonimización, supresión y retención de Wallet/Transaction/Purchase | Pendiente de Core; revisar `CASCADE`/`PROTECT` frente a política acordada antes de cambios físicos. |
+| Orquestador de provisionamiento | `ensure_wallet_provisioned` está implementado; llamador global aprobado y conectado sigue pendiente. |
+| Rewards → Bank | No hay contrato global aprobado para emisión de monedas; no activar créditos automáticos ni asumir atomicidad entre dominios. |
+| Shop → Duckies | La entrega usa `grant_item`; mantener Duckies como propietario de inventario y confirmar contrato compartido/versionado. |
+| Reembolsos | `PurchaseStatus.REFUNDED` existe, pero no hay flujo de reembolso automático implementado en Shop V1. |
+| Concurrencia PostgreSQL | Requiere prueba real con conexiones independientes; los tests SQLite no demuestran `select_for_update` de PostgreSQL. |
+| Rutas globales y autenticación de la interfaz | Revisar con Henry/Core; no modificar `config/urls.py` desde Parte C unilateralmente. |
 
-Debe acordarse el identificador válido del objeto, la operación de concesión, cantidades y clave idempotente de entrega. Shop no debe escribir directamente en tablas ajenas ni duplicar la responsabilidad de posesión.
+## 8. Criterio de aceptación documental
 
-### User / Core
-
-Se mantiene el `User` estándar de Django de acuerdo con D-09/D-10/D-17; Parte C no crea un User propio ni implementa autenticación paralela. Identidad autorizada, JWT, permisos y conservación siguen pendientes con Core.
-
-## 8. Integración con Parte A: riesgo de migraciones
-
-La migración inicial `ecomotor.0001_initial` de la Parte C crea `ShopItem`, `Wallet`, `Transaction` y `Purchase`. La migración `ecomotor.0001_initial` de la rama `feature/part-a-progression-s1` crea `EvolutionStage`, `LevelThreshold` y `Specialization`. Ambas usan el mismo label de Django (`ecomotor`), por lo que no pueden copiarse juntas como dos migraciones `0001`.
-
-La Parte A también añade `CharacterStats`, `XPEvent`, `EvolutionEvent`, `UserSpecializationProgress` y campos de progresión en `UserProfileEcomotor`. La migración `users.0002_ecomotor_progress` incorpora M-01: falla de forma explícita si encuentra perfiles legacy, para evitar una migración silenciosa sin estrategia de conservación.
-
-**No basta con renombrar archivos de migración.** Antes de generar el grafo definitivo, A/B/C deben confirmar si el ORM final separará de verdad los modelos en `apps.bank` y `apps.shop` o conservará temporalmente los modelos C bajo `ecomotor`. El traslado de modelos entre labels puede afectar el estado de migraciones y los nombres físicos de tablas, así que requiere una estrategia explícita y pruebas sobre SQLite file-backed.
-
-## 9. Cuestiones de revisión conjunta
-
-| ID | Pregunta | Participantes | Bloquea |
-|---|---|---|---|
-| C-01 | Confirmar con Core la fuente física canónica de Wallet/saldo y la conservación de movimientos | Fernando + Óscar/Core | ORM definitivo / política de borrado |
-| C-02 | Confirmar si `available_balance` es el nombre físico/canónico o si el contrato externo solo expone otro término | A/B/C + Core | Contrato Bank |
-| C-03 | Confirmar `item_code`, relación con Item, cardinalidad y propiedad del catálogo general | Henry + Fernando | Relación Shop/Inventory |
-| C-04 | Definir la semántica de `included_quantity` frente a `Purchase.quantity` | Henry + Fernando | Compra y entrega |
-| C-05 | Definir estados de compra, coordinator y recuperación tras fallo de entrega | A/B/C + Core según corresponda | Servicio de compra |
-| C-06 | Definir política de borrado/anonimización y conservación del historial financiero | Core + A/B/C | `on_delete` y migraciones |
-| C-07 | Definir idempotencia local de Bank y su relación con la identidad global de Rewards | Jaime + Fernando + Core | Servicio Bank/Rewards |
-| C-08 | Confirmar operación idempotente de entrega, cantidades y referencias de Inventory | Henry + Fernando | Integración de compra |
-| C-09 | Revisar transacción compartida real: misma BD/alias, sin commits independientes ni I/O externo | A/B/C | Atomicidad de la vertical |
-| C-10 | Confirmar alcance de V1 para productos digitales, merchandising físico y apuestas/Clash | Equipo 5 + Core | Alcance de Shop/Bank |
-
-## 10. Criterio de salida de H1
-
-Antes de cambiar ORM o migraciones, el ERD conjunto debe mostrar las entidades A/B/C, sus cardinalidades, `on_delete`, restricciones e interfaces externas; marcar explícitamente lo provisional y registrar las decisiones que dependan de Core. Después se podrá fijar la arquitectura física y preparar una secuencia de migraciones que preserve los historiales.
-
-**Estado:** borrador para revisión. No aprobado globalmente; no usar como autorización para ejecutar migraciones. Basado en el código actual de Parte C y la documentación de `develop` actualizada por el PR #19, incluida Rewards v0 y el plan de trabajo.
+- El diccionario coincide con los modelos y constraints actuales de `develop`.
+- Las cardinalidades y reglas `on_delete` están separadas de las políticas de retención todavía no acordadas.
+- Se distinguen las responsabilidades de Bank, Shop, Duckies y Core.
+- La transacción local y sus límites están explícitos.
+- Las pruebas históricas no se presentan como resultados nuevos.
+- Las decisiones compartidas pendientes permanecen abiertas hasta su ratificación por los propietarios.
