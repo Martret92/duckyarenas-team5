@@ -1,5 +1,15 @@
 # A4.1 · Validación pura de estadísticas objetivo · Contrato técnico v1
 
+> **Cambio posterior de contrato objetivo · ATR-OBJ-02 (07/11/2026).** Los
+> códigos canónicos previstos para A4.1 pasan a ser exactamente `ATK, DEF,
+> VEL, INT, LOG, ESP`, con ese orden de resultado. `CUACK` ya no es un código
+> aceptado por el diseño objetivo y no se aprueban alias ni conversiones desde
+> `CUACK` o `SPE`. [Decisión](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+> **Estado actual:** `TARGET_STAT_CODES` en Python todavía termina en `CUACK`;
+> modificar el validador y sus tests requiere una PR técnica separada, después
+> de analizar la compatibilidad de snapshots de la demo persistente.
+> No cambian el dominio numérico, la aritmética, las firmas ni V1 por esta PR.
+
 ## 1. Autoridad, alcance y estado
 
 A4.1-ATTR-01, BASE-01, BUDGET-01 y PURE-01, aprobadas internamente por Equipo 5
