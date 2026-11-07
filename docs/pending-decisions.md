@@ -1022,7 +1022,7 @@ requisito literal DAR3.
 
 | Pendiente | Límite |
 | --- | --- |
-| Fase A · lector aislado | Pendiente de Draft PR, tests y revisión arquitectónica; sin integración al servicio ni a HTTP. |
+| Fase A · lector aislado | Lector autónomo desarrollado en PR #136; todavía no se utiliza desde servicios ni HTTP. La integración operativa corresponde a la Fase B. |
 | Fase B · lector y bloqueo efectivos | Selección de formatos estricta, consulta histórica y bloqueo de configure/switch/redistribute, replays y no-ops legados; **no autorizado implementar aún**. |
 | Presentación y sesión | Ocultar formularios legados, tratar `playable_last` sin reinterpretarlo ni borrarlo en GET; posterior. |
 | Adaptación A4/ESP | Validadores, demos, fixtures y contrato de versión nueva; autorización técnica independiente. |
