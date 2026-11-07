@@ -840,6 +840,14 @@ publicación/vigencia, permisos, conservación y activación siguen pendientes.
 No se cierran P1–P8 ni contratos compartidos en bloque. No cambios de API, código,
 modelos o tests; S3 V1 intacto y único escritor, sin A2 ni sistema objetivo activados.
 
+**Actualización DOC-A4-45+5 · 07/11/2026:** [cuatro decisiones internas](decisions.md)
+precisan **únicamente las siete épocas históricas objetivo**: 45 bases propias
+más 5 distribuibles por configuración, reparto 0–5 y conservación sin
+transferencias al evolucionar. La fila de A4-PRESUPUESTO-PROV-01 anterior
+permanece como **antecedente del 21/10**, sin eliminación ni derogación global;
+las cinco opciones tecnológicas no quedan redefinidas por esta precisión.
+Pendientes concretos en §34; no es aprobación externa de Óscar.
+
 ## 29. A4.4 · Resolución confiable y dependencias
 
 [Cinco acuerdos internos](decisions.md#a44--resolución-confiable-de-estadísticas-objetivo--21102026)
@@ -956,3 +964,29 @@ Solo documentación en esta PR: sin comunicaciones al equipo, código, pruebas
 Django, migraciones, seeds, configuración o uso de SQLite personales. La secuencia
 lógica completa reside en el contrato de transición; no fija calendario ni
 autoriza integración productiva o eliminación del laboratorio.
+
+## 34. DOC-A4-45+5 · Pendientes tras decisiones internas · 07/11/2026
+
+[Cuatro decisiones aprobadas internamente](decisions.md) el 07/11/2026:
+A4-45+5-BASE-01, BUDGET-01, PARTIAL-01 y EPOCH-01. Para las siete épocas
+históricas objetivo se han aprobado **como candidatas internas** bases de 45
+por época, presupuesto propio de 5, reparto de 0–5 y conservación de épocas
+anteriores sin transferencias. La reducción desde siete originales de 50 fue
+contrastada por 02C-3. Los valores **no son oficiales de Óscar o DAR3**.
+La política provisional A4-PRESUPUESTO-PROV-01 se conserva como antecedente y
+no queda sustituida fuera de ese alcance histórico.
+
+| Pendiente expresamente abierto | Responsable / límite |
+| --- | --- |
+| Máximos por atributo y validación funcional definitiva | Parte A/02C-3 con confirmación funcional de Óscar; sin máximos inventados ni nuevos defaults de A4.1. |
+| Redistribución completa de 50 tras especialización | 02C-3/Óscar; no confundir con los 5 asignables de cada época histórica ni trasladarla a tecnologías. |
+| Primera asignación y nivel 8 | 02C-3/Óscar/Core: momento exacto, precondiciones y relación con desbloqueo de opciones; no deducirlo de la conservación de configuraciones. |
+| `ESP` frente a `CUACK` | Parte A y Óscar/Core: correspondencia semántica/técnica formal; las APIs objetivo siguen exigiendo `CUACK`, sin transformación automática de V1 `SPE`. |
+| Procedencia, identidades y aprobación del catálogo | Parte A/A3 y Óscar: siete vectores candidatos de 45 no se convierten en fuente publicada, vigente o autorizada automáticamente. |
+| Persistencia, migración, conservación y versionado | Parte A/A3.5 y Core: no crear esquemas, snapshots físicos ni backfill por esta decisión documental. |
+| Integración y consumo | Core y equipos consumidores/juegos; contratos autorizados, permisos y coordinación de configuración antes de activar el objetivo. |
+| Especializaciones tecnológicas | Reglas propias no redefinidas por DOC-A4-45+5; no extender 45 bases + 5 distribuibles por inferencia. |
+
+A4.1/A4.2.1/A4.3.1/A4.4.1, demos sintéticas, S2-A, S3 y S7-A
+permanecen intactos. **S3 V1 sigue siendo el único escritor XP activo fuera
+del laboratorio**. Rewards productivo y fuentes confiables continúan bloqueados.

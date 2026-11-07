@@ -112,6 +112,16 @@ ATK/DEF/VEL/INT/LOG/CUACK y sus garantías puras se conservan. V1 no se reinterp
 log_stat sigue Logística y spe Especial / Especialización; S3 V1 único escritor
 XP activo. No activar A2, Ecomotor objetivo, integraciones económicas o gráficas.
 
+**Precisión de vigencia, 07/11/2026:** las decisiones internas
+[DOC-A4-45+5](../decisions.md) fijan para las **siete épocas históricas objetivo**
+bases candidatas que suman 45 y presupuesto **independiente de 5 distribuibles**,
+con gasto parcial/cero. La referencia previa a 45 **distribuibles** permanece
+como antecedente de A4-PRESUPUESTO-PROV-01; no se invalida globalmente ni se
+extiende la política a tecnológicos. Esta precisión **no proporciona** una
+fuente autorizada, no resuelve ESP/CUACK, no fija `budget` por defecto y **no
+abre** A4.4.1: la entrada real sigue rechazando toda resolución sin fuente
+confiable. Conservar snapshot, permisos y persistencia pendientes.
+
 ## 9. A4.4.1 · Frontera mínima y ensayo estructural
 
 El corte conceptual de #80 presentaba A4.4.1 como candidata sujeta a revisión.

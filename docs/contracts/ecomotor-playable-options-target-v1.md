@@ -113,6 +113,21 @@ a un componente servidor futuro. Conservar bases/referencia/procedencia al confi
 configuraciones futuras; catálogo nuevo no reinterpreta las ya confirmadas.
 No se aprueban tablas o servicios persistentes por esta precisión.
 
+**Precisión aprobada internamente el 07/11/2026 — solo siete históricos
+objetivo.** [DOC-A4-45+5](../decisions.md) fija **bases propias que suman 45**
+por época y **cinco puntos distribuibles propios de cada configuración**, con
+reparto parcial (0–5) y puntos restantes conservados. Al evolucionar se utilizan
+las nuevas bases/presupuesto; las configuraciones anteriores se conservan sin
+transferir ni acumular puntos entre épocas. Los 45 puntos distribuibles del
+antecedente A4-PRESUPUESTO-PROV-01 dejan de describir la política futura de
+históricos, pero la decisión anterior no se elimina ni cambia automáticamente
+las opciones tecnológicas. `ESP` de la tabla recibida no queda equiparado a
+`CUACK` de ATR-OBJ-01; su correspondencia formal sigue pendiente.
+
+No se decide aquí el momento exacto de la **primera asignación** ni su relación
+con el **nivel 8**, ni una redistribución global de 50 tras especialización.
+No se alteran SVC-OP-01…04, V1, APIs puras, modelos ni datos persistidos.
+
 ## 4. SVC-OP-01 a 04 · Contratos objetivo
 
 Entradas/resultados conceptuales, **sin firmas Python ni APIs implementadas**.
@@ -296,6 +311,15 @@ vigente durante progresión histórica y anteriores desbloqueadas tras elegir
 especialización; no nuevas reglas de adquisición, equipamiento o esquema Duckies.
 [Coordinación](integracion-equipo5-v0.md#03-precisiones-posteriores--presupuesto-recursos-y-membresías)
 y [pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).
+
+**Actualización interna del 07/11:** [DOC-A4-45+5](../decisions.md)
+precisa la vigencia histórica del presupuesto provisional documentado arriba:
+45 corresponde a las **bases** de cada una de las siete épocas históricas
+y se asignan **0–5 incrementos** con saldo independiente en cada configuración.
+La conservación al evolucionar no transfiere puntos. Sin aprobación de bases
+oficiales por Óscar, sin extensión a tecnologías ni cambios a demostraciones,
+contratos técnicos o persistencia; permanecen pendientes máximos, ESP/CUACK,
+primera asignación/nivel 8, redistribución tras especialización y Core.
 
 ## 11. A4.4 · Resolución antes de confirmación futura
 
