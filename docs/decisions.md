@@ -2228,3 +2228,64 @@ El [diseño lógico de §16](contracts/ecomotor-transition-target-v1.md#16-int-a
 **T05-C1 autorizada internamente por 02C-3:** se permite un diagnóstico puro, independiente del cálculo A1.2, que contraste los cruces esperados con una secuencia observada suministrada explícitamente. El [contrato §19](contracts/ecomotor-transition-target-v1.md#19-int-a2-t05-c1--contraste-puro-de-cobertura-causal--27102026) define coincidencia observada, discrepancias, evidencia no proporcionada y límites. La coincidencia de códigos **no acredita completitud histórica productiva**, origen, causa, perfil, catálogo correcto o autorización. No se implementa un preparador de cruces redundante.
 
 **T05-C2 ratificada internamente por 02C-3:** conservar una única XP histórica y la identidad `(profile, operation_key)`; no reinterpretar automáticamente `current_level`/`current_stage_code` V1 como progresión objetivo; diferenciar progresión/eventos objetivo de historia V1 y preservar Duckies/vestimentas. No se seleccionan modelos, campos, migraciones, FKs, políticas de conservación ni escritor objetivo. Core/A3.5, A3.6, TRACE-01B, T05 físico, USE-01B y contratos con Henry permanecen pendientes. S3 V1 continúa como único escritor XP activo fuera del laboratorio. La PR T05-C1 requiere revisión arquitectónica antes de fusionar.
+
+## DOC-A4-45+5 · Bases y reparto históricos objetivo · 07/11/2026
+
+**Autoridad y alcance.** Cuatro decisiones **aprobadas internamente por Jaime/Equipo 5
+mediante 02C-3 el 07/11/2026**. DAR3 sigue siendo la fuente principal de requisitos;
+la indicación funcional de Óscar transmitida por Henry se distingue de esta
+concreción numérica interna. Los vectores no se atribuyen como oficiales a Óscar,
+Core ni a los juegos. Se limitan a las **siete épocas históricas del diseño objetivo**;
+no se aplican automáticamente a cinco especializaciones tecnológicas, a la V1
+persistida, a datos existentes ni a los laboratorios sintéticos.
+
+| ID aprobado internamente | Regla y alcance |
+| --- | --- |
+| **A4-45+5-BASE-01** | Derivar siete bases candidatas de 45 puntos desde los vectores originales de 50, multiplicando exactamente cada valor por 9/10; tomar la parte entera inferior; repartir las unidades restantes por orden descendente de resto fraccional, con desempate fijo **ATK, DEF, LOG, VEL, INT, ESP**. Sin redondeo independiente que altere la suma. 02C-3 informó de la verificación independiente de los siete originales y los siete resultados. |
+| **A4-45+5-BUDGET-01** | Cada época histórica objetivo tiene **sus propias bases de 45** y un presupuesto **separado de cinco puntos asignables** para esa configuración. El presupuesto de una época no consume el de otra. |
+| **A4-45+5-PARTIAL-01** | Admitir entre **cero y cinco** puntos repartidos; lo no gastado permanece disponible **en esa configuración**, sin distribuirse automáticamente. |
+| **A4-45+5-EPOCH-01** | Al evolucionar, la nueva época emplea sus bases y presupuesto propios; se conservan las configuraciones históricas anteriores, sin transferencias, reinicios ni acumulaciones automáticas de presupuesto. No define una migración ni un modelo persistente. |
+
+**Vectores históricos candidatos aprobados internamente** (orden de la
+información recibida: ATK, DEF, LOG, VEL, INT, ESP; las siete filas suman 45):
+
+| Época | ATK | DEF | LOG | VEL | INT | ESP | Total base |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Prehistoria | 12 | 7 | 4 | 11 | 4 | 7 | **45** |
+| Grecia | 6 | 7 | 11 | 6 | 10 | 5 | **45** |
+| Roma | 10 | 13 | 6 | 5 | 6 | 5 | **45** |
+| Medieval | 11 | 10 | 5 | 6 | 4 | 9 | **45** |
+| Renacimiento | 6 | 6 | 10 | 7 | 12 | 4 | **45** |
+| Revolución Industrial | 7 | 8 | 9 | 8 | 7 | 6 | **45** |
+| Siglo XX | 9 | 7 | 8 | 10 | 7 | 4 | **45** |
+
+La fórmula de reducción define el procedimiento acordado. Los vectores originales
+de 50 puntos fueron contrastados independientemente por 02C-3; esta tabla
+publica únicamente los resultados de 45 comunicados y aprobados internamente.
+No se publica aquí la fuente original de los siete vectores ni se infiere una
+fuente de catálogo productivo autorizada.
+
+**Vigencia de A4-PRESUPUESTO-PROV-01 (21/10/2026).** Se conserva como decisión
+interna provisional y antecedente, **desplazado conceptualmente solo para las
+futuras configuraciones de las siete épocas históricas objetivo**: allí el 45
+pasa a describir las bases y el reparto independiente es de 5. No se invalida
+A4-PRESUPUESTO-PROV-01 globalmente ni se modifica la política de opciones
+tecnológicas por inferencia. No cambiar defaults, validadores A4.1/A4.2.1/
+A4.3.1/A4.4.1, demos, S2-A, S3, S7-A, modelos, migraciones o contratos V1.
+
+**Nomenclatura:** `ESP` es el rótulo recibido para esta tabla; la relación formal
+`ESP`/`CUACK` de ATR-OBJ-01 **está pendiente**. No renombrar campos, convertir
+`SPE` histórico V1 ni pasar automáticamente esta tabla como definición válida
+a las APIs puras que exigen exactamente `CUACK`.
+
+**Todavía pendientes:** máximos por atributo; redistribución completa de 50
+puntos tras especialización; momento de la primera asignación y relación exacta
+con nivel 8; correspondencia ESP/CUACK; identidad/versionado/fuente autorizada;
+persistencia, migración y conservación física; validación e integración con Core
+y consumidores/juegos. No activar el sistema objetivo ni Rewards productivo.
+
+[Contrato A4.2](contracts/ecomotor-target-stats-config-v1.md),
+[opciones jugables](contracts/ecomotor-playable-options-target-v1.md),
+[resolución A4.4](contracts/ecomotor-target-stats-resolution-v1.md) y
+[pendientes](pending-decisions.md) precisan el alcance sin sustituir los
+antecedentes fechados de 21/10/2026.

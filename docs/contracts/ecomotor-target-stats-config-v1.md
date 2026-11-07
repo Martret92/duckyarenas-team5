@@ -44,6 +44,19 @@ LOG Lógica y CUACK Especial / Especialización. CUACK es numérico, no identida
 tecnológica; sin SPE adicional objetivo. Bases según A4.1-NUM-01: enteros Python
 exactos no negativos, sin cantidades funcionales oficiales deducidas del tipo.
 
+**Precisión posterior DOC-A4-45+5 (07/11/2026).** Para las siete épocas
+históricas objetivo, las decisiones internas [A4-45+5](../decisions.md) sustituyen
+**conceptualmente** el reparto provisional anterior de 45: la definición
+histórica candidata aporta seis **bases que suman 45** y cada configuración
+histórica dispone de **cinco incrementos asignables como máximo en conjunto**.
+Pueden gastarse 0–5; los restantes pertenecen a esa época. Esta precisión no
+altera A4.2-SPLIT-01 como separación entre definición de bases y presupuesto,
+ni se extiende por inferencia a opciones tecnológicas. Los vectores candidatos
+están en el registro de decisiones. `ESP` en la tabla y `CUACK` de la API
+objetivo requieren correspondencia formal aún pendiente: no cargar esos valores
+como definiciones técnicas autorizadas sin resolverla. La redacción anterior de
+§2 refleja la decisión interna de 21/10 y se conserva como antecedente.
+
 ## 3. Identidad y versiones · A4.2-ID-01
 
 Una definición necesita distinguir conceptualmente **opción objetivo**, **catálogo
@@ -258,6 +271,16 @@ La resolución confiable sigue pendiente. Si se persisten configuraciones futura
 cambiar el presupuesto requiere política expresa de versionado y tratamiento de
 las ya confirmadas; no recalcular silenciosamente.
 [Pendientes](../pending-decisions.md#28-precisiones-2010--presupuesto-recursos-y-membresías).
+
+**Vigencia posterior para históricos (07/11/2026):**
+[A4-45+5-BASE/BUDGET/PARTIAL/EPOCH-01](../decisions.md) desplaza el valor
+**45 distribuible** de A4-PRESUPUESTO-PROV-01 solo en las siete épocas históricas
+objetivo: **45 bases + 5 distribuibles**, presupuesto propio por época y conservación
+de configuraciones anteriores. A4-PRESUPUESTO-PROV-01 permanece documentada,
+sin derogación global ni regla nueva para tecnológicos. No es presupuesto
+oficial de Óscar; no modificar firmas, defaults o APIs puras. Persistencia,
+versión, límites y transición siguen pendientes. Véase
+[registro de pendientes](../pending-decisions.md).
 
 ## 12. Resolución confiable A4.4
 
