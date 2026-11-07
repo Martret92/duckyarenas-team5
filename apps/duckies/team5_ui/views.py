@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.templatetags.static import static
 from django.views.decorators.http import (
@@ -403,6 +403,11 @@ def action(request):
             raise ValueError(
                 "Operación desconocida."
             )
+
+    except InventoryItem.DoesNotExist:
+        return HttpResponse(
+            "El artículo no está disponible en tu inventario.", status=409,
+        )
 
     except (
         BankError,
