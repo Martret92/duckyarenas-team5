@@ -1,5 +1,10 @@
 # A4.2 · Configuración de estadísticas objetivo · Contrato conceptual v1
 
+> **Reglas posteriores comunicadas por Henry · 08/11/2026:** el régimen
+> histórico 45+5 se limita a niveles 1–7. Desde nivel 8 se comunica una sola
+> distribución libre de hasta 50, máximo 12 por atributo; ver [§14](#14-henry-stats-l8-01).
+> El reseteo a cero continúa como propuesta no ratificada.
+
 > **Corte técnico posterior · Fase B · 08/11/2026.** Esta PR implementa
 > [DIAG-ATR-OBJ-02-SNAP-01 · Fase B](../decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026),
 > autorizada internamente por 02C-3. A4 usa `ATK, DEF, VEL, INT, LOG, ESP`;
@@ -350,3 +355,43 @@ No se aplican estos cinco puntos a especializaciones tecnológicas ni a las
 demos sintéticas anteriores (que conservan bases cero y presupuesto 45).
 A4.4.1 sigue cerrado. No se añade persistencia, respec, límites máximos,
 evolución automática, migración, conversión CUACK/ESP ni efectos productivos.
+
+## 14. HENRY-STATS-L8-01
+
+**Dos regímenes funcionales comunicados por Henry el 08/11/2026; sin
+configuración productiva autorizada.** Son aclaraciones transmitidas por
+coordinación, no una modificación de la autoridad estructural de A4 ni una
+ratificación de cifras por Óscar en DAR3.
+
+| Condición | Bases y reparto | Restricciones comunicadas |
+| --- | --- | --- |
+| Nivel 1–7, época histórica correspondiente | Seis bases candidatas específicas que suman 45; cinco puntos adicionales de reparto para esa época, con 0–5 gastados y restantes conservados. | Redistribución en cualquier momento; **sin** máximo 12 por atributo. No transferir automáticamente el presupuesto de una época a otra. |
+| Desde nivel 8, aunque no elija especialización | Reparto libre **único y compartido** de hasta 50 puntos, pudiendo quedar sin gastar; redistribución posterior permitida. | Máximo **12 por atributo** para este régimen; la ropa histórica no restituye estadísticas 45+5. No se concede un nuevo presupuesto por elegir cada opción. |
+
+La regla posterior del máximo 12 **no valida ni reescribe** las bases
+históricas de niveles 1–7 (Roma tiene DEF=13 en el vector aprobado).
+A4.1 continúa validando tipos, códigos, sumas y presupuestos **sin máximo
+funcional por atributo**; este documento no altera su API, ni propone
+aplicar el máximo 12 a las definiciones antiguas.
+
+**Propuesta, no política publicada:** al cruzar al nivel 8, reiniciar
+los seis atributos a cero, ofrecer 50 puntos y mostrar un aviso. Jaime y
+Henry expresaron conformidad, pero faltan compatibilidad de DuckyClash
+con estadísticas a cero y ratificación arquitectónica de la transición.
+No existe por ello una definición fiable de bases cero para jugadores,
+ni se selecciona una forma de persistencia o reconfiguración técnica.
+
+**Fuente y conservación:** los originales de 50 se atribuyen ahora a una
+imagen comunicada por Henry el 06/11/2026, según coordinación; esta PR
+no incorpora ni verifica esa imagen. Hamilton 50→45 y los siete resultados
+son decisiones internas con ejecución pura integrada en #138. No son
+catálogos oficiales, y A4.4.1 sigue bloqueado. La conservación histórica,
+el nuevo objeto compartido y sus versiones/snapshots, así como la relación
+con A4.2-SPLIT-01, SNAPSHOT-01 y SVC-OP-01…04, requieren decisión expresa.
+
+Las demos actuales conservan **bases cero y presupuesto sintético 45**.
+No se modifica V1, S2-A, S3, S7-A, Core, Rewards, el ORM o la persistencia.
+
+[Registro de decisiones](../decisions.md#henry-stats-l8-01),
+[efectos sobre selección](ecomotor-playable-options-target-v1.md#12-henry-stats-l8-01)
+y [pendientes](../pending-decisions.md#39-henry-stats-l8-01).

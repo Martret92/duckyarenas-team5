@@ -1,5 +1,10 @@
 # Ecomotor · Opciones jugables · Contrato objetivo v1 (02C)
 
+> **Conciliación funcional posterior · 08/11/2026:** la distribución libre
+> desde nivel 8 comunicada por Henry es **única y compartida**, y su desbloqueo
+> no depende de elegir especialización. Véase [§12](#12-henry-stats-l8-01);
+> los contratos por opción siguientes son antecedentes pendientes de conciliación.
+
 > **Corte técnico posterior · Fase B · 08/11/2026.** Esta PR implementa
 > [DIAG-ATR-OBJ-02-SNAP-01 · Fase B](../decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026),
 > autorizada internamente por 02C-3. A4 usa `ATK, DEF, VEL, INT, LOG, ESP`;
@@ -356,3 +361,45 @@ estado efectivo/configuración persistida con coherencia. No vigencia uniforme
 impuesta ni recálculo silencioso. Definiciones retiradas/sustituidas/antiguas,
 fuentes reales y acuerdos Core/Henry/consumidores siguen pendientes. 45 provisional
 interno no autoriza configuración ni activa el objetivo. SVC-OP-01…04 no implementados.
+
+## 12. HENRY-STATS-L8-01
+
+**Conciliación funcional posterior · 08/11/2026.** Según la comunicación de
+Henry cerrada en coordinación, en niveles 1–7 rigen las bases 45 + hasta 5
+puntos propios de cada época histórica, redistribuibles en cualquier momento
+sin máximo 12 por atributo. La matemática pura #138 calcula candidatos;
+no escribe configuraciones jugables reales.
+
+**Desde nivel 8** queda disponible automáticamente el reparto libre de
+hasta 50 puntos, **aunque se aplace o no se elija una especialización**.
+Los seis atributos canónicos A4 son ATK, DEF, VEL, INT, LOG y ESP;
+ninguno puede superar 12 en este régimen. Pueden quedar puntos sin gastar.
+Se permite redistribuir después y existe **una única distribución libre
+compartida**. Cambiar de vestimenta histórica es una acción de apariencia:
+**no** restaura las bases ni los incrementos 45+5 de aquella época.
+
+**Mapa de conflicto con contratos previos (sin derogación implícita):**
+
+| Antecedente | Conciliación pendiente |
+| --- | --- |
+| T-01/T-02/T-03 | La elección de histórico/tecnológico y las configuraciones independientes que se asociaban a cada opción no pueden utilizarse sin revisión para conceder presupuestos independientes desde nivel 8. Conservar la distinción entre opción jugable, vestimenta y estadísticas compartidas. |
+| SVC-OP-01 | La primera configuración por opción, la exigencia de elección y sus snapshots separados no definen todavía el desbloqueo automático de los 50 libres; revisar precondiciones y ciclo de vida. |
+| SVC-OP-02 | El cambio de opción/configuración con recuperación automática de sus estadísticas contradice la regla actual cuando solo cambia la vestimenta histórica. No suponer conversión entre ambas acciones. |
+| SVC-OP-03 | La lectura de efectivas tras nivel 8 deberá resolver la distribución compartida y su procedencia, sin activar silenciosamente un snapshot histórico 45+5 por apariencia. |
+| SVC-OP-04 | Redistribución gratuita y sus garantías de concurrencia requieren reespecificar el objeto compartido posterior al nivel 8; el reparto independiente por Ducky es antecedente, no política nueva ratificada. |
+
+**Propuesta técnica, sin ratificar:** reiniciar los atributos a cero al
+alcanzar nivel 8, ofrecer los 50 puntos y avisar al jugador. Jaime y Henry
+manifestaron conformidad con esta idea, pero falta comprobar con DuckyClash
+que pueda consumir los seis atributos a cero y cerrar el diseño de transición,
+versiones, idempotencia, persistencia y contratos con Core/consumidores.
+No se realiza transición automática ni se imponen nuevas reglas a A4.4.1.
+
+Este corte documental **no implementa** servicios, modelos ni migraciones;
+no modifica los contratos V1 ni las demos sintéticas. Los apartados §3–§11
+conservan su procedencia y fecha y requieren revisión explícita antes de
+convertirse en contratos productivos del nuevo régimen.
+
+[Autoridad y decisiones](../decisions.md#henry-stats-l8-01),
+[definiciones por régimen](ecomotor-target-stats-config-v1.md#14-henry-stats-l8-01)
+y [pendientes](../pending-decisions.md#39-henry-stats-l8-01).
