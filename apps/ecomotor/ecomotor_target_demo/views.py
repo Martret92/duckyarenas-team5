@@ -1,6 +1,7 @@
 """Session-owned fictitious games; PRG grants and explicit historical replay."""
 
 from secrets import token_hex
+import re
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db import DatabaseError
@@ -16,7 +17,7 @@ from apps.ecomotor.models import TargetCatalogVersion
 from apps.ecomotor.target_catalog_validation import InvalidTargetCatalogError
 
 from .catalog import DemoCatalogError
-from .data import NAMES, CODES, OPTIONS, OPTION_CHOICES, VERSION
+from .data import NAMES, CODES, OPTIONS, OPTION_CHOICES, VERSION, MAX_XP
 from .forms import PersistentDemoForm, PlayableForm, RewardDemoForm, REWARD_HTTP_ACTIVITIES
 from . import playable_services as playable
 from . import reward_demo_services as rewards
@@ -49,7 +50,26 @@ def home(request):
             bound = (RewardDemoForm(request.POST) if action == "reward" else
                      PlayableForm(request.POST, action=action, auto_id="invalid_%s") if action in playable.ACTIONS
                      else PersistentDemoForm(request.POST, action="start" if action == "start" else "grant"))
-            if bound.is_valid():
+            legacy_form = False
+            if action in playable.ACTIONS and secret and pk is not None:
+                owned, _, _ = read_demo_progress(pk, session_token=secret)
+                submitted = request.POST.getlist("operation")
+                token = submitted[0] if len(submitted) == 1 and 0 < len(submitted[0]) <= 1024 else None
+                snapshot, _ = playable.read_demo_playable(owned, session_token=secret,
+                    operation_token=token, action=action)
+                legacy_form = playable.is_legacy(snapshot)
+                # Accept the exact old form shape only to reject a recognized
+                # legacy operation. No allocation is converted or executed.
+                if legacy_form and "CUACK" in request.POST and "ESP" not in request.POST and action != "switch":
+                    bound.fields["CUACK"] = bound.fields.pop("ESP")
+                    bound.fields["CUACK"].label = "CUACK"
+            valid = bound.is_valid()
+            if legacy_form and "CUACK" in bound.fields and "CUACK" in bound.cleaned_data:
+                text = bound.cleaned_data["CUACK"]
+                if re.fullmatch("[0-9]+", text) is None or not 0 <= int(text) <= MAX_XP:
+                    bound.add_error("CUACK", "Entero histórico inválido.")
+                    valid = False
+            if valid:
                 if action == "start":
                     secret = secret or token_hex(32)
                     progress = create_demo_progress(session_token=secret)
@@ -91,7 +111,7 @@ def home(request):
                     arguments = {"option_code": values["option_code"], "operation_token": values["operation"],
                         "session_token": secret, "expected_revision": values["expected_revision"]}
                     if action != "switch":
-                        arguments["increments"] = tuple((code, values[code]) for code in TARGET_STAT_CODES)
+                        arguments["increments"] = () if legacy_form else tuple((code, values[code]) for code in TARGET_STAT_CODES)
                     if action == "redistribute":
                         arguments["configuration_revision"] = values["configuration_revision"]
                     function = {"configure": playable.configure_demo_option, "switch": playable.switch_demo_option,
@@ -134,7 +154,16 @@ def home(request):
             context.update(playable_state=state, playable_history=history,
                            active_option_label=dict(OPTION_CHOICES).get(state.active_option),
                            playable_notice=request.session.get("playable_notice") if request.method == "GET" else None)
-            if progress.current_level >= 8:
+            legacy = playable.is_legacy(state)
+            context["playable_legacy"] = legacy
+            if legacy:
+                context["configuration_cards"] = tuple({"config": c, "code": c.option_code,
+                    "label": dict(OPTION_CHOICES)[c.option_code], "used": c.stats.points_used,
+                    "remaining": c.stats.points_remaining,
+                    "rows": tuple((code, inc, eff) for (code, inc), (_, eff)
+                                  in zip(c.stats.increments, c.stats.effective))}
+                    for c in state.configurations)
+            if progress.current_level >= 8 and not legacy:
                 def initial(kind, **extra):
                     return {"action": kind, "operation": playable.issue_playable_operation(progress, action=kind, session_token=secret),
                             "expected_revision": state.revision or "", **extra}
@@ -144,7 +173,8 @@ def home(request):
                 cards = []
                 for config in state.configurations:
                     code = config.prepared.definition.option_code
-                    cards.append({"config": config, "label": dict(OPTION_CHOICES)[code],
+                    cards.append({"config": config, "code": code, "used": config.prepared.calculation.points_used,
+                        "remaining": config.prepared.calculation.points_remaining, "label": dict(OPTION_CHOICES)[code],
                         "rows": tuple((code, increment, effective) for (code, increment), (_, effective)
                                       in zip(config.prepared.calculation.increments, config.prepared.calculation.effective)),
                         "switch_form": PlayableForm(action="switch", auto_id=f"switch_{config.id}_%s", initial=initial("switch", option_code=code)),
@@ -154,7 +184,7 @@ def home(request):
                     for kind in ("switch_form", "redistribute_form"):
                         cards[-1][kind].fields["option_code"].widget = HiddenInput()
                 context["configuration_cards"] = cards
-            if request.session.get("playable_last"):
+            if not legacy and request.session.get("playable_last"):
                 saved = request.session["playable_last"]
                 context["playable_replay_form"] = PlayableForm(action=saved["action"], initial=saved, auto_id="replay_%s")
             bank = rewards.read_demo_bank(progress, session_token=secret)
@@ -189,6 +219,9 @@ def home(request):
     except DemoAccessError:
         context["unavailable"] = "Partida u operación no disponible para esta sesión. Sin nuevas concesiones."
         status = 403
+    except playable.DemoLegacyReadOnlyError:
+        context["unavailable"] = "Archivo CUACK válido: operaciones jugables cerradas; solo lectura histórica."
+        status = 409
     except (DemoConflictError, DemoIntegrityError):
         context["unavailable"] = "Conflicto de operación o historial incoherente. Sin cambios; no se repara."
         status = 409

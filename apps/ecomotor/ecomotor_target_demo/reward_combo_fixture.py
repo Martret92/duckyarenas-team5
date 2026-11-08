@@ -193,7 +193,7 @@ def run(root, scenario):
             for activity in ("challenge", "coin_challenge", "item_challenge", "visit"):
                 self.apply(self.token(activity), activity)
             increments = tuple((c, 10 if i == 0 else 0) for i, c in
-                enumerate(("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")))
+                enumerate(("ATK", "DEF", "VEL", "INT", "LOG", "ESP")))
             playable.configure_demo_option(self.progress, option_code="persist-demo-tech-gamer", increments=increments,
                 operation_token=playable.issue_playable_operation(self.progress, action="configure", session_token=secret),
                 session_token=secret)

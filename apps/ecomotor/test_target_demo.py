@@ -414,7 +414,7 @@ class TargetDemoTests(TestCase):
                      {"action": "xp", "state": self.token()},
                      {"action": "choose", "state": self.token(700), "option": "official-gamer"}):
             with self.subTest(data=data): self.assertEqual(self.client.post(URL, data).status_code, 400)
-        fields = {c: "0" for c in TARGET_STAT_CODES if c != "CUACK"}
+        fields = {c: "0" for c in TARGET_STAT_CODES if c != "ESP"}
         self.assertEqual(self.post("stats", xp=700, option="demo-gamer", **fields).status_code, 400)
 
     def test_forged_expired_or_malformed_signed_state_rejected(self):

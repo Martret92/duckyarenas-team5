@@ -1032,3 +1032,39 @@ requisito literal DAR3.
 El lector Fase A, cuando se integre, **no desbloqueará por sí solo la lectura HTTP
 ni bloqueará escrituras en partidas legadas**. No modificar SQLite personal,
 modelos, migraciones, S2-A, S3, S7-A, V1 ni XP/Rewards productivos.
+
+
+## 37. DIAG-ATR-OBJ-02-SNAP-01 · Fase B · 08/11/2026
+
+[Decisión interna Fase B](decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026).
+El estado pendiente de Fase B en §36 corresponde al corte anterior de Fase A.
+La implementación coordinada se propone ahora para revisión: lector CUACK
+conectado únicamente a lectura histórica, bloqueo jugable efectivo y ESP
+canónico en A4/demos nuevas. Sin conversión de partidas ni alias.
+
+| Pendiente | Límite vigente |
+| --- | --- |
+| Fase B | Implementación coordinada y regresiones realizadas; pendiente de revisión arquitectónica de la Draft PR y autorización de integración. |
+| Partidas CUACK | Lectura verificada exclusivamente; no configurar, cambiar, redistribuir, replay POST, no-op ni emitir tokens jugables. Conservar evidencia original. |
+| Catálogos y fuentes | No se publican bases oficiales ni se desbloquea A4.4.1; fuente confiable y autorización de consumidores/Core pendientes. |
+| 45+5 | Siete vectores históricos conservados documentalmente; ninguna implementación matemática. A4-45+5-MATH-01 sigue suspendida. |
+| Producción y V1 | Sin cambios a S2-A/S3/S7-A ni a la identidad o datos V1. Sin aprobación externa nueva. |
+
+## 38. A4-45+5-MATH-01 · Pendientes de integración · 08/11/2026
+
+La nomenclatura canónica ESP quedó corregida en DIAG-ATR-OBJ-02-SNAP-01,
+Fase B (#137). La suspensión descrita en los cortes documentales anteriores
+correspondía a ese estado previo. 02C-3 **ha autorizado solo implementar la
+matemática pura** en una nueva Draft PR; no ha autorizado Ready for review,
+merge ni uso productivo de las bases candidatas.
+
+| Pendiente | Límite vigente |
+| --- | --- |
+| A4-45+5-MATH-01 | Revisar implementación de dos archivos Python y los tests puros; no integrar sin veredicto posterior de 02C-3. |
+| Procedencia original | Siete originales de 50 recuperados del contexto previo y contrastados matemáticamente; no se localizó una fuente primaria y no se atribuyen valores oficiales a DAR3, Óscar o Core. |
+| Catálogo y autorización | Los siete vectores de 45 son candidatos internos; ninguna definición publicada, versión de fuente, permisos ni A4.4.1 habilitados. |
+| Alcance técnico posterior | Persistencia, evolución, redistribución completa tras especialización, máximos, primera asignación/nivel 8 y especializaciones tecnológicas no autorizadas aquí. |
+| Aislamiento | Demos con presupuesto sintético 45, V1, S2-A, S3, S7-A, Core, Rewards y SQLite personales permanecen intactos. |
+
+[Decisión y entradas](decisions.md#a4-455-math-01--política-matemática-histórica-pura--08112026)
+y [contrato](contracts/ecomotor-target-stats-config-v1.md#13-a4-455-math-01--política-histórica-pura-candidata--08112026).

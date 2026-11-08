@@ -2364,3 +2364,90 @@ servicios productivos ni cambios en V1, S2-A, S3 o S7-A. El encargo matemático
 [Contrato de laboratorio](contracts/ecomotor-target-playable-persistent-demo-v1.md)
 y [pendientes](pending-decisions.md) describen la transición sin prometer un
 bloqueo de POST todavía inexistente.
+
+
+## DIAG-ATR-OBJ-02-SNAP-01 · Fase B · Compatibilidad CUACK y ESP · 08/11/2026
+
+**Autorización expresa interna de 02C-3 / Equipo 5.** Implementación propuesta
+para revisión en una única Draft PR, posterior a Fase A (#136). DAR3 conserva
+la autoridad funcional; no se atribuye ratificación a Óscar, Core ni consumidores.
+Se conserva ATR-OBJ-01 como antecedente parcialmente sustituido y ATR-OBJ-02
+como decisión de nomenclatura objetivo. No se alteran sus registros históricos.
+
+- A4.1 acepta exactamente `ATK, DEF, VEL, INT, LOG, ESP`, en ese orden de
+  resultado; rechaza CUACK/SPE. Se conservan firmas, tipos exactos, cálculos,
+  presupuesto explícito, pureza, inmutabilidad y copias defensivas de A4.1–A4.3.1.
+- A4.4.1 no incorpora proveedor ni fuente: continúa rechazando con
+  `TargetStatsSourceUnavailableError`. No se activa configuración oficial.
+- Las nuevas configuraciones sintéticas utilizan `persist-stats-demo-esp-v2`,
+  bases cero y 45 puntos por opción. No se introducen vectores 45+5.
+- La clasificación jugable se efectúa bajo `_scope()`, propiedad de sesión y
+  transacción SQLite IMMEDIATE, sobre todos los eventos, configuraciones y
+  estado: EMPTY, LEGACY_CUACK, CURRENT_ESP o rechazo INVALID.
+- EMPTY exige ausencia de las tres clases de filas. CURRENT_ESP exige versión
+  V2 exacta en toda la evidencia, validación A4 y concordancia histórica final.
+  Mezclas, versiones desconocidas, huérfanos y corrupción fallan cerrados.
+- LEGACY_CUACK exige cadena homogénea V1 no vacía y validación explícita mediante
+  el lector puro de Fase A, sin modificarlo ni recurrir a A4 por fallback.
+  Se conservan JSON, pares ordenados, claves, versiones, revisiones y timestamps.
+- El servicio rechaza emisión de tokens y configure/switch/redistribute legados,
+  incluido replay, revisión obsoleta y no-op, antes de evaluar solicitudes ESP,
+  buscar replay o escribir. Primero se comprueba la autorización del token.
+  El bloqueo de archivo válido tiene error específico de conflicto (409);
+  historia inválida produce error de integridad (también 409), sin reparación.
+- GET legado muestra DTO históricos específicos, nunca `.prepared`, y no emite
+  formularios/tokens jugables ni reutiliza o borra `playable_last`. Un formulario
+  histórico CUACK reconocible solo se analiza para rechazarlo: no se convierte
+  en una configuración ESP. Campos inválidos: 400; sesión/token ajeno: 403;
+  CSRF sigue activo. XP/Rewards, Bank e inventario mantienen fronteras propias.
+
+No se modifican modelos, migraciones, SQLite personales, backend, routers,
+settings, runner, V1/S2-A/S3/S7-A ni servicios productivos. No hay alias,
+conversión, migración de datos, reparación ni borrado. La integración con Core,
+fuentes confiables y activación productiva siguen pendientes.
+`A4-45+5-MATH-01` permanece suspendida.
+
+[Contrato jugable persistente](contracts/ecomotor-target-playable-persistent-demo-v1.md)
+y [pendientes](pending-decisions.md#37-diag-atr-obj-02-snap-01--fase-b--08112026).
+
+## A4-45+5-MATH-01 · Política matemática histórica pura · 08/11/2026
+
+**Autorización interna de 02C-3:** implementación aislada de tres funciones puras
+para las siete épocas históricas del objetivo, en Draft PR y sin integración
+productiva. Esta sección desarrolla las decisiones A4-45+5-BASE-01,
+BUDGET-01, PARTIAL-01 y EPOCH-01 del 07/11/2026; no las convierte en cifras
+oficiales de DAR3, Óscar, Core ni los juegos.
+
+**Procedencia limitada:** los siete vectores originales de 50 se han recuperado
+del contexto previo del proyecto y 02C-3 ha comprobado su reducción matemática;
+**no se ha localizado una fuente documental primaria**. Se usan exclusivamente
+como candidatos internos para el cálculo y tests, no como un catálogo autorizado.
+
+| Época | Original de 50 (ATK, DEF, LOG, VEL, INT, ESP) |
+| --- | --- |
+| Prehistoria | (13, 8, 5, 12, 4, 8) |
+| Grecia | (7, 8, 12, 7, 11, 5) |
+| Roma | (11, 14, 7, 6, 7, 5) |
+| Medieval | (12, 11, 5, 7, 5, 10) |
+| Renacimiento | (7, 7, 11, 8, 13, 4) |
+| Revolución Industrial | (8, 9, 10, 9, 8, 6) |
+| Siglo XX | (10, 8, 9, 11, 8, 4) |
+
+`target_stats_historical_policy.py` aplica Hamilton exactamente con aritmética
+entera: `divmod(9 * base, 10)`, reparto de las unidades restantes por mayor
+resto y desempate `ATK, DEF, LOG, VEL, INT, ESP`. Asocia valores por **código**;
+los resultados se devuelven en orden A4 `ATK, DEF, VEL, INT, LOG, ESP` y
+reproducen las siete bases de 45 de DOC-A4-45+5.
+
+Cada cálculo de época utiliza sus bases propias y el presupuesto independiente
+`budget=5` mediante la API pública pura `validate_target_stats`; admite 0–5
+puntos usados, conserva los restantes y obtiene efectivas como bases +
+incrementos. Los resultados son inmutables; no se implementan evolución,
+transferencias, persistencia ni selección de una fuente confiable.
+
+La biblioteca nueva no modifica validadores A4, A4.4.1, demos con presupuesto
+sintético de 45, configuraciones CUACK históricas, V1 ni servicios productivos.
+Su integración queda sujeta a revisión posterior de 02C-3.
+
+[Contrato matemático A4.2](contracts/ecomotor-target-stats-config-v1.md#13-a4-455-math-01--política-histórica-pura-candidata--08112026)
+y [pendientes](pending-decisions.md#38-a4-455-math-01--pendientes-de-integración--08112026).

@@ -10,7 +10,7 @@ Duplicates discarded upstream cannot be detected retrospectively.
 from dataclasses import dataclass
 
 
-TARGET_STAT_CODES = ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")
+TARGET_STAT_CODES = ("ATK", "DEF", "VEL", "INT", "LOG", "ESP")
 
 
 class InvalidTargetStatsError(ValueError):

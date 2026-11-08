@@ -3,7 +3,7 @@
 from apps.ecomotor.target_stats_validation import TARGET_STAT_CODES
 from apps.ecomotor.target_stats_config_validation import validate_target_stats_definition
 
-DEFINITION_VERSION = "persist-stats-demo-2026-10-22-v1"
+DEFINITION_VERSION = "persist-stats-demo-esp-v2"
 DEMO_BUDGET = 45
 ZERO_BASES = tuple((code, 0) for code in TARGET_STAT_CODES)
 
