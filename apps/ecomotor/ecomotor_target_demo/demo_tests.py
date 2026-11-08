@@ -1812,7 +1812,7 @@ def load_tests(loader, suite, pattern):
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests, RewardsComboHTTPSubprocessTests, LegacyStatsArchivePhaseATests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests, RewardsComboHTTPSubprocessTests, LegacyStatsArchivePhaseATests, PlayableArchivePhaseBTests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
@@ -2024,3 +2024,268 @@ class LegacyStatsArchivePhaseATests(TestCase):
                      "target_stats_config_validation", "django.", "sqlite3", ".objects", "open("):
             self.assertNotIn(item, source)
         self.assertEqual(self.check().definition_version, legacy_archive.LEGACY_DEFINITION_VERSION)
+
+
+class PlayableArchivePhaseBTests(TestCase):
+    """Stored V1 JSON is explicit evidence, never a call to current A4."""
+
+    # Reuse fixture helpers without inheriting historical test methods.
+    setUp = PersistentTests.setUp
+    close = PersistentTests.close
+    migrate = PersistentTests.migrate
+    seed = PersistentTests.seed
+    new = PersistentTests.new
+    operation = PersistentTests.operation
+    grant = PersistentTests.grant
+    rows = PersistentTests.rows
+    http_start = PersistentTests.http_start
+    http_data = PersistentTests.http_data
+    ready = PlayableTests.ready
+    token = PlayableTests.token
+    configure = PlayableTests.configure
+    http_ready = PlayableTests.http_ready
+    playable_http = PlayableTests.playable_http
+
+    def legacy(self, progress=None):
+        progress = progress or self.ready()
+        data = LegacyStatsArchivePhaseATests().make_archive()
+        configs = {}
+        for row in data["current_state"]["configurations"]:
+            configs[row["id"]] = Configuration.objects.using(self.alias).create(
+                progress=progress, catalog_id=progress.catalog_id,
+                option_code=row["option_code"], definition_version=row["definition_version"],
+                bases=row["bases"], increments=row["increments"], budget=row["budget"], revision=row["revision"])
+        def snapshot(raw):
+            raw = _legacy_deepcopy(raw)
+            raw["progress_id"], raw["catalog_id"] = progress.pk, progress.catalog_id
+            for row in raw["configurations"]:
+                row["id"] = configs[row["id"]].pk
+            return raw
+        for event in data["events"]:
+            PlayableEvent.objects.using(self.alias).create(progress=progress,
+                operation_key=event["operation_key"], action=event["action"],
+                option_code=event["option_code"], original_request=event["original_request"],
+                before=snapshot(event["before"]), after=snapshot(event["after"]))
+        active = next(c for c in configs.values() if c.option_code == GAMER)
+        PlayableState.objects.using(self.alias).create(progress=progress,
+            active_configuration=active, revision=4)
+        return progress
+
+    def historical_token(self, progress, action="configure", secret=SECRET, key=None):
+        return signing.dumps({"progress": progress.pk, "owner": services._owner(secret),
+            "purpose": action, "key": key or "1".zfill(32)}, salt=playable.SALT)
+
+    def business(self):
+        return {key: value for key, value in self.rows().items() if key != "django_session"}
+
+    def legacy_browser(self):
+        progress = self.legacy()
+        session = self.client.session
+        session["demo_secret"], session["demo_progress"] = SECRET, progress.pk
+        session["playable_last"] = {"action": "configure", "operation": self.historical_token(progress),
+            "option_code": GAMER, "expected_revision": "",
+            **{c: "15" if c == "ATK" else "0" for c in legacy_archive.LEGACY_STAT_CODES}}
+        session.save()
+        return progress, dict(session["playable_last"])
+
+    def assert_no_dml(self, queries):
+        self.assertFalse(any(q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE")) for q in queries))
+
+    def test_legacy_complete_read_reopen_without_a4_or_writes(self):
+        progress = self.legacy()
+        before = self.business()
+        for _ in range(2):
+            self.db.close()
+            with patch.object(playable, "prepare_target_stats_configuration", side_effect=AssertionError("no A4")), CaptureQueriesContext(self.db) as queries:
+                state, history = playable.read_demo_playable(progress, session_token=SECRET)
+            self.assertTrue(playable.is_legacy(state))
+            self.assertEqual((state.revision, len(history), len(state.configurations)), (4, 4, 2))
+            self.assertEqual(state.configurations[-1].stats.effective[-1][0], "CUACK")
+            self.assert_no_dml(queries)
+            self.assertEqual(self.business(), before)
+
+    def test_legacy_blocks_tokens_all_actions_replay_noop_and_stale(self):
+        progress = self.legacy()
+        before = self.business()
+        with CaptureQueriesContext(self.db) as queries:
+            for action in playable.ACTIONS:
+                with self.assertRaises(playable.DemoLegacyReadOnlyError):
+                    playable.issue_playable_operation(progress, action=action, session_token=SECRET)
+                for revision in (None, 1, 4):
+                    with self.subTest(action=action, revision=revision), self.assertRaises(playable.DemoLegacyReadOnlyError):
+                        playable._operate(progress, action=action, option_code=GAMER,
+                            increments=[[c, 0] for c in legacy_archive.LEGACY_STAT_CODES] if action != "switch" else None,
+                            operation_token=self.historical_token(progress, action), session_token=SECRET,
+                            expected_revision=revision, configuration_revision=2 if action == "redistribute" else None)
+        self.assert_no_dml(queries)
+        self.assertEqual(self.business(), before)
+
+    def test_legacy_access_and_token_priority(self):
+        progress = self.legacy()
+        for secret, token in ((OTHER, self.historical_token(progress)),
+                (SECRET, self.historical_token(progress, secret=OTHER)),
+                (SECRET, self.historical_token(progress, action="switch")), (SECRET, "altered")):
+            with self.assertRaises(services.DemoAccessError):
+                playable.configure_demo_option(progress, option_code=GAMER, increments=(),
+                    expected_revision=4, operation_token=token, session_token=secret)
+
+    def test_legacy_corruption_never_falls_back_or_repairs(self):
+        progress = self.legacy()
+        event = PlayableEvent.objects.using(self.alias).filter(progress=progress).order_by("pk").last()
+        original = _legacy_deepcopy(event.after)
+        mutations = [lambda d: d.update(revision=99),
+            lambda d: d.update(progress_id=True), lambda d: d.update(catalog_id=999),
+            lambda d: d["configurations"][0].update(definition_version="unknown"),
+            lambda d: d["configurations"][0].update(definition_version="persist-stats-demo-esp-v2"),
+            lambda d: d["configurations"][0].update(budget=46),
+            lambda d: d["configurations"][0].update(id=True),
+            lambda d: d["configurations"][0]["increments"].reverse(),
+            lambda d: d["configurations"][0]["bases"][0].__setitem__(1, 1),
+            lambda d: d["configurations"][0]["increments"][-1].__setitem__(0, "ESP")]
+        for mutate in mutations:
+            value = _legacy_deepcopy(original); mutate(value)
+            PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=value)
+            before = self.business()
+            with patch.object(playable, "_decode", side_effect=AssertionError("no fallback")):
+                with self.assertRaises(services.DemoIntegrityError):
+                    playable.read_demo_playable(progress, session_token=SECRET)
+            self.assertEqual(self.business(), before)
+        PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=original)
+        config = Configuration.objects.using(self.alias).filter(progress=progress).first()
+        for version in ("unknown", "persist-stats-demo-esp-v2"):
+            Configuration.objects.using(self.alias).filter(pk=config.pk).update(definition_version=version)
+            with self.assertRaises(services.DemoIntegrityError):
+                playable.read_demo_playable(progress, session_token=SECRET)
+
+    def test_empty_allows_esp_but_partial_state_does_not(self):
+        progress = self.ready()
+        state, events = playable.read_demo_playable(progress, session_token=SECRET)
+        self.assertEqual((state.revision, state.configurations, events), (0, (), ()))
+        self.configure(progress)
+        config = Configuration.objects.using(self.alias).get(progress=progress)
+        self.assertEqual(config.definition_version, "persist-stats-demo-esp-v2")
+        self.assertEqual(config.bases[-1], ["ESP", 0])
+        PlayableEvent.objects.using(self.alias).filter(progress=progress).delete()
+        with self.assertRaises(services.DemoIntegrityError):
+            self.configure(progress, ROMAN, revision=1)
+
+    def test_current_exact_version_required_and_no_legacy_fallback(self):
+        progress = self.ready(); self.configure(progress)
+        event = PlayableEvent.objects.using(self.alias).get(progress=progress)
+        value = _legacy_deepcopy(event.after)
+        value["configurations"][0]["definition_version"] = "arbitrary-not-empty"
+        PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=value)
+        Configuration.objects.using(self.alias).filter(progress=progress).update(definition_version="arbitrary-not-empty")
+        with patch.object(playable, "validate_legacy_playable_archive", side_effect=AssertionError("no fallback")):
+            with self.assertRaises(services.DemoIntegrityError): playable.read_demo_playable(progress, session_token=SECRET)
+
+    def test_legacy_http_get_preserves_history_session_and_has_no_forms(self):
+        progress, saved = self.legacy_browser()
+        before = self.business()
+        for _ in range(2):
+            self.db.close()
+            response = self.client.get(URL)
+            self.assertEqual(response.status_code, 200)
+            html = response.content.decode()
+            self.assertIn("Archivo histórico CUACK", html)
+            self.assertIn("CUACK", html)
+            for text in ('name="CUACK"', 'name="ESP"', 'value="configure"', 'value="switch"', 'value="redistribute"', 'replay_%s'):
+                self.assertNotIn(text, html)
+            self.assertIn('id="rewards"', html)
+            self.assertIn('id="banco"', html)
+            self.assertIn('id="inventario"', html)
+            self.assertEqual(self.client.session["playable_last"], saved)
+            self.assertEqual(self.business(), before)
+
+    def test_legacy_http_rejections_csrf_and_no_business_writes(self):
+        progress, data = self.legacy_browser()
+        self.client.get(URL)
+        before = self.business()
+        self.assertEqual(self.client.post(URL, data).status_code, 409)
+        self.assertEqual(self.business(), before)
+        for changes, expected in (({"extra": "1"}, 400), ({"CUACK": "bad"}, 400),
+                ({"operation": "altered"}, 403), ({"operation": self.historical_token(progress, secret=OTHER)}, 403)):
+            self.assertEqual(self.client.post(URL, {**data, **changes}).status_code, expected)
+            self.assertEqual(self.business(), before)
+        missing = dict(data);missing.pop("DEF")
+        self.assertEqual(self.client.post(URL, missing).status_code, 400)
+        self.assertEqual(self.client.post(URL, urlencode([*data.items(), ("action", "configure")]),
+            content_type="application/x-www-form-urlencoded").status_code, 400)
+        protected = Client(enforce_csrf_checks=True);protected.cookies = self.client.cookies.copy()
+        self.assertEqual(protected.post(URL, data).status_code, 403)
+        protected.get(URL)
+        csrf = protected.cookies[settings.CSRF_COOKIE_NAME].value
+        self.assertEqual(protected.post(URL, {**data, "csrfmiddlewaretoken": csrf}).status_code, 409)
+        self.assertEqual(self.business(), before)
+
+    def test_legacy_http_xp_and_no_reward_remain_operational(self):
+        progress, saved = self.legacy_browser();self.client.get(URL)
+        tables = lambda: {k:v for k,v in self.rows().items() if k in
+            (Configuration._meta.db_table, PlayableState._meta.db_table, PlayableEvent._meta.db_table)}
+        before = tables()
+        self.assertEqual(self.client.post(URL, self.http_data(amount="1")).status_code, 302)
+        self.client.get(URL)
+        token = self.client.session["reward_tokens"]["visit"]
+        self.assertEqual(self.client.post(URL, {"action":"reward", "activity":"visit", "fact_token":token}).status_code, 302)
+        self.assertEqual(self.client.get(URL).status_code, 200)
+        self.assertEqual(tables(), before)
+        self.assertEqual(self.client.session["playable_last"], saved)
+
+    def test_current_http_esp_and_legacy_post_field_rejected(self):
+        self.http_ready(); response=self.client.get(URL)
+        self.assertIn('name="ESP"',response.content.decode());self.assertNotIn('name="CUACK"',response.content.decode())
+        data=self.playable_http();self.assertEqual(self.client.post(URL,{**data,"CUACK":"0"}).status_code,400)
+        self.assertEqual(self.client.post(URL,data).status_code,302)
+        self.assertEqual(self.client.post(URL,data).status_code,302)
+        self.assertEqual(PlayableEvent.objects.using(self.alias).count(),1)
+
+
+    def test_legacy_http_switch_redistribute_replay_noop_and_restart(self):
+        progress, saved = self.legacy_browser();self.client.get(URL)
+        before=self.business()
+        for revision in ("2", "4"):
+            data={"action":"switch","operation":self.historical_token(progress,"switch",key=f"{3:032x}"),
+                  "option_code":GAMER,"expected_revision":revision}
+            self.assertEqual(self.client.post(URL,data).status_code,409)
+            data={**saved,"action":"redistribute","operation":self.historical_token(progress,"redistribute",key=f"{4:032x}"),
+                  "expected_revision":"4","configuration_revision":"2","ATK":"9"}
+            self.assertEqual(self.client.post(URL,data).status_code,409)
+        self.assertEqual(self.business(),before)
+        self.assertEqual(self.client.session["playable_last"],saved)
+        self.assertEqual(self.client.post(URL,{"action":"start"}).status_code,302)
+        self.assertNotIn("playable_last",self.client.session)
+        self.assertEqual(self.client.post(URL,saved).status_code,403)
+        self.assertEqual(PlayableEvent.objects.using(self.alias).filter(progress=progress).count(),4)
+
+    def test_legacy_scope_immediate_and_foreign_session_http(self):
+        progress,saved=self.legacy_browser()
+        with CaptureQueriesContext(self.db) as queries:
+            playable.read_demo_playable(progress,session_token=SECRET)
+        sql=[q["sql"].upper() for q in queries]
+        self.assertIn("BEGIN IMMEDIATE",sql)
+        self.assertLess(sql.index("BEGIN IMMEDIATE"),next(i for i,q in enumerate(sql) if q.startswith("SELECT")))
+        foreign=Client();session=foreign.session
+        session["demo_progress"]=progress.pk;session["demo_secret"]=OTHER;session.save()
+        for response in (foreign.get(URL),foreign.post(URL,saved)):
+            self.assertEqual(response.status_code,403)
+            self.assertNotIn("Archivo histórico CUACK",response.content.decode())
+
+    def test_missing_state_and_truncated_legacy_events_are_invalid(self):
+        progress=self.legacy()
+        events=PlayableEvent.objects.using(self.alias).filter(progress=progress).order_by("pk")
+        events.first().delete(using=self.alias)
+        with self.assertRaises(services.DemoIntegrityError):
+            playable.read_demo_playable(progress,session_token=SECRET)
+        PlayableState.objects.using(self.alias).filter(progress=progress).delete()
+        with self.assertRaises(services.DemoIntegrityError):
+            playable.issue_playable_operation(progress,action="configure",session_token=SECRET)
+
+    def test_current_bad_bases_and_budget_rejected_without_fallback(self):
+        progress=self.ready();self.configure(progress)
+        event=PlayableEvent.objects.using(self.alias).get(progress=progress)
+        original=_legacy_deepcopy(event.after)
+        for bases,budget in ((None,45),({},45),([["ATK",0]],45),([["ATK",True]],45),(original["configurations"][0]["bases"],46)):
+            value=_legacy_deepcopy(original);value["configurations"][0].update(bases=bases,budget=budget)
+            PlayableEvent.objects.using(self.alias).filter(pk=event.pk).update(after=value)
+            with self.assertRaises(services.DemoIntegrityError):
+                playable.read_demo_playable(progress,session_token=SECRET)

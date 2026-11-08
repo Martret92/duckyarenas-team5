@@ -473,7 +473,7 @@ def run(root, scenario):
             revision = None
             for option in ("persist-demo-tech-gamer", "persist-demo-epoch-3"):
                 result = playable.configure_demo_option(progress, option_code=option,
-                    increments=tuple((c, 0) for c in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                    increments=tuple((c, 0) for c in ("ATK", "DEF", "VEL", "INT", "LOG", "ESP")),
                     operation_token=playable.issue_playable_operation(progress, action="configure", session_token=client.session["demo_secret"]),
                     expected_revision=revision, session_token=client.session["demo_secret"])
                 revision = result.after.revision

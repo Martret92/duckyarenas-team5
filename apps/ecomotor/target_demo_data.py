@@ -21,7 +21,7 @@ HISTORICAL_OPTIONS = tuple(zip(EPOCH_CODES, EPOCH_NAMES))
 TECH_OPTIONS = (("demo-developer", "Developer"), ("demo-ciber", "Ciber"),
                 ("demo-sistemas", "Sistemas"), ("demo-data-ia", "Data IA"), ("demo-gamer", "Gamer"))
 OPTIONS = HISTORICAL_OPTIONS + TECH_OPTIONS
-STAT_LABELS = ("Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Cuak")
+STAT_LABELS = ("Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Especial")
 
 
 def _isolated_file(path, expected):

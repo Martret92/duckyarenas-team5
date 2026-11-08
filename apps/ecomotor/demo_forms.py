@@ -17,7 +17,7 @@ DEMO_OPTIONS = (
     ("demo-sistemas", "Sistemas"), ("demo-data-ia", "Data IA"),
     ("demo-gamer", "Gamer"),
 )
-DEMO_LABELS = ("Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Cuak")
+DEMO_LABELS = ("Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Especial")
 MAX_HTTP_DIGITS = 10  # Transport guard, not an Ecomotor gameplay/storage limit.
 
 

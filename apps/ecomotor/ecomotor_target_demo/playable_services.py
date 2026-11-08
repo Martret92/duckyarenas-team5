@@ -24,7 +24,9 @@ from .catalog import exact_catalog
 from .data import MAX_XP, OPTION_CODES
 from .models import (DemoTargetProgress, DemoTargetOptionConfiguration as Configuration,
     DemoTargetPlayableState as State, DemoTargetPlayableEvent as Event)
-from .stats_definitions import synthetic_definition, ZERO_BASES, DEMO_BUDGET
+from .stats_definitions import synthetic_definition, ZERO_BASES, DEMO_BUDGET, DEFINITION_VERSION
+from .legacy_stats_archive import (validate_legacy_playable_archive,
+    InvalidLegacyArchiveError, LegacyPlayableSnapshot, LEGACY_DEFINITION_VERSION)
 
 SALT = "ecomotor.persistent-demo.playable.v1"
 ACTIONS = ("configure", "switch", "redistribute")
@@ -32,6 +34,14 @@ ACTIONS = ("configure", "switch", "redistribute")
 
 class DemoRevisionError(xp.DemoConflictError):
     """Expected state/configuration revision is stale or incompatible."""
+
+
+class DemoLegacyReadOnlyError(xp.DemoConflictError):
+    """Valid CUACK history is readable, but no playable operation is allowed."""
+
+
+def is_legacy(snapshot):
+    return type(snapshot) is LegacyPlayableSnapshot
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,6 +139,12 @@ def _decode(value, progress):
         for row in value["configurations"]:
             if type(row) is not dict or set(row) != {"id", "revision", "option_code", "catalog_id", "catalog_version", "definition_version", "bases", "increments", "budget"}:
                 raise xp.DemoIntegrityError("Configuración histórica incompleta.")
+            if (row["definition_version"] != DEFINITION_VERSION
+                    or row["budget"] != DEMO_BUDGET
+                    or type(row["bases"]) is not list
+                    or any(type(pair) is not list or len(pair) != 2 or pair[1] != 0
+                           for pair in row["bases"])):
+                raise xp.DemoIntegrityError("Definición ESP sintética incompatible.")
             _revision(row["id"])
             _revision(row["revision"])
             _option(row["option_code"])
@@ -204,28 +220,55 @@ def _validate_event(event, before, progress):
 
 
 def _read(progress, alias):
+    # Load the entire evidence inside _scope. Version dispatch never depends
+    # on successful/failed A4 parsing and never falls back to another reader.
+    events = tuple(Event.objects.using(alias).filter(progress=progress).order_by("pk"))
+    configs = tuple(Configuration.objects.using(alias).filter(progress=progress).order_by("option_code"))
+    states = tuple(State.objects.using(alias).filter(progress=progress).select_related("active_configuration"))
+    if not events and not configs and not states:
+        return _empty(progress), ()
+    if not events or not configs or len(states) != 1:
+        raise xp.DemoIntegrityError("Historia jugable parcial o huérfana.")
+    versions = {c.definition_version for c in configs}
+    for event in events:
+        for snapshot in (event.before, event.after):
+            if type(snapshot) is not dict or type(snapshot.get("configurations")) is not list:
+                raise xp.DemoIntegrityError("Historia jugable incompleta.")
+            for row in snapshot["configurations"]:
+                if type(row) is not dict or type(row.get("definition_version")) is not str:
+                    raise xp.DemoIntegrityError("Versión jugable ausente.")
+                versions.add(row["definition_version"])
+    if versions not in ({LEGACY_DEFINITION_VERSION}, {DEFINITION_VERSION}):
+        raise xp.DemoIntegrityError("Historia jugable mezclada o desconocida.")
+    state = states[0]
+    if state.active_configuration.progress_id != progress.pk:
+        raise xp.DemoIntegrityError("Estado activo ajeno.")
+    if any(c.catalog_id != progress.catalog_id for c in configs):
+        raise xp.DemoIntegrityError("Catálogo ajeno en configuración.")
+    raw = {"progress_id": progress.pk, "catalog_id": progress.catalog_id,
+        "revision": state.revision, "active_option": state.active_configuration.option_code,
+        "configurations": [{"id": c.pk, "revision": c.revision, "option_code": c.option_code,
+            "catalog_id": progress.catalog.catalog_id, "catalog_version": progress.catalog.version,
+            "definition_version": c.definition_version, "bases": c.bases,
+            "increments": c.increments, "budget": c.budget} for c in configs]}
+    if versions == {LEGACY_DEFINITION_VERSION}:
+        try:
+            archive = validate_legacy_playable_archive(progress_id=progress.pk,
+                catalog_pk=progress.catalog_id, catalog_id=progress.catalog.catalog_id,
+                catalog_version=progress.catalog.version, current_state=raw,
+                events=[{"event_id": e.pk, "progress_id": e.progress_id,
+                    "operation_key": e.operation_key, "action": e.action, "option_code": e.option_code,
+                    "original_request": e.original_request, "before": e.before, "after": e.after}
+                    for e in events])
+        except InvalidLegacyArchiveError as error:
+            raise xp.DemoIntegrityError("Archivo CUACK incoherente; sin reparación.") from error
+        return archive.state, archive.events
     previous = _empty(progress)
     history = []
-    for event in Event.objects.using(alias).filter(progress=progress).order_by("pk"):
+    for event in events:
         result = _validate_event(event, previous, progress)
         history.append(result)
         previous = result.after
-    configs = tuple(Configuration.objects.using(alias).filter(progress=progress).order_by("option_code"))
-    states = tuple(State.objects.using(alias).filter(progress=progress).select_related("active_configuration"))
-    if configs and (len(states) != 1 or states[0].active_configuration.progress_id != progress.pk):
-        raise xp.DemoIntegrityError("Estado activo ajeno o ausente.")
-    state = states[0] if states else None
-    raw = {"progress_id": progress.pk, "catalog_id": progress.catalog_id,
-        "revision": state.revision if state else 0,
-        "active_option": state.active_configuration.option_code if state else None,
-        "configurations": []}
-    for config in configs:
-        if config.catalog_id != progress.catalog_id:
-            raise xp.DemoIntegrityError("Catálogo ajeno en configuración.")
-        raw["configurations"].append({"id": config.pk, "revision": config.revision,
-            "option_code": config.option_code, "catalog_id": progress.catalog.catalog_id,
-            "catalog_version": progress.catalog.version, "definition_version": config.definition_version,
-            "bases": config.bases, "increments": config.increments, "budget": config.budget})
     current = _decode(raw, progress)
     if current != previous:
         raise xp.DemoIntegrityError("El estado guardado no corresponde al historial jugable.")
@@ -260,6 +303,9 @@ def issue_playable_operation(progress, *, action, session_token):
     if type(action) is not str or action not in ACTIONS:
         raise xp.DemoInputError("Propósito jugable inválido.")
     with _scope(progress, session_token) as (current, alias, owner):
+        state, _ = _read(current, alias)
+        if is_legacy(state):
+            raise DemoLegacyReadOnlyError("Archivo CUACK: solo lectura jugable.")
         return signing.dumps({"progress": current.pk, "owner": owner, "purpose": action, "key": token_hex(16)}, salt=SALT)
 
 
@@ -280,10 +326,12 @@ def _key(token, progress, owner, action):
 
 def _operate(progress, *, action, option_code, operation_token, session_token,
              expected_revision, increments=None, configuration_revision=None):
-    request = _request(action, option_code, increments, expected_revision, configuration_revision)
     with _scope(progress, session_token) as (current, alias, owner):
         key = _key(operation_token, current, owner, action)
         before, history = _read(current, alias)
+        if is_legacy(before):
+            raise DemoLegacyReadOnlyError("Archivo CUACK: solo lectura jugable.")
+        request = _request(action, option_code, increments, expected_revision, configuration_revision)
         # Switch is deliberately revision-first, even for a destination already
         # active or an operation key found in history.
         if action == "switch" and expected_revision != before.revision:
@@ -379,6 +427,8 @@ def redistribute_demo_option(progress, *, option_code, increments, expected_revi
         operation_token=operation_token, session_token=session_token)
 
 
-def read_demo_playable(progress, *, session_token):
+def read_demo_playable(progress, *, session_token, operation_token=None, action=None):
     with _scope(progress, session_token) as (current, alias, owner):
+        if operation_token is not None:
+            _key(operation_token, current, owner, action)
         return _read(current, alias)
