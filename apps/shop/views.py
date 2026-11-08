@@ -11,8 +11,8 @@ from django.templatetags.static import static
 from apps.bank.models import Wallet
 from apps.duckies.models import Ducky
 from apps.duckies.item_visuals import outfit_visual_key, image_for_item
-from apps.duckies.team5_ui.image_registry import item_image
-from apps.duckies.team5_ui.views import SECTIONS
+from apps.portal.image_registry import item_image
+from apps.portal.views import SECTIONS
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.bank.services import BankError

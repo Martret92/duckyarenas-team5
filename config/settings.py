@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.duckies.apps.DuckiesConfig',
     'apps.bank.apps.BankConfig',
     'apps.shop.apps.ShopConfig',
+    "apps.portal.apps.PortalConfig",
 ]
 
 MIDDLEWARE = [

@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from apps.duckies.team5_ui import views as ui
+from apps.portal import views as ui
 urlpatterns = [
     path('admin/',admin.site.urls),
     path('accounts/login/',auth_views.LoginView.as_view(template_name='registration/login.html'),name='login'),
@@ -26,5 +26,5 @@ urlpatterns = [
     path('duckies/',include('apps.duckies.urls')),
     path('bank/',include('apps.bank.urls')),
     path('shop/',include('apps.shop.urls')),
-    path('',include('apps.duckies.team5_ui.urls')),
+    path('', include('apps.portal.urls')),
 ]

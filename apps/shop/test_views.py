@@ -12,7 +12,7 @@ urlpatterns = [
     path("duckies/", include("apps.duckies.urls")),
     path("bank/", include("apps.bank.urls")),
     path("shop/", include("apps.shop.urls")),
-    path("", include("apps.duckies.team5_ui.urls")),
+    path("", include("apps.portal.urls")),
     path(
         "accounts/logout/",
         auth_views.LogoutView.as_view(),
