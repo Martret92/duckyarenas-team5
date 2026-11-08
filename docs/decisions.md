@@ -2409,3 +2409,45 @@ fuentes confiables y activación productiva siguen pendientes.
 
 [Contrato jugable persistente](contracts/ecomotor-target-playable-persistent-demo-v1.md)
 y [pendientes](pending-decisions.md#37-diag-atr-obj-02-snap-01--fase-b--08112026).
+
+## A4-45+5-MATH-01 · Política matemática histórica pura · 08/11/2026
+
+**Autorización interna de 02C-3:** implementación aislada de tres funciones puras
+para las siete épocas históricas del objetivo, en Draft PR y sin integración
+productiva. Esta sección desarrolla las decisiones A4-45+5-BASE-01,
+BUDGET-01, PARTIAL-01 y EPOCH-01 del 07/11/2026; no las convierte en cifras
+oficiales de DAR3, Óscar, Core ni los juegos.
+
+**Procedencia limitada:** los siete vectores originales de 50 se han recuperado
+del contexto previo del proyecto y 02C-3 ha comprobado su reducción matemática;
+**no se ha localizado una fuente documental primaria**. Se usan exclusivamente
+como candidatos internos para el cálculo y tests, no como un catálogo autorizado.
+
+| Época | Original de 50 (ATK, DEF, LOG, VEL, INT, ESP) |
+| --- | --- |
+| Prehistoria | (13, 8, 5, 12, 4, 8) |
+| Grecia | (7, 8, 12, 7, 11, 5) |
+| Roma | (11, 14, 7, 6, 7, 5) |
+| Medieval | (12, 11, 5, 7, 5, 10) |
+| Renacimiento | (7, 7, 11, 8, 13, 4) |
+| Revolución Industrial | (8, 9, 10, 9, 8, 6) |
+| Siglo XX | (10, 8, 9, 11, 8, 4) |
+
+`target_stats_historical_policy.py` aplica Hamilton exactamente con aritmética
+entera: `divmod(9 * base, 10)`, reparto de las unidades restantes por mayor
+resto y desempate `ATK, DEF, LOG, VEL, INT, ESP`. Asocia valores por **código**;
+los resultados se devuelven en orden A4 `ATK, DEF, VEL, INT, LOG, ESP` y
+reproducen las siete bases de 45 de DOC-A4-45+5.
+
+Cada cálculo de época utiliza sus bases propias y el presupuesto independiente
+`budget=5` mediante la API pública pura `validate_target_stats`; admite 0–5
+puntos usados, conserva los restantes y obtiene efectivas como bases +
+incrementos. Los resultados son inmutables; no se implementan evolución,
+transferencias, persistencia ni selección de una fuente confiable.
+
+La biblioteca nueva no modifica validadores A4, A4.4.1, demos con presupuesto
+sintético de 45, configuraciones CUACK históricas, V1 ni servicios productivos.
+Su integración queda sujeta a revisión posterior de 02C-3.
+
+[Contrato matemático A4.2](contracts/ecomotor-target-stats-config-v1.md#13-a4-455-math-01--política-histórica-pura-candidata--08112026)
+y [pendientes](pending-decisions.md#38-a4-455-math-01--pendientes-de-integración--08112026).
