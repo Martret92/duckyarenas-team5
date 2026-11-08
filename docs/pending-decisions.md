@@ -1012,3 +1012,23 @@ decisión a Óscar ni a DAR3.
 V1 (`log_stat`, `spe`), S2-A, S3 y S7-A no cambian. Esta tarea es
 exclusivamente documental: no incorpora cambios Python, ORM, migraciones,
 servicios, endpoints, fuentes de producción o validación con datos reales.
+## 36. DIAG-ATR-OBJ-02-SNAP-01 · Pendientes tras Fase A · 08/11/2026
+
+[Decisión técnica interna](decisions.md#diag-atr-obj-02-snap-01--compatibilidad-sintética-histórica-cuack--fase-a--08112026):
+se autoriza **solo** el lector puro histórico CUACK y sus tests, para el formato
+`persist-stats-demo-2026-10-22-v1`; el formato nuevo ESP tendrá identidad
+`persist-stats-demo-esp-v2`. Esta aprobación no corresponde a Óscar ni es un
+requisito literal DAR3.
+
+| Pendiente | Límite |
+| --- | --- |
+| Fase A · lector aislado | Lector autónomo desarrollado en PR #136; todavía no se utiliza desde servicios ni HTTP. La integración operativa corresponde a la Fase B. |
+| Fase B · lector y bloqueo efectivos | Selección de formatos estricta, consulta histórica y bloqueo de configure/switch/redistribute, replays y no-ops legados; **no autorizado implementar aún**. |
+| Presentación y sesión | Ocultar formularios legados, tratar `playable_last` sin reinterpretarlo ni borrarlo en GET; posterior. |
+| Adaptación A4/ESP | Validadores, demos, fixtures y contrato de versión nueva; autorización técnica independiente. |
+| Integridad y conservación | Rechazar formatos mezclados/desconocidos y datos corruptos sin alias, conversiones, reparación, borrado ni migración. |
+| A4-45+5-MATH-01 | Sigue suspendida hasta cerrar la corrección técnica de nomenclatura. |
+
+El lector Fase A, cuando se integre, **no desbloqueará por sí solo la lectura HTTP
+ni bloqueará escrituras en partidas legadas**. No modificar SQLite personal,
+modelos, migraciones, S2-A, S3, S7-A, V1 ni XP/Rewards productivos.

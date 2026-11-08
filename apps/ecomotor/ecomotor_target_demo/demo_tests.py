@@ -1812,8 +1812,215 @@ def load_tests(loader, suite, pattern):
     # shared fixture without rerunning inherited functional methods twice.
     import unittest
     selected = unittest.TestSuite(loader.loadTestsFromTestCase(PersistentTests))
-    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests, RewardsComboHTTPSubprocessTests):
+    for case in (PersistentConcurrencyTests, PlayableTests, PlayableConcurrencyTests, RewardTests, RewardConcurrencyTests, ConsolidationTests, BankDefaultSubprocessTests, Schema0004Tests, RewardsBankSubprocessTests, RewardsDuckiesSubprocessTests, RewardsDuckiesServiceSubprocessTests, RewardsDuckiesHTTPSubprocessTests, Schema0005Tests, Schema0006Tests, RewardsComboSubprocessTests, RewardsComboHTTPSubprocessTests, LegacyStatsArchivePhaseATests):
         for name in case.__dict__:
             if name.startswith("test_"):
                 selected.addTest(case(name))
     return selected
+
+# DIAG-ATR-OBJ-02-SNAP-01 Phase A: pure historical CUACK verifier.
+# These tests intentionally do not open any database or route the reader to HTTP.
+from copy import deepcopy as _legacy_deepcopy
+from dataclasses import FrozenInstanceError as _LegacyFrozenError
+from . import legacy_stats_archive as legacy_archive
+
+
+class LegacyStatsArchivePhaseATests(TestCase):
+    """Exact historical JSON samples from the standalone synthetic schema."""
+
+    def make_archive(self):
+        codes = legacy_archive.LEGACY_STAT_CODES
+        gamer, roman = OPTION_CODES[-1], OPTION_CODES[2]
+        def allocation(code, amount):
+            return [[c, amount if c == code else 0] for c in codes]
+        def config(id, option, amount, code, revision=1):
+            return {"id": id, "revision": revision, "option_code": option,
+                    "catalog_id": legacy_archive.CATALOG_ID,
+                    "catalog_version": legacy_archive.VERSION,
+                    "definition_version": legacy_archive.LEGACY_DEFINITION_VERSION,
+                    "bases": allocation("ATK", 0), "increments": allocation(code, amount),
+                    "budget": legacy_archive.LEGACY_BUDGET}
+        def state(revision, active, configs):
+            return {"progress_id": 101, "catalog_id": 23, "revision": revision,
+                    "active_option": active,
+                    "configurations": sorted(_legacy_deepcopy(configs), key=lambda c: c["option_code"])}
+        empty = state(0, None, [])
+        first = config(15, gamer, 15, "ATK")
+        second = config(19, roman, 10, "DEF")
+        after1 = state(1, gamer, [first])
+        after2 = state(2, roman, [first, second])
+        after3 = state(3, gamer, [first, second])
+        updated = config(15, gamer, 9, "ATK", revision=2)
+        after4 = state(4, gamer, [updated, second])
+        def event(n, action, option, inc, before, after, expected, config_rev=None):
+            return {"event_id": n, "progress_id": 101, "operation_key": f"{n:032x}",
+                    "action": action, "option_code": option,
+                    "original_request": {"action": action, "option_code": option,
+                        "increments": _legacy_deepcopy(inc), "expected_revision": expected,
+                        "configuration_revision": config_rev},
+                    "before": _legacy_deepcopy(before), "after": _legacy_deepcopy(after)}
+        events = [
+            event(1, "configure", gamer, first["increments"], empty, after1, None),
+            event(2, "configure", roman, second["increments"], after1, after2, 1),
+            event(3, "switch", gamer, None, after2, after3, 2),
+            event(4, "redistribute", gamer, updated["increments"], after3, after4, 3, 1),
+        ]
+        return {"progress_id": 101, "catalog_pk": 23,
+                "catalog_id": legacy_archive.CATALOG_ID,
+                "catalog_version": legacy_archive.VERSION,
+                "events": events, "current_state": _legacy_deepcopy(after4)}
+
+    def check(self, data=None):
+        return legacy_archive.validate_legacy_playable_archive(**(data or self.make_archive()))
+
+    def reject(self, changed):
+        with self.assertRaises(legacy_archive.InvalidLegacyArchiveError):
+            self.check(changed)
+
+    def test_four_step_history_and_calculations(self):
+        archive = self.check()
+        self.assertEqual([e.action for e in archive.events],
+                         ["configure", "configure", "switch", "redistribute"])
+        self.assertEqual((archive.state.revision, len(archive.state.configurations)), (4, 2))
+        gamer = next(c for c in archive.state.configurations if c.option_code == OPTION_CODES[-1])
+        self.assertEqual((gamer.revision, gamer.stats.points_used, gamer.stats.points_remaining), (2, 9, 36))
+        self.assertEqual(gamer.stats.effective[-1], ("CUACK", 0))
+        self.assertEqual(gamer.stats.effective[0], ("ATK", 9))
+        self.assertEqual(archive.definition_version, "persist-stats-demo-2026-10-22-v1")
+
+    def test_conserves_json_inputs_and_freezes_results_deeply(self):
+        data = self.make_archive()
+        original = _legacy_deepcopy(data)
+        result = self.check(data)
+        self.assertEqual(data, original)
+        data["current_state"]["configurations"][0]["increments"][0][1] = 333
+        self.assertEqual(next(c for c in result.state.configurations
+                              if c.option_code == OPTION_CODES[-1]).stats.points_used, 9)
+        with self.assertRaises(_LegacyFrozenError):
+            result.state.revision = 99
+        with self.assertRaises(_LegacyFrozenError):
+            result.events[0].after = None
+        with self.assertRaises(TypeError):
+            result.events[0].after.configurations[0].stats.increments[0] = ("ATK", 5)
+        self.assertFalse(hasattr(result.state, "__dict__"))
+
+    def test_rejects_unknown_catalog_and_versions(self):
+        for field, value in (("catalog_pk", True), ("catalog_id", "unexpected"),
+                             ("catalog_version", "unknown"), ("progress_id", -1)):
+            with self.subTest(field=field):
+                data = self.make_archive()
+                data[field] = value
+                self.reject(data)
+        for value in ("persist-stats-demo-esp-v2", "unknown", 7, None):
+            with self.subTest(definition_version=value):
+                data = self.make_archive()
+                data["events"][1]["after"]["configurations"][0]["definition_version"] = value
+                self.reject(data)
+
+    def test_rejects_esp_replacement_and_mixed_codes(self):
+        for section in ("bases", "increments"):
+            for code in ("ESP", "SPE", "CUAK", "cuack", "LOG"):
+                with self.subTest(section=section, code=code):
+                    data = self.make_archive()
+                    data["events"][0]["after"]["configurations"][0][section][-1][0] = code
+                    self.reject(data)
+        data = self.make_archive()
+        data["events"][3]["original_request"]["increments"][-1][0] = "ESP"
+        self.reject(data)
+
+    def test_rejects_invalid_pair_types_missing_pairs_and_duplicates(self):
+        for bad in ([], [["ATK", 1]] * 6, [["ATK", 1]], "ATK", None,
+                    [["ATK", 0], ["DEF", 0], ["VEL", 0], ["INT", 0], ["LOG", 0], ["CUACK", True]],
+                    [["ATK", 0], ["DEF", 0], ["VEL", 0], ["INT", 0], ["LOG", 0], ["CUACK", -1]],
+                    [["ATK", 0], ["DEF", 0], ["VEL", 0], ["INT", 0], ["LOG", 0], ["CUACK", 1.0]]):
+            with self.subTest(bad=bad):
+                data = self.make_archive()
+                data["current_state"]["configurations"][0]["increments"] = bad
+                self.reject(data)
+
+    def test_rejects_budget_and_bases_inconsistency(self):
+        for field, bad in (("budget", 46), ("budget", 0), ("budget", True),
+                           ("budget", -1), ("budget", 1.0)):
+            with self.subTest(field=field, bad=bad):
+                data = self.make_archive()
+                data["current_state"]["configurations"][0][field] = bad
+                self.reject(data)
+        data = self.make_archive()
+        data["current_state"]["configurations"][0]["bases"][0][1] = 1
+        self.reject(data)
+        data = self.make_archive()
+        data["current_state"]["configurations"][0]["increments"][0][1] = 46
+        self.reject(data)
+
+    def test_rejects_snapshot_structure_and_revisions(self):
+        for change in (lambda d: d["events"][0]["after"].pop("active_option"),
+                       lambda d: d["events"][0]["after"].update(unexpected=1),
+                       lambda d: d["events"][1]["after"].update(revision=7),
+                       lambda d: d["events"][1]["before"].update(revision=0),
+                       lambda d: d["current_state"].update(active_option="unknown"),
+                       lambda d: d["current_state"].update(progress_id=True),
+                       lambda d: d["current_state"].update(catalog_id=999),
+                       lambda d: d["current_state"]["configurations"].append(
+                           _legacy_deepcopy(d["current_state"]["configurations"][0]))):
+            data = self.make_archive()
+            change(data)
+            self.reject(data)
+
+    def test_rejects_event_keys_duplicates_and_order(self):
+        for change in (lambda d: d["events"][1].update(event_id=1),
+                       lambda d: d["events"][1].update(operation_key=d["events"][0]["operation_key"]),
+                       lambda d: d["events"][1].update(progress_id=200),
+                       lambda d: d["events"][1].update(operation_key="BAD"),
+                       lambda d: d["events"][1].update(action="switch"),
+                       lambda d: d["events"][1]["original_request"].pop("action"),
+                       lambda d: d["events"][1]["original_request"].update(action="redistribute"),
+                       lambda d: d["events"][1]["original_request"].update(expected_revision=True)):
+            data = self.make_archive()
+            change(data)
+            self.reject(data)
+        data = self.make_archive()
+        data["events"] = list(reversed(data["events"]))
+        self.reject(data)
+
+    def test_rejects_bad_transitions_and_altered_other_options(self):
+        mutations = (
+            lambda d: d["events"][0]["after"].update(active_option=None),
+            lambda d: d["events"][2]["after"].update(active_option=OPTION_CODES[2]),
+            lambda d: d["events"][2]["after"]["configurations"][0].update(revision=2),
+            lambda d: d["events"][3]["original_request"].update(configuration_revision=2),
+            lambda d: d["events"][3]["after"]["configurations"][1]["increments"][0].__setitem__(1, 3),
+            lambda d: d["events"][3]["original_request"].update(expected_revision=2),
+            lambda d: d["events"][3]["original_request"].update(increments=None),
+        )
+        for mutate in mutations:
+            data = self.make_archive()
+            mutate(data)
+            self.reject(data)
+
+    def test_empty_or_unsorted_histories_rejected(self):
+        for events in ([], (), None, "events"):
+            data = self.make_archive()
+            data["events"] = events
+            self.reject(data)
+        data = self.make_archive()
+        data["events"] = data["events"][1:]
+        self.reject(data)
+
+    def test_rejects_unmatched_final_state_and_bad_catalog(self):
+        data = self.make_archive()
+        data["current_state"]["revision"] = 3
+        self.reject(data)
+        data = self.make_archive()
+        data["current_state"]["configurations"][0]["catalog_id"] = "alien"
+        self.reject(data)
+        data = self.make_archive()
+        data["events"][0]["after"]["configurations"][0]["definition_version"] = "persist-stats-demo-esp-v2"
+        self.reject(data)
+
+    def test_module_has_no_a4_django_or_io_dependencies(self):
+        import inspect
+        source = inspect.getsource(legacy_archive)
+        for item in ("target_stats_validation", "target_stats_preparation",
+                     "target_stats_config_validation", "django.", "sqlite3", ".objects", "open("):
+            self.assertNotIn(item, source)
+        self.assertEqual(self.check().definition_version, legacy_archive.LEGACY_DEFINITION_VERSION)

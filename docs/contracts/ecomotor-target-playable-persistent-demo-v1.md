@@ -164,3 +164,38 @@ es `apps.ecomotor.ecomotor_target_demo`; settings, SQLite y URL no cambian.
 Las migraciones 0001–0003, tablas, ContentTypes, sesiones y tokens mantienen su
 identidad. No ejecutar fake, recrear tablas ni borrar bases para efectuar el traslado.
 [Decisión y alcance](../decisions.md#consolidación-a-01--reorganización-física-del-laboratorio).
+## Precisión DIAG-ATR-OBJ-02-SNAP-01 · Lector histórico separado, Fase A · 08/11/2026
+
+**Decisión interna posterior:** [DIAG-ATR-OBJ-02-SNAP-01](../decisions.md#diag-atr-obj-02-snap-01--compatibilidad-sintética-histórica-cuack--fase-a--08112026)
+autoriza un lector puro de archivo histórico CUACK para datos exclusivamente
+sintéticos; **no convierte este contrato original en un sistema ESP implementado**.
+Las referencias anteriores a CUACK describen el formato almacenado de la demo
+vigente, no el atributo canónico del Ecomotor objetivo, que por
+[ATR-OBJ-02](../decisions.md#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026)
+es ESP.
+
+| Formato | Versión interna exacta | Claves históricas o futuras |
+| --- | --- | --- |
+| Legacy, solo lectura futura | `persist-stats-demo-2026-10-22-v1` | `ATK, DEF, VEL, INT, LOG, CUACK` |
+| ESP objetivo para demo futura | `persist-stats-demo-esp-v2` | `ATK, DEF, VEL, INT, LOG, ESP` |
+
+**Contrato del nuevo lector Fase A:** `validate_legacy_playable_archive(*,
+progress_id, catalog_pk, catalog_id, catalog_version, events, current_state)`
+acepta estructuras JSON explícitas; cada evento contiene `event_id`,
+`progress_id`, `operation_key`, `action`, `option_code`, `original_request`,
+`before` y `after`. `current_state` conserva el esquema del snapshot final
+`progress_id`, `catalog_id` (PK), `revision`, `active_option` y
+`configurations`. El módulo replica solo las garantías históricas de validación:
+seis claves estrictas, versión y catálogo coherentes, presupuesto 45, bases cero,
+enteros exactos, cálculos, cadena ordenada, unicidad y relaciones entre transiciones
+y estado actual. Exige **al menos un evento** para reconocer un archivo CUACK;
+una partida sin configuraciones no se identifica por inferencia como legada.
+Devuelve dataclasses inmutables específicas, nunca objetos A4 autorizados.
+
+El lector no se invoca desde la app en esta fase; no importa A4 ni Django,
+no hace IO, consultas, escrituras, conversiones, fallback ni reparación.
+La Fase B futura decidirá selección de lector y bloqueo efectivo de todos los
+POST jugables legados, incluidos replay y no-op. **En el HEAD actual esos
+bloqueos aún no están integrados.** La interfaz de XP/Rewards sintéticos y
+el aislamiento físico de SQLite no cambian. Sin efecto sobre los contratos
+productivos, User/Core, V1 ni migraciones.

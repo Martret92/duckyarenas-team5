@@ -2331,3 +2331,36 @@ hasta completar la corrección de nomenclatura y el análisis técnico posterior
 [resolución A4.4](contracts/ecomotor-target-stats-resolution-v1.md),
 [opciones objetivo](contracts/ecomotor-playable-options-target-v1.md) y
 [pendientes](pending-decisions.md#35-atr-obj-02--nomenclatura-y-transición-pendientes--07112026).
+## DIAG-ATR-OBJ-02-SNAP-01 · Compatibilidad sintética histórica CUACK · Fase A · 08/11/2026
+
+**Decisión técnica interna de Equipo 5 / 02C-3; no es requisito literal de DAR3 ni
+confirmación de Óscar.** Se aprueba conservar intactas las configuraciones y los
+eventos sintéticos antiguos CUACK, mediante un lector histórico separado, estricto,
+inmutable y de solo lectura. No se aprueba convertir datos, admitir alias globales,
+reparar históricos o reescribir bases personales. Véase [ATR-OBJ-02](#atr-obj-02--esp-como-sexto-atributo-objetivo--07112026).
+
+| Formato | Identificador interno exacto | Códigos de sus datos |
+| --- | --- | --- |
+| Histórico sintético CUACK | `persist-stats-demo-2026-10-22-v1` | `ATK, DEF, VEL, INT, LOG, CUACK` |
+| Futuro sintético ESP | `persist-stats-demo-esp-v2` | `ATK, DEF, VEL, INT, LOG, ESP` |
+
+**Fase A autorizada, exclusivamente:** módulo puro
+`ecomotor_target_demo/legacy_stats_archive.py`, pruebas en `demo_tests.py` y esta
+documentación. El lector recibe eventos y estado final explícitos, verifica
+estructura y versión, seis pares canónicos, tipos exactos, bases cero originales,
+presupuesto sintético de 45, cálculos, identidades, revisiones, transiciones y
+concordancia entre cadena y estado final; devuelve objetos inmutables históricos
+**distintos** de los preparados A4. No realiza consultas ni escrituras de BD.
+
+**No confundir disponer de un lector con usarlo en producción o en la demo:** en
+esta fase no se conecta a `playable_services.py`, vistas, formularios o URLs.
+El código integrado seguirá usando CUACK hasta la corrección A4 posterior. La
+selección de lectores, el bloqueo de configurar/cambiar/redistribuir/replay POST
+en partidas legadas y su presentación HTML quedan para **Fase B con autorización
+expresa**. No se activan nuevas configuraciones ESP, modelos, migraciones,
+servicios productivos ni cambios en V1, S2-A, S3 o S7-A. El encargo matemático
+`A4-45+5-MATH-01` permanece suspendido.
+
+[Contrato de laboratorio](contracts/ecomotor-target-playable-persistent-demo-v1.md)
+y [pendientes](pending-decisions.md) describen la transición sin prometer un
+bloqueo de POST todavía inexistente.
