@@ -2364,3 +2364,48 @@ servicios productivos ni cambios en V1, S2-A, S3 o S7-A. El encargo matemático
 [Contrato de laboratorio](contracts/ecomotor-target-playable-persistent-demo-v1.md)
 y [pendientes](pending-decisions.md) describen la transición sin prometer un
 bloqueo de POST todavía inexistente.
+
+
+## DIAG-ATR-OBJ-02-SNAP-01 · Fase B · Compatibilidad CUACK y ESP · 08/11/2026
+
+**Autorización expresa interna de 02C-3 / Equipo 5.** Implementación propuesta
+para revisión en una única Draft PR, posterior a Fase A (#136). DAR3 conserva
+la autoridad funcional; no se atribuye ratificación a Óscar, Core ni consumidores.
+Se conserva ATR-OBJ-01 como antecedente parcialmente sustituido y ATR-OBJ-02
+como decisión de nomenclatura objetivo. No se alteran sus registros históricos.
+
+- A4.1 acepta exactamente `ATK, DEF, VEL, INT, LOG, ESP`, en ese orden de
+  resultado; rechaza CUACK/SPE. Se conservan firmas, tipos exactos, cálculos,
+  presupuesto explícito, pureza, inmutabilidad y copias defensivas de A4.1–A4.3.1.
+- A4.4.1 no incorpora proveedor ni fuente: continúa rechazando con
+  `TargetStatsSourceUnavailableError`. No se activa configuración oficial.
+- Las nuevas configuraciones sintéticas utilizan `persist-stats-demo-esp-v2`,
+  bases cero y 45 puntos por opción. No se introducen vectores 45+5.
+- La clasificación jugable se efectúa bajo `_scope()`, propiedad de sesión y
+  transacción SQLite IMMEDIATE, sobre todos los eventos, configuraciones y
+  estado: EMPTY, LEGACY_CUACK, CURRENT_ESP o rechazo INVALID.
+- EMPTY exige ausencia de las tres clases de filas. CURRENT_ESP exige versión
+  V2 exacta en toda la evidencia, validación A4 y concordancia histórica final.
+  Mezclas, versiones desconocidas, huérfanos y corrupción fallan cerrados.
+- LEGACY_CUACK exige cadena homogénea V1 no vacía y validación explícita mediante
+  el lector puro de Fase A, sin modificarlo ni recurrir a A4 por fallback.
+  Se conservan JSON, pares ordenados, claves, versiones, revisiones y timestamps.
+- El servicio rechaza emisión de tokens y configure/switch/redistribute legados,
+  incluido replay, revisión obsoleta y no-op, antes de evaluar solicitudes ESP,
+  buscar replay o escribir. Primero se comprueba la autorización del token.
+  El bloqueo de archivo válido tiene error específico de conflicto (409);
+  historia inválida produce error de integridad (también 409), sin reparación.
+- GET legado muestra DTO históricos específicos, nunca `.prepared`, y no emite
+  formularios/tokens jugables ni reutiliza o borra `playable_last`. Un formulario
+  histórico CUACK reconocible solo se analiza para rechazarlo: no se convierte
+  en una configuración ESP. Campos inválidos: 400; sesión/token ajeno: 403;
+  CSRF sigue activo. XP/Rewards, Bank e inventario mantienen fronteras propias.
+
+No se modifican modelos, migraciones, SQLite personales, backend, routers,
+settings, runner, V1/S2-A/S3/S7-A ni servicios productivos. No hay alias,
+conversión, migración de datos, reparación ni borrado. La integración con Core,
+fuentes confiables y activación productiva siguen pendientes.
+`A4-45+5-MATH-01` permanece suspendida.
+
+[Contrato jugable persistente](contracts/ecomotor-target-playable-persistent-demo-v1.md)
+y [pendientes](pending-decisions.md#37-diag-atr-obj-02-snap-01--fase-b--08112026).

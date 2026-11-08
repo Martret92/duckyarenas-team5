@@ -1,5 +1,17 @@
 # A3-TARGET-DEMO-01 · Demo navegable del Ecomotor objetivo
 
+> **Corte técnico posterior · Fase B · 08/11/2026.** Esta PR implementa
+> [DIAG-ATR-OBJ-02-SNAP-01 · Fase B](../decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026),
+> autorizada internamente por 02C-3. A4 usa `ATK, DEF, VEL, INT, LOG, ESP`;
+> `CUACK` y `SPE` no son alias aceptados por A4. Los antecedentes ATR-OBJ-01,
+> ATR-OBJ-02 y Fase A conservan su fecha y describen sus respectivos cortes.
+> El código propuesto en esta PR sustituye el estado técnico anterior que
+> todavía indicaba CUACK en los validadores; no atribuye aprobación a Óscar/Core.
+> La demo nueva usa `persist-stats-demo-esp-v2`, bases cero y presupuesto
+> sintético 45 por opción. El archivo `persist-stats-demo-2026-10-22-v1`
+> conserva CUACK sin conversión y queda cerrado a toda operación jugable.
+> A4.4.1 sigue sin fuente confiable; 45+5 y A4-45+5-MATH-01 no se implementan.
+
 **Aprobación interna Equipo 5 / 02C-2: 22/10/2026. Implementación en PR para revisión.**
 DAR3 mantiene la autoridad funcional. La demo no constituye integración global,
 publicación, autorización de catálogo ni activación del escritor objetivo.
