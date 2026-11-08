@@ -1,5 +1,8 @@
 # Decisiones pendientes · Consolidación V2 y Rewards v0
 
+> **Corte posterior · 08/11/2026:** ver [§39](#39-henry-stats-l8-01) para
+> las aclaraciones de Henry y las cinco puertas abiertas del nivel 8.
+
 ## 1. Marco vigente
 
 **Actualización 02C · 20/10/2026:** base develop `8401d46`, S13-A1 (#47) y S14-A
@@ -1068,3 +1071,31 @@ merge ni uso productivo de las bases candidatas.
 
 [Decisión y entradas](decisions.md#a4-455-math-01--política-matemática-histórica-pura--08112026)
 y [contrato](contracts/ecomotor-target-stats-config-v1.md#13-a4-455-math-01--política-histórica-pura-candidata--08112026).
+
+## 39. HENRY-STATS-L8-01
+
+**Pendientes de transición estadística y consumo · 08/11/2026.**
+Henry ha comunicado el régimen 45+5 en niveles 1–7 y, desde nivel 8,
+un reparto libre único de hasta 50 con máximo 12 por atributo, sin exigir
+elección de especialización. El reinicio a cero y aviso es una **propuesta**
+con conformidad comunicada de Jaime y Henry, no solución ratificada.
+El corte anterior §38 precedía al merge de la matemática pura #138 y permanece
+como antecedente fechado; #138 ya está integrada, pero no conectada a jugadores.
+
+| Decisión aún abierta | Validación y propietarios necesarios |
+| --- | --- |
+| Compatibilidad DuckyClash | Confirmar expresamente con DuckyClash si sus reglas aceptan seis estadísticas simultáneamente a cero; documentar respuesta antes de acordar el reseteo. No suponer mínimos ni valores por defecto. |
+| Reinicio y aviso al entrar en nivel 8 | Ratificación arquitectónica definitiva de reinicio a cero, transición una sola vez, momento, aviso, conservación de estado anterior y tratamiento de reintentos. La conformidad con la propuesta no equivale a autorización de despliegue. |
+| Conciliación de T-01/T-02/T-03 y SVC-OP-01…04 | Decidir qué permanece de la selección de opciones, cambio de vestimenta y lectura efectiva y qué se sustituye de las configuraciones independientes por una distribución única desde nivel 8. No reescribir antecedentes ni afirmar que cambiar de vestimenta cambia stats. |
+| Persistencia, historia y concurrencia | Diseñar estados/transiciones/versiones, conservación de configuración 45+5, idempotencia, bloqueo concurrente, replays, migración y contratos de identidad/autorización con Core, sin crear todavía modelos o migraciones. |
+| Procedencia y contratos con consumidores | Conservar la atribución de imagen original comunicada por Henry el 06/11/2026 sin elevarla a fuente publicada; confirmar catálogo y versión autorizados, DuckyClash, otros juegos y propietarios antes de activar estadísticas. |
+
+El límite de **12** solo corresponde al régimen comunicado desde nivel 8;
+no se impone a bases históricas de 45 (p. ej. Roma tiene DEF=13).
+Los validadores puros A4 actuales no imponen por sí mismos esa regla funcional.
+A4.4.1 continúa cerrado. No hay activación de 45+5 ni de 50 libres, ni cambios
+sobre V1, Core, servicios productivos o SQLite personales.
+
+[Registro de autoridad y propuesta](decisions.md#henry-stats-l8-01),
+[contrato jugable en conflicto](contracts/ecomotor-playable-options-target-v1.md#12-henry-stats-l8-01)
+y [arquitectura](architecture.md#henry-stats-l8-01).

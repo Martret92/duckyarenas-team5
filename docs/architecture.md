@@ -1,5 +1,9 @@
 # Arquitectura del Equipo 5 · Estado integrado y Rewards v0 candidato
 
+> **Corte documental vigente · 08/11/2026:** [HENRY-STATS-L8-01](#henry-stats-l8-01)
+> distingue el régimen histórico 45+5 (niveles 1–7) del reparto libre
+> compartido desde nivel 8. El reinicio a cero sigue pendiente de ratificación.
+
 > **Corte técnico posterior · Fase B · 08/11/2026.** Esta PR implementa
 > [DIAG-ATR-OBJ-02-SNAP-01 · Fase B](decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026),
 > autorizada internamente por 02C-3. A4 usa `ATK, DEF, VEL, INT, LOG, ESP`;
@@ -1340,3 +1344,43 @@ sigue pendiente de diagnóstico, sin atribución causal a Rewards.
 Los [pendientes](pending-decisions.md#33-int-a-00--puertas-de-integración-progresiva--26102026)
 mantienen estas puertas abiertas. Sin código, migraciones, seeds, cambios de
 despliegue o eliminación/refactorización del laboratorio en INT-A-00.
+
+## HENRY-STATS-L8-01
+
+**Arquitectura conceptual pendiente de conciliación · 08/11/2026.**
+Las aclaraciones funcionales de Henry distinguen el régimen de épocas
+históricas (niveles 1–7: bases 45 + hasta 5 por época, redistribución
+sin máximo 12) del régimen desbloqueado **automáticamente desde nivel 8**
+(una distribución libre compartida de hasta 50, máximo 12 por atributo,
+reparto parcial y redistribución, sin exigir elegir especialización).
+La vestimenta histórica no revierte las estadísticas al régimen 45+5.
+Estos son acuerdos funcionales comunicados, **no implementación productiva**.
+
+La propuesta de reiniciar los seis atributos a cero, ofrecer 50 libres y
+mostrar un aviso cuenta con conformidad comunicada de Jaime y Henry,
+pero sigue **sin ratificación arquitectónica final**. DuckyClash debe
+confirmar expresamente la admisibilidad de seis estadísticas a cero.
+Ningún componente debe suponer mínimos aceptados por los juegos.
+
+**Fronteras y responsabilidades:** Ecomotor/E5 es futuro propietario de
+la política, cálculo y consulta efectivos; Henry/Duckies mantiene la
+apariencia/vestimenta; Core/Equipo 0 debe autorizar identidad, transiciones
+y contratos compartidos; DuckyClash y los demás juegos deben validar
+su consumo. No se derivan modelos, tablas, endpoints o instrucciones de
+migración de esta aclaración.
+
+T-01/T-02/T-03 y SVC-OP-01…04 conservan su alcance anterior por opción;
+el conflicto con la distribución única desde nivel 8 requiere una decisión
+posterior explícita sobre selección, estado compartido, historia, revisiones,
+idempotencia, concurrencia, persistencia y lectura de efectivas.
+
+La tabla original de 50 se atribuye, según coordinación, a una imagen
+comunicada por Henry el 06/11/2026; esta PR no verifica el soporte original.
+Hamilton y las bases de 45 son decisiones internas y la biblioteca pura
+#138 está integrada, sin fuente publicable ni autorización A4.4.1.
+No se modifican demos, producción, S2-A, S3, S7-A, V1, Core ni Rewards.
+
+[Decisiones y procedencia](decisions.md#henry-stats-l8-01),
+[conciliación de opciones](contracts/ecomotor-playable-options-target-v1.md#12-henry-stats-l8-01),
+[contrato de configuración](contracts/ecomotor-target-stats-config-v1.md#14-henry-stats-l8-01)
+y [pendientes](pending-decisions.md#39-henry-stats-l8-01).

@@ -1,5 +1,9 @@
 # Registro de decisiones
 
+> **Corte documental posterior · 08/11/2026:** las reglas comunicadas por Henry para
+> niveles 1–7 y desde nivel 8 se registran en [HENRY-STATS-L8-01](#henry-stats-l8-01).
+> El reinicio a cero es una propuesta conforme de Jaime/Henry, no decisión productiva ratificada.
+
 Este es el registro principal de acuerdos y decisiones técnicas. Las propuestas
 pendientes se mantienen separadas de las decisiones confirmadas.
 
@@ -2451,3 +2455,52 @@ Su integración queda sujeta a revisión posterior de 02C-3.
 
 [Contrato matemático A4.2](contracts/ecomotor-target-stats-config-v1.md#13-a4-455-math-01--política-histórica-pura-candidata--08112026)
 y [pendientes](pending-decisions.md#38-a4-455-math-01--pendientes-de-integración--08112026).
+
+## HENRY-STATS-L8-01
+
+**Aclaraciones funcionales y propuesta de transición · 08/11/2026.**
+Este corte recoge las reglas transmitidas por Henry y dadas por cerradas en
+coordinación el 08/11/2026. No las presenta como cifras literales de DAR3 ni
+como una ratificación técnica de Óscar, Core o los equipos consumidores.
+DAR3 mantiene la autoridad funcional general para progreso, evolución e historial.
+
+| Tramo | Regla funcional comunicada por Henry | Alcance y distinción |
+| --- | --- | --- |
+| Niveles 1–7 | Bases específicas de **45** por época histórica y **5** puntos adicionales propios, con reparto parcial y redistribución en cualquier momento. | El máximo de 12 por atributo del tramo posterior **no se aplica** retroactivamente; cada época histórica conserva su configuración según las decisiones internas A4-45+5-BASE/BUDGET/PARTIAL/EPOCH-01. |
+| Desde nivel 8 | Se desbloquea **automáticamente** el reparto libre de **hasta 50** puntos, aunque el jugador no elija especialización; máximo **12 por atributo**; puntos sin asignar permitidos y redistribución posterior. | Es una **distribución libre única compartida**, no un presupuesto nuevo por cada opción o vestimenta. Cambiar a una vestimenta histórica no restaura las estadísticas 45+5. |
+
+**Procedencia histórica de los originales de 50:** coordinación identifica ahora
+una **imagen comunicada por Henry el 06/11/2026** como origen de la tabla
+original; esta actualización registra la atribución comunicada, sin incorporar
+ni autenticar aquí la imagen. Los siete vectores recuperados y las bases
+resultantes siguen siendo **candidatos internos**. La conversión proporcional
+Hamilton 50→45, el desempate histórico y la tabla aprobada de 45 continúan
+siendo decisiones matemáticas internas de Equipo 5, no cifras aprobadas
+individualmente por Óscar. La implementación pura #138 ya está fusionada;
+no constituye un catálogo autorizado ni una activación de A4.4.1.
+
+**Propuesta técnica de transición, NO ratificada para producción:** al alcanzar
+nivel 8, reiniciar los seis atributos a cero, ofrecer 50 puntos libres y
+mostrar un aviso al jugador. Jaime y Henry comunicaron conformidad **con
+la propuesta**, pero no hay confirmación de que DuckyClash pueda consumir
+los seis atributos a cero ni aprobación arquitectónica definitiva de la
+transición. No ejecutar un reseteo, conversión ni modificación de datos.
+
+**Conciliación obligatoria antes de implementar:** T-01/T-02/T-03 y
+SVC-OP-01…04 describían configuraciones y presupuestos independientes por
+opción también después de nivel 8. Esa porción es **antecedente pendiente
+de revisión**, incompatible sin más con la distribución única compartida
+comunicada ahora. La elección jugable, las vestimentas y el estado estadístico
+no deben confundirse; el histórico 45+5 debe conservarse sin asumir su
+reactivación al cambiar de apariencia. No se seleccionan tablas, transiciones,
+identidades, eventos, permisos, controles de idempotencia o reglas de concurrencia
+mediante este registro.
+
+**Sin activación:** permanecen intactos Python, tests, modelos, migraciones,
+demos sintéticas (bases cero y presupuesto 45), V1, S2-A, S3, S7-A,
+Core, Rewards y servicios productivos. A4.4.1 sigue sin fuente confiable.
+
+[Conciliación de opciones](contracts/ecomotor-playable-options-target-v1.md#12-henry-stats-l8-01),
+[política por régimen](contracts/ecomotor-target-stats-config-v1.md#14-henry-stats-l8-01),
+[panorama arquitectónico](architecture.md#henry-stats-l8-01) y
+[decisiones abiertas](pending-decisions.md#39-henry-stats-l8-01).
