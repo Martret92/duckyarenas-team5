@@ -299,7 +299,7 @@ import sys
 sys.path.insert(0, {root!r})
 from apps.ecomotor.target_stats_preparation import prepare_target_stats_configuration
 from apps.ecomotor.target_stats_config_validation import validate_target_stats_definition
-codes = ('ATK', 'DEF', 'VEL', 'INT', 'LOG', 'CUACK')
+codes = ('ATK', 'DEF', 'VEL', 'INT', 'LOG', 'ESP')
 pairs = tuple((code, 0) for code in codes)
 definition = validate_target_stats_definition(option_code='synthetic', catalog_id='synthetic', catalog_version='r1', definition_version='r2', bases=pairs)
 result = prepare_target_stats_configuration(definition=definition, increments=pairs, budget=0)

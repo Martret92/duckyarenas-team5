@@ -35,7 +35,7 @@ class TargetStatsValidationTests(TestCase):
 
     def test_exact_six_codes_and_effective_calculation(self):
         result = self.validate()
-        self.assertEqual(TARGET_STAT_CODES, ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK"))
+        self.assertEqual(TARGET_STAT_CODES, ("ATK", "DEF", "VEL", "INT", "LOG", "ESP"))
         self.assertEqual(result.bases, tuple(self.bases))
         self.assertEqual(result.increments, tuple(self.increments))
         self.assertEqual(result.effective, tuple(synthetic_pairs((11, 10, 6, 10, 9, 6))))
@@ -137,7 +137,7 @@ class TargetStatsValidationTests(TestCase):
 
     def test_invalid_noncanonical_codes_in_each_collection(self):
         for name in ("bases", "increments"):
-            for code in ("SPE", "atk", "ATK ", " ATK", "Cuack", "CUAK", "", "LOGISTICA"):
+            for code in ("CUACK", "SPE", "atk", "ATK ", " ATK", "Cuack", "CUAK", "", "LOGISTICA"):
                 with self.subTest(name=name, code=code), self.assertRaises(InvalidTargetStatsStructureError):
                     self.validate(**{name: [(code, 0)] + getattr(self, name)[1:]})
 

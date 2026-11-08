@@ -36,7 +36,7 @@ class TargetStatsDemoTests(SimpleTestCase):
     def test_five_labels_six_controls_and_submit_button(self):
         response = self.client.get(self.url)
         for label in ("Developer", "Ciber", "Sistemas", "Data IA", "Gamer",
-                      "Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Cuak",
+                      "Ataque", "Defensa", "Velocidad", "Inteligencia", "Lógica", "Especial",
                       "Comprobar reparto"):
             self.assertContains(response, label)
         for code in TARGET_STAT_CODES:
@@ -138,7 +138,7 @@ class TargetStatsDemoTests(SimpleTestCase):
                 self.assertContains(response, "campos no permitidos", status_code=400)
 
     def test_code_replacement_is_not_normalized(self):
-        for code in ("SPE", "atk", " ATK", "ATK "):
+        for code in ("CUACK", "SPE", "atk", " ATK", "ATK "):
             data = self.payload()
             data[code] = data.pop("ATK")
             with self.subTest(code=code):

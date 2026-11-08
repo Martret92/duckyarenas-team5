@@ -95,7 +95,7 @@ def run(root, scenario):
 
     def allocation(points):
         return tuple((code, points if i == 0 else 0)
-                     for i, code in enumerate(("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")))
+                     for i, code in enumerate(("ATK", "DEF", "VEL", "INT", "LOG", "ESP")))
 
     class RewardsBankTests(unittest.TestCase):
         def setUp(self):

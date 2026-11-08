@@ -112,7 +112,7 @@ class TargetStatsDefinitionTests(TestCase):
             self.validate(bases=[])
 
     def test_extra_attribute_and_seventh_spe_are_rejected(self):
-        for code in ("SPE", "EXTRA", "LOGIC"):
+        for code in ("CUACK", "SPE", "EXTRA", "LOGIC"):
             with self.subTest(code=code), self.assertRaises(InvalidTargetStatsDefinitionStructureError):
                 self.validate(bases=synthetic_bases() + [[code, 0]])
 
@@ -131,7 +131,7 @@ class TargetStatsDefinitionTests(TestCase):
         class Text(str):
             pass
 
-        for code in ("SPE", "atk", " ATK", "ATK ", "AtK", None, 1, True, Text("ATK")):
+        for code in ("CUACK", "SPE", "atk", " ATK", "ATK ", "AtK", None, 1, True, Text("ATK")):
             bases = synthetic_bases()
             bases[0][0] = code
             with self.subTest(code=repr(code)), self.assertRaises(InvalidTargetStatsDefinitionStructureError):

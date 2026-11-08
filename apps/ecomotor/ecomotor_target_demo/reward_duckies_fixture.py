@@ -514,7 +514,7 @@ def run(root, scenario):
             revision = None
             for option in ("persist-demo-tech-gamer", "persist-demo-epoch-3"):
                 configured = playable.configure_demo_option(self.progress, option_code=option,
-                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "ESP")),
                     operation_token=playable.issue_playable_operation(self.progress, action="configure", session_token=secret),
                     session_token=secret, expected_revision=revision)
                 revision = configured.after.revision
@@ -861,7 +861,7 @@ def run(root, scenario):
                             self.apply(second_token, "coin_challenge", progress)
                         elif mode == "playable":
                             playable.configure_demo_option(progress, option_code="persist-demo-tech-gamer",
-                                increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                                increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "ESP")),
                                 operation_token=second_token, session_token=secret)
                         else:
                             services.grant_demo_target_xp(progress, amount=700,
@@ -1287,7 +1287,7 @@ def run(root, scenario):
             revision = None
             for option in ("persist-demo-tech-gamer", "persist-demo-epoch-3"):
                 result = playable.configure_demo_option(progress, option_code=option,
-                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "CUACK")),
+                    increments=tuple((code, 0) for code in ("ATK", "DEF", "VEL", "INT", "LOG", "ESP")),
                     operation_token=playable.issue_playable_operation(progress, action="configure", session_token=client.session["demo_secret"]),
                     session_token=client.session["demo_secret"], expected_revision=revision)
                 revision = result.after.revision

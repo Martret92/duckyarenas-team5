@@ -1032,3 +1032,20 @@ requisito literal DAR3.
 El lector Fase A, cuando se integre, **no desbloqueará por sí solo la lectura HTTP
 ni bloqueará escrituras en partidas legadas**. No modificar SQLite personal,
 modelos, migraciones, S2-A, S3, S7-A, V1 ni XP/Rewards productivos.
+
+
+## 37. DIAG-ATR-OBJ-02-SNAP-01 · Fase B · 08/11/2026
+
+[Decisión interna Fase B](decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026).
+El estado pendiente de Fase B en §36 corresponde al corte anterior de Fase A.
+La implementación coordinada se propone ahora para revisión: lector CUACK
+conectado únicamente a lectura histórica, bloqueo jugable efectivo y ESP
+canónico en A4/demos nuevas. Sin conversión de partidas ni alias.
+
+| Pendiente | Límite vigente |
+| --- | --- |
+| Fase B | Implementación coordinada y regresiones realizadas; pendiente de revisión arquitectónica de la Draft PR y autorización de integración. |
+| Partidas CUACK | Lectura verificada exclusivamente; no configurar, cambiar, redistribuir, replay POST, no-op ni emitir tokens jugables. Conservar evidencia original. |
+| Catálogos y fuentes | No se publican bases oficiales ni se desbloquea A4.4.1; fuente confiable y autorización de consumidores/Core pendientes. |
+| 45+5 | Siete vectores históricos conservados documentalmente; ninguna implementación matemática. A4-45+5-MATH-01 sigue suspendida. |
+| Producción y V1 | Sin cambios a S2-A/S3/S7-A ni a la identidad o datos V1. Sin aprobación externa nueva. |

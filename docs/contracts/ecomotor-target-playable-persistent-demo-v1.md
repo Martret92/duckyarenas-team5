@@ -1,5 +1,17 @@
 # A4-TARGET-PERSIST-DEMO-01 · Opciones y estadísticas persistentes de demo
 
+> **Corte técnico posterior · Fase B · 08/11/2026.** Esta PR implementa
+> [DIAG-ATR-OBJ-02-SNAP-01 · Fase B](../decisions.md#diag-atr-obj-02-snap-01--fase-b--compatibilidad-cuack-y-esp--08112026),
+> autorizada internamente por 02C-3. A4 usa `ATK, DEF, VEL, INT, LOG, ESP`;
+> `CUACK` y `SPE` no son alias aceptados por A4. Los antecedentes ATR-OBJ-01,
+> ATR-OBJ-02 y Fase A conservan su fecha y describen sus respectivos cortes.
+> El código propuesto en esta PR sustituye el estado técnico anterior que
+> todavía indicaba CUACK en los validadores; no atribuye aprobación a Óscar/Core.
+> La demo nueva usa `persist-stats-demo-esp-v2`, bases cero y presupuesto
+> sintético 45 por opción. El archivo `persist-stats-demo-2026-10-22-v1`
+> conserva CUACK sin conversión y queda cerrado a toda operación jugable.
+> A4.4.1 sigue sin fuente confiable; 45+5 y A4-45+5-MATH-01 no se implementan.
+
 Aprobación **interna de Equipo 5 / 02C-2 del 22/10/2026**. Implementación para
 revisión en 01B sobre develop `9e1a66a8fcd081306e0abc6bbcb4925f683cf463`, que
 incluye PR #96 de Henry. DAR3 conserva autoridad funcional. No es autorización
@@ -199,3 +211,63 @@ POST jugables legados, incluidos replay y no-op. **En el HEAD actual esos
 bloqueos aún no están integrados.** La interfaz de XP/Rewards sintéticos y
 el aislamiento físico de SQLite no cambian. Sin efecto sobre los contratos
 productivos, User/Core, V1 ni migraciones.
+
+
+## Fase B · Contrato de lectura y cierre jugable · 08/11/2026
+
+La selección de lector ya no se decide por excepción: bajo `_scope()` se cargan
+todas las filas y versiones, estableciendo previamente propiedad y catálogo.
+EMPTY solo admite ausencia total de eventos, configuraciones y estado. Cualquier
+combinación parcial es inválida. V1 homogénea se envía al lector de archivo con
+los JSON originales; V2 homogénea exige `persist-stats-demo-esp-v2` exacto y A4
+ESP. Ambos caminos contrastan toda la cadena y el estado actual. No hay fallback.
+
+`read_demo_playable` mantiene `(state, history)`: para CUACK devuelve las
+representaciones inmutables de Fase A; para ESP conserva las representaciones
+vigentes con preparación A4. `is_legacy(state)` permite a la vista distinguirlas
+sin convertir el archivo en configuración autorizada. La consulta admite
+`operation_token` y `action` opcionales para verificar la pertenencia del token
+dentro de `_scope()` antes de interpretar un formulario POST; no emite tokens
+ni autoriza una mutación por esa validación. El módulo histórico no se modifica. Una partida vacía puede iniciar ESP aunque su fecha sea anterior.
+
+La consulta GET legada devuelve 200, estadísticas CUACK e historia originales,
+sin emitir tokens ni formularios jugables. No borra ni adapta `playable_last`.
+El cierre se aplica también en el servicio: emisión de token y cualquier
+configure/switch/redistribute, replay o no-op se rechazan. Un token ajeno o
+alterado se rechaza antes del conflicto de solo lectura; no se revela una
+partida ajena. La vista reconoce el formulario histórico cerrado para rechazar
+su operación, nunca para escribir o convertir su reparto. Campos adicionales,
+duplicados, ausentes o números inválidos: 400. CSRF/acceso/token: 403. Archivo
+CUACK válido bloqueado: 409 específico. Historia incoherente: 409 de integridad.
+
+XP/Rewards y las consultas Bank/inventario permanecen independientes del cierre
+jugable. GET puede mantener sesiones Django y emitir sus tokens propios; eso no
+representa DML sobre configuraciones, estado o eventos jugables. Las lecturas
+no prometen una única instantánea global de la página.
+
+En ESP se conservan PRG, seis campos canónicos, revisiones, idempotencia y
+prioridad de revisión de switch; no-op y replay compatibles no crean eventos.
+La nueva definición mantiene presupuesto provisional 45 y bases cero. Sin
+45+5, fuente A4.4.1, migraciones, datos oficiales ni integración productiva.
+
+
+### Evidencia de regresión de Fase B · 08/11/2026
+
+En configuración externa aislada y con auditoría de aperturas SQLite: 26 casos
+focalizados (14 nuevos y los 12 de Fase A) aprobados en 57,442 s; regresión A4 y
+demos: 191 ejecutados, 189 aprobados y 2 omitidos, en 29,286 s. El DemoRunner
+original completo ejecutó su fase habitual (1.414 tests, 1.412 aprobados y 2
+omitidos, 214,022 s) y su fase persistente (170 padres aprobados, sin fallos,
+errores ni omisiones, 820,851 s). Sus 41 subprocesos completaron 116 casos hijos
+satisfactorios, contados por separado. Los focalizados son subconjuntos de las
+suites y no se suman nuevamente al total. Descubrimiento: 170 padres únicos.
+
+Django check sin incidencias; autodetector normal sin cambios y grafo de modelos
+persistentes coincidente con migraciones, sin abrir una base personal. Lector y
+12 tests de Fase A intactos; conservación de JSON/timestamps y ausencia de DML
+jugable comprobadas en lectura y rechazos HTTP. Siete archivos personales con
+existencia y SHA-256 idénticos; fixtures temporales cerrados y retirados.
+La primera prueba ampliada detectó un 400 en lugar de 403 para un token de otra
+partida con campos antiguos: se corrigió la prioridad de autorización y pasó la
+repetición focalizada y el runner completo. No se relajaron tests históricos.
+Estos resultados no validan datos oficiales ni una integración productiva.
