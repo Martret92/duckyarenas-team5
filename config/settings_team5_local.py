@@ -11,6 +11,10 @@ INSTALLED_APPS = [
     for app in INSTALLED_APPS
 ]
 
+INSTALLED_APPS += [
+    "devtools.team5_local.commands_app.Team5LocalCommandsConfig",
+]
+
 TEAM5_LOCAL_ISOLATED = True
 
 LOGIN_URL = "/accounts/login/"
