@@ -39,11 +39,11 @@ class Team5LocalConfig(AppConfig):
         # Ãºnicamente durante la ejecuciÃ³n normal de la demo.
         from django.contrib.auth import get_user_model
         from django.db.models.signals import post_save
-        from apps.bank.models import Wallet
+        from apps.bank.services import ensure_wallet_provisioned
 
         def provision_local_wallet(sender, instance, created, **kwargs):
             if created:
-                Wallet.objects.get_or_create(user=instance)
+                ensure_wallet_provisioned(instance)
 
         post_save.connect(
             provision_local_wallet,
