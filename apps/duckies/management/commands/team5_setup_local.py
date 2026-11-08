@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from apps.duckies.team5_local.seed import seed
+from devtools.team5_local.seed import seed
 
 class Command(BaseCommand):
     help = 'Carga SOLO catálogos sintéticos de la base local aislada.'

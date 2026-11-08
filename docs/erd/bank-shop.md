@@ -156,7 +156,7 @@ La integración de interfaz de PR #131 consume la presentación de Duckies desde
 
 `config/urls.py` en `develop` monta rutas de login/logout/registro, Duckies, Bank, Shop y UI globalmente. `config/settings_team5_local.py` cambia la base de datos, activa `TEAM5_LOCAL_ISOLATED` y configura rutas de login/redirect, pero no redefine `ROOT_URLCONF`. Por tanto, la separación demostrada por ese archivo es de configuración/base de datos y no acredita por sí sola que las rutas globales estén aisladas. La propiedad y aceptación de las rutas globales corresponde a Core; Parte C no debe corregir `config/urls.py` unilateralmente.
 
-En el entorno `TEAM5_LOCAL_ISOLATED`, `apps.duckies.team5_local.apps.Team5LocalConfig` registra una señal local que crea `Wallet` directamente al crear un usuario, y conecta el seed de Shop después de migraciones. Esa señal es específica del entorno local, no un flujo productivo. Existe ahora `ensure_wallet_provisioned`; sería preferible que el orquestador local invoque el servicio Bank en vez de manipular el modelo `Wallet` directamente, pero el cambio pertenece al propietario de la configuración local y debe coordinarse con Henry.
+En el entorno `TEAM5_LOCAL_ISOLATED`, `devtools.team5_local.apps.Team5LocalConfig` registra una señal local que crea `Wallet` directamente al crear un usuario, y conecta el seed de Shop después de migraciones. Esa señal es específica del entorno local, no un flujo productivo. Existe ahora `ensure_wallet_provisioned`; sería preferible que el orquestador local invoque el servicio Bank en vez de manipular el modelo `Wallet` directamente, pero el cambio pertenece al propietario de la configuración local y debe coordinarse con Henry.
 
 ## 6. Pruebas y evidencia
 
