@@ -315,3 +315,38 @@ Redistribución conserva bases confirmadas; cambio/lectura usan configuración p
 persistida, sin imponerles automáticamente vigencia de primera configuración.
 Reglas para definiciones retiradas/sustituidas/antiguas, fuentes reales, permisos
 y confirmación persistente siguen pendientes. Presupuesto provisional de §11 intacto.
+
+## 13. A4-45+5-MATH-01 · Política histórica pura candidata · 08/11/2026
+
+**Corte de implementación propuesto, no autorización funcional.** El módulo
+`apps/ecomotor/target_stats_historical_policy.py` implementa tres funciones
+puras para siete épocas históricas, sin modificar A4.1–A4.4.1 ni los datos.
+
+- `derive_historical_bases_45(original_50)`: recibe seis pares explícitos con
+  códigos A4 y enteros exactos no negativos que suman 50; reutiliza la
+  validación estructural de A4.1, aplica Hamilton usando el orden de desempate
+  **ATK, DEF, LOG, VEL, INT, ESP** y devuelve seis pares inmutables en el orden
+  **ATK, DEF, VEL, INT, LOG, ESP**.
+- `historical_epoch_bases_45(epoch_name)`: exige una de las siete etiquetas
+  internas exactas de la tabla de decisiones, sin alias ni normalizaciones.
+  Obtiene bases candidatas de 45 a partir de los originales de 50 recuperados.
+- `prepare_historical_epoch_allocation(*, epoch_name, increments)`: llama a
+  `validate_target_stats(bases, increments, budget=5)` para una sola época;
+  calcula efectivas, gastados y restantes (0–5) y devuelve
+  `HistoricalEpochAllocation(epoch_name, calculation)` inmutable, cuya
+  construcción directa revalida la correspondencia época/bases/presupuesto.
+
+Las estructuras se identifican por código, no por índice. Los errores A4 de
+estructura, tipos y presupuesto se conservan; la política diferencia etiqueta
+de época desconocida y vector original que no suma 50. No se crea una
+configuración autorizada, ni se publican identidades/versiones de catálogo.
+
+**Proveniencia:** los siete originales de 50 proceden del contexto recuperado
+del proyecto, sin fuente documental primaria localizada; no son cifras
+oficiales atribuidas a DAR3, Óscar o Core. Los siete resultados aprobados de
+45 constan en `docs/decisions.md` y se fijan independientemente en tests.
+
+No se aplican estos cinco puntos a especializaciones tecnológicas ni a las
+demos sintéticas anteriores (que conservan bases cero y presupuesto 45).
+A4.4.1 sigue cerrado. No se añade persistencia, respec, límites máximos,
+evolución automática, migración, conversión CUACK/ESP ni efectos productivos.
