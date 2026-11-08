@@ -44,7 +44,7 @@ class CrossAppAtomicityTests(IntegrationFixture):
         from apps.duckies.integration_services import grant_xp_and_sync_outfit
         from apps.ecomotor.models import XPEvent, EvolutionEvent
         with patch(
-            "apps.duckies.integration_services.sync_historical_outfit",
+            "apps.integrations.services.sync_historical_outfit",
             side_effect=ValueError("outfit sync failure"),
         ):
             with self.assertRaises(ValueError):
